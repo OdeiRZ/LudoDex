@@ -172,6 +172,103 @@ class BggClient
         ];
     }
 
+    /**
+     * Looks up a single game by its BGG id for the manual add/edit form's
+     * "import from BGG" button - unlike fetchCollection, /thing answers
+     * synchronously (no 202-while-queued state to poll).
+     *
+     * @return array{status: 'ready'|'error', message?: string, game?: array{bgg_id: int, name: string, image_url: ?string, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int, weight: ?float, mechanics: list<string>, categories: list<string>}}
+     */
+    public function fetchGameByBggId(int $bggId): array
+    {
+        if (blank(config('bgg.application_token'))) {
+            return [
+                'status' => 'error',
+                'message' => 'Falta configurar BGG_APPLICATION_TOKEN (BoardGameGeek exige un token de aplicación registrado; ver https://boardgamegeek.com/using_the_xml_api).',
+            ];
+        }
+
+        $response = $this->httpClient()->get(self::BASE_URL.'/thing', [
+            'id' => $bggId,
+            'stats' => 1,
+        ]);
+
+        if (! $response->successful()) {
+            return ['status' => 'error', 'message' => 'No se pudo contactar con BoardGameGeek.'];
+        }
+
+        $xml = @simplexml_load_string($response->body());
+
+        if ($xml === false || ! isset($xml->item)) {
+            return ['status' => 'error', 'message' => 'No se ha encontrado ningún juego con ese id en BoardGameGeek.'];
+        }
+
+        return ['status' => 'ready', 'game' => $this->parseFullGameDetail($xml->item)];
+    }
+
+    /**
+     * @return array{bgg_id: int, name: string, image_url: ?string, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int, weight: ?float, mechanics: list<string>, categories: list<string>}
+     */
+    private function parseFullGameDetail(SimpleXMLElement $item): array
+    {
+        $name = '';
+
+        foreach ($item->name as $nameLink) {
+            if ((string) $nameLink['type'] === 'primary') {
+                $name = (string) $nameLink['value'];
+
+                break;
+            }
+        }
+
+        $detail = $this->parseGameDetail($item);
+
+        return [
+            'bgg_id' => (int) $item['id'],
+            'name' => $name,
+            'image_url' => isset($item->image) && (string) $item->image !== '' ? (string) $item->image : null,
+            'min_players' => $this->intOrNull($item->minplayers['value'] ?? null),
+            'max_players' => $this->intOrNull($item->maxplayers['value'] ?? null),
+            'min_playtime_minutes' => $this->intOrNull($item->minplaytime['value'] ?? null),
+            'max_playtime_minutes' => $this->intOrNull($item->maxplaytime['value'] ?? null),
+            'weight' => $detail['weight'],
+            'mechanics' => $detail['mechanics'],
+            'categories' => $detail['categories'],
+        ];
+    }
+
+    /**
+     * Best-effort lookup for the profile's "usa mi avatar de BGG" feature -
+     * returns null (never throws) on any failure: missing token, unknown
+     * username, or no avatar set on that BGG account. The exact "no avatar"
+     * representation in BGG's response isn't confirmed against the real API
+     * yet (the application token is still pending approval - see README),
+     * so this treats a missing tag, an empty value and a literal "N/A" all
+     * the same way, defensively.
+     */
+    public function fetchUserAvatar(string $username): ?string
+    {
+        if (blank(config('bgg.application_token'))) {
+            return null;
+        }
+
+        $response = $this->httpClient()->get(self::BASE_URL.'/user', ['name' => $username]);
+
+        if (! $response->successful()) {
+            return null;
+        }
+
+        $xml = @simplexml_load_string($response->body());
+
+        if ($xml === false || (string) $xml['id'] === '') {
+            return null;
+        }
+
+        $avatar = isset($xml->avatarlink) ? (string) $xml->avatarlink['value'] : '';
+
+        return ($avatar !== '' && $avatar !== 'N/A') ? $avatar : null;
+    }
+
     private function intOrNull(mixed $value): ?int
     {
         if ($value === null || (string) $value === '') {

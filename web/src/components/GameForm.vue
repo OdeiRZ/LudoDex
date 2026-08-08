@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+import { isAxiosError } from 'axios'
 import TagInput from '@/components/TagInput.vue'
 import { useGamesStore } from '@/stores/games'
 
 export interface GameFormData {
   name: string
+  image_url: string | null
   min_players: number | null
   max_players: number | null
   min_playtime_minutes: number | null
@@ -25,13 +28,89 @@ defineProps<{
 
 const games = useGamesStore()
 const form = defineModel<GameFormData>({ required: true })
+
+const bggId = ref<number | null>(null)
+const bggLookupError = ref<string | null>(null)
+const bggLookupLoading = ref(false)
+const imageBroken = ref(false)
+
+async function onLookupBgg() {
+  if (!bggId.value) {
+    return
+  }
+
+  bggLookupError.value = null
+  bggLookupLoading.value = true
+
+  try {
+    const game = await games.lookupBggGame(bggId.value)
+
+    form.value.name = game.name
+    form.value.image_url = game.image_url
+    form.value.min_players = game.min_players
+    form.value.max_players = game.max_players
+    form.value.min_playtime_minutes = game.min_playtime_minutes
+    form.value.max_playtime_minutes = game.max_playtime_minutes
+    form.value.weight = game.weight
+    form.value.mechanics = game.mechanics
+    form.value.categories = game.categories
+    imageBroken.value = false
+  } catch (err) {
+    bggLookupError.value = isAxiosError(err)
+      ? err.response?.data.message
+      : 'No se ha podido consultar BoardGameGeek.'
+  } finally {
+    bggLookupLoading.value = false
+  }
+}
 </script>
 
 <template>
   <div class="form card">
-    <div>
-      <label for="name">Nombre</label>
-      <input id="name" v-model="form.name" type="text" required />
+    <fieldset class="bgg-lookup">
+      <legend>Importar de BoardGameGeek (opcional)</legend>
+      <div class="bgg-lookup-row">
+        <input
+          v-model.number="bggId"
+          type="number"
+          min="1"
+          placeholder="Id del juego en BGG"
+          aria-label="Id del juego en BGG"
+        />
+        <button
+          type="button"
+          class="btn"
+          :disabled="!bggId || bggLookupLoading"
+          @click="onLookupBgg"
+        >
+          {{ bggLookupLoading ? 'Buscando…' : 'Rellenar desde BGG' }}
+        </button>
+      </div>
+      <p v-if="bggLookupError" role="alert" class="alert alert-error">{{ bggLookupError }}</p>
+    </fieldset>
+
+    <div class="name-and-image">
+      <div class="name-field">
+        <label for="name">Nombre</label>
+        <input id="name" v-model="form.name" type="text" required />
+
+        <label for="image_url">URL de la imagen</label>
+        <input
+          id="image_url"
+          v-model="form.image_url"
+          type="url"
+          placeholder="https://…"
+          @input="imageBroken = false"
+        />
+      </div>
+
+      <img
+        v-if="form.image_url && !imageBroken"
+        :src="form.image_url"
+        alt=""
+        class="game-image-preview"
+        @error="imageBroken = true"
+      />
     </div>
 
     <div class="field-row">
@@ -99,3 +178,41 @@ const form = defineModel<GameFormData>({ required: true })
     </button>
   </div>
 </template>
+
+<style scoped>
+.bgg-lookup-row {
+  display: flex;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.bgg-lookup-row input {
+  flex: 1;
+}
+
+.name-and-image {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+.name-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.name-field label:not(:first-child) {
+  margin-top: var(--space-2);
+}
+
+.game-image-preview {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
+  flex-shrink: 0;
+}
+</style>

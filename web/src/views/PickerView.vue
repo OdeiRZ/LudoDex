@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useGamesStore } from '@/stores/games'
+import GameThumbnail from '@/components/GameThumbnail.vue'
 
 const games = useGamesStore()
 
@@ -131,7 +132,10 @@ const filtered = computed(() => {
 
     <ul v-else class="results">
       <li v-for="entry in filtered" :key="entry.id" class="card game-card">
-        <h2>{{ entry.game.name }}</h2>
+        <div class="game-card-header">
+          <GameThumbnail :image-url="entry.game.image_url" :size="56" />
+          <h2>{{ entry.game.name }}</h2>
+        </div>
         <p class="meta">
           <span v-if="entry.game.min_players || entry.game.max_players">
             {{ entry.game.min_players }}–{{ entry.game.max_players }} jugadores
@@ -181,6 +185,16 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+}
+
+.game-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.game-card-header h2 {
+  overflow-wrap: anywhere;
 }
 
 .meta {

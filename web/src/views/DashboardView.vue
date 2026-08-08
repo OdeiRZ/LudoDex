@@ -2,6 +2,7 @@
 import { onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useGamesStore } from '@/stores/games'
+import GameThumbnail from '@/components/GameThumbnail.vue'
 
 const auth = useAuthStore()
 const games = useGamesStore()
@@ -38,10 +39,16 @@ async function onDelete(userGameId: string) {
     <ul class="games">
       <li v-for="entry in games.collection" :key="entry.id" class="card game-card">
         <div class="game-card-header">
-          <h2>{{ entry.game.name }}</h2>
-          <span class="badge" :class="entry.status === 'owned' ? 'badge-primary' : 'badge-accent'">
-            {{ entry.status === 'owned' ? 'Lo tengo' : 'Lo quiero' }}
-          </span>
+          <GameThumbnail :image-url="entry.game.image_url" :size="56" />
+          <div class="game-card-title">
+            <h2>{{ entry.game.name }}</h2>
+            <span
+              class="badge"
+              :class="entry.status === 'owned' ? 'badge-primary' : 'badge-accent'"
+            >
+              {{ entry.status === 'owned' ? 'Lo tengo' : 'Lo quiero' }}
+            </span>
+          </div>
         </div>
         <p class="meta">
           <span v-if="entry.game.min_players || entry.game.max_players">
@@ -89,9 +96,20 @@ async function onDelete(userGameId: string) {
 
 .game-card-header {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  gap: var(--space-2);
+  gap: var(--space-3);
+}
+
+.game-card-title {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.game-card-title h2 {
+  overflow-wrap: anywhere;
 }
 
 .meta {

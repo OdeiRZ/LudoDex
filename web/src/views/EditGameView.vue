@@ -14,6 +14,7 @@ const { isSlow, wrap } = useSlowRequestHint()
 
 const form = reactive<GameFormData>({
   name: '',
+  image_url: null,
   min_players: null,
   max_players: null,
   min_playtime_minutes: null,
@@ -40,6 +41,7 @@ function fillFormFromEntry() {
   const { game, status } = entry.value
 
   form.name = game.name
+  form.image_url = game.image_url
   form.min_players = game.min_players
   form.max_players = game.max_players
   form.min_playtime_minutes = game.min_playtime_minutes

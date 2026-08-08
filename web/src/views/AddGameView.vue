@@ -12,6 +12,7 @@ const { isSlow, wrap } = useSlowRequestHint()
 
 const form = reactive<GameFormData>({
   name: '',
+  image_url: null,
   min_players: null,
   max_players: null,
   min_playtime_minutes: null,

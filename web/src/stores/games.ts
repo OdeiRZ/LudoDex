@@ -56,6 +56,19 @@ export interface BggImportStatus {
   error_message: string | null
 }
 
+export interface BggGameLookup {
+  bgg_id: number
+  name: string
+  image_url: string | null
+  min_players: number | null
+  max_players: number | null
+  min_playtime_minutes: number | null
+  max_playtime_minutes: number | null
+  weight: number | null
+  mechanics: string[]
+  categories: string[]
+}
+
 interface GamesState {
   collection: UserGame[]
   mechanicOptions: string[]
@@ -119,6 +132,11 @@ export const useGamesStore = defineStore('games', {
 
     async pollBggImport(id: string): Promise<BggImportStatus> {
       const { data } = await apiClient.get(`/bgg-imports/${id}`)
+      return data.data
+    },
+
+    async lookupBggGame(bggId: number): Promise<BggGameLookup> {
+      const { data } = await apiClient.get(`/bgg-lookup/games/${bggId}`)
       return data.data
     },
   },
