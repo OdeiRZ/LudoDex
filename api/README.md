@@ -22,6 +22,19 @@ Se registra en <https://boardgamegeek.com/using_the_xml_api>. Sin ese token,
 cualquier importación falla inmediatamente con un mensaje explicando por qué
 (no con un 401 en crudo).
 
+## Despliegue
+
+En producción ([ludodex-api.onrender.com](https://ludodex-api.onrender.com)):
+Render construye `Dockerfile` (root directory `api`, Docker build context el
+repo raíz) y lo despliega en el plan Free. Variables de entorno necesarias:
+`APP_KEY`, `APP_URL`, `DB_CONNECTION=pgsql` y `DB_HOST`/`DB_PORT`/
+`DB_DATABASE`/`DB_USERNAME`/`DB_PASSWORD`/`DB_SSLMODE=require` con los datos
+de Neon. **Usar el host directo de Neon, no el "pooled" (sin el sufijo
+`-pooler`)**: con el pooler (PgBouncer en modo transacción) las migraciones
+fallan de forma intermitente con `SQLSTATE[25P02]` en vez de mostrar el error
+real — ver CHANGELOG. `SESSION_DRIVER`/`CACHE_STORE`/`QUEUE_CONNECTION` van a
+`database` (no hay Redis ni *worker* en el plan Free).
+
 ## Testing
 
 ```bash

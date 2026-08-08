@@ -64,6 +64,16 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   este entorno de pruebas): las rejillas de tarjetas y los formularios se
   adaptan a una columna sin desbordamientos.
 
+- Despliegue real en capa gratuita: API en Render (Docker, región Frankfurt)
+  con Postgres en Neon (región Londres, conexión directa sin pooler — ver
+  "Corregido"), y frontend en Cloudflare Pages (región automática vía su red
+  global). `api/Dockerfile` construye con `composer:2` y ejecuta en
+  `php:8.3-cli-alpine` con el propio servidor de Laravel (sin nginx/php-fpm,
+  un solo proceso por contenedor, igual que en `CV_Optimizer_AI`); el
+  entrypoint corre `php artisan migrate --force` antes de servir. Verificado
+  de punta a punta contra los servicios reales: registro, login, alta y
+  borrado de un juego.
+
 ### Corregido
 
 - El filtro de jugadores/duración del selector dejaba de funcionar (ocultaba
@@ -75,6 +85,28 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   el selector en vivo con datos reales. Corregido normalizando el valor del
   filtro antes de aplicarlo (cualquier cosa que no sea un número finito
   cuenta como "sin filtro").
+- La migración de `games` fallaba en Postgres (no en SQLite, usado en tests
+  locales) con `SQLSTATE[42830]: no unique constraint matching given keys`
+  al crear la clave foránea autorreferenciada `base_game_id → games.id`:
+  Postgres procesa el comando implícito de clave primaria de un blueprint
+  después de sus comandos explícitos de clave foránea, así que la FK se
+  intentaba crear antes de que `id` tuviera su primary key. Encontrado en el
+  primer despliegue real contra Neon. Corregido separando la FK en su propia
+  llamada `Schema::table(...)` justo después de `Schema::create(...)`.
+- La API devolvía `500` en vez de `401` en peticiones sin token cuando el
+  cliente no mandaba `Accept: application/json` (p. ej. abrir un endpoint
+  directamente en el navegador): el manejador por defecto de
+  `AuthenticationException` intenta redirigir a una ruta `login`, que no
+  existe en esta API pura. No es un bug real (el frontend sí manda ese
+  header), pero se detectó verificando el despliegue con curl.
+- Las migraciones fallaban de forma intermitente contra la cadena de conexión
+  *pooled* de Neon (`-pooler` en el host, PgBouncer en modo transacción):
+  transacciones DDL con varias sentencias dentro de la misma migración
+  quedaban en estado `SQLSTATE[25P02]` (transacción abortada) sin mostrar el
+  error real de la primera sentencia fallida. Solucionado usando la conexión
+  directa de Neon (sin `-pooler`) como `DB_HOST` — con el tráfico de un
+  proyecto personal no hace falta el pooler, y evita esta clase de fallos
+  opacos en DDL transaccional.
 
 ### Documentado
 
