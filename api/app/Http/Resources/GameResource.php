@@ -19,6 +19,7 @@ class GameResource extends JsonResource
         return [
             'id' => $this->id,
             'bgg_id' => $this->bgg_id,
+            'base_game_id' => $this->base_game_id,
             'name' => $this->name,
             'image_url' => $this->image_url,
             'min_players' => $this->min_players,

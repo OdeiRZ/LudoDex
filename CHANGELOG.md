@@ -46,6 +46,25 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   cada 3s (`ImportBggView.vue`). Tests con `Http::fake()` y XML de ejemplo
   realista (colección + expansión + enlace inbound), sin llamadas reales a
   BGG.
+- Selector "¿A qué jugamos?" (`PickerView.vue`): filtra la colección propia
+  (solo juegos marcados como "lo tengo", excluyendo expansiones sueltas — no
+  son jugables por sí solas) por número de jugadores, minutos disponibles y
+  modo (cooperativo/competitivo/campaña). Cálculo 100% en el cliente sobre la
+  colección ya cargada, sin endpoint ni petición nueva: con el tamaño de
+  colección típico de uso personal no hace falta paginar ni filtrar en el
+  servidor, y así los filtros responden al instante mientras se ajustan.
+
+### Corregido
+
+- El filtro de jugadores/duración del selector dejaba de funcionar (ocultaba
+  todos los juegos) en cuanto se vaciaba el campo tras haber escrito algo:
+  `v-model.number` en Vue deja el valor como cadena vacía `""` (no `null`)
+  cuando el campo queda vacío, y `"" < 3` se evalúa como `0 < 3` en
+  JavaScript — así que la ausencia de filtro se interpretaba como "0
+  jugadores", por debajo del mínimo de cualquier juego. Encontrado probando
+  el selector en vivo con datos reales. Corregido normalizando el valor del
+  filtro antes de aplicarlo (cualquier cosa que no sea un número finito
+  cuenta como "sin filtro").
 
 ### Documentado
 

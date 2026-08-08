@@ -75,7 +75,9 @@ Repo único con dos aplicaciones independientes, cada una con su propio
 3. 🔶 Importación desde BGG: construida y probada con respuestas simuladas;
    verificación con una colección real pendiente del token de aplicación de
    BGG (ver "Requisitos externos" más arriba).
-4. Selector de "a qué jugar" con filtros.
+4. ✅ Selector de "a qué jugar": filtros de jugadores, duración disponible y
+   modo (cooperativo/competitivo/campaña) sobre los juegos marcados como "lo
+   tengo", excluyendo expansiones sueltas (no son jugables por sí solas).
 5. Pulido visual y despliegue (Render + Neon + Cloudflare Pages).
 
 Fuera de alcance por ahora, a propósito: amistades/interacción social,

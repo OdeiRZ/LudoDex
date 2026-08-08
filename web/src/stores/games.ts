@@ -4,6 +4,7 @@ import { apiClient } from '@/lib/api'
 export interface Game {
   id: string
   bgg_id: number | null
+  base_game_id: string | null
   name: string
   image_url: string | null
   min_players: number | null

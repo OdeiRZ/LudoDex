@@ -26,6 +26,7 @@ async function onDelete(userGameId: string) {
     <div class="header">
       <h1>Tu colección</h1>
       <div class="actions">
+        <RouterLink :to="{ name: 'picker' }">¿A qué jugamos?</RouterLink>
         <RouterLink :to="{ name: 'import-bgg' }">Importar de BGG</RouterLink>
         <RouterLink :to="{ name: 'add-game' }" class="add-link">+ Añadir juego</RouterLink>
       </div>
