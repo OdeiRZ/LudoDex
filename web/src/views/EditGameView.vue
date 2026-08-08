@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { isAxiosError } from 'axios'
 import { useGamesStore } from '@/stores/games'
 import GameForm, { type GameFormData } from '@/components/GameForm.vue'
 import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
+
+const props = defineProps<{ id: string }>()
 
 const router = useRouter()
 const games = useGamesStore()
@@ -28,24 +30,50 @@ const form = reactive<GameFormData>({
 const errors = ref<Record<string, string[]>>({})
 const submitting = ref(false)
 
-onMounted(() => {
-  if (!games.loaded) {
-    games.fetchAll()
+const entry = computed(() => games.collection.find((item) => item.id === props.id))
+
+function fillFormFromEntry() {
+  if (!entry.value) {
+    return
   }
+
+  const { game, status } = entry.value
+
+  form.name = game.name
+  form.min_players = game.min_players
+  form.max_players = game.max_players
+  form.min_playtime_minutes = game.min_playtime_minutes
+  form.max_playtime_minutes = game.max_playtime_minutes
+  form.weight = game.weight
+  form.is_cooperative = game.is_cooperative
+  form.is_competitive = game.is_competitive
+  form.has_campaign = game.has_campaign
+  form.mechanics = [...game.mechanics]
+  form.categories = [...game.categories]
+  form.status = status
+}
+
+onMounted(async () => {
+  if (!games.loaded) {
+    await games.fetchAll()
+  }
+
+  fillFormFromEntry()
 })
+
+// Covers navigating here directly (already loaded collection, entry ready
+// on the first tick) as well as the fetchAll-on-mount case above.
+watch(entry, fillFormFromEntry)
 
 async function onSubmit() {
   errors.value = {}
   submitting.value = true
 
   try {
-    await wrap(games.createGame(form))
+    await wrap(games.updateGame(props.id, form))
     router.push({ name: 'dashboard' })
   } catch (err) {
     if (isAxiosError(err) && err.response?.status === 422) {
-      // GameForm only renders `errors.general` (it doesn't have a field for
-      // every possible backend rule), so flatten the per-field messages into
-      // one list instead of silently dropping them like before.
       const fieldErrors: Record<string, string[]> = err.response.data.errors
       errors.value = { general: Object.values(fieldErrors).flat() }
     } else {
@@ -58,11 +86,17 @@ async function onSubmit() {
 </script>
 
 <template>
-  <div class="add-game">
-    <h1>Añadir juego</h1>
+  <div class="edit-game">
+    <h1>Editar juego</h1>
 
-    <form @submit.prevent="onSubmit">
-      <GameForm v-model="form" :submitting="submitting" submit-label="Guardar juego" :errors="errors" />
+    <p v-if="games.loading" class="loading-state">Cargando…</p>
+
+    <p v-else-if="!entry" class="empty-state">
+      No se ha encontrado ese juego en tu colección.
+    </p>
+
+    <form v-else @submit.prevent="onSubmit">
+      <GameForm v-model="form" :submitting="submitting" submit-label="Guardar cambios" :errors="errors" />
 
       <p v-if="isSlow" class="slow-request-hint">
         Puede tardar unos segundos si el servidor estaba inactivo.
@@ -72,7 +106,7 @@ async function onSubmit() {
 </template>
 
 <style scoped>
-.add-game {
+.edit-game {
   max-width: 520px;
   margin: 0 auto;
 }

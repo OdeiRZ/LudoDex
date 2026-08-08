@@ -61,6 +61,7 @@ interface GamesState {
   mechanicOptions: string[]
   categoryOptions: string[]
   loaded: boolean
+  loading: boolean
 }
 
 export const useGamesStore = defineStore('games', {
@@ -69,25 +70,41 @@ export const useGamesStore = defineStore('games', {
     mechanicOptions: [],
     categoryOptions: [],
     loaded: false,
+    loading: false,
   }),
 
   actions: {
     async fetchAll() {
-      const [gamesResponse, mechanicsResponse, categoriesResponse] = await Promise.all([
-        apiClient.get('/games'),
-        apiClient.get('/mechanics'),
-        apiClient.get('/categories'),
-      ])
+      this.loading = true
 
-      this.collection = gamesResponse.data.data
-      this.mechanicOptions = mechanicsResponse.data.data.map((item: Catalog) => item.name)
-      this.categoryOptions = categoriesResponse.data.data.map((item: Catalog) => item.name)
-      this.loaded = true
+      try {
+        const [gamesResponse, mechanicsResponse, categoriesResponse] = await Promise.all([
+          apiClient.get('/games'),
+          apiClient.get('/mechanics'),
+          apiClient.get('/categories'),
+        ])
+
+        this.collection = gamesResponse.data.data
+        this.mechanicOptions = mechanicsResponse.data.data.map((item: Catalog) => item.name)
+        this.categoryOptions = categoriesResponse.data.data.map((item: Catalog) => item.name)
+        this.loaded = true
+      } finally {
+        this.loading = false
+      }
     },
 
     async createGame(payload: UserGamePayload) {
       const { data } = await apiClient.post('/games', payload)
       this.collection.unshift(data.data)
+    },
+
+    async updateGame(userGameId: string, payload: UserGamePayload) {
+      const { data } = await apiClient.put(`/games/${userGameId}`, payload)
+      const index = this.collection.findIndex((entry) => entry.id === userGameId)
+
+      if (index !== -1) {
+        this.collection[index] = data.data
+      }
     },
 
     async deleteGame(userGameId: string) {

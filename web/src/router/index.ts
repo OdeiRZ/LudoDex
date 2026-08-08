@@ -24,6 +24,13 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/games/:id/edit',
+      name: 'edit-game',
+      component: () => import('@/views/EditGameView.vue'),
+      props: true,
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/picker',
       name: 'picker',
       component: () => import('@/views/PickerView.vue'),
