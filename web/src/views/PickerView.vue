@@ -61,7 +61,7 @@ const filtered = computed(() => {
   <div>
     <h1>¿A qué jugamos?</h1>
 
-    <form class="filters" @submit.prevent>
+    <form class="filters card" @submit.prevent>
       <div>
         <label for="players">Jugadores</label>
         <input
@@ -92,14 +92,16 @@ const filtered = computed(() => {
       </fieldset>
     </form>
 
-    <p v-if="playable.length === 0">
+    <p v-if="playable.length === 0" class="empty-state">
       No tienes juegos marcados como "Lo tengo" todavía.
       <RouterLink :to="{ name: 'add-game' }">Añade uno</RouterLink>.
     </p>
-    <p v-else-if="filtered.length === 0">Ningún juego de tu colección encaja con estos filtros.</p>
+    <p v-else-if="filtered.length === 0" class="empty-state">
+      Ningún juego de tu colección encaja con estos filtros.
+    </p>
 
     <ul v-else class="results">
-      <li v-for="entry in filtered" :key="entry.id" class="game-card">
+      <li v-for="entry in filtered" :key="entry.id" class="card game-card">
         <h2>{{ entry.game.name }}</h2>
         <p class="meta">
           <span v-if="entry.game.min_players || entry.game.max_players">
@@ -110,9 +112,9 @@ const filtered = computed(() => {
           </span>
         </p>
         <p class="tags">
-          <span v-if="entry.game.is_cooperative">Cooperativo</span>
-          <span v-if="entry.game.is_competitive">Competitivo</span>
-          <span v-if="entry.game.has_campaign">Campaña</span>
+          <span v-if="entry.game.is_cooperative" class="badge badge-primary">Cooperativo</span>
+          <span v-if="entry.game.is_competitive" class="badge badge-primary">Competitivo</span>
+          <span v-if="entry.game.has_campaign" class="badge badge-accent">Campaña</span>
         </p>
       </li>
     </ul>
@@ -120,45 +122,49 @@ const filtered = computed(() => {
 </template>
 
 <style scoped>
+h1 {
+  margin-bottom: var(--space-4);
+}
+
 .filters {
   display: flex;
-  gap: 1.5rem;
+  gap: var(--space-6);
   flex-wrap: wrap;
   align-items: flex-start;
-  margin: 1rem 0 1.5rem;
+  margin-bottom: var(--space-6);
 }
 
 .filters > div {
   display: flex;
   flex-direction: column;
-}
-
-fieldset {
-  display: flex;
-  gap: 1rem;
-  border: 1px solid var(--color-border);
+  max-width: 180px;
 }
 
 .results {
   list-style: none;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-4);
 }
 
 .game-card {
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
-.meta,
-.tags {
+.meta {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-3);
   flex-wrap: wrap;
   font-size: 0.85rem;
-  opacity: 0.8;
+  color: var(--color-text-muted);
+}
+
+.tags {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 </style>

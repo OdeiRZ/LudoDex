@@ -13,18 +13,24 @@ async function onLogout() {
 
 <template>
   <header>
-    <RouterLink :to="{ name: 'dashboard' }" class="brand">LudoDex</RouterLink>
+    <RouterLink :to="{ name: 'dashboard' }" class="brand">🎲 LudoDex</RouterLink>
 
-    <nav>
+    <nav v-if="auth.isAuthenticated" class="primary-nav">
+      <RouterLink :to="{ name: 'dashboard' }">Colección</RouterLink>
+      <RouterLink :to="{ name: 'picker' }">¿A qué jugamos?</RouterLink>
+      <RouterLink :to="{ name: 'import-bgg' }">Importar BGG</RouterLink>
+    </nav>
+
+    <div class="session">
       <template v-if="auth.isAuthenticated">
-        <span v-if="auth.user">{{ auth.user.name }}</span>
-        <button type="button" @click="onLogout">Cerrar sesión</button>
+        <span v-if="auth.user" class="user-name">{{ auth.user.name }}</span>
+        <button type="button" class="btn" @click="onLogout">Cerrar sesión</button>
       </template>
       <template v-else>
-        <RouterLink :to="{ name: 'login' }">Entrar</RouterLink>
-        <RouterLink :to="{ name: 'register' }">Crear cuenta</RouterLink>
+        <RouterLink :to="{ name: 'login' }" class="btn">Entrar</RouterLink>
+        <RouterLink :to="{ name: 'register' }" class="btn btn-primary">Crear cuenta</RouterLink>
       </template>
-    </nav>
+    </div>
   </header>
 
   <main>
@@ -37,18 +43,46 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-6);
   border-bottom: 1px solid var(--color-border);
 }
 
 .brand {
-  font-weight: bold;
+  font-weight: 700;
   font-size: 1.25rem;
+  color: var(--color-heading);
 }
 
-nav {
+.brand:hover {
+  text-decoration: none;
+}
+
+.primary-nav {
+  display: flex;
+  gap: var(--space-4);
+  font-size: 0.9rem;
+}
+
+.primary-nav a {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.primary-nav a.router-link-exact-active {
+  color: var(--color-primary-hover);
+}
+
+.session {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--space-3);
+}
+
+.user-name {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
 }
 </style>

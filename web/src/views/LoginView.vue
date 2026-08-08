@@ -28,29 +28,35 @@ async function onSubmit() {
 
 <template>
   <div class="auth-form">
-    <h1>Iniciar sesión</h1>
+    <div class="card">
+      <h1>Iniciar sesión</h1>
 
-    <form @submit.prevent="onSubmit">
-      <label for="email">Email</label>
-      <input id="email" v-model="email" type="email" required autocomplete="email" />
+      <form class="form" @submit.prevent="onSubmit">
+        <div>
+          <label for="email">Email</label>
+          <input id="email" v-model="email" type="email" required autocomplete="email" />
+        </div>
 
-      <label for="password">Contraseña</label>
-      <input
-        id="password"
-        v-model="password"
-        type="password"
-        required
-        autocomplete="current-password"
-      />
+        <div>
+          <label for="password">Contraseña</label>
+          <input
+            id="password"
+            v-model="password"
+            type="password"
+            required
+            autocomplete="current-password"
+          />
+        </div>
 
-      <p v-if="error" role="alert" class="error">{{ error }}</p>
+        <p v-if="error" role="alert" class="alert alert-error">{{ error }}</p>
 
-      <button type="submit" :disabled="submitting">
-        {{ submitting ? 'Entrando…' : 'Entrar' }}
-      </button>
-    </form>
+        <button type="submit" class="btn btn-primary" :disabled="submitting">
+          {{ submitting ? 'Entrando…' : 'Entrar' }}
+        </button>
+      </form>
+    </div>
 
-    <p>
+    <p class="switch-link">
       ¿No tienes cuenta?
       <RouterLink :to="{ name: 'register' }">Regístrate</RouterLink>
     </p>
@@ -59,17 +65,18 @@ async function onSubmit() {
 
 <style scoped>
 .auth-form {
-  max-width: 360px;
-  margin: 4rem auto;
+  max-width: 380px;
+  margin: var(--space-8) auto 0;
 }
 
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+h1 {
+  margin-bottom: var(--space-4);
 }
 
-.error {
-  color: #d33;
+.switch-link {
+  text-align: center;
+  margin-top: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
 }
 </style>

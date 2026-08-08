@@ -59,46 +59,54 @@ onUnmounted(() => {
 
 <template>
   <div class="import-bgg">
-    <h1>Importar desde BoardGameGeek</h1>
+    <div class="card">
+      <h1>Importar desde BoardGameGeek</h1>
 
-    <form v-if="phase === 'idle' || phase === 'failed'" @submit.prevent="onSubmit">
-      <label for="bgg_username">Usuario de BGG</label>
-      <input id="bgg_username" v-model="username" type="text" required :disabled="submitting" />
+      <form v-if="phase === 'idle' || phase === 'failed'" class="form" @submit.prevent="onSubmit">
+        <div>
+          <label for="bgg_username">Usuario de BGG</label>
+          <input id="bgg_username" v-model="username" type="text" required :disabled="submitting" />
+        </div>
 
-      <p v-if="phase === 'failed'" role="alert" class="error">
-        {{ errorMessage ?? 'No se ha podido importar la colección.' }}
-      </p>
+        <p v-if="phase === 'failed'" role="alert" class="alert alert-error">
+          {{ errorMessage ?? 'No se ha podido importar la colección.' }}
+        </p>
 
-      <button type="submit" :disabled="submitting">Importar</button>
-    </form>
+        <button type="submit" class="btn btn-primary" :disabled="submitting">Importar</button>
+      </form>
 
-    <div v-else-if="phase === 'pending'" role="status">
-      <p>
-        Conectando con BoardGameGeek… Puede tardar unos segundos mientras BGG prepara la exportación
-        de la colección.
-      </p>
-    </div>
+      <div v-else-if="phase === 'pending'" role="status" class="status-block">
+        <p>
+          Conectando con BoardGameGeek… Puede tardar unos segundos mientras BGG prepara la
+          exportación de la colección.
+        </p>
+      </div>
 
-    <div v-else-if="phase === 'completed'" role="status">
-      <p>Importación completada: {{ importedCount }} juegos añadidos o actualizados.</p>
-      <RouterLink :to="{ name: 'dashboard' }">Ver tu colección</RouterLink>
+      <div v-else-if="phase === 'completed'" role="status" class="status-block">
+        <p>Importación completada: {{ importedCount }} juegos añadidos o actualizados.</p>
+        <RouterLink :to="{ name: 'dashboard' }" class="btn btn-primary"
+          >Ver tu colección</RouterLink
+        >
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
 .import-bgg {
-  max-width: 420px;
-  margin: 0 auto;
+  max-width: 440px;
+  margin: var(--space-8) auto 0;
 }
 
-form {
+h1 {
+  margin-bottom: var(--space-4);
+}
+
+.status-block {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-}
-
-.error {
-  color: #d33;
+  gap: var(--space-4);
+  align-items: flex-start;
+  color: var(--color-text-muted);
 }
 </style>

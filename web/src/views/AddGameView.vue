@@ -50,11 +50,13 @@ async function onSubmit() {
   <div class="add-game">
     <h1>Añadir juego</h1>
 
-    <form @submit.prevent="onSubmit">
-      <label for="name">Nombre</label>
-      <input id="name" v-model="form.name" type="text" required />
+    <form class="form card" @submit.prevent="onSubmit">
+      <div>
+        <label for="name">Nombre</label>
+        <input id="name" v-model="form.name" type="text" required />
+      </div>
 
-      <div class="row">
+      <div class="field-row">
         <div>
           <label for="min_players">Jugadores (min)</label>
           <input id="min_players" v-model.number="form.min_players" type="number" min="1" />
@@ -65,7 +67,7 @@ async function onSubmit() {
         </div>
       </div>
 
-      <div class="row">
+      <div class="field-row">
         <div>
           <label for="min_playtime">Duración min (minutos)</label>
           <input
@@ -86,8 +88,10 @@ async function onSubmit() {
         </div>
       </div>
 
-      <label for="weight">Complejidad (1-5)</label>
-      <input id="weight" v-model.number="form.weight" type="number" min="1" max="5" step="0.1" />
+      <div>
+        <label for="weight">Complejidad (1-5)</label>
+        <input id="weight" v-model.number="form.weight" type="number" min="1" max="5" step="0.1" />
+      </div>
 
       <fieldset>
         <legend>Modo de juego</legend>
@@ -110,17 +114,19 @@ async function onSubmit() {
         :suggestions="games.categoryOptions"
       />
 
-      <label for="status">Estado</label>
-      <select id="status" v-model="form.status">
-        <option value="owned">Lo tengo</option>
-        <option value="wishlist">Lo quiero</option>
-      </select>
+      <div>
+        <label for="status">Estado</label>
+        <select id="status" v-model="form.status">
+          <option value="owned">Lo tengo</option>
+          <option value="wishlist">Lo quiero</option>
+        </select>
+      </div>
 
-      <p v-for="message in errors.general" :key="message" role="alert" class="error">
+      <p v-for="message in errors.general" :key="message" role="alert" class="alert alert-error">
         {{ message }}
       </p>
 
-      <button type="submit" :disabled="submitting">
+      <button type="submit" class="btn btn-primary" :disabled="submitting">
         {{ submitting ? 'Guardando…' : 'Guardar juego' }}
       </button>
     </form>
@@ -129,34 +135,11 @@ async function onSubmit() {
 
 <style scoped>
 .add-game {
-  max-width: 480px;
+  max-width: 520px;
   margin: 0 auto;
 }
 
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.row {
-  display: flex;
-  gap: 1rem;
-}
-
-.row > div {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-fieldset {
-  display: flex;
-  gap: 1rem;
-  border: 1px solid var(--color-border);
-}
-
-.error {
-  color: #d33;
+h1 {
+  margin-bottom: var(--space-4);
 }
 </style>

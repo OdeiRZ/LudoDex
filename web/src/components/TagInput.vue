@@ -44,7 +44,7 @@ function onKeydown(event: KeyboardEvent) {
     <label :for="listId">{{ label }}</label>
 
     <ul v-if="modelValue.length" class="tags">
-      <li v-for="tag in modelValue" :key="tag">
+      <li v-for="tag in modelValue" :key="tag" class="badge">
         {{ tag }}
         <button type="button" :aria-label="`Quitar ${tag}`" @click="removeTag(tag)">×</button>
       </li>
@@ -69,20 +69,14 @@ function onKeydown(event: KeyboardEvent) {
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: var(--space-2);
   list-style: none;
   padding: 0;
-  margin: 0.25rem 0;
+  margin: var(--space-1) 0 var(--space-2);
 }
 
 .tags li {
-  background: var(--color-background-mute);
-  border-radius: 999px;
-  padding: 0.15rem 0.5rem;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
+  gap: var(--space-1);
 }
 
 .tags button {
@@ -92,5 +86,6 @@ function onKeydown(event: KeyboardEvent) {
   font-size: 1rem;
   line-height: 1;
   padding: 0;
+  color: inherit;
 }
 </style>

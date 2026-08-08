@@ -78,7 +78,9 @@ Repo único con dos aplicaciones independientes, cada una con su propio
 4. ✅ Selector de "a qué jugar": filtros de jugadores, duración disponible y
    modo (cooperativo/competitivo/campaña) sobre los juegos marcados como "lo
    tengo", excluyendo expansiones sueltas (no son jugables por sí solas).
-5. Pulido visual y despliegue (Render + Neon + Cloudflare Pages).
+5. 🔶 Pulido visual (✅ hecho: paleta propia, componentes reutilizables,
+   verificado en desktop y móvil) y despliegue real (pendiente: Render + Neon
+   + Cloudflare Pages, requiere cuentas en esos servicios).
 
 Fuera de alcance por ahora, a propósito: amistades/interacción social,
 selector combinado con colecciones de amigos, historial de partidas. Puede

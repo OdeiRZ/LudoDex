@@ -53,6 +53,16 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   colección ya cargada, sin endpoint ni petición nueva: con el tamaño de
   colección típico de uso personal no hace falta paginar ni filtrar en el
   servidor, y así los filtros responden al instante mientras se ajustan.
+- Sistema de diseño visual: paleta propia (teal + ámbar, con variante clara
+  vía `prefers-color-scheme`) en `assets/base.css`/`main.css` sustituyendo la
+  paleta de ejemplo del scaffolding de `create-vue`, clases reutilizables
+  (`.btn`, `.card`, `.badge`, `.form`, `.alert`) aplicadas a todas las
+  vistas para no repetir estilos ad-hoc por pantalla, y una cabecera/nav
+  propia en `App.vue`. Verificado en el navegador en desktop y en un
+  viewport móvil (simulado con un iframe interno, igual que en
+  `CV_Optimizer_AI`, porque el redimensionado real de ventana no funciona en
+  este entorno de pruebas): las rejillas de tarjetas y los formularios se
+  adaptan a una columna sin desbordamientos.
 
 ### Corregido
 

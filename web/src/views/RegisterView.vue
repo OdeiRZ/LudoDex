@@ -40,52 +40,67 @@ async function onSubmit() {
 
 <template>
   <div class="auth-form">
-    <h1>Crear cuenta</h1>
+    <div class="card">
+      <h1>Crear cuenta</h1>
 
-    <form @submit.prevent="onSubmit">
-      <label for="name">Nombre</label>
-      <input id="name" v-model="name" type="text" required autocomplete="name" />
-      <p v-for="message in errors.name" :key="message" role="alert" class="error">
-        {{ message }}
-      </p>
+      <form class="form" @submit.prevent="onSubmit">
+        <div>
+          <label for="name">Nombre</label>
+          <input id="name" v-model="name" type="text" required autocomplete="name" />
+          <p v-for="message in errors.name" :key="message" role="alert" class="alert alert-error">
+            {{ message }}
+          </p>
+        </div>
 
-      <label for="email">Email</label>
-      <input id="email" v-model="email" type="email" required autocomplete="email" />
-      <p v-for="message in errors.email" :key="message" role="alert" class="error">
-        {{ message }}
-      </p>
+        <div>
+          <label for="email">Email</label>
+          <input id="email" v-model="email" type="email" required autocomplete="email" />
+          <p v-for="message in errors.email" :key="message" role="alert" class="alert alert-error">
+            {{ message }}
+          </p>
+        </div>
 
-      <label for="password">Contraseña</label>
-      <input
-        id="password"
-        v-model="password"
-        type="password"
-        required
-        autocomplete="new-password"
-      />
+        <div>
+          <label for="password">Contraseña</label>
+          <input
+            id="password"
+            v-model="password"
+            type="password"
+            required
+            autocomplete="new-password"
+          />
+        </div>
 
-      <label for="password_confirmation">Repite la contraseña</label>
-      <input
-        id="password_confirmation"
-        v-model="passwordConfirmation"
-        type="password"
-        required
-        autocomplete="new-password"
-      />
-      <p v-for="message in errors.password" :key="message" role="alert" class="error">
-        {{ message }}
-      </p>
+        <div>
+          <label for="password_confirmation">Repite la contraseña</label>
+          <input
+            id="password_confirmation"
+            v-model="passwordConfirmation"
+            type="password"
+            required
+            autocomplete="new-password"
+          />
+          <p
+            v-for="message in errors.password"
+            :key="message"
+            role="alert"
+            class="alert alert-error"
+          >
+            {{ message }}
+          </p>
+        </div>
 
-      <p v-for="message in errors.general" :key="message" role="alert" class="error">
-        {{ message }}
-      </p>
+        <p v-for="message in errors.general" :key="message" role="alert" class="alert alert-error">
+          {{ message }}
+        </p>
 
-      <button type="submit" :disabled="submitting">
-        {{ submitting ? 'Creando cuenta…' : 'Crear cuenta' }}
-      </button>
-    </form>
+        <button type="submit" class="btn btn-primary" :disabled="submitting">
+          {{ submitting ? 'Creando cuenta…' : 'Crear cuenta' }}
+        </button>
+      </form>
+    </div>
 
-    <p>
+    <p class="switch-link">
       ¿Ya tienes cuenta?
       <RouterLink :to="{ name: 'login' }">Inicia sesión</RouterLink>
     </p>
@@ -94,18 +109,18 @@ async function onSubmit() {
 
 <style scoped>
 .auth-form {
-  max-width: 360px;
-  margin: 4rem auto;
+  max-width: 380px;
+  margin: var(--space-8) auto 0;
 }
 
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+h1 {
+  margin-bottom: var(--space-4);
 }
 
-.error {
-  color: #d33;
-  margin: 0;
+.switch-link {
+  text-align: center;
+  margin-top: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
 }
 </style>
