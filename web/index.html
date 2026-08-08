@@ -2,6 +2,19 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8">
+    <script>
+      // Applies a saved theme choice before anything paints, so switching
+      // pages/reloading never flashes the "wrong" theme first. No stored
+      // value means the user never overrode the OS preference - leave
+      // data-theme unset so the prefers-color-scheme default in base.css
+      // keeps deciding, same as before this toggle existed.
+      (function () {
+        var stored = localStorage.getItem('ludodex-theme')
+        if (stored === 'light' || stored === 'dark') {
+          document.documentElement.setAttribute('data-theme', stored)
+        }
+      })()
+    </script>
     <link rel="icon" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">

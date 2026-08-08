@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { RouterLink, RouterView, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import UserAvatar from '@/components/UserAvatar.vue'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -22,8 +24,10 @@ async function onLogout() {
     </nav>
 
     <div class="session">
+      <ThemeToggle />
       <template v-if="auth.isAuthenticated">
         <RouterLink v-if="auth.user" :to="{ name: 'profile' }" class="user-name">
+          <UserAvatar :name="auth.user.name" :avatar-url="auth.user.avatar_url" :size="24" />
           {{ auth.user.name }}
         </RouterLink>
         <button type="button" class="btn" @click="onLogout">Cerrar sesión</button>
@@ -84,6 +88,9 @@ header {
 }
 
 .user-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   color: var(--color-text-muted);
   font-size: 0.9rem;
 }

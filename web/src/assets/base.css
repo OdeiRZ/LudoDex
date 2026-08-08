@@ -2,7 +2,13 @@
    (wooden pieces/dice) as accent - a small nod to the theme without being
    twee about it. Dark mode is the default aesthetic (matches CV_Optimizer_AI,
    the sibling portfolio project), with a light variant for
-   prefers-color-scheme: light. */
+   prefers-color-scheme: light.
+
+   ThemeToggle.vue lets a user override that OS-derived default explicitly by
+   stamping data-theme="dark"/"light" on <html> (persisted to localStorage) -
+   an attribute selector has higher specificity than the plain `:root` used
+   for the media-query-based default below, so it always wins once present,
+   without needing !important or source-order games. */
 :root {
   --color-primary: #0d9488;
   --color-primary-hover: #14b8a6;
@@ -64,6 +70,50 @@
   }
 }
 
+:root[data-theme='dark'] {
+  --color-primary: #0d9488;
+  --color-primary-hover: #14b8a6;
+  --color-accent: #f59e0b;
+
+  --color-background: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-hover: #263449;
+
+  --color-border: rgba(226, 232, 240, 0.12);
+  --color-border-strong: rgba(226, 232, 240, 0.24);
+
+  --color-heading: #f1f5f9;
+  --color-text: #cbd5e1;
+  --color-text-muted: #94a3b8;
+
+  --color-danger: #f87171;
+  --color-success: #4ade80;
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme='light'] {
+  --color-primary: #0d9488;
+  --color-primary-hover: #0f766e;
+  --color-accent: #d97706;
+
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f1f5f9;
+
+  --color-border: rgba(15, 23, 42, 0.1);
+  --color-border-strong: rgba(15, 23, 42, 0.18);
+
+  --color-heading: #0f172a;
+  --color-text: #334155;
+  --color-text-muted: #64748b;
+
+  --color-danger: #dc2626;
+  --color-success: #16a34a;
+
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
 *,
 *::before,
 *::after {
@@ -73,6 +123,14 @@
 
 html {
   color-scheme: dark light;
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+html[data-theme='light'] {
+  color-scheme: light;
 }
 
 body {
