@@ -12,3 +12,11 @@ app.use(createPinia())
 app.use(router)
 
 app.mount('#app')
+
+// Registered purely for "Add to Home Screen" installability (see
+// public/sw.js) - not for offline support, so failures here are harmless.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {})
+  })
+}
