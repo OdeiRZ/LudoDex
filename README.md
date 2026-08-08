@@ -51,7 +51,9 @@ Repo único con dos aplicaciones independientes, cada una con su propio
 
 1. ✅ Cimientos: repo, API con auth (registro/login/logout) y SPA con las
    mismas pantallas, verificado de punta a punta en local.
-2. Inventario manual de juegos (con catálogo de mecánicas/categorías).
+2. ✅ Inventario manual de juegos, con catálogo de mecánicas/categorías
+   compartido (reutilizado por nombre, no duplicado) y expansiones ligadas a
+   su juego base.
 3. Importación desde BGG.
 4. Selector de "a qué jugar" con filtros.
 5. Pulido visual y despliegue (Render + Neon + Cloudflare Pages).

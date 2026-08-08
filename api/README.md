@@ -36,3 +36,17 @@ La suite usa Pest y `RefreshDatabase` (SQLite en memoria durante los tests).
 
 `register` y `login` piden un campo `device_name` (etiqueta libre para el
 token, pensada para una futura pantalla de "sesiones activas").
+
+| Método | Ruta                     | Auth | Descripción                              |
+|--------|--------------------------|------|-------------------------------------------|
+| GET    | `/api/games`             | Sí   | Lista la colección del usuario autenticado |
+| POST   | `/api/games`             | Sí   | Crea un juego y lo añade a la colección |
+| PUT    | `/api/games/{userGame}`  | Sí   | Actualiza el estado/notas y, si se envían, los datos del juego y sus mecánicas/categorías |
+| DELETE | `/api/games/{userGame}`  | Sí   | Quita el juego de la colección |
+| GET    | `/api/mechanics`         | Sí   | Catálogo de mecánicas (para autocompletar el alta) |
+| GET    | `/api/categories`        | Sí   | Catálogo de categorías (para autocompletar el alta) |
+
+`POST /api/games` acepta `mechanics`/`categories` como arrays de nombres:
+si el nombre ya existe en el catálogo se reutiliza, si no se crea sobre la
+marcha (`firstOrCreate`). Actualizar o borrar la entrada de otro usuario
+devuelve 403 (`App\Policies\UserGamePolicy`).

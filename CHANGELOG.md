@@ -23,3 +23,15 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   del portfolio.
 - ESLint + Prettier + Vitest configurados en el frontend desde el scaffolding
   inicial (vía `create-vue`).
+- Inventario manual de juegos: modelos `games` (con `base_game_id` para
+  expansiones), `mechanics` y `categories` (catálogo compartido, reutilizado
+  automáticamente por nombre en vez de duplicarse en cada alta), y
+  `user_games` como tabla intermedia con estado (`owned`/`wishlist`) y notas.
+  Endpoints `GET/POST /api/games`, `PUT/DELETE /api/games/{userGame}`,
+  `GET /api/mechanics`, `GET /api/categories`, con autorización por
+  `UserGamePolicy` (nadie puede editar o borrar la entrada de otro usuario).
+  Frontend: pantalla de colección con tarjetas por juego, formulario de alta
+  con selector de mecánicas/categorías como "tags" con autocompletado y alta
+  de nuevas sobre la marcha (`TagInput.vue`), y borrado desde la propia
+  tarjeta. Verificado de punta a punta en el navegador: alta con mecánicas y
+  categorías nuevas, persistencia tras recargar, y borrado.

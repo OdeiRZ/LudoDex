@@ -1,0 +1,89 @@
+import { defineStore } from 'pinia'
+import { apiClient } from '@/lib/api'
+
+export interface Game {
+  id: string
+  bgg_id: number | null
+  name: string
+  image_url: string | null
+  min_players: number | null
+  max_players: number | null
+  min_playtime_minutes: number | null
+  max_playtime_minutes: number | null
+  weight: number | null
+  is_cooperative: boolean
+  is_competitive: boolean
+  has_campaign: boolean
+  mechanics: string[]
+  categories: string[]
+}
+
+export interface UserGame {
+  id: string
+  status: 'owned' | 'wishlist'
+  notes: string | null
+  game: Game
+}
+
+export interface UserGamePayload {
+  name: string
+  image_url?: string | null
+  min_players?: number | null
+  max_players?: number | null
+  min_playtime_minutes?: number | null
+  max_playtime_minutes?: number | null
+  weight?: number | null
+  is_cooperative: boolean
+  is_competitive: boolean
+  has_campaign: boolean
+  mechanics: string[]
+  categories: string[]
+  status: 'owned' | 'wishlist'
+  notes?: string | null
+}
+
+interface Catalog {
+  id: number
+  name: string
+}
+
+interface GamesState {
+  collection: UserGame[]
+  mechanicOptions: string[]
+  categoryOptions: string[]
+  loaded: boolean
+}
+
+export const useGamesStore = defineStore('games', {
+  state: (): GamesState => ({
+    collection: [],
+    mechanicOptions: [],
+    categoryOptions: [],
+    loaded: false,
+  }),
+
+  actions: {
+    async fetchAll() {
+      const [gamesResponse, mechanicsResponse, categoriesResponse] = await Promise.all([
+        apiClient.get('/games'),
+        apiClient.get('/mechanics'),
+        apiClient.get('/categories'),
+      ])
+
+      this.collection = gamesResponse.data.data
+      this.mechanicOptions = mechanicsResponse.data.data.map((item: Catalog) => item.name)
+      this.categoryOptions = categoriesResponse.data.data.map((item: Catalog) => item.name)
+      this.loaded = true
+    },
+
+    async createGame(payload: UserGamePayload) {
+      const { data } = await apiClient.post('/games', payload)
+      this.collection.unshift(data.data)
+    },
+
+    async deleteGame(userGameId: string) {
+      await apiClient.delete(`/games/${userGameId}`)
+      this.collection = this.collection.filter((entry) => entry.id !== userGameId)
+    },
+  },
+})

@@ -30,3 +30,10 @@ npm run test:unit      # Vitest
   registro/login/logout, y restauración de sesión al recargar la página.
 - `src/router/index.ts` — rutas y guard de navegación (`requiresAuth` /
   `guestOnly`).
+- `src/stores/games.ts` — store de Pinia: colección del usuario, catálogo de
+  mecánicas/categorías, altas y borrados.
+- `src/components/TagInput.vue` — selector de mecánicas/categorías como
+  "tags", con autocompletado (`<datalist>`) contra el catálogo existente y
+  alta de nuevas sobre la marcha.
+- `src/views/DashboardView.vue` / `AddGameView.vue` — listado de la colección
+  y formulario de alta manual.
