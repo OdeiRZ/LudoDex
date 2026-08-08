@@ -5,6 +5,8 @@ export interface User {
   id: number
   name: string
   email: string
+  bgg_username: string | null
+  avatar_url: string | null
 }
 
 interface RegisterPayload {
@@ -22,6 +24,7 @@ interface LoginPayload {
 interface UpdateProfilePayload {
   name: string
   email: string
+  bgg_username?: string | null
 }
 
 interface UpdatePasswordPayload {

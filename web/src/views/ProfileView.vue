@@ -3,12 +3,13 @@ import { onMounted, reactive, ref } from 'vue'
 import { isAxiosError } from 'axios'
 import { useAuthStore } from '@/stores/auth'
 import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
+import UserAvatar from '@/components/UserAvatar.vue'
 
 const auth = useAuthStore()
 const { isSlow: isProfileSlow, wrap: wrapProfile } = useSlowRequestHint()
 const { isSlow: isPasswordSlow, wrap: wrapPassword } = useSlowRequestHint()
 
-const profileForm = reactive({ name: '', email: '' })
+const profileForm = reactive({ name: '', email: '', bgg_username: '' as string | null })
 const profileErrors = ref<Record<string, string[]>>({})
 const profileSubmitting = ref(false)
 const profileSaved = ref(false)
@@ -30,6 +31,7 @@ onMounted(async () => {
   if (auth.user) {
     profileForm.name = auth.user.name
     profileForm.email = auth.user.email
+    profileForm.bgg_username = auth.user.bgg_username
   }
 })
 
@@ -82,6 +84,13 @@ async function onSubmitPassword() {
     <section class="card">
       <h2>Datos personales</h2>
 
+      <div class="avatar-preview">
+        <UserAvatar :name="profileForm.name || '?'" :avatar-url="auth.user?.avatar_url" :size="64" />
+        <p class="avatar-hint">
+          El avatar se toma de tu cuenta de BoardGameGeek si indicas tu usuario más abajo.
+        </p>
+      </div>
+
       <form class="form" @submit.prevent="onSubmitProfile">
         <div>
           <label for="name">Nombre</label>
@@ -101,6 +110,19 @@ async function onSubmitPassword() {
           <input id="email" v-model="profileForm.email" type="email" required autocomplete="email" />
           <p
             v-for="message in profileErrors.email"
+            :key="message"
+            role="alert"
+            class="alert alert-error"
+          >
+            {{ message }}
+          </p>
+        </div>
+
+        <div>
+          <label for="bgg_username">Usuario de BoardGameGeek (opcional)</label>
+          <input id="bgg_username" v-model="profileForm.bgg_username" type="text" />
+          <p
+            v-for="message in profileErrors.bgg_username"
             :key="message"
             role="alert"
             class="alert alert-error"
@@ -217,6 +239,18 @@ async function onSubmitPassword() {
 
 h1 {
   margin-bottom: var(--space-2);
+}
+
+.avatar-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.avatar-hint {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
 }
 
 h2 {

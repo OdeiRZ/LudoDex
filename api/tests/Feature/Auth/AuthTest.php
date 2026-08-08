@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 
 it('registers a new user and returns a usable token', function () {
     $response = $this->postJson('/api/register', [
@@ -152,6 +153,67 @@ it('allows a profile update that keeps the user\'s own current email', function 
     ]);
 
     $response->assertOk();
+});
+
+it('fetches and stores the BGG avatar when a bgg_username is set', function () {
+    $user = actingAsUser();
+
+    Http::fake(fn () => Http::response(
+        '<?xml version="1.0"?><user id="1" name="odei"><avatarlink value="https://example.com/avatar.jpg"/></user>'
+    ));
+
+    $response = $this->putJson('/api/user', [
+        'name' => $user->name,
+        'email' => $user->email,
+        'bgg_username' => 'odei',
+    ]);
+
+    $response->assertOk()->assertJsonPath('user.avatar_url', 'https://example.com/avatar.jpg');
+    expect($user->refresh()->bgg_username)->toBe('odei');
+});
+
+it('keeps the profile update working when BGG has no avatar for that user', function () {
+    $user = actingAsUser();
+
+    Http::fake(fn () => Http::response('<?xml version="1.0"?><user id="1" name="odei"></user>'));
+
+    $response = $this->putJson('/api/user', [
+        'name' => $user->name,
+        'email' => $user->email,
+        'bgg_username' => 'odei',
+    ]);
+
+    $response->assertOk()->assertJsonPath('user.avatar_url', null);
+});
+
+it('does not refetch the avatar when the bgg_username has not changed', function () {
+    $user = actingAsUser();
+    $user->update(['bgg_username' => 'odei', 'avatar_url' => 'https://example.com/old.jpg']);
+
+    Http::fake(fn () => Http::response('should not be called', 500));
+
+    $response = $this->putJson('/api/user', [
+        'name' => $user->name,
+        'email' => $user->email,
+        'bgg_username' => 'odei',
+    ]);
+
+    $response->assertOk()->assertJsonPath('user.avatar_url', 'https://example.com/old.jpg');
+    Http::assertNothingSent();
+});
+
+it('clears the avatar when the bgg_username is removed', function () {
+    $user = actingAsUser();
+    $user->update(['bgg_username' => 'odei', 'avatar_url' => 'https://example.com/old.jpg']);
+
+    $response = $this->putJson('/api/user', [
+        'name' => $user->name,
+        'email' => $user->email,
+        'bgg_username' => null,
+    ]);
+
+    $response->assertOk()->assertJsonPath('user.avatar_url', null);
+    expect($user->refresh()->bgg_username)->toBeNull();
 });
 
 it('changes the password when the current one is correct', function () {
