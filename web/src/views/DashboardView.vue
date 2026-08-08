@@ -28,8 +28,10 @@ async function onDelete(userGameId: string) {
       <RouterLink :to="{ name: 'add-game' }" class="btn btn-primary">+ Añadir juego</RouterLink>
     </div>
 
-    <p v-if="games.loaded && games.collection.length === 0" class="empty-state">
-      Todavía no has añadido ningún juego.
+    <p v-if="games.loading" class="loading-state">Cargando tu colección…</p>
+
+    <p v-else-if="games.loaded && games.collection.length === 0" class="empty-state">
+      Todavía no has añadido ningún juego.<br />
       <RouterLink :to="{ name: 'add-game' }">Añade el primero</RouterLink>.
     </p>
 
@@ -52,7 +54,12 @@ async function onDelete(userGameId: string) {
         <p v-if="entry.game.mechanics.length" class="tags">
           {{ entry.game.mechanics.join(', ') }}
         </p>
-        <button type="button" class="btn btn-danger" @click="onDelete(entry.id)">Quitar</button>
+        <div class="card-actions">
+          <RouterLink :to="{ name: 'edit-game', params: { id: entry.id } }" class="btn">
+            Editar
+          </RouterLink>
+          <button type="button" class="btn btn-danger" @click="onDelete(entry.id)">Quitar</button>
+        </div>
       </li>
     </ul>
   </div>
@@ -100,8 +107,9 @@ async function onDelete(userGameId: string) {
   color: var(--color-text-muted);
 }
 
-.game-card .btn {
-  align-self: flex-start;
+.card-actions {
+  display: flex;
+  gap: var(--space-2);
   margin-top: var(--space-2);
 }
 </style>

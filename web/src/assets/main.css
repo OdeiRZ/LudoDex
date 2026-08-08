@@ -106,8 +106,22 @@ fieldset label {
   margin: 0;
 }
 
-fieldset input[type='checkbox'] {
+fieldset input[type='checkbox'],
+fieldset input[type='radio'] {
   width: auto;
+}
+
+/* Loading hints (initial data fetch, slow API cold-start) */
+.loading-state {
+  color: var(--color-text-muted);
+  padding: var(--space-8) 0;
+  text-align: center;
+}
+
+.slow-request-hint {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  margin-top: var(--space-2);
 }
 
 /* Badges (mode tags, catalog chips) */

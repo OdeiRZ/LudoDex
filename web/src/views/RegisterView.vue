@@ -3,9 +3,11 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { isAxiosError } from 'axios'
+import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { isSlow, wrap } = useSlowRequestHint()
 
 const name = ref('')
 const email = ref('')
@@ -19,12 +21,14 @@ async function onSubmit() {
   submitting.value = true
 
   try {
-    await auth.register({
-      name: name.value,
-      email: email.value,
-      password: password.value,
-      password_confirmation: passwordConfirmation.value,
-    })
+    await wrap(
+      auth.register({
+        name: name.value,
+        email: email.value,
+        password: password.value,
+        password_confirmation: passwordConfirmation.value,
+      }),
+    )
     router.push({ name: 'dashboard' })
   } catch (err) {
     if (isAxiosError(err) && err.response?.status === 422) {
@@ -97,6 +101,10 @@ async function onSubmit() {
         <button type="submit" class="btn btn-primary" :disabled="submitting">
           {{ submitting ? 'Creando cuenta…' : 'Crear cuenta' }}
         </button>
+
+        <p v-if="isSlow" class="slow-request-hint">
+          Puede tardar unos segundos si el servidor estaba inactivo.
+        </p>
       </form>
     </div>
 

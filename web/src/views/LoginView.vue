@@ -2,9 +2,11 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { isSlow, wrap } = useSlowRequestHint()
 
 const email = ref('')
 const password = ref('')
@@ -16,7 +18,7 @@ async function onSubmit() {
   submitting.value = true
 
   try {
-    await auth.login({ email: email.value, password: password.value })
+    await wrap(auth.login({ email: email.value, password: password.value }))
     router.push({ name: 'dashboard' })
   } catch {
     error.value = 'Email o contraseña incorrectos.'
@@ -53,6 +55,10 @@ async function onSubmit() {
         <button type="submit" class="btn btn-primary" :disabled="submitting">
           {{ submitting ? 'Entrando…' : 'Entrar' }}
         </button>
+
+        <p v-if="isSlow" class="slow-request-hint">
+          Puede tardar unos segundos si el servidor estaba inactivo.
+        </p>
       </form>
     </div>
 

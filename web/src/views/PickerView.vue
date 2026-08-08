@@ -1,18 +1,33 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useGamesStore } from '@/stores/games'
 
 const games = useGamesStore()
 
 const players = ref<number | null>(null)
 const maxDuration = ref<number | null>(null)
-const requireCooperative = ref(false)
-const requireCompetitive = ref(false)
-const requireCampaign = ref(false)
+// Exclusive on purpose, unlike the underlying data: a game's own
+// is_cooperative/is_competitive flags are independent (a semi-cooperative
+// game can be both), but as a filter "show me either" is a more useful
+// question than "match both flags at once" when browsing.
+const modeFilter = ref<'any' | 'cooperative' | 'competitive'>('any')
+const campaignMode = ref<'any' | 'campaign' | 'arcade'>('any')
 
 onMounted(() => {
   if (!games.loaded) {
     games.fetchAll()
+  }
+})
+
+// With a single player there's no one to cooperate or compete with, so the
+// mode filters stop being meaningful - hide them and drop whatever was
+// selected instead of leaving a filter silently active behind a hidden
+// checkbox.
+const isSoloPlayer = computed(() => players.value === 1)
+
+watch(isSoloPlayer, (solo) => {
+  if (solo) {
+    modeFilter.value = 'any'
   }
 })
 
@@ -48,9 +63,13 @@ const filtered = computed(() => {
       return false
     }
 
-    if (requireCooperative.value && !game.is_cooperative) return false
-    if (requireCompetitive.value && !game.is_competitive) return false
-    if (requireCampaign.value && !game.has_campaign) return false
+    if (!isSoloPlayer.value) {
+      if (modeFilter.value === 'cooperative' && !game.is_cooperative) return false
+      if (modeFilter.value === 'competitive' && !game.is_competitive) return false
+    }
+
+    if (campaignMode.value === 'campaign' && !game.has_campaign) return false
+    if (campaignMode.value === 'arcade' && game.has_campaign) return false
 
     return true
   })
@@ -84,16 +103,26 @@ const filtered = computed(() => {
         />
       </div>
 
-      <fieldset>
+      <fieldset v-if="!isSoloPlayer">
         <legend>Modo</legend>
-        <label><input v-model="requireCooperative" type="checkbox" /> Cooperativo</label>
-        <label><input v-model="requireCompetitive" type="checkbox" /> Competitivo</label>
-        <label><input v-model="requireCampaign" type="checkbox" /> Campaña</label>
+        <label><input v-model="modeFilter" type="radio" value="any" /> Cualquiera</label>
+        <label><input v-model="modeFilter" type="radio" value="cooperative" /> Cooperativo</label>
+        <label><input v-model="modeFilter" type="radio" value="competitive" /> Competitivo</label>
       </fieldset>
+
+      <fieldset>
+        <legend>Estructura</legend>
+        <label><input v-model="campaignMode" type="radio" value="any" /> Cualquiera</label>
+        <label><input v-model="campaignMode" type="radio" value="campaign" /> Campaña</label>
+        <label><input v-model="campaignMode" type="radio" value="arcade" /> Arcade / partida suelta</label>
+      </fieldset>
+
+      <button type="submit" class="btn btn-primary">Buscar</button>
     </form>
 
-    <p v-if="playable.length === 0" class="empty-state">
-      No tienes juegos marcados como "Lo tengo" todavía.
+    <p v-if="games.loading" class="loading-state">Cargando tu colección…</p>
+    <p v-else-if="playable.length === 0" class="empty-state">
+      No tienes juegos marcados como "Lo tengo" todavía.<br />
       <RouterLink :to="{ name: 'add-game' }">Añade uno</RouterLink>.
     </p>
     <p v-else-if="filtered.length === 0" class="empty-state">
