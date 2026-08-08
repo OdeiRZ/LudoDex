@@ -53,9 +53,16 @@ La suite usa Pest y `RefreshDatabase` (SQLite en memoria durante los tests).
 | POST   | `/api/login`    | No   | Valida credenciales, devuelve `{ user, token }` (limitado a 6 intentos/minuto) |
 | POST   | `/api/logout`   | Sí   | Revoca el token con el que se autenticó la petición |
 | GET    | `/api/user`     | Sí   | Devuelve el usuario autenticado |
+| PUT    | `/api/user`     | Sí   | Actualiza nombre/email/usuario de BGG |
+| PUT    | `/api/user/password` | Sí | Cambia la contraseña (exige `current_password`; limitado a 6/minuto) |
 
 `register` y `login` piden un campo `device_name` (etiqueta libre para el
-token, pensada para una futura pantalla de "sesiones activas").
+token, pensada para una futura pantalla de "sesiones activas"). `PUT
+/api/user` acepta un `bgg_username` opcional: si se envía y ha cambiado
+respecto al guardado, intenta rellenar `avatar_url` desde esa cuenta de BGG
+(`App\Services\Bgg\BggClient::fetchUserAvatar`) de forma *best-effort* — un
+fallo ahí (sin token, usuario inexistente, BGG caído) nunca bloquea el resto
+del guardado.
 
 | Método | Ruta                     | Auth | Descripción                              |
 |--------|--------------------------|------|-------------------------------------------|
@@ -82,3 +89,14 @@ colecciones de BGG es asíncrona (responde `202` mientras se genera), así que
 llamada reintenta la petición a BGG mientras siga `pending`. El frontend hace
 *polling* contra este endpoint cada pocos segundos hasta `completed` o
 `failed`.
+
+| Método | Ruta                              | Auth | Descripción                       |
+|--------|-----------------------------------|------|------------------------------------|
+| GET    | `/api/bgg-lookup/games/{bggId}`   | Sí   | Consulta un juego por su id de BGG (limitado a 12/minuto) |
+
+A diferencia de `/api/bgg-imports`, esta consulta es síncrona: BGG's
+`/thing` endpoint no tiene el estado `202` de exportación en curso que sí
+tiene `/collection`, así que una sola llamada basta. Pensado para el botón
+"Rellenar desde BGG" del alta/edición manual de un juego (nombre, imagen,
+jugadores, duración, complejidad, mecánicas y categorías en una sola
+respuesta).

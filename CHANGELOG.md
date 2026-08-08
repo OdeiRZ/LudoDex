@@ -105,6 +105,32 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   usuario); `PUT /api/user/password` exige la contraseña actual (regla
   `current_password:sanctum` — por defecto valida contra el guard `web`, hay
   que indicar `sanctum` explícitamente) antes de aceptar la nueva.
+- Imágenes de juegos y avatar de usuario, vía URL (sin subida de archivos:
+  Render free tier tiene disco efímero, así que cualquier archivo guardado
+  en el propio servidor desaparecería en el siguiente despliegue — ver
+  `api/README.md`). Los juegos ya tenían `image_url` desde la importación de
+  BGG pero nunca se mostraba en ningún sitio; ahora se ve en la colección y
+  en el selector (`GameThumbnail.vue`, con el icono del dado de la PWA como
+  imagen de repuesto si no hay ninguna), y el alta/edición manual tiene tanto
+  un campo para pegar cualquier URL como un botón "Rellenar desde BGG" que
+  consulta `GET /api/bgg-lookup/games/{bggId}` (nuevo `BggClient::fetchGameByBggId`,
+  una sola llamada a `/thing` — a diferencia de la importación de colección,
+  esta consulta es síncrona, sin el estado `202` de exportación en curso).
+  El avatar del usuario (`UserAvatar.vue`, con inicial de repuesto si no hay
+  imagen) se recupera automáticamente de su cuenta de BoardGameGeek si
+  indica su usuario en "Mi perfil": `ProfileController::update` llama a
+  `BggClient::fetchUserAvatar()` solo cuando el usuario de BGG cambia (no en
+  cada guardado) y de forma best-effort — un fallo aquí (BGG caído, sin
+  token, usuario inexistente) nunca bloquea el resto del guardado del
+  perfil, simplemente no hay avatar.
+- Interruptor de modo claro/oscuro explícito (`ThemeToggle.vue`, icono de sol
+  o luna junto al usuario en la cabecera), con el mismo patrón que
+  `CV_Optimizer_AI`: la elección se guarda en `localStorage`
+  (`ludodex-theme`) y un script en `index.html` la aplica antes de que
+  pinte la página para no dar el flash del tema equivocado al recargar. Sin
+  elección explícita, `prefers-color-scheme` sigue decidiendo igual que
+  antes — el interruptor no cambia el comportamiento por defecto, solo
+  permite anularlo.
 
 ### Corregido
 
@@ -156,6 +182,16 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   traducciones. Corregido con `lang/es/{validation,auth,passwords}.php` y
   `APP_LOCALE=es` (con `APP_FALLBACK_LOCALE=en` como red de seguridad para
   cualquier clave sin traducir).
+- El interruptor de tema mostraba el icono equivocado en la primera carga
+  sin elección guardada: `useTheme.ts` asumía `'dark'` cuando no encontraba
+  el atributo `data-theme`, en vez de comprobar qué tema decidía realmente
+  `prefers-color-scheme` en ese navegador. Con un sistema en modo claro, la
+  página se veía clara pero el icono ofrecía "cambiar a modo claro" (icono
+  de luna) en vez de "cambiar a modo oscuro" — el primer clic no cambiaba
+  nada visualmente, solo corregía el icono. Encontrado probándolo en el
+  navegador antes de publicarlo. Corregido consultando
+  `matchMedia('(prefers-color-scheme: light)')` como valor inicial cuando
+  no hay tema guardado.
 
 ### Documentado
 
