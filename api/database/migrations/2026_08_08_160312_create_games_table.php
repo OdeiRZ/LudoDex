@@ -38,9 +38,20 @@ return new class extends Migration
             // (different player/time counts, no playable rules of their
             // own). Self-referencing instead of a separate table so the
             // picker can treat "base + owned expansions" as one unit.
-            $table->foreignUlid('base_game_id')->nullable()->constrained('games')->nullOnDelete();
+            $table->foreignUlid('base_game_id')->nullable();
 
             $table->timestamps();
+        });
+
+        // The self-referencing FK is added in a separate Schema::table call,
+        // not chained onto the column above: on Postgres, Laravel processes
+        // a blueprint's implied "primary" command after explicit "foreign"
+        // commands, so a single Schema::create with both would try to add
+        // this FK before games.id has its primary key/unique constraint yet
+        // and fail with "no unique constraint matching given keys". Splitting
+        // it into its own call guarantees the primary key already exists.
+        Schema::table('games', function (Blueprint $table) {
+            $table->foreign('base_game_id')->references('id')->on('games')->nullOnDelete();
         });
     }
 
