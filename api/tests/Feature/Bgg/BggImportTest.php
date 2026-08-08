@@ -165,6 +165,45 @@ it('marks the collection status (owned vs wishlist) correctly', function () {
     expect($user->games()->first()->status)->toBe('wishlist');
 });
 
+it('treats cooperative and competitive as independent, not opposite, flags', function () {
+    $user = actingAsUser();
+
+    Http::fake(function (ClientRequest $request) {
+        $url = $request->url();
+
+        if (str_contains($url, '/collection') && str_contains($url, 'subtype=boardgame&')) {
+            return Http::response(collectionXml('boardgame', [
+                'id' => 30549, 'name' => 'Pandemic', 'image' => 'https://example.com/pandemic.jpg',
+                'own' => 1, 'wishlist' => 0,
+            ]));
+        }
+
+        if (str_contains($url, '/collection')) {
+            return Http::response(collectionXml('boardgameexpansion', null));
+        }
+
+        return Http::response(<<<'XML'
+        <?xml version="1.0" encoding="utf-8"?>
+        <items>
+            <item type="boardgame" id="30549">
+                <name type="primary" sortindex="1" value="Pandemic"/>
+                <link type="boardgamemechanic" id="2015" value="Cooperative Game"/>
+            </item>
+        </items>
+        XML);
+    });
+
+    $this->postJson('/api/bgg-imports', ['bgg_username' => 'odei'])->assertCreated();
+
+    $pandemic = Game::where('bgg_id', 30549)->first();
+
+    // Team-based cooperative games are still competitive against the game
+    // itself/other teams - is_competitive must not be forced to the
+    // opposite of is_cooperative (see BggImportService::upsertGames).
+    expect($pandemic->is_cooperative)->toBeTrue();
+    expect($pandemic->is_competitive)->toBeTrue();
+});
+
 it('does not reprocess an import that already finished', function () {
     $user = actingAsUser();
     $import = BggImport::factory()->for($user)->create(['status' => 'completed', 'imported_count' => 2]);

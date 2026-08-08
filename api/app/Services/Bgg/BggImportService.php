@@ -61,7 +61,19 @@ class BggImportService
             $detail = $details[$item['bgg_id']] ?? null;
             $mechanics = $detail['mechanics'] ?? [];
             $categories = $detail['categories'] ?? [];
-            $isCooperative = $this->anyContains([...$mechanics, ...$categories], 'cooperative');
+            $tags = [...$mechanics, ...$categories];
+
+            // Independent signals, not a strict either/or (see the games
+            // migration): a team-based game can be both cooperative (within
+            // a team) and competitive (between teams), and BGG has no direct
+            // "is competitive" flag, so it's inferred as "not solo" instead
+            // of as the negation of cooperative - that negation previously
+            // forced every cooperative game to is_competitive = false,
+            // mislabeling semi-cooperative/team games and, on a failed BGG
+            // detail fetch (empty $tags), forcing is_competitive = true with
+            // no real signal either way.
+            $isCooperative = $this->anyContains($tags, 'cooperative');
+            $isSolo = $this->anyContains($tags, 'solo');
 
             $game = Game::updateOrCreate(
                 ['bgg_id' => $item['bgg_id']],
@@ -74,9 +86,9 @@ class BggImportService
                     'max_playtime_minutes' => $item['max_playtime_minutes'],
                     'weight' => $detail['weight'] ?? null,
                     'is_cooperative' => $isCooperative,
-                    'is_competitive' => ! $isCooperative,
-                    'has_campaign' => $this->anyContains([...$mechanics, ...$categories], 'campaign')
-                        || $this->anyContains([...$mechanics, ...$categories], 'legacy'),
+                    'is_competitive' => ! $isSolo,
+                    'has_campaign' => $this->anyContains($tags, 'campaign')
+                        || $this->anyContains($tags, 'legacy'),
                 ]
             );
 
