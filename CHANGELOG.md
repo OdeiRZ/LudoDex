@@ -89,6 +89,22 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   arrancar tras estar inactiva, y sin ningún indicador esa espera parece un
   fallo. También aviso de "Cargando…" mientras se obtiene la colección por
   primera vez en Colección y en el selector.
+- Instalable como PWA ("Añadir a pantalla de inicio"): icono propio (un dado
+  en los colores de la marca, generado con GD en vez de depender de un
+  editor de imágenes externo — ver `web/public/icons/`), `manifest.webmanifest`
+  con los tamaños 192/512 (`any` y `maskable`), meta tags de Apple
+  (`apple-mobile-web-app-capable`, `apple-touch-icon`) para el comportamiento
+  a pantalla completa en iOS, y un service worker mínimo (`public/sw.js`,
+  sin ninguna estrategia de caché — la app no tiene historia offline, solo
+  existe porque Chrome en Android exige un *service worker* controlando la
+  página para ofrecer el diálogo de instalación).
+- Editar los datos personales básicos (nombre y email) y cambiar la
+  contraseña desde una nueva pantalla "Mi perfil" (`/profile`, enlazada desde
+  el nombre de usuario en la cabecera). `PUT /api/user` reutiliza la misma
+  validación de unicidad de email que el registro (ignorando al propio
+  usuario); `PUT /api/user/password` exige la contraseña actual (regla
+  `current_password:sanctum` — por defecto valida contra el guard `web`, hay
+  que indicar `sanctum` explícitamente) antes de aceptar la nueva.
 
 ### Corregido
 
