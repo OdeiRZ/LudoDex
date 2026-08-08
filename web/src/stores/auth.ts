@@ -19,6 +19,17 @@ interface LoginPayload {
   password: string
 }
 
+interface UpdateProfilePayload {
+  name: string
+  email: string
+}
+
+interface UpdatePasswordPayload {
+  current_password: string
+  password: string
+  password_confirmation: string
+}
+
 interface AuthState {
   user: User | null
   token: string | null
@@ -63,6 +74,15 @@ export const useAuthStore = defineStore('auth', {
       } finally {
         this.clearSession()
       }
+    },
+
+    async updateProfile(payload: UpdateProfilePayload) {
+      const { data } = await apiClient.put('/user', payload)
+      this.user = data.user
+    },
+
+    async updatePassword(payload: UpdatePasswordPayload) {
+      await apiClient.put('/user/password', payload)
     },
 
     /** Restores `user` from a token already in storage (e.g. after a page reload). */

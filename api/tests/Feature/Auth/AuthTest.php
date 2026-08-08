@@ -114,3 +114,76 @@ it('logs out and revokes the current token', function () {
 it('rejects unauthenticated access to protected routes', function () {
     $this->getJson('/api/user')->assertUnauthorized();
 });
+
+it('updates the authenticated user\'s name and email', function () {
+    $user = actingAsUser();
+
+    $response = $this->putJson('/api/user', [
+        'name' => 'Nuevo Nombre',
+        'email' => 'nuevo@example.com',
+    ]);
+
+    $response->assertOk()->assertJsonPath('user.email', 'nuevo@example.com');
+
+    expect($user->refresh())
+        ->name->toBe('Nuevo Nombre')
+        ->email->toBe('nuevo@example.com');
+});
+
+it('rejects a profile update with an email already used by another user', function () {
+    actingAsUser();
+    User::factory()->create(['email' => 'taken@example.com']);
+
+    $response = $this->putJson('/api/user', [
+        'name' => 'Nuevo Nombre',
+        'email' => 'taken@example.com',
+    ]);
+
+    $response->assertUnprocessable()->assertJsonValidationErrors('email');
+});
+
+it('allows a profile update that keeps the user\'s own current email', function () {
+    $user = User::factory()->create(['email' => 'mismo@example.com']);
+    $this->actingAs($user, 'sanctum');
+
+    $response = $this->putJson('/api/user', [
+        'name' => 'Nuevo Nombre',
+        'email' => 'mismo@example.com',
+    ]);
+
+    $response->assertOk();
+});
+
+it('changes the password when the current one is correct', function () {
+    $user = User::factory()->create(['password' => bcrypt('old-password')]);
+    $this->actingAs($user, 'sanctum');
+
+    $response = $this->putJson('/api/user/password', [
+        'current_password' => 'old-password',
+        'password' => 'new-password',
+        'password_confirmation' => 'new-password',
+    ]);
+
+    $response->assertNoContent();
+
+    Auth::forgetGuards();
+
+    $this->postJson('/api/login', [
+        'email' => $user->email,
+        'password' => 'new-password',
+        'device_name' => 'test-suite',
+    ])->assertOk();
+});
+
+it('rejects a password change with the wrong current password', function () {
+    $user = User::factory()->create(['password' => bcrypt('old-password')]);
+    $this->actingAs($user, 'sanctum');
+
+    $response = $this->putJson('/api/user/password', [
+        'current_password' => 'wrong-password',
+        'password' => 'new-password',
+        'password_confirmation' => 'new-password',
+    ]);
+
+    $response->assertUnprocessable()->assertJsonValidationErrors('current_password');
+});

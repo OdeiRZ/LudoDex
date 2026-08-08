@@ -23,7 +23,9 @@ async function onLogout() {
 
     <div class="session">
       <template v-if="auth.isAuthenticated">
-        <span v-if="auth.user" class="user-name">{{ auth.user.name }}</span>
+        <RouterLink v-if="auth.user" :to="{ name: 'profile' }" class="user-name">
+          {{ auth.user.name }}
+        </RouterLink>
         <button type="button" class="btn" @click="onLogout">Cerrar sesión</button>
       </template>
       <template v-else>

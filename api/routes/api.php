@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\Bgg\BggImportController;
 use App\Http\Controllers\Games\CategoryController;
 use App\Http\Controllers\Games\MechanicController;
@@ -14,6 +15,8 @@ Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:6,
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', fn (Request $request) => $request->user());
+    Route::put('/user', [ProfileController::class, 'update']);
+    Route::put('/user/password', [ProfileController::class, 'updatePassword'])->middleware('throttle:6,1');
 
     Route::get('/games', [UserGameController::class, 'index']);
     Route::post('/games', [UserGameController::class, 'store']);
