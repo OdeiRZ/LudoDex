@@ -73,6 +73,22 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   entrypoint corre `php artisan migrate --force` antes de servir. Verificado
   de punta a punta contra los servicios reales: registro, login, alta y
   borrado de un juego.
+- Editar un juego ya añadido (`EditGameView.vue`, ruta `/games/:id/edit`,
+  botón "Editar" en cada tarjeta de la colección): reutiliza el mismo
+  formulario que el alta manual (extraído a `components/GameForm.vue`) y
+  precarga los datos existentes; guarda con `PUT /api/games/{userGame}`.
+- Selector "¿A qué jugamos?": con 1 jugador se ocultan los filtros
+  cooperativo/competitivo (no hay con quién cooperar o competir en solitario)
+  y se resetean si estaban activos; nuevo filtro "Estructura" (Cualquiera /
+  Campaña / Arcade — partida suelta), excluyente, como contrapartida directa
+  del modo campaña; botón "Buscar" explícito para enviar el formulario
+  (el filtrado ya era reactivo, pero no había ninguna acción visible).
+- Aviso de "puede tardar unos segundos" en login, registro y formularios de
+  juego (`composables/useSlowRequestHint.ts`) cuando una petición lleva
+  varios segundos sin resolver — la API en Render tarda hasta ~50s en
+  arrancar tras estar inactiva, y sin ningún indicador esa espera parece un
+  fallo. También aviso de "Cargando…" mientras se obtiene la colección por
+  primera vez en Colección y en el selector.
 
 ### Corregido
 
@@ -107,6 +123,23 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   directa de Neon (sin `-pooler`) como `DB_HOST` — con el tráfico de un
   proyecto personal no hace falta el pooler, y evita esta clase de fallos
   opacos en DDL transaccional.
+- La importación desde BGG marcaba `is_competitive` como la negación exacta
+  de `is_cooperative` (`BggImportService::upsertGames`), contradiciendo el
+  propio comentario de la migración de `games` ("no es un either/or
+  estricto... puede ser ninguno o ambos"): un juego semi-cooperativo o por
+  equipos (cooperativo dentro del equipo, competitivo entre equipos) quedaba
+  marcado como no competitivo solo por ser cooperativo, y cualquier fallo al
+  obtener el detalle de BGG (sin mecánicas/categorías) forzaba
+  `is_competitive = true` sin ninguna señal real. Encontrado revisando la
+  lógica de importación, no en producción. Corregido calculando
+  `is_competitive` de forma independiente (a partir de la ausencia de la
+  mecánica "Solo / Solitaire Game", no de la negación de cooperativo).
+- Los mensajes de validación de la API salían en inglés (`email must be a
+  valid email address`) a pesar de que toda la interfaz está en español:
+  Laravel usa `APP_LOCALE=en` por defecto y el proyecto nunca había añadido
+  traducciones. Corregido con `lang/es/{validation,auth,passwords}.php` y
+  `APP_LOCALE=es` (con `APP_FALLBACK_LOCALE=en` como red de seguridad para
+  cualquier clave sin traducir).
 
 ### Documentado
 
