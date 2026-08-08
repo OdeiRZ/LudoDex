@@ -15,6 +15,13 @@ php artisan migrate
 php artisan serve
 ```
 
+Para la importación desde BGG hace falta además `BGG_APPLICATION_TOKEN`: BGG
+dejó de ofrecer su API XML sin autenticación y ahora exige registrar la
+aplicación y usar un token de aplicación como Bearer token en cada petición.
+Se registra en <https://boardgamegeek.com/using_the_xml_api>. Sin ese token,
+cualquier importación falla inmediatamente con un mensaje explicando por qué
+(no con un 401 en crudo).
+
 ## Testing
 
 ```bash
@@ -50,3 +57,15 @@ token, pensada para una futura pantalla de "sesiones activas").
 si el nombre ya existe en el catálogo se reutiliza, si no se crea sobre la
 marcha (`firstOrCreate`). Actualizar o borrar la entrada de otro usuario
 devuelve 403 (`App\Policies\UserGamePolicy`).
+
+| Método | Ruta                        | Auth | Descripción                              |
+|--------|-----------------------------|------|-------------------------------------------|
+| POST   | `/api/bgg-imports`          | Sí   | Inicia una importación desde BGG (limitado a 6/minuto) |
+| GET    | `/api/bgg-imports/{id}`     | Sí   | Consulta el estado; si sigue `pending`, reintenta contra BGG en la propia petición |
+
+Sin *worker* en segundo plano (ver README raíz): la exportación de
+colecciones de BGG es asíncrona (responde `202` mientras se genera), así que
+`GET /api/bgg-imports/{id}` no se limita a leer el estado guardado — cada
+llamada reintenta la petición a BGG mientras siga `pending`. El frontend hace
+*polling* contra este endpoint cada pocos segundos hasta `completed` o
+`failed`.

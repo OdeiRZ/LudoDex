@@ -47,6 +47,14 @@ interface Catalog {
   name: string
 }
 
+export interface BggImportStatus {
+  id: string
+  bgg_username: string
+  status: 'pending' | 'completed' | 'failed'
+  imported_count: number | null
+  error_message: string | null
+}
+
 interface GamesState {
   collection: UserGame[]
   mechanicOptions: string[]
@@ -84,6 +92,16 @@ export const useGamesStore = defineStore('games', {
     async deleteGame(userGameId: string) {
       await apiClient.delete(`/games/${userGameId}`)
       this.collection = this.collection.filter((entry) => entry.id !== userGameId)
+    },
+
+    async startBggImport(username: string): Promise<BggImportStatus> {
+      const { data } = await apiClient.post('/bgg-imports', { bgg_username: username })
+      return data.data
+    },
+
+    async pollBggImport(id: string): Promise<BggImportStatus> {
+      const { data } = await apiClient.get(`/bgg-imports/${id}`)
+      return data.data
     },
   },
 })

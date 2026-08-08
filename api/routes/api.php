@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Bgg\BggImportController;
 use App\Http\Controllers\Games\CategoryController;
 use App\Http\Controllers\Games\MechanicController;
 use App\Http\Controllers\Games\UserGameController;
@@ -21,4 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/mechanics', [MechanicController::class, 'index']);
     Route::get('/categories', [CategoryController::class, 'index']);
+
+    Route::post('/bgg-imports', [BggImportController::class, 'store'])->middleware('throttle:6,1');
+    Route::get('/bgg-imports/{bggImport}', [BggImportController::class, 'show']);
 });

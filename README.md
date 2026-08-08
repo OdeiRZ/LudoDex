@@ -47,6 +47,24 @@ Repo único con dos aplicaciones independientes, cada una con su propio
   primera consulta — mejor encaje para una pieza de portfolio con tráfico
   esporádico.
 
+## Requisitos externos
+
+- **Token de aplicación de BoardGameGeek**: BGG dejó de ofrecer su API XML
+  (`xmlapi2`) sin autenticación — ahora exige registrar la aplicación y enviar
+  un token como Bearer en cada petición (ver
+  [Using the XML API](https://boardgamegeek.com/using_the_xml_api) y el hilo
+  [Registration and Authorization coming to the XML API](https://boardgamegeek.com/thread/3492262/registration-and-authorization-coming-to-the-xml-a)).
+  Descubierto al verificar el hito 3 contra una colección real: la API
+  respondía `401` con cabecera `WWW-Authenticate: Bearer realm="xml api"` — un
+  cambio de política de BGG posterior a como funcionaba históricamente esta
+  API, no un fallo de esta app. Sin `BGG_APPLICATION_TOKEN` configurado (ver
+  [`api/README.md`](api/README.md)), la importación falla con un mensaje
+  explicando el motivo en vez de un error críptico.
+  **Estado**: solicitud de aplicación ("LudoDex") enviada a BGG el
+  2026-08-08, pendiente de aprobación (BGG avisa que puede tardar una
+  semana o más). Hasta que llegue el token, la importación está construida y
+  probada con `Http::fake()` pero sin verificar contra una colección real.
+
 ## Hitos
 
 1. ✅ Cimientos: repo, API con auth (registro/login/logout) y SPA con las
@@ -54,7 +72,9 @@ Repo único con dos aplicaciones independientes, cada una con su propio
 2. ✅ Inventario manual de juegos, con catálogo de mecánicas/categorías
    compartido (reutilizado por nombre, no duplicado) y expansiones ligadas a
    su juego base.
-3. Importación desde BGG.
+3. 🔶 Importación desde BGG: construida y probada con respuestas simuladas;
+   verificación con una colección real pendiente del token de aplicación de
+   BGG (ver "Requisitos externos" más arriba).
 4. Selector de "a qué jugar" con filtros.
 5. Pulido visual y despliegue (Render + Neon + Cloudflare Pages).
 

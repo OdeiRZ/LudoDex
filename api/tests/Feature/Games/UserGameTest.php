@@ -6,14 +6,6 @@ use App\Models\Mechanic;
 use App\Models\User;
 use App\Models\UserGame;
 
-function actingAsUser(): User
-{
-    $user = User::factory()->create();
-    test()->actingAs($user, 'sanctum');
-
-    return $user;
-}
-
 it('rejects unauthenticated access', function () {
     $this->getJson('/api/games')->assertUnauthorized();
 });

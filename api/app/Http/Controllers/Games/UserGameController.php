@@ -6,10 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Games\StoreUserGameRequest;
 use App\Http\Requests\Games\UpdateUserGameRequest;
 use App\Http\Resources\UserGameResource;
-use App\Models\Category;
 use App\Models\Game;
-use App\Models\Mechanic;
 use App\Models\UserGame;
+use App\Services\GameTaxonomySyncer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -17,6 +16,8 @@ use Illuminate\Support\Facades\DB;
 
 class UserGameController extends Controller
 {
+    public function __construct(private readonly GameTaxonomySyncer $taxonomySyncer) {}
+
     public function index(Request $request): AnonymousResourceCollection
     {
         $userGames = $request->user()
@@ -37,7 +38,7 @@ class UserGameController extends Controller
             // as two separate rows is an accepted MVP simplification.
             $game = Game::create($request->safe()->except(['mechanics', 'categories', 'status', 'notes']));
 
-            $this->syncTaxonomies($game, $request->validated('mechanics', []), $request->validated('categories', []));
+            $this->taxonomySyncer->sync($game, $request->validated('mechanics', []), $request->validated('categories', []));
 
             return $request->user()->games()->create([
                 'game_id' => $game->id,
@@ -61,7 +62,7 @@ class UserGameController extends Controller
             }
 
             if ($request->has('mechanics') || $request->has('categories')) {
-                $this->syncTaxonomies(
+                $this->taxonomySyncer->sync(
                     $userGame->game,
                     $request->validated('mechanics', $userGame->game->mechanics->pluck('name')->all()),
                     $request->validated('categories', $userGame->game->categories->pluck('name')->all()),
@@ -81,21 +82,5 @@ class UserGameController extends Controller
         $userGame->delete();
 
         return response()->noContent();
-    }
-
-    /**
-     * @param  array<int, string>  $mechanicNames
-     * @param  array<int, string>  $categoryNames
-     */
-    private function syncTaxonomies(Game $game, array $mechanicNames, array $categoryNames): void
-    {
-        $mechanicIds = collect($mechanicNames)
-            ->map(fn (string $name) => Mechanic::firstOrCreate(['name' => $name])->id);
-
-        $categoryIds = collect($categoryNames)
-            ->map(fn (string $name) => Category::firstOrCreate(['name' => $name])->id);
-
-        $game->mechanics()->sync($mechanicIds);
-        $game->categories()->sync($categoryIds);
     }
 }

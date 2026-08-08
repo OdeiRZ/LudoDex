@@ -25,7 +25,10 @@ async function onDelete(userGameId: string) {
   <div>
     <div class="header">
       <h1>Tu colección</h1>
-      <RouterLink :to="{ name: 'add-game' }" class="add-link">+ Añadir juego</RouterLink>
+      <div class="actions">
+        <RouterLink :to="{ name: 'import-bgg' }">Importar de BGG</RouterLink>
+        <RouterLink :to="{ name: 'add-game' }" class="add-link">+ Añadir juego</RouterLink>
+      </div>
     </div>
 
     <p v-if="games.loaded && games.collection.length === 0">
@@ -59,6 +62,11 @@ async function onDelete(userGameId: string) {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
 }
 
 .games {

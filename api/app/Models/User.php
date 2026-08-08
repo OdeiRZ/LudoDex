@@ -56,4 +56,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserGame::class);
     }
+
+    /**
+     * @return HasMany<BggImport, $this>
+     */
+    public function bggImports(): HasMany
+    {
+        return $this->hasMany(BggImport::class);
+    }
 }

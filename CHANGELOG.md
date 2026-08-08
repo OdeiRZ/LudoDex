@@ -35,3 +35,28 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   de nuevas sobre la marcha (`TagInput.vue`), y borrado desde la propia
   tarjeta. Verificado de punta a punta en el navegador: alta con mecánicas y
   categorías nuevas, persistencia tras recargar, y borrado.
+- Importación de colección desde BoardGameGeek: `App\Services\Bgg\BggClient`
+  (llamadas a `xmlapi2/collection` y `xmlapi2/thing`, parseo con SimpleXML) y
+  `BggImportService` (upsert de juegos por `bgg_id`, enlace de expansiones a
+  su juego base vía el link `inbound` de BGG, inferencia de
+  cooperativo/campaña a partir de mecánicas y categorías). Tabla
+  `bgg_imports` para trackear el estado (`pending`/`completed`/`failed`) sin
+  worker en background: `GET /api/bgg-imports/{id}` reintenta contra BGG en
+  la propia petición mientras siga `pending`, y el frontend hace *polling*
+  cada 3s (`ImportBggView.vue`). Tests con `Http::fake()` y XML de ejemplo
+  realista (colección + expansión + enlace inbound), sin llamadas reales a
+  BGG.
+
+### Documentado
+
+- **Bloqueante externo, no de esta app**: BoardGameGeek dejó de ofrecer su
+  API XML sin autenticación — ahora exige registrar la aplicación en
+  <https://boardgamegeek.com/using_the_xml_api> y usar un token de
+  aplicación como `Authorization: Bearer` en cada petición. Descubierto al
+  intentar verificar el hito 3 contra una colección real (la API respondía
+  `401` con `WWW-Authenticate: Bearer realm="xml api"`). Solicitud de
+  aplicación ("LudoDex") ya enviada a BGG el 2026-08-08, estado `pending`;
+  BGG avisa que la revisión puede tardar una semana o más. El código ya
+  soporta el token vía `BGG_APPLICATION_TOKEN` (falla con un mensaje claro,
+  no un 401 en crudo, si no está configurado) — la verificación con una
+  colección real queda pendiente de que BGG apruebe la solicitud.
