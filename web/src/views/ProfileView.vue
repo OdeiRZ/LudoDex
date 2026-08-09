@@ -148,7 +148,7 @@ async function onSubmitPassword() {
 
         <p v-if="isProfileSlow" class="slow-request-hint">
           <LoadingSpinner :size="16" />
-          Puede tardar unos segundos si el servidor estaba inactivo.
+          Servidor inactivo: puede tardar unos segundos.
         </p>
       </form>
     </section>
@@ -224,7 +224,7 @@ async function onSubmitPassword() {
 
         <p v-if="isPasswordSlow" class="slow-request-hint">
           <LoadingSpinner :size="16" />
-          Puede tardar unos segundos si el servidor estaba inactivo.
+          Servidor inactivo: puede tardar unos segundos.
         </p>
       </form>
     </section>

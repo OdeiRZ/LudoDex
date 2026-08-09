@@ -43,6 +43,9 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Corregido
 
+- El aviso de arranque en frío junto al dado de carga ("Puede tardar unos
+  segundos si el servidor estaba inactivo.") se acorta a "Servidor
+  inactivo: puede tardar unos segundos.".
 - El mensaje de validación de email duplicado (registro y edición de
   perfil) decía "Ese valor de email ya está en uso.", traducción literal
   del paquete de idioma español de Laravel que suena forzada en

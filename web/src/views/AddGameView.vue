@@ -69,7 +69,7 @@ async function onSubmit() {
 
       <p v-if="isSlow" class="slow-request-hint">
         <LoadingSpinner :size="16" />
-        Puede tardar unos segundos si el servidor estaba inactivo.
+        Servidor inactivo: puede tardar unos segundos.
       </p>
     </form>
   </div>
