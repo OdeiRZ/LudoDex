@@ -30,6 +30,7 @@ export default {
       error: 'Incorrect email or password.',
       noAccount: "Don't have an account?",
       registerLink: 'Sign up',
+      forgotPasswordLink: 'Forgot your password?',
     },
     register: {
       title: 'Sign up',
@@ -42,6 +43,23 @@ export default {
       genericError: 'Something went wrong. Please try again.',
       hasAccount: 'Already have an account?',
       loginLink: 'Log in',
+    },
+    forgotPassword: {
+      title: 'Reset your password',
+      instructions: "We'll send you a link to choose a new password.",
+      email: 'Email',
+      submit: 'Send reset link',
+      submitting: 'Sending…',
+      backToLogin: '← Back to login',
+    },
+    resetPassword: {
+      title: 'Choose a new password',
+      password: 'New password',
+      passwordConfirmation: 'Confirm password',
+      submit: 'Reset password',
+      submitting: 'Saving…',
+      genericError: "Couldn't reset the password.",
+      goToLogin: 'Go to login',
     },
   },
   dashboard: {

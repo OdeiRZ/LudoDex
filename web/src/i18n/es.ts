@@ -30,6 +30,7 @@ export default {
       error: 'Email o contraseña incorrectos.',
       noAccount: '¿No tienes cuenta?',
       registerLink: 'Regístrate',
+      forgotPasswordLink: '¿Olvidaste tu contraseña?',
     },
     register: {
       title: 'Crear cuenta',
@@ -42,6 +43,23 @@ export default {
       genericError: 'Algo ha ido mal. Inténtalo de nuevo.',
       hasAccount: '¿Ya tienes cuenta?',
       loginLink: 'Inicia sesión',
+    },
+    forgotPassword: {
+      title: 'Recuperar contraseña',
+      instructions: 'Te enviaremos un enlace para elegir una contraseña nueva.',
+      email: 'Email',
+      submit: 'Enviar enlace',
+      submitting: 'Enviando…',
+      backToLogin: '← Volver a iniciar sesión',
+    },
+    resetPassword: {
+      title: 'Elige una contraseña nueva',
+      password: 'Contraseña nueva',
+      passwordConfirmation: 'Repite la contraseña',
+      submit: 'Restablecer contraseña',
+      submitting: 'Guardando…',
+      genericError: 'No se ha podido restablecer la contraseña.',
+      goToLogin: 'Ir a iniciar sesión',
     },
   },
   dashboard: {

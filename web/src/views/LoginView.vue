@@ -51,6 +51,9 @@ async function onSubmit() {
             required
             autocomplete="current-password"
           />
+          <RouterLink :to="{ name: 'forgot-password' }" class="forgot-link">{{
+            $t('auth.login.forgotPasswordLink')
+          }}</RouterLink>
         </div>
 
         <p v-if="error" role="alert" class="alert alert-error">{{ error }}</p>
@@ -88,5 +91,11 @@ h1 {
   margin-top: var(--space-4);
   color: var(--color-text-muted);
   font-size: 0.9rem;
+}
+
+.forgot-link {
+  display: inline-block;
+  margin-top: var(--space-1);
+  font-size: 0.85rem;
 }
 </style>

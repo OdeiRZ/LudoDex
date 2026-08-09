@@ -33,6 +33,13 @@ interface UpdatePasswordPayload {
   password_confirmation: string
 }
 
+interface ResetPasswordPayload {
+  token: string
+  email: string
+  password: string
+  password_confirmation: string
+}
+
 interface AuthState {
   user: User | null
   token: string | null
@@ -86,6 +93,18 @@ export const useAuthStore = defineStore('auth', {
 
     async updatePassword(payload: UpdatePasswordPayload) {
       await apiClient.put('/user/password', payload)
+    },
+
+    /** Returns the backend's own status message (already in the right
+     * language) rather than a fixed string, so the view can show it as is. */
+    async forgotPassword(email: string): Promise<string> {
+      const { data } = await apiClient.post('/forgot-password', { email })
+      return data.message
+    },
+
+    async resetPassword(payload: ResetPasswordPayload): Promise<string> {
+      const { data } = await apiClient.post('/reset-password', payload)
+      return data.message
     },
 
     /** Restores `user` from a token already in storage (e.g. after a page reload). */

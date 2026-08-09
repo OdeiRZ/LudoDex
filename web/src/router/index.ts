@@ -60,6 +60,20 @@ const router = createRouter({
       component: () => import('@/views/RegisterView.vue'),
       meta: { guestOnly: true },
     },
+    {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: () => import('@/views/ForgotPasswordView.vue'),
+      meta: { guestOnly: true },
+    },
+    {
+      // Deliberately not guestOnly: a reset link should work even if the
+      // clicker is already logged in elsewhere (a second device, or an old
+      // email opened out of habit), not silently bounce them away.
+      path: '/reset-password',
+      name: 'reset-password',
+      component: () => import('@/views/ResetPasswordView.vue'),
+    },
   ],
 })
 
