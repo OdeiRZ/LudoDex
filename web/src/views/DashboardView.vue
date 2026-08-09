@@ -3,6 +3,7 @@ import { onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useGamesStore } from '@/stores/games'
 import GameThumbnail from '@/components/GameThumbnail.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const auth = useAuthStore()
 const games = useGamesStore()
@@ -29,7 +30,10 @@ async function onDelete(userGameId: string) {
       <RouterLink :to="{ name: 'add-game' }" class="btn btn-primary">+ Añadir juego</RouterLink>
     </div>
 
-    <p v-if="games.loading" class="loading-state">Cargando tu colección…</p>
+    <p v-if="games.loading" class="loading-state">
+      <LoadingSpinner :size="28" />
+      Cargando tu colección…
+    </p>
 
     <p v-else-if="games.loaded && games.collection.length === 0" class="empty-state">
       Todavía no has añadido ningún juego.<br />

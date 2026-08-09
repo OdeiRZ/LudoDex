@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { isAxiosError } from 'axios'
 import { useGamesStore } from '@/stores/games'
 import GameForm, { type GameFormData } from '@/components/GameForm.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
 
 const router = useRouter()
@@ -67,6 +68,7 @@ async function onSubmit() {
       <GameForm v-model="form" :submitting="submitting" submit-label="Guardar juego" :errors="errors" />
 
       <p v-if="isSlow" class="slow-request-hint">
+        <LoadingSpinner :size="16" />
         Puede tardar unos segundos si el servidor estaba inactivo.
       </p>
     </form>

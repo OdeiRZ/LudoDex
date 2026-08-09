@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useGamesStore } from '@/stores/games'
 import GameThumbnail from '@/components/GameThumbnail.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const games = useGamesStore()
 
@@ -170,7 +171,10 @@ const filtered = computed(() => {
       </div>
     </form>
 
-    <p v-if="games.loading" class="loading-state">Cargando tu colección…</p>
+    <p v-if="games.loading" class="loading-state">
+      <LoadingSpinner :size="28" />
+      Cargando tu colección…
+    </p>
     <p v-else-if="playable.length === 0" class="empty-state">
       No tienes juegos marcados como "Lo tengo" todavía.<br />
       <RouterLink :to="{ name: 'add-game' }">Añade uno</RouterLink>.

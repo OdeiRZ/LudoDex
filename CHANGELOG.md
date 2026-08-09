@@ -21,6 +21,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   funcione igual aunque se recargue la página) tanto al pulsar el enlace
   como al guardar los cambios — antes, guardar siempre mandaba a la
   colección aunque se hubiera entrado desde el selector.
+- `LoadingSpinner.vue`: un dado (con sus 5 pips) girando sobre sí mismo, en
+  vez de solo el texto "Cargando…"/"Cargando tu colección…" que había
+  hasta ahora. Sustituye a ese texto suelto en la colección, el selector y
+  el formulario de edición; junto al aviso de "puede tardar unos segundos"
+  de los formularios de alta/edición; y junto al aviso de conexión con BGG
+  en la importación. Respeta `prefers-reduced-motion` (sin animación si el
+  sistema pide reducir el movimiento).
 
 ### Corregido
 

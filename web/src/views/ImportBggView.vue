@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onUnmounted, ref } from 'vue'
 import { useGamesStore, type BggImportStatus } from '@/stores/games'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const games = useGamesStore()
 
@@ -76,6 +77,7 @@ onUnmounted(() => {
       </form>
 
       <div v-else-if="phase === 'pending'" role="status" class="status-block">
+        <LoadingSpinner :size="32" />
         <p>
           Conectando con BoardGameGeek… Puede tardar unos segundos mientras BGG prepara la
           exportación de la colección.
