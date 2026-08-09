@@ -52,6 +52,20 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   único checkbox "Solo modo campaña": excluir explícitamente los juegos
   con campaña era un caso mucho más raro que buscarlos, así que la tercera
   opción sobraba.
+- Recuperación de contraseña desde la pantalla de inicio de sesión, para
+  cuando no se recuerda la contraseña: enlace "¿Olvidaste tu contraseña?"
+  bajo el campo de contraseña → formulario para pedir el enlace por email
+  → formulario para elegir una nueva contraseña. Usa el sistema de reseteo
+  ya incorporado en Laravel (`Password` broker, tabla
+  `password_reset_tokens`), con un `AppServiceProvider::boot()` que
+  redirige el enlace del email a la SPA (`/reset-password?token=…`) en
+  vez de a una vista renderizada por el servidor, ya que la API no tiene
+  ninguna. En local, sin mailer configurado, el enlace se escribe en
+  `storage/logs/laravel.log` (`MAIL_MAILER=log`); en producción queda
+  pendiente configurar `RESEND_API_KEY` y `MAIL_MAILER=resend` (Resend ya
+  viene soportado de forma nativa en Laravel 12, y su plan gratuito — 3000
+  emails/mes — cubre de sobra el volumen de esta app), siguiendo el mismo
+  patrón de "documentado como pendiente" que el token de BGG.
 
 ### Corregido
 
