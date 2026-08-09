@@ -109,6 +109,17 @@ describe('TagInput', () => {
     expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([['Faroleo']])
   })
 
+  it('keeps suggestion buttons out of tab order, so Tab does not focus a button the closing dropdown then removes', async () => {
+    const wrapper = mountTagInput([], ['Dados', 'Cartas'])
+    await wrapper.find('input').trigger('focus')
+
+    const buttons = wrapper.findAll('.suggestions button')
+    expect(buttons.length).toBeGreaterThan(0)
+    buttons.forEach((button) => {
+      expect(button.attributes('tabindex')).toBe('-1')
+    })
+  })
+
   it('removes a tag when its remove button is clicked', async () => {
     const wrapper = mountTagInput(['Dados', 'Cartas'], [])
 

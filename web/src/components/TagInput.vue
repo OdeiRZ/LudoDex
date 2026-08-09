@@ -98,8 +98,12 @@ function onBlur() {
           <!-- mousedown.prevent keeps focus on the input instead of letting
                the browser shift it to this button first, so @blur above
                never fires for this click and the list doesn't vanish
-               before selectSuggestion runs. -->
-          <button type="button" @mousedown.prevent="selectSuggestion(suggestion)">
+               before selectSuggestion runs. tabindex="-1" keeps these out of
+               tab order entirely: without it, Tab moves focus onto a button
+               that @blur's own isOpen=false then removes from the DOM,
+               dropping focus back to <body>. Keyboard users can still add
+               any suggestion by typing its text and pressing Enter. -->
+          <button type="button" tabindex="-1" @mousedown.prevent="selectSuggestion(suggestion)">
             {{ suggestion }}
           </button>
         </li>
