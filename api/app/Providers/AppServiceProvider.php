@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\User;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +21,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Laravel's default reset link points at a server-rendered
+        // "password.reset" web route, which doesn't exist here - this is an
+        // API-only backend with a separate SPA. Point it at the frontend's
+        // own reset-password page instead, carrying the token and email as
+        // query params the same way that page reads them.
+        ResetPassword::createUrlUsing(function (User $user, string $token) {
+            $frontendUrl = rtrim((string) config('app.frontend_url'), '/');
+
+            return "{$frontendUrl}/reset-password?token={$token}&email=".urlencode($user->email);
+        });
     }
 }
