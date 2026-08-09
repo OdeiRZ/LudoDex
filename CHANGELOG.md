@@ -176,6 +176,14 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   "zona segura" recomendada para iconos enmascarables. `favicon.ico` pasa a
   ser un .ico real de dos tamaños (16 y 32 px, PNG embebido en cada
   entrada) en vez de heredar el archivo de la plantilla.
+- En "¿A qué jugamos?": el campo "Jugadores" empezaba vacío con un
+  placeholder ("Cuántos sois") que no cabía junto al botón "Solo" a ese
+  ancho y quedaba cortado; ahora arranca con un valor por defecto de 2 (el
+  caso más común al abrir la página), y el botón "Solo" respeta ese valor
+  por defecto al desactivarse en vez de dejar el campo vacío. También se
+  corrige el botón "Buscar", que quedaba alineado con las etiquetas en vez
+  de con los controles del formulario (un separador invisible del alto de
+  una etiqueta lo baja a la misma línea que el selector de Género).
 - El filtro de jugadores/duración del selector dejaba de funcionar (ocultaba
   todos los juegos) en cuanto se vaciaba el campo tras haber escrito algo:
   `v-model.number` en Vue deja el valor como cadena vacía `""` (no `null`)

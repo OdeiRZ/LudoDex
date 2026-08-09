@@ -5,7 +5,11 @@ import GameThumbnail from '@/components/GameThumbnail.vue'
 
 const games = useGamesStore()
 
-const players = ref<number | null>(null)
+// Starts at 2 rather than empty: the placeholder text has no room to
+// display fully next to the "Solo" button at this width, and most groups
+// browsing this page are more than one person anyway.
+const DEFAULT_PLAYERS = 2
+const players = ref<number | null>(DEFAULT_PLAYERS)
 const maxDuration = ref<number | null>(null)
 // Exclusive on purpose, unlike the underlying data: a game's own
 // is_cooperative/is_competitive flags are independent (a semi-cooperative
@@ -31,7 +35,7 @@ const isSoloPlayer = computed(() => players.value === 1)
 // Jugadores field (isSoloPlayer above reacts to either), just one tap
 // instead of opening a number keyboard on mobile.
 function toggleSolo() {
-  players.value = isSoloPlayer.value ? null : 1
+  players.value = isSoloPlayer.value ? DEFAULT_PLAYERS : 1
 }
 
 watch(isSoloPlayer, (solo) => {
@@ -111,7 +115,7 @@ const filtered = computed(() => {
             v-model.number="players"
             type="number"
             min="1"
-            placeholder="Cuántos sois"
+            placeholder="Nº"
           />
           <button
             type="button"
@@ -160,7 +164,10 @@ const filtered = computed(() => {
         </select>
       </div>
 
-      <button type="submit" class="btn btn-primary">Buscar</button>
+      <div>
+        <span class="filter-label-spacer" aria-hidden="true">&nbsp;</span>
+        <button type="submit" class="btn btn-primary">Buscar</button>
+      </div>
     </form>
 
     <p v-if="games.loading" class="loading-state">Cargando tu colección…</p>
@@ -222,6 +229,12 @@ h1 {
 
 .players-row input {
   min-width: 0;
+}
+
+.filter-label-spacer {
+  display: block;
+  font-size: 0.875rem;
+  margin-bottom: var(--space-1);
 }
 
 .players-row .btn {

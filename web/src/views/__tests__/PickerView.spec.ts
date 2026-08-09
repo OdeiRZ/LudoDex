@@ -96,18 +96,27 @@ describe('PickerView', () => {
       return wrapper.findAll('.game-card h2').map((h2) => h2.text())
     }
 
-    it('renders every owned game with no filters applied', () => {
+    it('defaults the player filter to 2 rather than starting empty', () => {
+      expect((wrapper.find('#players').element as HTMLInputElement).value).toBe('2')
+      // Only Root (2-4) fits that default; Friday and Catan don't.
+      expect(gameNames()).toEqual(['Root'])
+    })
+
+    it('shows every owned game once the player filter is cleared', async () => {
+      await wrapper.find('#players').setValue('')
+
       expect(gameNames()).toEqual(['Root', 'Friday', 'Catan'])
     })
 
     it('filters by player count using each game min/max range', async () => {
-      await wrapper.find('#players').setValue(2)
+      await wrapper.find('#players').setValue(4)
 
-      // Root fits (2-4), Friday tops out at 1, Catan needs at least 3.
-      expect(gameNames()).toEqual(['Root'])
+      // Root and Catan both allow 4, Friday tops out at 1.
+      expect(gameNames()).toEqual(['Root', 'Catan'])
     })
 
     it('filters by category through the "Género" select', async () => {
+      await wrapper.find('#players').setValue('')
       await wrapper.find('#category').setValue('Cartas')
 
       expect(gameNames()).toEqual(['Friday'])
@@ -119,6 +128,7 @@ describe('PickerView', () => {
     })
 
     it('filters by cooperative/competitive mode', async () => {
+      await wrapper.find('#players').setValue('')
       await wrapper.find('input[type="radio"][value="cooperative"]').setValue()
 
       expect(gameNames()).toEqual(['Root', 'Friday'])
@@ -134,16 +144,17 @@ describe('PickerView', () => {
       expect(gameNames()).toEqual(['Friday'])
     })
 
-    it('clears the "Solo" shortcut on a second click', async () => {
+    it('returns to the default player count when "Solo" is toggled off', async () => {
       const soloButton = wrapper.find('.players-row button')
       await soloButton.trigger('click')
       await soloButton.trigger('click')
 
-      expect((wrapper.find('#players').element as HTMLInputElement).value).toBe('')
-      expect(gameNames()).toEqual(['Root', 'Friday', 'Catan'])
+      expect((wrapper.find('#players').element as HTMLInputElement).value).toBe('2')
+      expect(gameNames()).toEqual(['Root'])
     })
 
     it('drops an active mode filter once "Solo" is selected', async () => {
+      await wrapper.find('#players').setValue('')
       await wrapper.find('input[type="radio"][value="competitive"]').setValue()
       expect(gameNames()).toEqual(['Root', 'Catan'])
 
