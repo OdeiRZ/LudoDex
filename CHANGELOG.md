@@ -80,8 +80,22 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   en el perfil y elegir contraseña nueva tras un reset): evita el error
   de escribir mal la contraseña sin darse cuenta, sobre todo al repetirla.
   Componente reutilizable `PasswordInput.vue`.
+- Página 404 (`NotFoundView.vue`) para cualquier ruta que no exista: antes
+  el router no tenía ninguna ruta de repuesto y Vue Router simplemente
+  dejaba la pantalla en blanco. El botón de vuelta lleva a la colección
+  si hay sesión iniciada, o al login si no.
+- `<meta name="description">` en `index.html`, de cara a SEO y a que el
+  proyecto se entienda mejor como enlace suelto (portfolio, redes).
 
 ### Corregido
+
+- El desplegable de sugerencias de `TagInput` dejaba sus botones dentro
+  del orden de tabulación: al pulsar Tab desde el campo de texto, el foco
+  podía aterrizar en un botón que el propio evento `blur` acababa de
+  eliminar del DOM (al cerrarse la lista), perdiendo el foco de vuelta a
+  la página. Ahora esos botones llevan `tabindex="-1"`; seguir eligiendo
+  una sugerencia sin ratón sigue funcionando escribiendo su texto y
+  pulsando Intro.
 
 - En "¿A qué jugamos?": el filtro "Solo modo campaña" sonaba ambiguo junto
   al botón "Solo" de jugador único de la misma fila (¿"solo" de "solitario"
