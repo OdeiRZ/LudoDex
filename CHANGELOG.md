@@ -139,6 +139,15 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   cooperativo y competitivo a la vez, ver el fix de `is_competitive` más
   abajo), el radio solo simplifica la elección en el formulario mapeando
   sus tres opciones a esa pareja de booleanos.
+- Botón "Solo" junto al campo de jugadores en "¿A qué jugamos?": pone
+  Jugadores a 1 de un toque (mismo efecto que escribirlo a mano, ya que
+  ambos alimentan el mismo filtro) en vez de tener que abrir el teclado
+  numérico en móvil para el caso más común.
+- Filtro de "Género" en "¿A qué jugamos?" (mismo campo `categories` que ya
+  existía en el alta/edición de juegos, no una taxonomía nueva): solo
+  ofrece como opciones las categorías presentes en juegos marcados como
+  "Lo tengo", para no mostrar un género que nunca podría dar resultados en
+  este selector.
 
 ### Corregido
 

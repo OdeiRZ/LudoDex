@@ -13,6 +13,7 @@ const maxDuration = ref<number | null>(null)
 // question than "match both flags at once" when browsing.
 const modeFilter = ref<'any' | 'cooperative' | 'competitive'>('any')
 const campaignMode = ref<'any' | 'campaign' | 'arcade'>('any')
+const categoryFilter = ref('')
 
 onMounted(() => {
   if (!games.loaded) {
@@ -26,6 +27,13 @@ onMounted(() => {
 // checkbox.
 const isSoloPlayer = computed(() => players.value === 1)
 
+// Shortcut for the common "just me" case: same effect as typing 1 into the
+// Jugadores field (isSoloPlayer above reacts to either), just one tap
+// instead of opening a number keyboard on mobile.
+function toggleSolo() {
+  players.value = isSoloPlayer.value ? null : 1
+}
+
 watch(isSoloPlayer, (solo) => {
   if (solo) {
     modeFilter.value = 'any'
@@ -36,6 +44,15 @@ watch(isSoloPlayer, (solo) => {
 // playable without its base game - see the README's expansions note).
 const playable = computed(() =>
   games.collection.filter((entry) => entry.status === 'owned' && entry.game.base_game_id === null),
+)
+
+// Built from the playable collection itself, not the full catalog
+// (games.categoryOptions): a category only some wishlist/unowned game has
+// would otherwise show up as a choice that can never return a result here.
+const availableCategories = computed(() =>
+  [...new Set(playable.value.flatMap(({ game }) => game.categories))].sort((a, b) =>
+    a.localeCompare(b),
+  ),
 )
 
 // v-model.number leaves the ref as an empty string (not null) when the
@@ -72,6 +89,10 @@ const filtered = computed(() => {
     if (campaignMode.value === 'campaign' && !game.has_campaign) return false
     if (campaignMode.value === 'arcade' && game.has_campaign) return false
 
+    if (categoryFilter.value !== '' && !game.categories.includes(categoryFilter.value)) {
+      return false
+    }
+
     return true
   })
 })
@@ -84,13 +105,24 @@ const filtered = computed(() => {
     <form class="filters card" @submit.prevent>
       <div>
         <label for="players">Jugadores</label>
-        <input
-          id="players"
-          v-model.number="players"
-          type="number"
-          min="1"
-          placeholder="Cuántos sois"
-        />
+        <div class="players-row">
+          <input
+            id="players"
+            v-model.number="players"
+            type="number"
+            min="1"
+            placeholder="Cuántos sois"
+          />
+          <button
+            type="button"
+            class="btn"
+            :class="{ 'btn-primary': isSoloPlayer }"
+            :aria-pressed="isSoloPlayer"
+            @click="toggleSolo"
+          >
+            Solo
+          </button>
+        </div>
       </div>
 
       <div>
@@ -117,6 +149,16 @@ const filtered = computed(() => {
         <label><input v-model="campaignMode" type="radio" value="campaign" /> Campaña</label>
         <label><input v-model="campaignMode" type="radio" value="arcade" /> Arcade / partida suelta</label>
       </fieldset>
+
+      <div v-if="availableCategories.length">
+        <label for="category">Género</label>
+        <select id="category" v-model="categoryFilter">
+          <option value="">Cualquiera</option>
+          <option v-for="category in availableCategories" :key="category" :value="category">
+            {{ category }}
+          </option>
+        </select>
+      </div>
 
       <button type="submit" class="btn btn-primary">Buscar</button>
     </form>
@@ -171,6 +213,19 @@ h1 {
   display: flex;
   flex-direction: column;
   max-width: 180px;
+}
+
+.players-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.players-row input {
+  min-width: 0;
+}
+
+.players-row .btn {
+  flex-shrink: 0;
 }
 
 .results {
