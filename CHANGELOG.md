@@ -75,6 +75,11 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   (`App\Notifications\ResetPasswordNotification`, con sus propias claves
   en `lang/{es,en}/mail.php`), y el enlace de la cabecera apunta a la SPA
   en vez de a la URL de la API.
+- Botón para mostrar/ocultar la contraseña (icono de ojo) en todos los
+  campos de contraseña de la app (login, registro, cambio de contraseña
+  en el perfil y elegir contraseña nueva tras un reset): evita el error
+  de escribir mal la contraseña sin darse cuenta, sobre todo al repetirla.
+  Componente reutilizable `PasswordInput.vue`.
 
 ### Corregido
 
