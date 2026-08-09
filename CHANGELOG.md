@@ -86,6 +86,11 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   si hay sesión iniciada, o al login si no.
 - `<meta name="description">` en `index.html`, de cara a SEO y a que el
   proyecto se entienda mejor como enlace suelto (portfolio, redes).
+- Integración continua con GitHub Actions (`.github/workflows/ci.yml`):
+  en cada push/PR a `main` corren, en paralelo, los mismos *quality gates*
+  que ya se ejecutaban solo a mano — backend (Pint, Larastan, Pest) y
+  frontend (ESLint, Vitest, `vue-tsc`, build) — más el badge de estado en
+  el README.
 
 ### Corregido
 
