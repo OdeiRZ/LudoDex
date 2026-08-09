@@ -106,7 +106,7 @@ export default {
     upTo1h30: 'Hasta 1h30',
     upTo2h: 'Hasta 2h',
     mode: 'Modo',
-    onlyCampaign: 'Solo modo campaña',
+    onlyCampaign: 'Con modo campaña',
     genre: 'Género',
     search: 'Buscar',
     emptyOwned: 'No tienes juegos marcados como "Lo tengo" todavía.',

@@ -119,7 +119,7 @@ describe('PickerView', () => {
       expect(gameNames()).toEqual(['Friday', 'Catan'])
     })
 
-    it('filters to only games with a campaign when "Solo modo campaña" is checked', async () => {
+    it('filters to only games with a campaign when "Con modo campaña" is checked', async () => {
       await wrapper.find('#players').setValue('')
       await wrapper.find('input[type="checkbox"]').setValue(true)
 

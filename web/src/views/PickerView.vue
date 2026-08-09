@@ -267,6 +267,8 @@ h1 {
 
 .players-row input {
   min-width: 0;
+  width: 4.5rem;
+  flex: none;
 }
 
 .filter-label-spacer {

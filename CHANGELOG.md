@@ -55,6 +55,11 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Corregido
 
+- En "¿A qué jugamos?": el filtro "Solo modo campaña" sonaba ambiguo junto
+  al botón "Solo" de jugador único de la misma fila (¿"solo" de "solitario"
+  o "solo" de "únicamente"?). Pasa a llamarse "Con modo campaña". El campo
+  de "Jugadores" también reduce su ancho: no necesita espacio para más de
+  dos dígitos.
 - El aviso de arranque en frío junto al dado de carga ("Puede tardar unos
   segundos si el servidor estaba inactivo.") se acorta a "Servidor
   inactivo: puede tardar unos segundos.".
