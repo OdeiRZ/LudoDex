@@ -115,6 +115,11 @@ export default {
     notFound: 'No se ha encontrado ese juego en tu colección.',
   },
   backLink: '← Volver',
+  notFound: {
+    title: 'Página no encontrada',
+    message: 'La página que buscas no existe o se ha movido.',
+    backLink: 'Volver al inicio',
+  },
   picker: {
     title: '¿A qué jugamos?',
     players: 'Jugadores',

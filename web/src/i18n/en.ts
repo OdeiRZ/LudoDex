@@ -115,6 +115,11 @@ export default {
     notFound: "That game wasn't found in your collection.",
   },
   backLink: '← Back',
+  notFound: {
+    title: 'Page not found',
+    message: "The page you're looking for doesn't exist or was moved.",
+    backLink: 'Back to home',
+  },
   picker: {
     title: 'What should we play?',
     players: 'Players',
