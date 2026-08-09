@@ -184,6 +184,25 @@ const filtered = computed(() => {
         <div class="game-card-header">
           <GameThumbnail :image-url="entry.game.image_url" :size="56" />
           <h2>{{ entry.game.name }}</h2>
+          <RouterLink
+            :to="{ name: 'edit-game', params: { id: entry.id } }"
+            class="edit-icon-button"
+            aria-label="Editar juego"
+            title="Editar juego"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9c.36-.62.29-1.4-.19-1.99l-.06-.06A2 2 0 1 1 7.18 4.12l.06.06A1.65 1.65 0 0 0 9 4.51c.62-.24 1-.85 1-1.51V3a2 2 0 1 1 4 0v.09c0 .66.38 1.27 1 1.51.62.24 1.33.13 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.24.62.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09c-.66 0-1.27.38-1.51 1Z"
+              />
+            </svg>
+          </RouterLink>
         </div>
         <p class="meta">
           <span v-if="entry.game.min_players || entry.game.max_players">
@@ -263,6 +282,31 @@ h1 {
 
 .game-card-header h2 {
   overflow-wrap: anywhere;
+  flex: 1;
+  min-width: 0;
+}
+
+.edit-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+.edit-icon-button:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.edit-icon-button svg {
+  width: 16px;
+  height: 16px;
 }
 
 .meta {

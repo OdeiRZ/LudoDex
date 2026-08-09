@@ -102,6 +102,17 @@ describe('PickerView', () => {
       expect(gameNames()).toEqual(['Root'])
     })
 
+    it('gives each result an edit button so games can be fixed without leaving the page', async () => {
+      await wrapper.find('#players').setValue('')
+
+      const editButtons = wrapper.findAll('.edit-icon-button')
+
+      expect(editButtons).toHaveLength(3)
+      expect(editButtons.every((btn) => btn.attributes('aria-label') === 'Editar juego')).toBe(
+        true,
+      )
+    })
+
     it('shows every owned game once the player filter is cleared', async () => {
       await wrapper.find('#players').setValue('')
 

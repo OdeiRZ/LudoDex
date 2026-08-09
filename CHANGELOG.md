@@ -7,6 +7,14 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Añadido
+
+- Botón de editar (icono de tuerca) en cada resultado de "¿A qué jugamos?":
+  antes había que volver a "Tu colección" para corregir los datos de un
+  juego que aparecía mal filtrado (jugadores, duración, modo…), rompiendo
+  el flujo de "elige y juega" que es el propósito de esa página. Lleva
+  directamente al formulario de edición de ese juego.
+
 ### Corregido
 
 - El icono del interruptor de tema mostraba el modo actual (luna en modo
