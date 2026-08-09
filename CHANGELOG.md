@@ -164,6 +164,18 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Corregido
 
+- El favicon (`favicon.ico`) seguía siendo el genérico de la plantilla
+  create-vue: el resto de iconos PWA se generaron y sustituyeron en el
+  commit que añadió "Añadir a pantalla de inicio", pero `favicon.ico` nunca
+  se tocó desde el scaffolding inicial. De paso, todos los iconos (favicon,
+  apple-touch-icon, iconos del manifest) pasan a un diseño con más cuidado
+  visual: fondo con degradado en vez de color plano, el dado con sombra
+  suave y ligeramente inclinado (menos "icono estático", más "dado
+  lanzado"), y un pequeño brillo en cada pip. La variante maskable mantiene
+  el dado sin inclinar y con más margen respecto al borde, dentro de la
+  "zona segura" recomendada para iconos enmascarables. `favicon.ico` pasa a
+  ser un .ico real de dos tamaños (16 y 32 px, PNG embebido en cada
+  entrada) en vez de heredar el archivo de la plantilla.
 - El filtro de jugadores/duración del selector dejaba de funcionar (ocultaba
   todos los juegos) en cuanto se vaciaba el campo tras haber escrito algo:
   `v-model.number` en Vue deja el valor como cadena vacía `""` (no `null`)
