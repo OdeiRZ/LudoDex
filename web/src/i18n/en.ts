@@ -52,6 +52,7 @@ export default {
       email: 'Email',
       submit: 'Send reset link',
       submitting: 'Sending…',
+      genericError: "Couldn't send the reset link.",
       backToLogin: '← Back to login',
     },
     resetPassword: {

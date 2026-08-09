@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { isAxiosError } from 'axios'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
 
 const auth = useAuthStore()
+const { t } = useI18n()
 const { isSlow, wrap } = useSlowRequestHint()
 
 const email = ref('')
@@ -23,7 +25,7 @@ async function onSubmit() {
     if (isAxiosError(err) && err.response?.status === 422) {
       errors.value = err.response.data.errors
     } else {
-      errors.value = { general: [String(err)] }
+      errors.value = { general: [t('auth.forgotPassword.genericError')] }
     }
   } finally {
     submitting.value = false

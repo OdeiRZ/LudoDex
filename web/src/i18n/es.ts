@@ -52,6 +52,7 @@ export default {
       email: 'Email',
       submit: 'Enviar enlace',
       submitting: 'Enviando…',
+      genericError: 'No se ha podido enviar el enlace.',
       backToLogin: '← Volver a iniciar sesión',
     },
     resetPassword: {
