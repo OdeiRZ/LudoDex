@@ -148,6 +148,12 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   ofrece como opciones las categorías presentes en juegos marcados como
   "Lo tengo", para no mostrar un género que nunca podría dar resultados en
   este selector.
+- `TagInput.vue` (usado para mecánicas y categorías en el alta/edición de
+  juegos) pasa de un `<input>` con `<datalist>` a un combobox propio: al
+  hacer clic o enfocar el campo se listan todas las sugerencias que aún no
+  se han elegido, sin esperar a que el usuario empiece a escribir, y la
+  lista se sigue acotando a medida que escribe. Se mantiene la posibilidad
+  de escribir un valor nuevo que no esté en la lista y añadirlo con Enter.
 
 ### Corregido
 

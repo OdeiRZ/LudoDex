@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps<{
   modelValue: string[]
@@ -13,15 +13,35 @@ const emit = defineEmits<{
 }>()
 
 const draft = ref('')
+const isOpen = ref(false)
 
-function addTag() {
-  const value = draft.value.trim()
+// Shows every not-yet-picked suggestion on focus (not only once the user
+// starts typing, unlike a plain <datalist>) while still narrowing as they
+// type, and free text that matches nothing here still becomes a new tag on
+// Enter/blur - see addTag.
+const filteredSuggestions = computed(() => {
+  const query = draft.value.trim().toLowerCase()
 
-  if (value && !props.modelValue.includes(value)) {
-    emit('update:modelValue', [...props.modelValue, value])
+  return props.suggestions.filter(
+    (suggestion) =>
+      !props.modelValue.includes(suggestion) &&
+      (query === '' || suggestion.toLowerCase().includes(query)),
+  )
+})
+
+function addTag(value: string = draft.value) {
+  const trimmed = value.trim()
+
+  if (trimmed && !props.modelValue.includes(trimmed)) {
+    emit('update:modelValue', [...props.modelValue, trimmed])
   }
 
   draft.value = ''
+}
+
+function selectSuggestion(suggestion: string) {
+  addTag(suggestion)
+  isOpen.value = false
 }
 
 function removeTag(tag: string) {
@@ -35,7 +55,15 @@ function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Enter' || event.key === ',') {
     event.preventDefault()
     addTag()
+    isOpen.value = false
+  } else if (event.key === 'Escape') {
+    isOpen.value = false
   }
+}
+
+function onBlur() {
+  addTag()
+  isOpen.value = false
 }
 </script>
 
@@ -50,18 +78,33 @@ function onKeydown(event: KeyboardEvent) {
       </li>
     </ul>
 
-    <input
-      :id="listId"
-      v-model="draft"
-      type="text"
-      :list="`${listId}-suggestions`"
-      placeholder="Escribe y pulsa Enter"
-      @keydown="onKeydown"
-      @blur="addTag"
-    />
-    <datalist :id="`${listId}-suggestions`">
-      <option v-for="suggestion in suggestions" :key="suggestion" :value="suggestion" />
-    </datalist>
+    <div class="combobox">
+      <input
+        :id="listId"
+        v-model="draft"
+        type="text"
+        role="combobox"
+        aria-autocomplete="list"
+        :aria-expanded="isOpen"
+        autocomplete="off"
+        placeholder="Escribe o elige de la lista"
+        @keydown="onKeydown"
+        @focus="isOpen = true"
+        @blur="onBlur"
+      />
+
+      <ul v-if="isOpen && filteredSuggestions.length" class="suggestions">
+        <li v-for="suggestion in filteredSuggestions" :key="suggestion">
+          <!-- mousedown.prevent keeps focus on the input instead of letting
+               the browser shift it to this button first, so @blur above
+               never fires for this click and the list doesn't vanish
+               before selectSuggestion runs. -->
+          <button type="button" @mousedown.prevent="selectSuggestion(suggestion)">
+            {{ suggestion }}
+          </button>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -87,5 +130,42 @@ function onKeydown(event: KeyboardEvent) {
   line-height: 1;
   padding: 0;
   color: inherit;
+}
+
+.combobox {
+  position: relative;
+}
+
+.suggestions {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  margin: 0;
+  padding: var(--space-1);
+  list-style: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+}
+
+.suggestions button {
+  display: block;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.suggestions button:hover {
+  background: var(--color-surface-hover);
 }
 </style>
