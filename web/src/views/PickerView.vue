@@ -11,13 +11,20 @@ const games = useGamesStore()
 // browsing this page are more than one person anyway.
 const DEFAULT_PLAYERS = 2
 const players = ref<number | null>(DEFAULT_PLAYERS)
-const maxDuration = ref<number | null>(null)
+// Buckets rather than a free-form number: nobody thinks "I have exactly 47
+// minutes", they think "about an hour" - and it doubles as a mobile-friendly
+// tap target instead of opening a number keyboard for one value.
+type DurationBucket = 'any' | '30' | '60' | '90' | '120'
+const durationBucket = ref<DurationBucket>('any')
 // Exclusive on purpose, unlike the underlying data: a game's own
 // is_cooperative/is_competitive flags are independent (a semi-cooperative
 // game can be both), but as a filter "show me either" is a more useful
 // question than "match both flags at once" when browsing.
 const modeFilter = ref<'any' | 'cooperative' | 'competitive'>('any')
-const campaignMode = ref<'any' | 'campaign' | 'arcade'>('any')
+// Only a positive "has a campaign" filter, not its opposite: excluding
+// campaign games specifically is a much rarer need than finding them, so a
+// three-way any/campaign/arcade radio was one option too many.
+const onlyCampaign = ref(false)
 const categoryFilter = ref('')
 
 onMounted(() => {
@@ -70,7 +77,7 @@ function asFilterNumber(value: number | null): number | null {
 
 const filtered = computed(() => {
   const minPlayersFilter = asFilterNumber(players.value)
-  const maxDurationFilter = asFilterNumber(maxDuration.value)
+  const maxDurationFilter = durationBucket.value === 'any' ? null : Number(durationBucket.value)
 
   return playable.value.filter(({ game }) => {
     if (minPlayersFilter !== null) {
@@ -96,8 +103,7 @@ const filtered = computed(() => {
       if (modeFilter.value === 'competitive' && !game.is_competitive) return false
     }
 
-    if (campaignMode.value === 'campaign' && !game.has_campaign) return false
-    if (campaignMode.value === 'arcade' && game.has_campaign) return false
+    if (onlyCampaign.value && !game.has_campaign) return false
 
     if (categoryFilter.value !== '' && !game.categories.includes(categoryFilter.value)) {
       return false
@@ -135,16 +141,14 @@ const filtered = computed(() => {
         </div>
       </div>
 
-      <div>
-        <label for="duration">Minutos disponibles</label>
-        <input
-          id="duration"
-          v-model.number="maxDuration"
-          type="number"
-          min="1"
-          placeholder="Tiempo que tenéis"
-        />
-      </div>
+      <fieldset>
+        <legend>Minutos disponibles</legend>
+        <label><input v-model="durationBucket" type="radio" value="any" /> Cualquiera</label>
+        <label><input v-model="durationBucket" type="radio" value="30" /> Hasta 30 min</label>
+        <label><input v-model="durationBucket" type="radio" value="60" /> Hasta 1h</label>
+        <label><input v-model="durationBucket" type="radio" value="90" /> Hasta 1h30</label>
+        <label><input v-model="durationBucket" type="radio" value="120" /> Hasta 2h</label>
+      </fieldset>
 
       <fieldset v-if="!isSoloPlayer">
         <legend>Modo</legend>
@@ -153,12 +157,13 @@ const filtered = computed(() => {
         <label><input v-model="modeFilter" type="radio" value="competitive" /> Competitivo</label>
       </fieldset>
 
-      <fieldset>
-        <legend>Estructura</legend>
-        <label><input v-model="campaignMode" type="radio" value="any" /> Cualquiera</label>
-        <label><input v-model="campaignMode" type="radio" value="campaign" /> Campaña</label>
-        <label><input v-model="campaignMode" type="radio" value="arcade" /> Arcade / partida suelta</label>
-      </fieldset>
+      <div>
+        <span class="filter-label-spacer" aria-hidden="true">&nbsp;</span>
+        <label class="checkbox-label">
+          <input v-model="onlyCampaign" type="checkbox" />
+          Solo modo campaña
+        </label>
+      </div>
 
       <div v-if="availableCategories.length">
         <label for="category">Género</label>
@@ -267,6 +272,17 @@ h1 {
 
 .players-row .btn {
   flex-shrink: 0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+.checkbox-label input {
+  width: auto;
 }
 
 .results {

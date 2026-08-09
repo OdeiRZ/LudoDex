@@ -28,6 +28,14 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   de los formularios de alta/edición; y junto al aviso de conexión con BGG
   en la importación. Respeta `prefers-reduced-motion` (sin animación si el
   sistema pide reducir el movimiento).
+- El filtro de "Minutos disponibles" en "¿A qué jugamos?" pasa de un campo
+  numérico libre a un radio de franjas (Cualquiera / hasta 30 min / 1h /
+  1h30 / 2h), igual que ya se hace con "Modo": nadie piensa en minutos
+  exactos, y evita abrir el teclado numérico en móvil para un valor suelto.
+  El filtro de "Estructura" (Cualquiera/Campaña/Arcade) se simplifica a un
+  único checkbox "Solo modo campaña": excluir explícitamente los juegos
+  con campaña era un caso mucho más raro que buscarlos, así que la tercera
+  opción sobraba.
 
 ### Corregido
 

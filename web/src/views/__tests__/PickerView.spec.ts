@@ -49,6 +49,7 @@ describe('PickerView', () => {
           min_playtime_minutes: 60,
           is_cooperative: true,
           is_competitive: true,
+          has_campaign: true,
           categories: ['Control de territorio', 'Asimétrico'],
         }),
         makeEntry({
@@ -106,7 +107,7 @@ describe('PickerView', () => {
 
     it('filters by duration using whichever playtime value is set, min preferred', async () => {
       await wrapper.find('#players').setValue('')
-      await wrapper.find('#duration').setValue(30)
+      await wrapper.find('input[type="radio"][value="30"]').setValue()
 
       // Root only has min_playtime_minutes (60) -> excluded. Friday only
       // has min_playtime_minutes (20) -> included. Catan only has
@@ -115,6 +116,14 @@ describe('PickerView', () => {
       // value, not a real min/max pair) that made this filter a no-op
       // before, since it only ever checked max_playtime_minutes.
       expect(gameNames()).toEqual(['Friday', 'Catan'])
+    })
+
+    it('filters to only games with a campaign when "Solo modo campaña" is checked', async () => {
+      await wrapper.find('#players').setValue('')
+      await wrapper.find('input[type="checkbox"]').setValue(true)
+
+      // Only Root has has_campaign: true in this fixture set.
+      expect(gameNames()).toEqual(['Root'])
     })
 
     it('filters by category through the "Género" select', async () => {
@@ -137,7 +146,7 @@ describe('PickerView', () => {
     })
 
     it('sets players to 1 and hides the mode filter when "Solo" is clicked', async () => {
-      expect(wrapper.find('fieldset').text()).toContain('Modo')
+      expect(wrapper.text()).toContain('Modo')
 
       await wrapper.find('.players-row button').trigger('click')
 
