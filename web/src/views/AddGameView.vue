@@ -19,7 +19,7 @@ const form = reactive<GameFormData>({
   max_playtime_minutes: null,
   weight: null,
   is_cooperative: false,
-  is_competitive: true,
+  is_competitive: false,
   has_campaign: false,
   mechanics: [],
   categories: [],

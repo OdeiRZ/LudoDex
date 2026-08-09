@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { isAxiosError } from 'axios'
 import TagInput from '@/components/TagInput.vue'
 import { useGamesStore } from '@/stores/games'
@@ -33,6 +33,27 @@ const bggId = ref<number | null>(null)
 const bggLookupError = ref<string | null>(null)
 const bggLookupLoading = ref(false)
 const imageBroken = ref(false)
+
+// UI-only concept: the two flags stay independent in the data (a team game
+// can genuinely be both cooperative and competitive - see the games
+// migration's own comment and BggImportService), but as a *choice someone
+// is making while filling in a form*, "pick one" reads better than two
+// unrelated checkboxes, so this radio computes to/from the pair of booleans
+// instead of adding a third "mode" field to the payload.
+type ModeChoice = 'cooperative' | 'competitive' | 'both' | null
+
+const modeChoice = computed<ModeChoice>({
+  get() {
+    if (form.value.is_cooperative && form.value.is_competitive) return 'both'
+    if (form.value.is_cooperative) return 'cooperative'
+    if (form.value.is_competitive) return 'competitive'
+    return null
+  },
+  set(value) {
+    form.value.is_cooperative = value === 'cooperative' || value === 'both'
+    form.value.is_competitive = value === 'competitive' || value === 'both'
+  },
+})
 
 async function onLookupBgg() {
   if (!bggId.value) {
@@ -141,9 +162,14 @@ async function onLookupBgg() {
     </div>
 
     <fieldset>
-      <legend>Modo de juego</legend>
-      <label><input v-model="form.is_cooperative" type="checkbox" /> Cooperativo</label>
-      <label><input v-model="form.is_competitive" type="checkbox" /> Competitivo</label>
+      <legend>Modo</legend>
+      <label><input v-model="modeChoice" type="radio" value="cooperative" /> Cooperativo</label>
+      <label><input v-model="modeChoice" type="radio" value="competitive" /> Competitivo</label>
+      <label><input v-model="modeChoice" type="radio" value="both" /> Ambos (p. ej. por equipos)</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Estructura</legend>
       <label><input v-model="form.has_campaign" type="checkbox" /> Modo campaña</label>
     </fieldset>
 

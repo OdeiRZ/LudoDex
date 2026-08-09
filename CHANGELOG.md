@@ -131,6 +131,14 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   elección explícita, `prefers-color-scheme` sigue decidiendo igual que
   antes — el interruptor no cambia el comportamiento por defecto, solo
   permite anularlo.
+- El modo de juego (cooperativo/competitivo) en el alta y edición manual de
+  un juego pasa de dos casillas independientes a un radio de tres opciones
+  (Cooperativo / Competitivo / Ambos, ninguna marcada por defecto — antes
+  "Competitivo" venía premarcado). El dato sigue siendo dos flags
+  independientes en la base de datos (un juego por equipos puede ser
+  cooperativo y competitivo a la vez, ver el fix de `is_competitive` más
+  abajo), el radio solo simplifica la elección en el formulario mapeando
+  sus tres opciones a esa pareja de booleanos.
 
 ### Corregido
 
