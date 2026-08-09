@@ -46,6 +46,7 @@ describe('PickerView', () => {
           name: 'Root',
           min_players: 2,
           max_players: 4,
+          min_playtime_minutes: 60,
           is_cooperative: true,
           is_competitive: true,
           categories: ['Control de territorio', 'Asimétrico'],
@@ -54,6 +55,7 @@ describe('PickerView', () => {
           name: 'Friday',
           min_players: 1,
           max_players: 1,
+          min_playtime_minutes: 20,
           is_cooperative: true,
           categories: ['Cartas'],
         }),
@@ -61,6 +63,7 @@ describe('PickerView', () => {
           name: 'Catan',
           min_players: 3,
           max_players: 4,
+          max_playtime_minutes: 25,
           is_competitive: true,
           categories: ['Control de territorio'],
         }),
@@ -99,6 +102,19 @@ describe('PickerView', () => {
 
       // Root and Catan both allow 4, Friday tops out at 1.
       expect(gameNames()).toEqual(['Root', 'Catan'])
+    })
+
+    it('filters by duration using whichever playtime value is set, min preferred', async () => {
+      await wrapper.find('#players').setValue('')
+      await wrapper.find('#duration').setValue(30)
+
+      // Root only has min_playtime_minutes (60) -> excluded. Friday only
+      // has min_playtime_minutes (20) -> included. Catan only has
+      // max_playtime_minutes (25, no min set) -> falls back to it and is
+      // included too - this is the exact shape of data (one playtime
+      // value, not a real min/max pair) that made this filter a no-op
+      // before, since it only ever checked max_playtime_minutes.
+      expect(gameNames()).toEqual(['Friday', 'Catan'])
     })
 
     it('filters by category through the "Género" select', async () => {

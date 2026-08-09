@@ -78,12 +78,17 @@ const filtered = computed(() => {
       if (game.max_players !== null && minPlayersFilter > game.max_players) return false
     }
 
-    if (
-      maxDurationFilter !== null &&
-      game.max_playtime_minutes !== null &&
-      game.max_playtime_minutes > maxDurationFilter
-    ) {
-      return false
+    if (maxDurationFilter !== null) {
+      // Many games (including some imported straight from BGG) only ever
+      // get one playtime value filled in, not a real min/max pair - using
+      // max_playtime_minutes alone meant this filter silently excluded
+      // nothing whenever it was blank, which was most of the collection.
+      // Falling back to whichever value exists uses the game's shortest
+      // known commitment as the bar to clear.
+      const shortestKnownPlaytime = game.min_playtime_minutes ?? game.max_playtime_minutes
+      if (shortestKnownPlaytime !== null && shortestKnownPlaytime > maxDurationFilter) {
+        return false
+      }
     }
 
     if (!isSoloPlayer.value) {

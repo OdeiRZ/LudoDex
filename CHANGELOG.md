@@ -31,6 +31,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Corregido
 
+- El filtro de "Minutos disponibles" en "¿A qué jugamos?" no excluía nunca
+  ningún juego: solo comparaba contra `max_playtime_minutes`, y la mayoría
+  de juegos (incluidos varios importados directamente de BGG) solo tienen
+  relleno un único valor de duración, no un min/max real, así que ese
+  campo quedaba a `null` y la condición no se cumplía jamás. Ahora usa
+  cualquiera de los dos valores que exista (prefiriendo el mínimo) como
+  referencia. Detectado al probarlo en vivo tras un aviso del usuario.
 - El icono del interruptor de tema mostraba el modo actual (luna en modo
   oscuro, sol en modo claro) en vez del modo al que cambiarías al pulsarlo,
   al revés de lo que ya decía su propio `aria-label`/`title` ("cambiar a
