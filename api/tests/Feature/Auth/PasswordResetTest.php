@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Auth\Notifications\ResetPassword;
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Support\Facades\Notification;
 
 // The test client defaults to an "en-us,en;q=0.5" Accept-Language header
@@ -21,7 +21,7 @@ it('sends a reset link notification for an existing email', function () {
         ->assertOk()
         ->assertJsonPath('message', 'Te hemos enviado por email el enlace para restablecer la contraseña.');
 
-    Notification::assertSentTo($user, ResetPassword::class);
+    Notification::assertSentTo($user, ResetPasswordNotification::class);
 });
 
 it('points the reset link at the frontend, not a server-rendered route', function () {
@@ -31,15 +31,19 @@ it('points the reset link at the frontend, not a server-rendered route', functio
 
     $this->postJson('/api/forgot-password', ['email' => 'odei@example.com']);
 
-    Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use ($user) {
-        $mail = $notification->toMail($user);
-        $url = $mail->actionUrl;
+    Notification::assertSentTo(
+        $user,
+        ResetPasswordNotification::class,
+        function (ResetPasswordNotification $notification) use ($user) {
+            $mail = $notification->toMail($user);
+            $url = $mail->actionUrl;
 
-        expect($url)->toStartWith('http://localhost:5173/reset-password?token=')
-            ->and($url)->toContain('email=odei%40example.com');
+            expect($url)->toStartWith('http://localhost:5173/reset-password?token=')
+                ->and($url)->toContain('email=odei%40example.com');
 
-        return true;
-    });
+            return true;
+        }
+    );
 });
 
 it('rejects a reset link request for an email that does not exist', function () {
@@ -64,11 +68,15 @@ it('resets the password with a valid token and lets the user log in with it', fu
     $this->postJson('/api/forgot-password', ['email' => 'odei@example.com']);
 
     $token = null;
-    Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use (&$token) {
-        $token = $notification->token;
+    Notification::assertSentTo(
+        $user,
+        ResetPasswordNotification::class,
+        function (ResetPasswordNotification $notification) use (&$token) {
+            $token = $notification->token;
 
-        return true;
-    });
+            return true;
+        }
+    );
 
     $this->withHeader('Accept-Language', 'es')
         ->postJson('/api/reset-password', [
@@ -106,4 +114,53 @@ it('returns password reset messages in English when Accept-Language: en is sent'
         ->postJson('/api/forgot-password', ['email' => 'nobody@example.com'])
         ->assertUnprocessable()
         ->assertJsonPath('errors.email.0', "We can't find a user with that email address.");
+});
+
+it('sends the reset email branded as LudoDex, in Spanish', function () {
+    Notification::fake();
+
+    $user = User::factory()->create(['email' => 'odei@example.com']);
+
+    $this->withHeader('Accept-Language', 'es')
+        ->postJson('/api/forgot-password', ['email' => 'odei@example.com']);
+
+    Notification::assertSentTo(
+        $user,
+        ResetPasswordNotification::class,
+        function (ResetPasswordNotification $notification) use ($user) {
+            $mail = $notification->toMail($user);
+
+            expect($mail->subject)->toBe('Restablece tu contraseña de LudoDex')
+                ->and($mail->greeting)->toBe('¡Hola!')
+                ->and($mail->introLines)->toContain('Recibes este email porque hemos recibido una solicitud para restablecer la contraseña de tu cuenta de LudoDex.')
+                ->and($mail->actionText)->toBe('Restablecer contraseña')
+                ->and($mail->salutation)->toBe("Un saludo,\nEl equipo de LudoDex");
+
+            return true;
+        }
+    );
+});
+
+it('sends the reset email branded as LudoDex, in English', function () {
+    Notification::fake();
+
+    $user = User::factory()->create(['email' => 'odei@example.com']);
+
+    $this->withHeader('Accept-Language', 'en')
+        ->postJson('/api/forgot-password', ['email' => 'odei@example.com']);
+
+    Notification::assertSentTo(
+        $user,
+        ResetPasswordNotification::class,
+        function (ResetPasswordNotification $notification) use ($user) {
+            $mail = $notification->toMail($user);
+
+            expect($mail->subject)->toBe('Reset your LudoDex password')
+                ->and($mail->greeting)->toBe('Hello!')
+                ->and($mail->actionText)->toBe('Reset password')
+                ->and($mail->salutation)->toBe("Best,\nThe LudoDex team");
+
+            return true;
+        }
+    );
 });

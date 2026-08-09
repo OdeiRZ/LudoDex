@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\ResetPasswordNotification;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -65,5 +66,14 @@ class User extends Authenticatable
     public function bggImports(): HasMany
     {
         return $this->hasMany(BggImport::class);
+    }
+
+    /**
+     * Send our own branded, translated reset email instead of Laravel's
+     * generic default (see App\Notifications\ResetPasswordNotification).
+     */
+    public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 }
