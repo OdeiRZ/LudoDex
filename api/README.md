@@ -22,6 +22,20 @@ Se registra en <https://boardgamegeek.com/using_the_xml_api>. Sin ese token,
 cualquier importación falla inmediatamente con un mensaje explicando por qué
 (no con un 401 en crudo).
 
+Para que el email de recuperación de contraseña (`/api/forgot-password`) se
+envíe de verdad hace falta configurar un mailer real. Por defecto
+`MAIL_MAILER=log` escribe el email completo en `storage/logs/laravel.log` en
+vez de enviarlo — suficiente para desarrollo local. Para usar
+[Resend](https://resend.com) (ya soportado de forma nativa en Laravel 12, y
+cuyo plan gratuito — 3000 emails/mes — cubre de sobra el volumen de esta
+app): registrarse, crear una API key y poner `MAIL_MAILER=resend` y
+`RESEND_API_KEY=<key>` en `.env`. Sin verificar un dominio propio en Resend,
+solo se puede enviar desde `onboarding@resend.dev` a la dirección de email de
+la propia cuenta de Resend — vale para probar el flujo, no para usuarios
+reales de la app (ver README raíz, sección "Requisitos externos"). El
+contenido del email vive en `App\Notifications\ResetPasswordNotification` y
+`lang/{es,en}/mail.php`, no en el texto genérico por defecto de Laravel.
+
 ## Despliegue
 
 En producción ([ludodex-api.onrender.com](https://ludodex-api.onrender.com)):
@@ -33,7 +47,11 @@ de Neon. **Usar el host directo de Neon, no el "pooled" (sin el sufijo
 `-pooler`)**: con el pooler (PgBouncer en modo transacción) las migraciones
 fallan de forma intermitente con `SQLSTATE[25P02]` en vez de mostrar el error
 real — ver CHANGELOG. `SESSION_DRIVER`/`CACHE_STORE`/`QUEUE_CONNECTION` van a
-`database` (no hay Redis ni *worker* en el plan Free).
+`database` (no hay Redis ni *worker* en el plan Free). `MAIL_MAILER`/
+`RESEND_API_KEY` no están configuradas todavía en producción (pendiente de
+un dominio propio que verificar en Resend — ver "Instalación" más arriba),
+así que ahí el mailer cae en `log` y `/api/forgot-password` no envía ningún
+email real por ahora.
 
 ## Testing
 
@@ -55,6 +73,8 @@ La suite usa Pest y `RefreshDatabase` (SQLite en memoria durante los tests).
 | GET    | `/api/user`     | Sí   | Devuelve el usuario autenticado |
 | PUT    | `/api/user`     | Sí   | Actualiza nombre/email/usuario de BGG |
 | PUT    | `/api/user/password` | Sí | Cambia la contraseña (exige `current_password`; limitado a 6/minuto) |
+| POST   | `/api/forgot-password` | No | Envía el email de recuperación de contraseña (limitado a 6/minuto) |
+| POST   | `/api/reset-password` | No | Cambia la contraseña dado un `token` y `email` válidos (limitado a 6/minuto) |
 
 `register` y `login` piden un campo `device_name` (etiqueta libre para el
 token, pensada para una futura pantalla de "sesiones activas"). `PUT

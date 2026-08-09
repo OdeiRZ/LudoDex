@@ -70,6 +70,16 @@ Repo único con dos aplicaciones independientes, cada una con su propio
   2026-08-08, pendiente de aprobación (BGG avisa que puede tardar una
   semana o más). Hasta que llegue el token, la importación está construida y
   probada con `Http::fake()` pero sin verificar contra una colección real.
+- **Envío real de email (recuperación de contraseña)**: la API usa
+  [Resend](https://resend.com) como mailer (soportado de forma nativa en
+  Laravel 12). Sin verificar un dominio propio, Resend solo permite enviar
+  desde su remitente de pruebas (`onboarding@resend.dev`) a la dirección
+  de email de la propia cuenta de Resend — no a cualquier usuario real de
+  la app. Probado de punta a punta así (envío real recibido en español e
+  inglés), pero en producción (Render) `MAIL_MAILER` sigue sin configurar
+  y cae en el driver `log` (no manda nada) hasta decidir sobre un dominio
+  propio que verificar en Resend. Ver [`api/README.md`](api/README.md)
+  para cómo configurarlo.
 
 ## Hitos
 
