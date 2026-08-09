@@ -7,6 +7,8 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-08-09
+
 ### Añadido
 
 - Cimientos del proyecto: repo con `api/` (Laravel 12 + Sanctum) y `web/`
