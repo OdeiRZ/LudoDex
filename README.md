@@ -1,5 +1,7 @@
 # LudoDex
 
+[![CI](https://github.com/OdeiRZ/LudoDex/actions/workflows/ci.yml/badge.svg)](https://github.com/OdeiRZ/LudoDex/actions/workflows/ci.yml)
+
 Inventario virtual de juegos de mesa: da de alta tu colección (a mano o
 importándola desde [BoardGameGeek](https://boardgamegeek.com)) y usa un
 selector con filtros (jugadores, duración, cooperativo/competitivo, modo
