@@ -4,6 +4,7 @@ import { isAxiosError } from 'axios'
 import { useAuthStore } from '@/stores/auth'
 import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
 import UserAvatar from '@/components/UserAvatar.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const auth = useAuthStore()
 const { isSlow: isProfileSlow, wrap: wrapProfile } = useSlowRequestHint()
@@ -146,6 +147,7 @@ async function onSubmitPassword() {
         </button>
 
         <p v-if="isProfileSlow" class="slow-request-hint">
+          <LoadingSpinner :size="16" />
           Puede tardar unos segundos si el servidor estaba inactivo.
         </p>
       </form>
@@ -221,6 +223,7 @@ async function onSubmitPassword() {
         </button>
 
         <p v-if="isPasswordSlow" class="slow-request-hint">
+          <LoadingSpinner :size="16" />
           Puede tardar unos segundos si el servidor estaba inactivo.
         </p>
       </form>

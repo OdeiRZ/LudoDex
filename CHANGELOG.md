@@ -24,10 +24,14 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 - `LoadingSpinner.vue`: un dado (con sus 5 pips) girando sobre sí mismo, en
   vez de solo el texto "Cargando…"/"Cargando tu colección…" que había
   hasta ahora. Sustituye a ese texto suelto en la colección, el selector y
-  el formulario de edición; junto al aviso de "puede tardar unos segundos"
-  de los formularios de alta/edición; y junto al aviso de conexión con BGG
-  en la importación. Respeta `prefers-reduced-motion` (sin animación si el
-  sistema pide reducir el movimiento).
+  el formulario de edición; junto al aviso de conexión con BGG en la
+  importación; y junto al aviso de "puede tardar unos segundos" (arranque
+  en frío de Render) de login, registro, perfil y los formularios de
+  alta/edición de juego — este último grupo se quedó sin el dado en el
+  primer pase porque solo se tocaron las pantallas de juegos, aunque el
+  mismo arranque en frío afecta igual a login/registro/perfil. Respeta
+  `prefers-reduced-motion` (sin animación si el sistema pide reducir el
+  movimiento).
 - El filtro de "Minutos disponibles" en "¿A qué jugamos?" pasa de un campo
   numérico libre a un radio de franjas (Cualquiera / hasta 30 min / 1h /
   1h30 / 2h), igual que ya se hace con "Modo": nadie piensa en minutos

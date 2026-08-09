@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
 
 const router = useRouter()
@@ -57,6 +58,7 @@ async function onSubmit() {
         </button>
 
         <p v-if="isSlow" class="slow-request-hint">
+          <LoadingSpinner :size="16" />
           Puede tardar unos segundos si el servidor estaba inactivo.
         </p>
       </form>
