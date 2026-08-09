@@ -185,7 +185,7 @@ const filtered = computed(() => {
           <GameThumbnail :image-url="entry.game.image_url" :size="56" />
           <h2>{{ entry.game.name }}</h2>
           <RouterLink
-            :to="{ name: 'edit-game', params: { id: entry.id } }"
+            :to="{ name: 'edit-game', params: { id: entry.id }, query: { from: 'picker' } }"
             class="edit-icon-button"
             aria-label="Editar juego"
             title="Editar juego"

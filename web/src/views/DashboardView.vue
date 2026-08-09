@@ -62,7 +62,10 @@ async function onDelete(userGameId: string) {
           {{ entry.game.mechanics.join(', ') }}
         </p>
         <div class="card-actions">
-          <RouterLink :to="{ name: 'edit-game', params: { id: entry.id } }" class="btn">
+          <RouterLink
+            :to="{ name: 'edit-game', params: { id: entry.id }, query: { from: 'dashboard' } }"
+            class="btn"
+          >
             Editar
           </RouterLink>
           <button type="button" class="btn btn-danger" @click="onDelete(entry.id)">Quitar</button>

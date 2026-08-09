@@ -14,6 +14,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   juego que aparecía mal filtrado (jugadores, duración, modo…), rompiendo
   el flujo de "elige y juega" que es el propósito de esa página. Lleva
   directamente al formulario de edición de ese juego.
+- Enlace "← Volver" en las pantallas de añadir/editar juego. La de editar
+  es ahora accesible desde dos sitios (la colección y el atajo del
+  selector de arriba), así que "volver" recuerda de cuál de los dos vino
+  (vía un parámetro en la URL, no en el historial del navegador, para que
+  funcione igual aunque se recargue la página) tanto al pulsar el enlace
+  como al guardar los cambios — antes, guardar siempre mandaba a la
+  colección aunque se hubiera entrado desde el selector.
 
 ### Corregido
 

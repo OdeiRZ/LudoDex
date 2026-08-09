@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { isAxiosError } from 'axios'
 import { useGamesStore } from '@/stores/games'
 import GameForm, { type GameFormData } from '@/components/GameForm.vue'
@@ -8,9 +8,19 @@ import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
 
 const props = defineProps<{ id: string }>()
 
+const route = useRoute()
 const router = useRouter()
 const games = useGamesStore()
 const { isSlow, wrap } = useSlowRequestHint()
+
+// This view is reachable from both the collection and the picker's own
+// edit shortcut - `from` says which, so "cancel" and "save" both return
+// to wherever the user actually came from instead of always landing on
+// the collection. Falls back to the collection when absent (e.g. the
+// link was opened directly rather than navigated to in-app).
+const returnTo = computed(() =>
+  route.query.from === 'picker' ? { name: 'picker' } : { name: 'dashboard' },
+)
 
 const form = reactive<GameFormData>({
   name: '',
@@ -73,7 +83,7 @@ async function onSubmit() {
 
   try {
     await wrap(games.updateGame(props.id, form))
-    router.push({ name: 'dashboard' })
+    router.push(returnTo.value)
   } catch (err) {
     if (isAxiosError(err) && err.response?.status === 422) {
       const fieldErrors: Record<string, string[]> = err.response.data.errors
@@ -89,6 +99,7 @@ async function onSubmit() {
 
 <template>
   <div class="edit-game">
+    <RouterLink :to="returnTo" class="back-link">← Volver</RouterLink>
     <h1>Editar juego</h1>
 
     <p v-if="games.loading" class="loading-state">Cargando…</p>
@@ -111,6 +122,13 @@ async function onSubmit() {
 .edit-game {
   max-width: 520px;
   margin: 0 auto;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
 }
 
 h1 {

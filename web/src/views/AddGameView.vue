@@ -60,6 +60,7 @@ async function onSubmit() {
 
 <template>
   <div class="add-game">
+    <RouterLink :to="{ name: 'dashboard' }" class="back-link">← Volver</RouterLink>
     <h1>Añadir juego</h1>
 
     <form @submit.prevent="onSubmit">
@@ -76,6 +77,13 @@ async function onSubmit() {
 .add-game {
   max-width: 520px;
   margin: 0 auto;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
 }
 
 h1 {
