@@ -154,6 +154,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   se han elegido, sin esperar a que el usuario empiece a escribir, y la
   lista se sigue acotando a medida que escribe. Se mantiene la posibilidad
   de escribir un valor nuevo que no esté en la lista y añadirlo con Enter.
+- Primeros tests con Vitest + Vue Test Utils en el frontend (hasta ahora
+  toda la cobertura automática era del backend, vía Pest): `TagInput.vue`
+  (sugerencias al enfocar, filtrado al escribir, alta de texto libre,
+  no-duplicados), el radio de modo de `GameForm.vue` (mapeo a/desde los
+  dos booleanos independientes) y los filtros de `PickerView.vue` (solo
+  juegos "Lo tengo" y nunca expansiones, jugadores/género/modo, atajo
+  "Solo").
 
 ### Corregido
 
