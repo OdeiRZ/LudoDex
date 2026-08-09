@@ -90,7 +90,10 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   en cada push/PR a `main` corren, en paralelo, los mismos *quality gates*
   que ya se ejecutaban solo a mano — backend (Pint, Larastan, Pest) y
   frontend (ESLint, Vitest, `vue-tsc`, build) — más el badge de estado en
-  el README.
+  el README. Junto con Dependabot (`composer`, `npm` y las propias
+  Actions), que abrirá PRs automáticos cuando haya actualizaciones,
+  incluidas las de seguridad, en vez de depender de acordarse de auditar
+  las dependencias a mano de vez en cuando.
 
 ### Corregido
 
@@ -101,6 +104,9 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   la página. Ahora esos botones llevan `tabindex="-1"`; seguir eligiendo
   una sugerencia sin ratón sigue funcionando escribiendo su texto y
   pulsando Intro.
+- "Recuperar contraseña" mostraba el error en crudo (p. ej.
+  `Error: Request failed with status code 500`) cuando el fallo no era de
+  validación, en vez de un mensaje traducido como el resto de la app.
 
 - En "¿A qué jugamos?": el filtro "Solo modo campaña" sonaba ambiguo junto
   al botón "Solo" de jugador único de la misma fila (¿"solo" de "solitario"
