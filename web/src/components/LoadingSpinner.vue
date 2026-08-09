@@ -9,7 +9,7 @@ withDefaults(defineProps<{ size?: number }>(), { size: 32 })
     viewBox="0 0 24 24"
     fill="none"
     role="status"
-    aria-label="Cargando"
+    :aria-label="$t('common.loadingAriaLabel')"
   >
     <rect x="3" y="3" width="18" height="18" rx="4" fill="currentColor" opacity="0.15" />
     <rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="1.5" />

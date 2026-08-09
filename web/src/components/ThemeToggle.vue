@@ -8,8 +8,8 @@ const { theme, toggle } = useTheme()
   <button
     type="button"
     class="theme-toggle"
-    :aria-label="theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
-    :title="theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
+    :aria-label="theme === 'dark' ? $t('theme.toLight') : $t('theme.toDark')"
+    :title="theme === 'dark' ? $t('theme.toLight') : $t('theme.toDark')"
     @click="toggle"
   >
     <!-- Icon shows the mode a click leads to, not the current one - matches

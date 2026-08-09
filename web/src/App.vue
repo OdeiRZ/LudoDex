@@ -3,6 +3,7 @@ import { RouterLink, RouterView, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import UserAvatar from '@/components/UserAvatar.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
+import LanguageToggle from '@/components/LanguageToggle.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -18,23 +19,24 @@ async function onLogout() {
     <RouterLink :to="{ name: 'dashboard' }" class="brand">🎲 LudoDex</RouterLink>
 
     <nav v-if="auth.isAuthenticated" class="primary-nav">
-      <RouterLink :to="{ name: 'dashboard' }">Colección</RouterLink>
-      <RouterLink :to="{ name: 'picker' }">¿A qué jugamos?</RouterLink>
-      <RouterLink :to="{ name: 'import-bgg' }">Importar BGG</RouterLink>
+      <RouterLink :to="{ name: 'dashboard' }">{{ $t('nav.collection') }}</RouterLink>
+      <RouterLink :to="{ name: 'picker' }">{{ $t('nav.picker') }}</RouterLink>
+      <RouterLink :to="{ name: 'import-bgg' }">{{ $t('nav.importBgg') }}</RouterLink>
     </nav>
 
     <div class="session">
+      <LanguageToggle />
       <ThemeToggle />
       <template v-if="auth.isAuthenticated">
         <RouterLink v-if="auth.user" :to="{ name: 'profile' }" class="user-name">
           <UserAvatar :name="auth.user.name" :avatar-url="auth.user.avatar_url" :size="24" />
           {{ auth.user.name }}
         </RouterLink>
-        <button type="button" class="btn" @click="onLogout">Cerrar sesión</button>
+        <button type="button" class="btn" @click="onLogout">{{ $t('nav.logout') }}</button>
       </template>
       <template v-else>
-        <RouterLink :to="{ name: 'login' }" class="btn">Entrar</RouterLink>
-        <RouterLink :to="{ name: 'register' }" class="btn btn-primary">Crear cuenta</RouterLink>
+        <RouterLink :to="{ name: 'login' }" class="btn">{{ $t('nav.login') }}</RouterLink>
+        <RouterLink :to="{ name: 'register' }" class="btn btn-primary">{{ $t('nav.register') }}</RouterLink>
       </template>
     </div>
   </header>

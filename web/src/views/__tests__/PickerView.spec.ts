@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import PickerView from '@/views/PickerView.vue'
 import { useGamesStore, type UserGame } from '@/stores/games'
 import { makeEntry } from '@/stores/__tests__/gameFixtures'
+import { i18n } from '@/i18n'
 
 // PickerView calls games.fetchAll() on mount unless the store already
 // reports itself as loaded - marking it loaded upfront keeps these tests
@@ -15,7 +16,7 @@ function mountPicker(entries: UserGame[]) {
   store.loaded = true
 
   return mount(PickerView, {
-    global: { stubs: { RouterLink: true } },
+    global: { stubs: { RouterLink: true }, plugins: [i18n] },
   })
 }
 

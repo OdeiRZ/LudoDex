@@ -26,18 +26,20 @@ async function onDelete(userGameId: string) {
 <template>
   <div>
     <div class="header">
-      <h1>Tu colección</h1>
-      <RouterLink :to="{ name: 'add-game' }" class="btn btn-primary">+ Añadir juego</RouterLink>
+      <h1>{{ $t('dashboard.title') }}</h1>
+      <RouterLink :to="{ name: 'add-game' }" class="btn btn-primary">{{
+        $t('dashboard.addGame')
+      }}</RouterLink>
     </div>
 
     <p v-if="games.loading" class="loading-state">
       <LoadingSpinner :size="28" />
-      Cargando tu colección…
+      {{ $t('common.loadingCollection') }}
     </p>
 
     <p v-else-if="games.loaded && games.collection.length === 0" class="empty-state">
-      Todavía no has añadido ningún juego.<br />
-      <RouterLink :to="{ name: 'add-game' }">Añade el primero</RouterLink>.
+      {{ $t('dashboard.empty') }}<br />
+      <RouterLink :to="{ name: 'add-game' }">{{ $t('dashboard.addFirst') }}</RouterLink>.
     </p>
 
     <ul class="games">
@@ -50,16 +52,21 @@ async function onDelete(userGameId: string) {
               class="badge"
               :class="entry.status === 'owned' ? 'badge-primary' : 'badge-accent'"
             >
-              {{ entry.status === 'owned' ? 'Lo tengo' : 'Lo quiero' }}
+              {{ entry.status === 'owned' ? $t('dashboard.owned') : $t('dashboard.wishlist') }}
             </span>
           </div>
         </div>
         <p class="meta">
           <span v-if="entry.game.min_players || entry.game.max_players">
-            {{ entry.game.min_players }}–{{ entry.game.max_players }} jugadores
+            {{ $t('dashboard.players', { min: entry.game.min_players, max: entry.game.max_players }) }}
           </span>
           <span v-if="entry.game.min_playtime_minutes || entry.game.max_playtime_minutes">
-            {{ entry.game.min_playtime_minutes }}–{{ entry.game.max_playtime_minutes }} min
+            {{
+              $t('dashboard.duration', {
+                min: entry.game.min_playtime_minutes,
+                max: entry.game.max_playtime_minutes,
+              })
+            }}
           </span>
         </p>
         <p v-if="entry.game.mechanics.length" class="tags">
@@ -70,9 +77,11 @@ async function onDelete(userGameId: string) {
             :to="{ name: 'edit-game', params: { id: entry.id }, query: { from: 'dashboard' } }"
             class="btn"
           >
-            Editar
+            {{ $t('dashboard.edit') }}
           </RouterLink>
-          <button type="button" class="btn btn-danger" @click="onDelete(entry.id)">Quitar</button>
+          <button type="button" class="btn btn-danger" @click="onDelete(entry.id)">
+            {{ $t('dashboard.remove') }}
+          </button>
         </div>
       </li>
     </ul>

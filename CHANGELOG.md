@@ -9,6 +9,18 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Añadido
 
+- Selector de idioma (español/inglés), visible en la cabecera tanto antes
+  de iniciar sesión como después (junto al interruptor de tema), no
+  escondido en los ajustes de perfil: alguien que no lea español necesita
+  poder cambiarlo antes de poder entender el propio formulario de login.
+  El frontend usa `vue-i18n`, con la elección guardada en `localStorage`
+  igual que el tema. La API también responde en el idioma elegido: un
+  nuevo middleware (`SetLocaleFromHeader`) lee la cabecera
+  `Accept-Language` que ahora manda el cliente axios y ajusta el locale de
+  Laravel en cada petición, así que los mensajes de validación (email
+  duplicado, contraseña incorrecta, etc.) y los errores propios de la
+  integración con BGG (token sin configurar, usuario no encontrado…)
+  salen en el idioma correcto en vez de siempre en español.
 - Botón de editar (icono de tuerca) en cada resultado de "¿A qué jugamos?":
   antes había que volver a "Tu colección" para corregir los datos de un
   juego que aparecía mal filtrado (jugadores, duración, modo…), rompiendo

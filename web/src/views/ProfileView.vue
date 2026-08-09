@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { isAxiosError } from 'axios'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
 import UserAvatar from '@/components/UserAvatar.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const auth = useAuthStore()
+const { t } = useI18n()
 const { isSlow: isProfileSlow, wrap: wrapProfile } = useSlowRequestHint()
 const { isSlow: isPasswordSlow, wrap: wrapPassword } = useSlowRequestHint()
 
@@ -48,7 +50,7 @@ async function onSubmitProfile() {
     if (isAxiosError(err) && err.response?.status === 422) {
       profileErrors.value = err.response.data.errors
     } else {
-      profileErrors.value = { general: ['No se han podido guardar los cambios.'] }
+      profileErrors.value = { general: [t('profile.genericError')] }
     }
   } finally {
     profileSubmitting.value = false
@@ -70,7 +72,7 @@ async function onSubmitPassword() {
     if (isAxiosError(err) && err.response?.status === 422) {
       passwordErrors.value = err.response.data.errors
     } else {
-      passwordErrors.value = { general: ['No se ha podido cambiar la contraseña.'] }
+      passwordErrors.value = { general: [t('profile.passwordGenericError')] }
     }
   } finally {
     passwordSubmitting.value = false
@@ -80,21 +82,21 @@ async function onSubmitPassword() {
 
 <template>
   <div class="profile">
-    <h1>Mi perfil</h1>
+    <h1>{{ $t('profile.title') }}</h1>
 
     <section class="card">
-      <h2>Datos personales</h2>
+      <h2>{{ $t('profile.personalData') }}</h2>
 
       <div class="avatar-preview">
         <UserAvatar :name="profileForm.name || '?'" :avatar-url="auth.user?.avatar_url" :size="64" />
         <p class="avatar-hint">
-          El avatar se toma de tu cuenta de BoardGameGeek si indicas tu usuario más abajo.
+          {{ $t('profile.avatarHint') }}
         </p>
       </div>
 
       <form class="form" @submit.prevent="onSubmitProfile">
         <div>
-          <label for="name">Nombre</label>
+          <label for="name">{{ $t('profile.name') }}</label>
           <input id="name" v-model="profileForm.name" type="text" required autocomplete="name" />
           <p
             v-for="message in profileErrors.name"
@@ -107,7 +109,7 @@ async function onSubmitPassword() {
         </div>
 
         <div>
-          <label for="email">Email</label>
+          <label for="email">{{ $t('profile.email') }}</label>
           <input id="email" v-model="profileForm.email" type="email" required autocomplete="email" />
           <p
             v-for="message in profileErrors.email"
@@ -120,7 +122,7 @@ async function onSubmitPassword() {
         </div>
 
         <div>
-          <label for="bgg_username">Usuario de BoardGameGeek (opcional)</label>
+          <label for="bgg_username">{{ $t('profile.bggUsername') }}</label>
           <input id="bgg_username" v-model="profileForm.bgg_username" type="text" />
           <p
             v-for="message in profileErrors.bgg_username"
@@ -140,25 +142,25 @@ async function onSubmitPassword() {
         >
           {{ message }}
         </p>
-        <p v-if="profileSaved" role="status" class="alert alert-success">Cambios guardados.</p>
+        <p v-if="profileSaved" role="status" class="alert alert-success">{{ $t('profile.saved') }}</p>
 
         <button type="submit" class="btn btn-primary" :disabled="profileSubmitting">
-          {{ profileSubmitting ? 'Guardando…' : 'Guardar cambios' }}
+          {{ profileSubmitting ? $t('common.saving') : $t('profile.save') }}
         </button>
 
         <p v-if="isProfileSlow" class="slow-request-hint">
           <LoadingSpinner :size="16" />
-          Servidor inactivo: puede tardar unos segundos.
+          {{ $t('common.coldStartHint') }}
         </p>
       </form>
     </section>
 
     <section class="card">
-      <h2>Cambiar contraseña</h2>
+      <h2>{{ $t('profile.changePassword') }}</h2>
 
       <form class="form" @submit.prevent="onSubmitPassword">
         <div>
-          <label for="current_password">Contraseña actual</label>
+          <label for="current_password">{{ $t('profile.currentPassword') }}</label>
           <input
             id="current_password"
             v-model="passwordForm.current_password"
@@ -177,7 +179,7 @@ async function onSubmitPassword() {
         </div>
 
         <div>
-          <label for="new_password">Nueva contraseña</label>
+          <label for="new_password">{{ $t('profile.newPassword') }}</label>
           <input
             id="new_password"
             v-model="passwordForm.password"
@@ -188,7 +190,7 @@ async function onSubmitPassword() {
         </div>
 
         <div>
-          <label for="new_password_confirmation">Repite la nueva contraseña</label>
+          <label for="new_password_confirmation">{{ $t('profile.newPasswordConfirmation') }}</label>
           <input
             id="new_password_confirmation"
             v-model="passwordForm.password_confirmation"
@@ -215,16 +217,16 @@ async function onSubmitPassword() {
           {{ message }}
         </p>
         <p v-if="passwordSaved" role="status" class="alert alert-success">
-          Contraseña actualizada.
+          {{ $t('profile.passwordSaved') }}
         </p>
 
         <button type="submit" class="btn btn-primary" :disabled="passwordSubmitting">
-          {{ passwordSubmitting ? 'Guardando…' : 'Cambiar contraseña' }}
+          {{ passwordSubmitting ? $t('common.saving') : $t('profile.changePassword') }}
         </button>
 
         <p v-if="isPasswordSlow" class="slow-request-hint">
           <LoadingSpinner :size="16" />
-          Servidor inactivo: puede tardar unos segundos.
+          {{ $t('common.coldStartHint') }}
         </p>
       </form>
     </section>

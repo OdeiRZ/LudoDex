@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { isAxiosError } from 'axios'
 import { useGamesStore } from '@/stores/games'
 import GameForm, { type GameFormData } from '@/components/GameForm.vue'
@@ -9,6 +10,7 @@ import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
 
 const router = useRouter()
 const games = useGamesStore()
+const { t } = useI18n()
 const { isSlow, wrap } = useSlowRequestHint()
 
 const form = reactive<GameFormData>({
@@ -51,7 +53,7 @@ async function onSubmit() {
       const fieldErrors: Record<string, string[]> = err.response.data.errors
       errors.value = { general: Object.values(fieldErrors).flat() }
     } else {
-      errors.value = { general: ['No se ha podido guardar el juego. Revisa los datos.'] }
+      errors.value = { general: [t('common.genericGameSaveError')] }
     }
   } finally {
     submitting.value = false
@@ -61,15 +63,20 @@ async function onSubmit() {
 
 <template>
   <div class="add-game">
-    <RouterLink :to="{ name: 'dashboard' }" class="back-link">← Volver</RouterLink>
-    <h1>Añadir juego</h1>
+    <RouterLink :to="{ name: 'dashboard' }" class="back-link">{{ $t('backLink') }}</RouterLink>
+    <h1>{{ $t('addGame.title') }}</h1>
 
     <form @submit.prevent="onSubmit">
-      <GameForm v-model="form" :submitting="submitting" submit-label="Guardar juego" :errors="errors" />
+      <GameForm
+        v-model="form"
+        :submitting="submitting"
+        :submit-label="$t('addGame.submit')"
+        :errors="errors"
+      />
 
       <p v-if="isSlow" class="slow-request-hint">
         <LoadingSpinner :size="16" />
-        Servidor inactivo: puede tardar unos segundos.
+        {{ $t('common.coldStartHint') }}
       </p>
     </form>
   </div>

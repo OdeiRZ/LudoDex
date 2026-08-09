@@ -74,7 +74,7 @@ function onBlur() {
     <ul v-if="modelValue.length" class="tags">
       <li v-for="tag in modelValue" :key="tag" class="badge">
         {{ tag }}
-        <button type="button" :aria-label="`Quitar ${tag}`" @click="removeTag(tag)">×</button>
+        <button type="button" :aria-label="$t('tagInput.remove', { tag })" @click="removeTag(tag)">×</button>
       </li>
     </ul>
 
@@ -87,7 +87,7 @@ function onBlur() {
         aria-autocomplete="list"
         :aria-expanded="isOpen"
         autocomplete="off"
-        placeholder="Escribe o elige de la lista"
+        :placeholder="$t('tagInput.placeholder')"
         @keydown="onKeydown"
         @focus="isOpen = true"
         @blur="onBlur"

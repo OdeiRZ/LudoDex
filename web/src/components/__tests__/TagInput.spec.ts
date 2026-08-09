@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import TagInput from '@/components/TagInput.vue'
+import { i18n } from '@/i18n'
 
 function mountTagInput(modelValue: string[] = [], suggestions: string[] = []) {
   return mount(TagInput, {
+    global: { plugins: [i18n] },
     props: {
       modelValue,
       suggestions,

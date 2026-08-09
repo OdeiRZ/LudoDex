@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { t } = useI18n()
 const { isSlow, wrap } = useSlowRequestHint()
 
 const email = ref('')
@@ -22,7 +24,7 @@ async function onSubmit() {
     await wrap(auth.login({ email: email.value, password: password.value }))
     router.push({ name: 'dashboard' })
   } catch {
-    error.value = 'Email o contraseña incorrectos.'
+    error.value = t('auth.login.error')
   } finally {
     submitting.value = false
   }
@@ -32,16 +34,16 @@ async function onSubmit() {
 <template>
   <div class="auth-form">
     <div class="card">
-      <h1>Iniciar sesión</h1>
+      <h1>{{ $t('auth.login.title') }}</h1>
 
       <form class="form" @submit.prevent="onSubmit">
         <div>
-          <label for="email">Email</label>
+          <label for="email">{{ $t('auth.login.email') }}</label>
           <input id="email" v-model="email" type="email" required autocomplete="email" />
         </div>
 
         <div>
-          <label for="password">Contraseña</label>
+          <label for="password">{{ $t('auth.login.password') }}</label>
           <input
             id="password"
             v-model="password"
@@ -54,19 +56,19 @@ async function onSubmit() {
         <p v-if="error" role="alert" class="alert alert-error">{{ error }}</p>
 
         <button type="submit" class="btn btn-primary" :disabled="submitting">
-          {{ submitting ? 'Entrando…' : 'Entrar' }}
+          {{ submitting ? $t('auth.login.submitting') : $t('auth.login.submit') }}
         </button>
 
         <p v-if="isSlow" class="slow-request-hint">
           <LoadingSpinner :size="16" />
-          Servidor inactivo: puede tardar unos segundos.
+          {{ $t('common.coldStartHint') }}
         </p>
       </form>
     </div>
 
     <p class="switch-link">
-      ¿No tienes cuenta?
-      <RouterLink :to="{ name: 'register' }">Regístrate</RouterLink>
+      {{ $t('auth.login.noAccount') }}
+      <RouterLink :to="{ name: 'register' }">{{ $t('auth.login.registerLink') }}</RouterLink>
     </p>
   </div>
 </template>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { isAxiosError } from 'axios'
+import { useI18n } from 'vue-i18n'
 import TagInput from '@/components/TagInput.vue'
 import { useGamesStore } from '@/stores/games'
 
@@ -27,6 +28,7 @@ defineProps<{
 }>()
 
 const games = useGamesStore()
+const { t } = useI18n()
 const form = defineModel<GameFormData>({ required: true })
 
 const bggId = ref<number | null>(null)
@@ -79,7 +81,7 @@ async function onLookupBgg() {
   } catch (err) {
     bggLookupError.value = isAxiosError(err)
       ? err.response?.data.message
-      : 'No se ha podido consultar BoardGameGeek.'
+      : t('gameForm.bggLookupGenericError')
   } finally {
     bggLookupLoading.value = false
   }
@@ -89,14 +91,14 @@ async function onLookupBgg() {
 <template>
   <div class="form card">
     <fieldset class="bgg-lookup">
-      <legend>Importar de BoardGameGeek (opcional)</legend>
+      <legend>{{ $t('gameForm.bggImportLegend') }}</legend>
       <div class="bgg-lookup-row">
         <input
           v-model.number="bggId"
           type="number"
           min="1"
-          placeholder="Id del juego en BGG"
-          aria-label="Id del juego en BGG"
+          :placeholder="$t('gameForm.bggIdPlaceholder')"
+          :aria-label="$t('gameForm.bggIdPlaceholder')"
         />
         <button
           type="button"
@@ -104,7 +106,7 @@ async function onLookupBgg() {
           :disabled="!bggId || bggLookupLoading"
           @click="onLookupBgg"
         >
-          {{ bggLookupLoading ? 'Buscando…' : 'Rellenar desde BGG' }}
+          {{ bggLookupLoading ? $t('gameForm.bggFillLoading') : $t('gameForm.bggFillButton') }}
         </button>
       </div>
       <p v-if="bggLookupError" role="alert" class="alert alert-error">{{ bggLookupError }}</p>
@@ -112,10 +114,10 @@ async function onLookupBgg() {
 
     <div class="name-and-image">
       <div class="name-field">
-        <label for="name">Nombre</label>
+        <label for="name">{{ $t('gameForm.name') }}</label>
         <input id="name" v-model="form.name" type="text" required />
 
-        <label for="image_url">URL de la imagen</label>
+        <label for="image_url">{{ $t('gameForm.imageUrl') }}</label>
         <input
           id="image_url"
           v-model="form.image_url"
@@ -136,62 +138,62 @@ async function onLookupBgg() {
 
     <div class="field-row">
       <div>
-        <label for="min_players">Jugadores (min)</label>
+        <label for="min_players">{{ $t('gameForm.minPlayers') }}</label>
         <input id="min_players" v-model.number="form.min_players" type="number" min="1" />
       </div>
       <div>
-        <label for="max_players">Jugadores (max)</label>
+        <label for="max_players">{{ $t('gameForm.maxPlayers') }}</label>
         <input id="max_players" v-model.number="form.max_players" type="number" min="1" />
       </div>
     </div>
 
     <div class="field-row">
       <div>
-        <label for="min_playtime">Duración min (minutos)</label>
+        <label for="min_playtime">{{ $t('gameForm.minPlaytime') }}</label>
         <input id="min_playtime" v-model.number="form.min_playtime_minutes" type="number" min="1" />
       </div>
       <div>
-        <label for="max_playtime">Duración max (minutos)</label>
+        <label for="max_playtime">{{ $t('gameForm.maxPlaytime') }}</label>
         <input id="max_playtime" v-model.number="form.max_playtime_minutes" type="number" min="1" />
       </div>
     </div>
 
     <div>
-      <label for="weight">Complejidad (1-5)</label>
+      <label for="weight">{{ $t('gameForm.weight') }}</label>
       <input id="weight" v-model.number="form.weight" type="number" min="1" max="5" step="0.1" />
     </div>
 
     <fieldset>
-      <legend>Modo</legend>
-      <label><input v-model="modeChoice" type="radio" value="cooperative" /> Cooperativo</label>
-      <label><input v-model="modeChoice" type="radio" value="competitive" /> Competitivo</label>
-      <label><input v-model="modeChoice" type="radio" value="both" /> Ambos (p. ej. por equipos)</label>
+      <legend>{{ $t('gameForm.modeLegend') }}</legend>
+      <label><input v-model="modeChoice" type="radio" value="cooperative" /> {{ $t('gameForm.cooperative') }}</label>
+      <label><input v-model="modeChoice" type="radio" value="competitive" /> {{ $t('gameForm.competitive') }}</label>
+      <label><input v-model="modeChoice" type="radio" value="both" /> {{ $t('gameForm.both') }}</label>
     </fieldset>
 
     <fieldset>
-      <legend>Estructura</legend>
-      <label><input v-model="form.has_campaign" type="checkbox" /> Modo campaña</label>
+      <legend>{{ $t('gameForm.structureLegend') }}</legend>
+      <label><input v-model="form.has_campaign" type="checkbox" /> {{ $t('gameForm.hasCampaign') }}</label>
     </fieldset>
 
     <TagInput
       v-model="form.mechanics"
-      label="Mecánicas"
+      :label="$t('gameForm.mechanics')"
       list-id="mechanics"
       :suggestions="games.mechanicOptions"
     />
 
     <TagInput
       v-model="form.categories"
-      label="Categorías"
+      :label="$t('gameForm.categories')"
       list-id="categories"
       :suggestions="games.categoryOptions"
     />
 
     <div>
-      <label for="status">Estado</label>
+      <label for="status">{{ $t('gameForm.status') }}</label>
       <select id="status" v-model="form.status">
-        <option value="owned">Lo tengo</option>
-        <option value="wishlist">Lo quiero</option>
+        <option value="owned">{{ $t('gameForm.owned') }}</option>
+        <option value="wishlist">{{ $t('gameForm.wishlist') }}</option>
       </select>
     </div>
 

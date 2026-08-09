@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { isAxiosError } from 'axios'
 import { useGamesStore } from '@/stores/games'
 import GameForm, { type GameFormData } from '@/components/GameForm.vue'
@@ -12,6 +13,7 @@ const props = defineProps<{ id: string }>()
 const route = useRoute()
 const router = useRouter()
 const games = useGamesStore()
+const { t } = useI18n()
 const { isSlow, wrap } = useSlowRequestHint()
 
 // This view is reachable from both the collection and the picker's own
@@ -90,7 +92,7 @@ async function onSubmit() {
       const fieldErrors: Record<string, string[]> = err.response.data.errors
       errors.value = { general: Object.values(fieldErrors).flat() }
     } else {
-      errors.value = { general: ['No se ha podido guardar el juego. Revisa los datos.'] }
+      errors.value = { general: [t('common.genericGameSaveError')] }
     }
   } finally {
     submitting.value = false
@@ -100,24 +102,29 @@ async function onSubmit() {
 
 <template>
   <div class="edit-game">
-    <RouterLink :to="returnTo" class="back-link">← Volver</RouterLink>
-    <h1>Editar juego</h1>
+    <RouterLink :to="returnTo" class="back-link">{{ $t('backLink') }}</RouterLink>
+    <h1>{{ $t('editGame.title') }}</h1>
 
     <p v-if="games.loading" class="loading-state">
       <LoadingSpinner :size="28" />
-      Cargando…
+      {{ $t('common.loading') }}
     </p>
 
     <p v-else-if="!entry" class="empty-state">
-      No se ha encontrado ese juego en tu colección.
+      {{ $t('editGame.notFound') }}
     </p>
 
     <form v-else @submit.prevent="onSubmit">
-      <GameForm v-model="form" :submitting="submitting" submit-label="Guardar cambios" :errors="errors" />
+      <GameForm
+        v-model="form"
+        :submitting="submitting"
+        :submit-label="$t('editGame.submit')"
+        :errors="errors"
+      />
 
       <p v-if="isSlow" class="slow-request-hint">
         <LoadingSpinner :size="16" />
-        Servidor inactivo: puede tardar unos segundos.
+        {{ $t('common.coldStartHint') }}
       </p>
     </form>
   </div>

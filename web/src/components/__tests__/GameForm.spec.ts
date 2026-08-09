@@ -3,6 +3,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { reactive } from 'vue'
 import GameForm, { type GameFormData } from '@/components/GameForm.vue'
+import { i18n } from '@/i18n'
 
 function reactiveForm(overrides: Partial<GameFormData> = {}): GameFormData {
   return reactive({
@@ -32,6 +33,7 @@ function mountGameForm(modelValue: GameFormData) {
   setActivePinia(createPinia())
 
   const wrapper = mount(GameForm, {
+    global: { plugins: [i18n] },
     props: {
       modelValue,
       submitting: false,

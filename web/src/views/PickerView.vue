@@ -116,11 +116,11 @@ const filtered = computed(() => {
 
 <template>
   <div>
-    <h1>¿A qué jugamos?</h1>
+    <h1>{{ $t('picker.title') }}</h1>
 
     <form class="filters card" @submit.prevent>
       <div>
-        <label for="players">Jugadores</label>
+        <label for="players">{{ $t('picker.players') }}</label>
         <div class="players-row">
           <input
             id="players"
@@ -136,39 +136,39 @@ const filtered = computed(() => {
             :aria-pressed="isSoloPlayer"
             @click="toggleSolo"
           >
-            Solo
+            {{ $t('picker.solo') }}
           </button>
         </div>
       </div>
 
       <fieldset>
-        <legend>Minutos disponibles</legend>
-        <label><input v-model="durationBucket" type="radio" value="any" /> Cualquiera</label>
-        <label><input v-model="durationBucket" type="radio" value="30" /> Hasta 30 min</label>
-        <label><input v-model="durationBucket" type="radio" value="60" /> Hasta 1h</label>
-        <label><input v-model="durationBucket" type="radio" value="90" /> Hasta 1h30</label>
-        <label><input v-model="durationBucket" type="radio" value="120" /> Hasta 2h</label>
+        <legend>{{ $t('picker.duration') }}</legend>
+        <label><input v-model="durationBucket" type="radio" value="any" /> {{ $t('picker.any') }}</label>
+        <label><input v-model="durationBucket" type="radio" value="30" /> {{ $t('picker.upTo30') }}</label>
+        <label><input v-model="durationBucket" type="radio" value="60" /> {{ $t('picker.upTo1h') }}</label>
+        <label><input v-model="durationBucket" type="radio" value="90" /> {{ $t('picker.upTo1h30') }}</label>
+        <label><input v-model="durationBucket" type="radio" value="120" /> {{ $t('picker.upTo2h') }}</label>
       </fieldset>
 
       <fieldset v-if="!isSoloPlayer">
-        <legend>Modo</legend>
-        <label><input v-model="modeFilter" type="radio" value="any" /> Cualquiera</label>
-        <label><input v-model="modeFilter" type="radio" value="cooperative" /> Cooperativo</label>
-        <label><input v-model="modeFilter" type="radio" value="competitive" /> Competitivo</label>
+        <legend>{{ $t('picker.mode') }}</legend>
+        <label><input v-model="modeFilter" type="radio" value="any" /> {{ $t('picker.any') }}</label>
+        <label><input v-model="modeFilter" type="radio" value="cooperative" /> {{ $t('picker.cooperative') }}</label>
+        <label><input v-model="modeFilter" type="radio" value="competitive" /> {{ $t('picker.competitive') }}</label>
       </fieldset>
 
       <div>
         <span class="filter-label-spacer" aria-hidden="true">&nbsp;</span>
         <label class="checkbox-label">
           <input v-model="onlyCampaign" type="checkbox" />
-          Solo modo campaña
+          {{ $t('picker.onlyCampaign') }}
         </label>
       </div>
 
       <div v-if="availableCategories.length">
-        <label for="category">Género</label>
+        <label for="category">{{ $t('picker.genre') }}</label>
         <select id="category" v-model="categoryFilter">
-          <option value="">Cualquiera</option>
+          <option value="">{{ $t('picker.any') }}</option>
           <option v-for="category in availableCategories" :key="category" :value="category">
             {{ category }}
           </option>
@@ -177,20 +177,20 @@ const filtered = computed(() => {
 
       <div>
         <span class="filter-label-spacer" aria-hidden="true">&nbsp;</span>
-        <button type="submit" class="btn btn-primary">Buscar</button>
+        <button type="submit" class="btn btn-primary">{{ $t('picker.search') }}</button>
       </div>
     </form>
 
     <p v-if="games.loading" class="loading-state">
       <LoadingSpinner :size="28" />
-      Cargando tu colección…
+      {{ $t('common.loadingCollection') }}
     </p>
     <p v-else-if="playable.length === 0" class="empty-state">
-      No tienes juegos marcados como "Lo tengo" todavía.<br />
-      <RouterLink :to="{ name: 'add-game' }">Añade uno</RouterLink>.
+      {{ $t('picker.emptyOwned') }}<br />
+      <RouterLink :to="{ name: 'add-game' }">{{ $t('picker.addOne') }}</RouterLink>.
     </p>
     <p v-else-if="filtered.length === 0" class="empty-state">
-      Ningún juego de tu colección encaja con estos filtros.
+      {{ $t('picker.noMatches') }}
     </p>
 
     <ul v-else class="results">
@@ -201,8 +201,8 @@ const filtered = computed(() => {
           <RouterLink
             :to="{ name: 'edit-game', params: { id: entry.id }, query: { from: 'picker' } }"
             class="edit-icon-button"
-            aria-label="Editar juego"
-            title="Editar juego"
+            :aria-label="$t('picker.editGame')"
+            :title="$t('picker.editGame')"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path
@@ -220,16 +220,21 @@ const filtered = computed(() => {
         </div>
         <p class="meta">
           <span v-if="entry.game.min_players || entry.game.max_players">
-            {{ entry.game.min_players }}–{{ entry.game.max_players }} jugadores
+            {{ $t('dashboard.players', { min: entry.game.min_players, max: entry.game.max_players }) }}
           </span>
           <span v-if="entry.game.min_playtime_minutes || entry.game.max_playtime_minutes">
-            {{ entry.game.min_playtime_minutes }}–{{ entry.game.max_playtime_minutes }} min
+            {{
+              $t('dashboard.duration', {
+                min: entry.game.min_playtime_minutes,
+                max: entry.game.max_playtime_minutes,
+              })
+            }}
           </span>
         </p>
         <p class="tags">
-          <span v-if="entry.game.is_cooperative" class="badge badge-primary">Cooperativo</span>
-          <span v-if="entry.game.is_competitive" class="badge badge-primary">Competitivo</span>
-          <span v-if="entry.game.has_campaign" class="badge badge-accent">Campaña</span>
+          <span v-if="entry.game.is_cooperative" class="badge badge-primary">{{ $t('picker.cooperative') }}</span>
+          <span v-if="entry.game.is_competitive" class="badge badge-primary">{{ $t('picker.competitive') }}</span>
+          <span v-if="entry.game.has_campaign" class="badge badge-accent">{{ $t('picker.campaign') }}</span>
         </p>
       </li>
     </ul>

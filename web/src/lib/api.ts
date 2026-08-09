@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { getLocale } from '@/i18n'
 
 // Token lives in localStorage (not an httpOnly cookie): the SPA and the API
 // are on different domains with free-tier hosting, so cookie-based Sanctum
@@ -30,6 +31,11 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+
+  // Lets the API return validation messages in whichever language the user
+  // picked (see App\Http\Middleware\SetLocaleFromHeader), instead of always
+  // Spanish regardless of the frontend's own language toggle.
+  config.headers['Accept-Language'] = getLocale()
 
   return config
 })

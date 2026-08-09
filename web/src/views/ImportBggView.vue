@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useGamesStore, type BggImportStatus } from '@/stores/games'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const games = useGamesStore()
+const { t } = useI18n()
 
 const username = ref('')
 const phase = ref<'idle' | 'pending' | 'completed' | 'failed'>('idle')
@@ -45,7 +47,7 @@ async function onSubmit() {
     handleResult(result)
   } catch {
     phase.value = 'failed'
-    errorMessage.value = 'No se ha podido iniciar la importación.'
+    errorMessage.value = t('importBgg.genericStartError')
   } finally {
     submitting.value = false
   }
@@ -61,34 +63,35 @@ onUnmounted(() => {
 <template>
   <div class="import-bgg">
     <div class="card">
-      <h1>Importar desde BoardGameGeek</h1>
+      <h1>{{ $t('importBgg.title') }}</h1>
 
       <form v-if="phase === 'idle' || phase === 'failed'" class="form" @submit.prevent="onSubmit">
         <div>
-          <label for="bgg_username">Usuario de BGG</label>
+          <label for="bgg_username">{{ $t('importBgg.username') }}</label>
           <input id="bgg_username" v-model="username" type="text" required :disabled="submitting" />
         </div>
 
         <p v-if="phase === 'failed'" role="alert" class="alert alert-error">
-          {{ errorMessage ?? 'No se ha podido importar la colección.' }}
+          {{ errorMessage ?? $t('importBgg.genericFailedError') }}
         </p>
 
-        <button type="submit" class="btn btn-primary" :disabled="submitting">Importar</button>
+        <button type="submit" class="btn btn-primary" :disabled="submitting">
+          {{ $t('importBgg.submit') }}
+        </button>
       </form>
 
       <div v-else-if="phase === 'pending'" role="status" class="status-block">
         <LoadingSpinner :size="32" />
         <p>
-          Conectando con BoardGameGeek… Puede tardar unos segundos mientras BGG prepara la
-          exportación de la colección.
+          {{ $t('importBgg.pending') }}
         </p>
       </div>
 
       <div v-else-if="phase === 'completed'" role="status" class="status-block">
-        <p>Importación completada: {{ importedCount }} juegos añadidos o actualizados.</p>
-        <RouterLink :to="{ name: 'dashboard' }" class="btn btn-primary"
-          >Ver tu colección</RouterLink
-        >
+        <p>{{ $t('importBgg.completed', { count: importedCount }) }}</p>
+        <RouterLink :to="{ name: 'dashboard' }" class="btn btn-primary">{{
+          $t('importBgg.viewCollection')
+        }}</RouterLink>
       </div>
     </div>
   </div>

@@ -5,6 +5,7 @@ import { createRouter, createMemoryHistory } from 'vue-router'
 import EditGameView from '@/views/EditGameView.vue'
 import { useGamesStore } from '@/stores/games'
 import { makeEntry } from '@/stores/__tests__/gameFixtures'
+import { i18n } from '@/i18n'
 
 function makeRouter() {
   return createRouter({
@@ -31,7 +32,7 @@ async function mountEdit(path: string, id: string) {
   await router.isReady()
 
   const wrapper = mount(EditGameView, {
-    global: { plugins: [router] },
+    global: { plugins: [router, i18n] },
     props: { id },
   })
   await flushPromises()
