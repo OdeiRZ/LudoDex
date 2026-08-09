@@ -23,7 +23,7 @@ class BggClient
         if (blank(config('bgg.application_token'))) {
             return [
                 'status' => 'error',
-                'message' => 'Falta configurar BGG_APPLICATION_TOKEN (BoardGameGeek exige un token de aplicación registrado; ver https://boardgamegeek.com/using_the_xml_api).',
+                'message' => __('bgg.token_missing'),
             ];
         }
 
@@ -61,19 +61,19 @@ class BggClient
         }
 
         if (! $response->successful()) {
-            return ['status' => 'error', 'message' => 'No se pudo contactar con BoardGameGeek.'];
+            return ['status' => 'error', 'message' => __('bgg.unreachable')];
         }
 
         $xml = @simplexml_load_string($response->body());
 
         if ($xml === false) {
-            return ['status' => 'error', 'message' => 'Respuesta inesperada de BoardGameGeek.'];
+            return ['status' => 'error', 'message' => __('bgg.unexpected_response')];
         }
 
         if ($xml->getName() === 'errors') {
             $message = isset($xml->error->message)
                 ? (string) $xml->error->message
-                : 'Usuario de BoardGameGeek no encontrado.';
+                : __('bgg.user_not_found');
 
             return ['status' => 'error', 'message' => $message];
         }
@@ -184,7 +184,7 @@ class BggClient
         if (blank(config('bgg.application_token'))) {
             return [
                 'status' => 'error',
-                'message' => 'Falta configurar BGG_APPLICATION_TOKEN (BoardGameGeek exige un token de aplicación registrado; ver https://boardgamegeek.com/using_the_xml_api).',
+                'message' => __('bgg.token_missing'),
             ];
         }
 
@@ -194,13 +194,13 @@ class BggClient
         ]);
 
         if (! $response->successful()) {
-            return ['status' => 'error', 'message' => 'No se pudo contactar con BoardGameGeek.'];
+            return ['status' => 'error', 'message' => __('bgg.unreachable')];
         }
 
         $xml = @simplexml_load_string($response->body());
 
         if ($xml === false || ! isset($xml->item)) {
-            return ['status' => 'error', 'message' => 'No se ha encontrado ningún juego con ese id en BoardGameGeek.'];
+            return ['status' => 'error', 'message' => __('bgg.game_not_found')];
         }
 
         return ['status' => 'ready', 'game' => $this->parseFullGameDetail($xml->item)];

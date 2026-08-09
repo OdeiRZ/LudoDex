@@ -38,6 +38,18 @@ it('fails immediately when no BGG application token is configured', function () 
     Http::assertNothingSent();
 });
 
+it('returns the BGG service error messages in the requested language', function () {
+    actingAsUser();
+    config(['bgg.application_token' => null]);
+
+    Http::fake(fn () => Http::response('should not be called', 500));
+
+    $this->withHeader('Accept-Language', 'en')
+        ->getJson('/api/bgg-lookup/games/13')
+        ->assertUnprocessable()
+        ->assertJsonPath('message', 'BGG_APPLICATION_TOKEN is not configured (BoardGameGeek requires a registered application token; see https://boardgamegeek.com/using_the_xml_api).');
+});
+
 it('looks up a game by its BGG id', function () {
     actingAsUser();
     Http::fake(fn () => Http::response(thingXmlForLookup()));

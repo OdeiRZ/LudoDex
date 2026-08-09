@@ -53,6 +53,36 @@ it('rejects registration with an email already in use', function () {
     $response->assertUnprocessable()->assertJsonValidationErrors('email');
 });
 
+it('returns validation messages in Spanish when Accept-Language: es is sent', function () {
+    User::factory()->create(['email' => 'odei@example.com']);
+
+    $response = $this->withHeader('Accept-Language', 'es')->postJson('/api/register', [
+        'name' => 'Otro',
+        'email' => 'odei@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'device_name' => 'test-suite',
+    ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonPath('errors.email.0', 'El email ya está en uso.');
+});
+
+it('returns validation messages in English when Accept-Language: en is sent', function () {
+    User::factory()->create(['email' => 'odei@example.com']);
+
+    $response = $this->withHeader('Accept-Language', 'en')->postJson('/api/register', [
+        'name' => 'Otro',
+        'email' => 'odei@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'device_name' => 'test-suite',
+    ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonPath('errors.email.0', 'The email has already been taken.');
+});
+
 it('logs in an existing user with correct credentials', function () {
     User::factory()->create([
         'email' => 'odei@example.com',
