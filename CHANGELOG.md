@@ -43,6 +43,10 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Corregido
 
+- El mensaje de validación de email duplicado (registro y edición de
+  perfil) decía "Ese valor de email ya está en uso.", traducción literal
+  del paquete de idioma español de Laravel que suena forzada en
+  castellano. Ahora dice "El email ya está en uso.".
 - El filtro de "Minutos disponibles" en "¿A qué jugamos?" no excluía nunca
   ningún juego: solo comparaba contra `max_playtime_minutes`, y la mayoría
   de juegos (incluidos varios importados directamente de BGG) solo tienen
