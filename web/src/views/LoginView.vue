@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import PasswordInput from '@/components/PasswordInput.vue'
 import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
 
 const router = useRouter()
@@ -44,13 +45,7 @@ async function onSubmit() {
 
         <div>
           <label for="password">{{ $t('auth.login.password') }}</label>
-          <input
-            id="password"
-            v-model="password"
-            type="password"
-            required
-            autocomplete="current-password"
-          />
+          <PasswordInput id="password" v-model="password" required autocomplete="current-password" />
           <RouterLink :to="{ name: 'forgot-password' }" class="forgot-link">{{
             $t('auth.login.forgotPasswordLink')
           }}</RouterLink>

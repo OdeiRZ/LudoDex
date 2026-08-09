@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { isAxiosError } from 'axios'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import PasswordInput from '@/components/PasswordInput.vue'
 import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
 
 const router = useRouter()
@@ -69,21 +70,14 @@ async function onSubmit() {
 
         <div>
           <label for="password">{{ $t('auth.register.password') }}</label>
-          <input
-            id="password"
-            v-model="password"
-            type="password"
-            required
-            autocomplete="new-password"
-          />
+          <PasswordInput id="password" v-model="password" required autocomplete="new-password" />
         </div>
 
         <div>
           <label for="password_confirmation">{{ $t('auth.register.passwordConfirmation') }}</label>
-          <input
+          <PasswordInput
             id="password_confirmation"
             v-model="passwordConfirmation"
-            type="password"
             required
             autocomplete="new-password"
           />

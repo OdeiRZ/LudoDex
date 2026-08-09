@@ -7,6 +7,8 @@ export default {
     genericGameSaveError: "Couldn't save the game. Check the details.",
     loadingCollection: 'Loading your collection…',
     loadingAriaLabel: 'Loading',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
   },
   nav: {
     collection: 'Collection',

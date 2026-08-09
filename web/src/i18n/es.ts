@@ -7,6 +7,8 @@ export default {
     genericGameSaveError: 'No se ha podido guardar el juego. Revisa los datos.',
     loadingCollection: 'Cargando tu colección…',
     loadingAriaLabel: 'Cargando',
+    showPassword: 'Mostrar contraseña',
+    hidePassword: 'Ocultar contraseña',
   },
   nav: {
     collection: 'Colección',

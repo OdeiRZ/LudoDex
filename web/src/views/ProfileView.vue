@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
 import UserAvatar from '@/components/UserAvatar.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import PasswordInput from '@/components/PasswordInput.vue'
 
 const auth = useAuthStore()
 const { t } = useI18n()
@@ -161,10 +162,9 @@ async function onSubmitPassword() {
       <form class="form" @submit.prevent="onSubmitPassword">
         <div>
           <label for="current_password">{{ $t('profile.currentPassword') }}</label>
-          <input
+          <PasswordInput
             id="current_password"
             v-model="passwordForm.current_password"
-            type="password"
             required
             autocomplete="current-password"
           />
@@ -180,21 +180,14 @@ async function onSubmitPassword() {
 
         <div>
           <label for="new_password">{{ $t('profile.newPassword') }}</label>
-          <input
-            id="new_password"
-            v-model="passwordForm.password"
-            type="password"
-            required
-            autocomplete="new-password"
-          />
+          <PasswordInput id="new_password" v-model="passwordForm.password" required autocomplete="new-password" />
         </div>
 
         <div>
           <label for="new_password_confirmation">{{ $t('profile.newPasswordConfirmation') }}</label>
-          <input
+          <PasswordInput
             id="new_password_confirmation"
             v-model="passwordForm.password_confirmation"
-            type="password"
             required
             autocomplete="new-password"
           />

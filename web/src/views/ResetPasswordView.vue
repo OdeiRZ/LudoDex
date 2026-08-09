@@ -5,6 +5,7 @@ import { isAxiosError } from 'axios'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import PasswordInput from '@/components/PasswordInput.vue'
 import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
 
 const route = useRoute()
@@ -62,21 +63,14 @@ async function onSubmit() {
       <form v-else class="form" @submit.prevent="onSubmit">
         <div>
           <label for="password">{{ $t('auth.resetPassword.password') }}</label>
-          <input
-            id="password"
-            v-model="password"
-            type="password"
-            required
-            autocomplete="new-password"
-          />
+          <PasswordInput id="password" v-model="password" required autocomplete="new-password" />
         </div>
 
         <div>
           <label for="password_confirmation">{{ $t('auth.resetPassword.passwordConfirmation') }}</label>
-          <input
+          <PasswordInput
             id="password_confirmation"
             v-model="passwordConfirmation"
-            type="password"
             required
             autocomplete="new-password"
           />
