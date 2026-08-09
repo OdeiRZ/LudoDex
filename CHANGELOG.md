@@ -7,6 +7,16 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Corregido
+
+- El icono del interruptor de tema mostraba el modo actual (luna en modo
+  oscuro, sol en modo claro) en vez del modo al que cambiarías al pulsarlo,
+  al revés de lo que ya decía su propio `aria-label`/`title` ("cambiar a
+  modo claro" se mostraba junto a una luna, no un sol). Detectado al
+  probarlo tras el 0.1.0. Ahora el icono coincide con la acción: sol en
+  modo oscuro (pulsar para aclarar), luna en modo claro (pulsar para
+  oscurecer).
+
 ## [0.1.0] - 2026-08-09
 
 ### Añadido
