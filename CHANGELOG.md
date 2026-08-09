@@ -62,10 +62,19 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   vez de a una vista renderizada por el servidor, ya que la API no tiene
   ninguna. En local, sin mailer configurado, el enlace se escribe en
   `storage/logs/laravel.log` (`MAIL_MAILER=log`); en producción queda
-  pendiente configurar `RESEND_API_KEY` y `MAIL_MAILER=resend` (Resend ya
-  viene soportado de forma nativa en Laravel 12, y su plan gratuito — 3000
-  emails/mes — cubre de sobra el volumen de esta app), siguiendo el mismo
-  patrón de "documentado como pendiente" que el token de BGG.
+  pendiente configurar `RESEND_API_KEY` y `MAIL_MAILER=resend` en las
+  variables de entorno de Render (Resend ya viene soportado de forma
+  nativa en Laravel 12, y su plan gratuito — 3000 emails/mes — cubre de
+  sobra el volumen de esta app). Probado con un envío real a través de
+  Resend antes de darlo por cerrado.
+- El email de recuperación de contraseña deja de usar la plantilla
+  genérica de Laravel (logo y pie de "Laravel", contenido solo en inglés)
+  y pasa a tener marca e idioma propios: cabecera y botón en el teal de
+  LudoDex en vez de negro, sin logo de Laravel, asunto/saludo/texto
+  traducidos a español e inglés según el idioma de quien lo solicita
+  (`App\Notifications\ResetPasswordNotification`, con sus propias claves
+  en `lang/{es,en}/mail.php`), y el enlace de la cabecera apunta a la SPA
+  en vez de a la URL de la API.
 
 ### Corregido
 
