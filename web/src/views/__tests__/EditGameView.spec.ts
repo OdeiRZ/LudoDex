@@ -73,3 +73,33 @@ describe('EditGameView back navigation', () => {
     expect(router.currentRoute.value.name).toBe('picker')
   })
 })
+
+describe('EditGameView errors', () => {
+  it('flattens field errors from a 422 response into a single list, instead of dropping them', async () => {
+    const { wrapper, store, router } = await mountEdit('/games/g1/edit', 'g1')
+    vi.spyOn(store, 'updateGame').mockRejectedValue({
+      isAxiosError: true,
+      response: {
+        status: 422,
+        data: { errors: { name: ['El nombre es obligatorio.'], weight: ['El peso debe ser un número.'] } },
+      },
+    })
+
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('El nombre es obligatorio.')
+    expect(wrapper.text()).toContain('El peso debe ser un número.')
+    expect(router.currentRoute.value.name).toBe('edit-game')
+  })
+
+  it('shows a generic error for a non-validation failure', async () => {
+    const { wrapper, store } = await mountEdit('/games/g1/edit', 'g1')
+    vi.spyOn(store, 'updateGame').mockRejectedValue(new Error('network error'))
+
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('No se ha podido guardar el juego. Revisa los datos.')
+  })
+})
