@@ -224,6 +224,9 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   selector — heredaba el `align-items: stretch` del contenedor en
   columna del degradado, ya que a diferencia de esas otras etiquetas no
   vive dentro de una fila flex propia.
+- El botón de editar en cada resultado de "¿A qué jugamos?" usaba el
+  icono de ajustes/tuerca en vez de uno de lápiz, sin relación con la
+  acción real ("editar este juego", no "abrir ajustes").
 
 ## [0.1.0] - 2026-08-09
 
