@@ -48,6 +48,29 @@ describe('DashboardView', () => {
     expect(wrapper.find('.count').text()).toBe('2 juegos')
   })
 
+  it('filters the collection by name and updates the count to match', async () => {
+    const { wrapper } = mountDashboard([
+      makeEntry({ name: 'Root' }),
+      makeEntry({ name: 'Ark Nova' }),
+      makeEntry({ name: 'Arkham Horror' }),
+    ])
+
+    await wrapper.find('input[type="search"]').setValue('ark')
+
+    const names = wrapper.findAll('.game-card h2').map((h2) => h2.text())
+    expect(names).toEqual(['Ark Nova', 'Arkham Horror'])
+    expect(wrapper.find('.count').text()).toBe('2 juegos')
+  })
+
+  it('shows a no-matches message when the search matches nothing', async () => {
+    const { wrapper } = mountDashboard([makeEntry({ name: 'Root' })])
+
+    await wrapper.find('input[type="search"]').setValue('nonexistent')
+
+    expect(wrapper.text()).toContain('Ningún juego de tu colección coincide con la búsqueda.')
+    expect(wrapper.findAll('.game-card')).toHaveLength(0)
+  })
+
   it('removes a game from the collection when its remove button is clicked', async () => {
     const entry = makeEntry({ name: 'Root' })
     const { wrapper, games } = mountDashboard([entry])

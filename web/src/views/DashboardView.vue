@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useGamesStore } from '@/stores/games'
 import GameThumbnail from '@/components/GameThumbnail.vue'
@@ -18,6 +18,22 @@ onMounted(() => {
   }
 })
 
+// Client-side against the collection already loaded in the store, same as
+// the picker's filters - a real collection can run into the hundreds of
+// games (see the BGG CSV import), and finding one by scrolling stopped
+// being practical well before that.
+const search = ref('')
+
+const filtered = computed(() => {
+  const query = search.value.trim().toLowerCase()
+
+  if (!query) {
+    return games.collection
+  }
+
+  return games.collection.filter((entry) => entry.game.name.toLowerCase().includes(query))
+})
+
 async function onDelete(userGameId: string) {
   await games.deleteGame(userGameId)
 }
@@ -29,7 +45,7 @@ async function onDelete(userGameId: string) {
       <div class="title-row">
         <h1>{{ $t('dashboard.title') }}</h1>
         <span v-if="games.loaded" class="count">{{
-          $t('common.gamesCount', { count: games.collection.length })
+          $t('common.gamesCount', { count: filtered.length })
         }}</span>
       </div>
       <RouterLink :to="{ name: 'add-game' }" class="btn btn-primary">{{
@@ -47,8 +63,23 @@ async function onDelete(userGameId: string) {
       <RouterLink :to="{ name: 'add-game' }">{{ $t('dashboard.addFirst') }}</RouterLink>.
     </p>
 
+    <template v-else-if="games.loaded">
+      <div class="search-row">
+        <input
+          v-model="search"
+          type="search"
+          :aria-label="$t('dashboard.searchLabel')"
+          :placeholder="$t('dashboard.searchPlaceholder')"
+        />
+      </div>
+
+      <p v-if="filtered.length === 0" class="empty-state">
+        {{ $t('dashboard.noMatches') }}
+      </p>
+    </template>
+
     <ul class="games">
-      <li v-for="entry in games.collection" :key="entry.id" class="card game-card">
+      <li v-for="entry in filtered" :key="entry.id" class="card game-card">
         <div class="game-card-header">
           <GameThumbnail :image-url="entry.game.image_url" :size="56" />
           <div class="game-card-title">
@@ -110,6 +141,14 @@ async function onDelete(userGameId: string) {
 .count {
   color: var(--color-text-muted);
   font-size: 0.9rem;
+}
+
+.search-row {
+  margin-bottom: var(--space-4);
+}
+
+.search-row input {
+  max-width: 320px;
 }
 
 .games {
