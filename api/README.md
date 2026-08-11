@@ -110,6 +110,17 @@ llamada reintenta la petición a BGG mientras siga `pending`. El frontend hace
 *polling* contra este endpoint cada pocos segundos hasta `completed` o
 `failed`.
 
+| Método | Ruta                     | Auth | Descripción                              |
+|--------|--------------------------|------|--------------------------------------------|
+| POST   | `/api/bgg-imports/csv`   | Sí   | Importa la colección desde el CSV que exporta BGG (limitado a 6/minuto) |
+
+A diferencia de `/api/bgg-imports`, no depende de `BGG_APPLICATION_TOKEN`: el
+CSV es una exportación de la propia sesión del usuario en BGG, no una llamada
+a la API. Todo el fichero se procesa en la misma petición (sin estado
+`pending` ni *polling*): mecánicas, categorías, imagen y duración no están en
+este export, y las expansiones se omiten porque el fichero no tiene el
+enlace expansión → juego base que sí trae la API XML.
+
 | Método | Ruta                              | Auth | Descripción                       |
 |--------|-----------------------------------|------|------------------------------------|
 | GET    | `/api/bgg-lookup/games/{bggId}`   | Sí   | Consulta un juego por su id de BGG (limitado a 12/minuto) |
