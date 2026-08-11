@@ -6,4 +6,6 @@ return [
     'unexpected_response' => 'Respuesta inesperada de BoardGameGeek.',
     'user_not_found' => 'Usuario de BoardGameGeek no encontrado.',
     'game_not_found' => 'No se ha encontrado ningún juego con ese id en BoardGameGeek.',
+    'csv_invalid_format' => 'Este archivo no parece ser una exportación de colección de BoardGameGeek (faltan columnas esperadas).',
+    'csv_unparsed_mode' => ':name: no se ha reconocido el modo/jugadores en el comentario privado.',
 ];

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\ProfileController;
+use App\Http\Controllers\Bgg\BggCsvImportController;
 use App\Http\Controllers\Bgg\BggImportController;
 use App\Http\Controllers\Bgg\BggLookupController;
 use App\Http\Controllers\Games\CategoryController;
@@ -32,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/bgg-imports', [BggImportController::class, 'store'])->middleware('throttle:6,1');
     Route::get('/bgg-imports/{bggImport}', [BggImportController::class, 'show']);
+    Route::post('/bgg-imports/csv', [BggCsvImportController::class, 'store'])->middleware('throttle:6,1');
 
     Route::get('/bgg-lookup/games/{bggId}', [BggLookupController::class, 'show'])->middleware('throttle:12,1');
 });
