@@ -45,6 +45,7 @@ const form = reactive<GameFormData>({
 
 const errors = ref<Record<string, string[]>>({})
 const submitting = ref(false)
+const deleting = ref(false)
 
 const entry = computed(() => games.collection.find((item) => item.id === props.id))
 
@@ -101,12 +102,54 @@ async function onSubmit() {
     submitting.value = false
   }
 }
+
+async function onDelete() {
+  errors.value = {}
+  deleting.value = true
+
+  try {
+    await games.deleteGame(props.id)
+    toast.show(t('dashboard.toastRemoved'))
+    router.push(returnTo.value)
+  } catch {
+    errors.value = { general: [t('editGame.deleteError')] }
+  } finally {
+    deleting.value = false
+  }
+}
 </script>
 
 <template>
   <div class="edit-game">
     <RouterLink :to="returnTo" class="back-link">{{ $t('backLink') }}</RouterLink>
-    <h1>{{ $t('editGame.title') }}</h1>
+
+    <div class="title-row">
+      <h1>{{ $t('editGame.title') }}</h1>
+      <!-- Icon rather than a labeled button, and set apart from the save
+      flow entirely - deleting is the rare, irreversible exception here,
+      not a form action, so it reads better as something you do to the
+      game itself (next to its title) than as a button that could get
+      mistaken for part of submitting the form. -->
+      <button
+        v-if="entry"
+        type="button"
+        class="delete-icon-button"
+        :disabled="submitting || deleting"
+        :aria-label="$t('editGame.delete')"
+        :title="$t('editGame.delete')"
+        @click="onDelete"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"
+          />
+          <line x1="10" y1="11" x2="10" y2="17" stroke-linecap="round" />
+          <line x1="14" y1="11" x2="14" y2="17" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
 
     <p v-if="games.loading" class="loading-state">
       <LoadingSpinner :size="28" />
@@ -130,6 +173,11 @@ async function onSubmit() {
         {{ $t('common.coldStartHint') }}
       </p>
     </form>
+
+    <p v-if="deleting" class="loading-state">
+      <LoadingSpinner :size="16" />
+      {{ $t('editGame.deleting') }}
+    </p>
   </div>
 </template>
 
@@ -146,7 +194,38 @@ async function onSubmit() {
   font-size: 0.9rem;
 }
 
-h1 {
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: var(--space-4);
+}
+
+.delete-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-danger);
+}
+
+.delete-icon-button:hover:not(:disabled) {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.delete-icon-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.delete-icon-button svg {
+  width: 16px;
+  height: 16px;
 }
 </style>

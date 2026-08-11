@@ -76,6 +76,41 @@ describe('EditGameView back navigation', () => {
   })
 })
 
+describe('EditGameView delete', () => {
+  it('deletes the game and returns to the collection, showing a confirmation toast', async () => {
+    const { wrapper, store, router } = await mountEdit('/games/g1/edit', 'g1')
+    vi.spyOn(store, 'deleteGame').mockResolvedValue()
+
+    await wrapper.find('.delete-icon-button').trigger('click')
+    await flushPromises()
+
+    expect(store.deleteGame).toHaveBeenCalledWith('g1')
+    expect(router.currentRoute.value.name).toBe('dashboard')
+    expect(useToastStore().message).toBe('Juego quitado de tu colección.')
+  })
+
+  it('returns to the picker after deleting when it came from there', async () => {
+    const { wrapper, store, router } = await mountEdit('/games/g1/edit?from=picker', 'g1')
+    vi.spyOn(store, 'deleteGame').mockResolvedValue()
+
+    await wrapper.find('.delete-icon-button').trigger('click')
+    await flushPromises()
+
+    expect(router.currentRoute.value.name).toBe('picker')
+  })
+
+  it('shows a generic error and stays on the page when deleting fails', async () => {
+    const { wrapper, store, router } = await mountEdit('/games/g1/edit', 'g1')
+    vi.spyOn(store, 'deleteGame').mockRejectedValue(new Error('network error'))
+
+    await wrapper.find('.delete-icon-button').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('No se ha podido eliminar el juego.')
+    expect(router.currentRoute.value.name).toBe('edit-game')
+  })
+})
+
 describe('EditGameView errors', () => {
   it('flattens field errors from a 422 response into a single list, instead of dropping them', async () => {
     const { wrapper, store, router } = await mountEdit('/games/g1/edit', 'g1')

@@ -123,6 +123,9 @@ export default {
     submit: 'Save changes',
     notFound: "That game wasn't found in your collection.",
     toastSaved: 'Changes saved.',
+    delete: 'Delete game',
+    deleting: 'Deleting…',
+    deleteError: "Couldn't delete the game.",
   },
   backLink: '← Back',
   notFound: {

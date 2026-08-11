@@ -123,6 +123,9 @@ export default {
     submit: 'Guardar cambios',
     notFound: 'No se ha encontrado ese juego en tu colección.',
     toastSaved: 'Cambios guardados.',
+    delete: 'Eliminar juego',
+    deleting: 'Eliminando…',
+    deleteError: 'No se ha podido eliminar el juego.',
   },
   backLink: '← Volver',
   notFound: {
