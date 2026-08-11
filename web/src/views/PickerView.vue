@@ -187,11 +187,12 @@ const filtered = computed(() => {
         <span class="filter-label-spacer" aria-hidden="true">&nbsp;</span>
         <button type="submit" class="btn btn-primary">{{ $t('picker.search') }}</button>
       </div>
-    </form>
 
-    <div v-if="games.loaded && playable.length" class="results-header">
-      <DensityToggle :density="density" @toggle="toggleDensity" />
-    </div>
+      <div v-if="games.loaded && playable.length" class="density-toggle-slot">
+        <span class="filter-label-spacer" aria-hidden="true">&nbsp;</span>
+        <DensityToggle :density="density" @toggle="toggleDensity" />
+      </div>
+    </form>
 
     <p v-if="games.loading" class="loading-state">
       <LoadingSpinner :size="28" />
@@ -313,12 +314,6 @@ h1 {
 
 .checkbox-label input {
   width: auto;
-}
-
-.results-header {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: var(--space-4);
 }
 
 .results {
