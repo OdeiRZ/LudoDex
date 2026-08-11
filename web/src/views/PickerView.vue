@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useGamesStore } from '@/stores/games'
 import { useCollectionDensity } from '@/composables/useCollectionDensity'
 import DensityToggle from '@/components/DensityToggle.vue'
-import GameThumbnail from '@/components/GameThumbnail.vue'
+import GameCard from '@/components/GameCard.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const games = useGamesStore()
@@ -207,48 +207,49 @@ const filtered = computed(() => {
     </p>
 
     <ul v-else class="results" :class="{ compact: density === 'compact' }">
-      <li v-for="entry in filtered" :key="entry.id" class="card game-card">
-        <div class="game-card-header">
-          <GameThumbnail :image-url="entry.game.image_url" :size="density === 'compact' ? 36 : 56" />
-          <h2>{{ entry.game.name }}</h2>
-          <RouterLink
-            :to="{ name: 'edit-game', params: { id: entry.id }, query: { from: 'picker' } }"
-            class="edit-icon-button"
-            :aria-label="$t('picker.editGame')"
-            :title="$t('picker.editGame')"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
-              />
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9c.36-.62.29-1.4-.19-1.99l-.06-.06A2 2 0 1 1 7.18 4.12l.06.06A1.65 1.65 0 0 0 9 4.51c.62-.24 1-.85 1-1.51V3a2 2 0 1 1 4 0v.09c0 .66.38 1.27 1 1.51.62.24 1.33.13 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.24.62.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09c-.66 0-1.27.38-1.51 1Z"
-              />
-            </svg>
-          </RouterLink>
-        </div>
-        <p class="meta">
-          <span v-if="entry.game.min_players || entry.game.max_players">
-            {{ $t('dashboard.players', { min: entry.game.min_players, max: entry.game.max_players }) }}
-          </span>
-          <span v-if="entry.game.min_playtime_minutes || entry.game.max_playtime_minutes">
-            {{
-              $t('dashboard.duration', {
-                min: entry.game.min_playtime_minutes,
-                max: entry.game.max_playtime_minutes,
-              })
-            }}
-          </span>
-        </p>
-        <p class="tags">
-          <span v-if="entry.game.is_cooperative" class="badge badge-primary">{{ $t('picker.cooperative') }}</span>
-          <span v-if="entry.game.is_competitive" class="badge badge-primary">{{ $t('picker.competitive') }}</span>
-          <span v-if="entry.game.has_campaign" class="badge badge-accent">{{ $t('picker.campaign') }}</span>
-        </p>
+      <li v-for="entry in filtered" :key="entry.id" class="game-card">
+        <GameCard :image-url="entry.game.image_url" :compact="density === 'compact'">
+          <div class="game-card-header">
+            <h2>{{ entry.game.name }}</h2>
+            <RouterLink
+              :to="{ name: 'edit-game', params: { id: entry.id }, query: { from: 'picker' } }"
+              class="edit-icon-button"
+              :aria-label="$t('picker.editGame')"
+              :title="$t('picker.editGame')"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9c.36-.62.29-1.4-.19-1.99l-.06-.06A2 2 0 1 1 7.18 4.12l.06.06A1.65 1.65 0 0 0 9 4.51c.62-.24 1-.85 1-1.51V3a2 2 0 1 1 4 0v.09c0 .66.38 1.27 1 1.51.62.24 1.33.13 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.24.62.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09c-.66 0-1.27.38-1.51 1Z"
+                />
+              </svg>
+            </RouterLink>
+          </div>
+          <p v-if="entry.game.min_players || entry.game.max_players || entry.game.min_playtime_minutes || entry.game.max_playtime_minutes" class="meta">
+            <span v-if="entry.game.min_players || entry.game.max_players">
+              {{ $t('dashboard.players', { min: entry.game.min_players, max: entry.game.max_players }) }}
+            </span>
+            <span v-if="entry.game.min_playtime_minutes || entry.game.max_playtime_minutes">
+              {{
+                $t('dashboard.duration', {
+                  min: entry.game.min_playtime_minutes,
+                  max: entry.game.max_playtime_minutes,
+                })
+              }}
+            </span>
+          </p>
+          <p v-if="entry.game.is_cooperative || entry.game.is_competitive || entry.game.has_campaign" class="tags">
+            <span v-if="entry.game.is_cooperative" class="badge badge-primary">{{ $t('picker.cooperative') }}</span>
+            <span v-if="entry.game.is_competitive" class="badge badge-primary">{{ $t('picker.competitive') }}</span>
+            <span v-if="entry.game.has_campaign" class="badge badge-accent">{{ $t('picker.campaign') }}</span>
+          </p>
+        </GameCard>
       </li>
     </ul>
   </div>
@@ -329,34 +330,20 @@ h1 {
   gap: var(--space-2);
 }
 
-.results.compact .game-card {
-  padding: var(--space-2);
-  gap: var(--space-1);
-}
-
-.results.compact .tags {
-  display: none;
-}
-
-.game-card {
+.results :deep(.game-card-header) {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: var(--space-2);
 }
 
-.game-card-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.game-card-header h2 {
+.results :deep(.game-card-header h2) {
+  font-size: 1.05rem;
   overflow-wrap: anywhere;
   flex: 1;
   min-width: 0;
 }
 
-.edit-icon-button {
+.results :deep(.edit-icon-button) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -369,25 +356,40 @@ h1 {
   color: var(--color-text-muted);
 }
 
-.edit-icon-button:hover {
+.results :deep(.edit-icon-button:hover) {
   background: var(--color-surface-hover);
   color: var(--color-text);
 }
 
-.edit-icon-button svg {
+.results :deep(.edit-icon-button svg) {
   width: 16px;
   height: 16px;
 }
 
-.meta {
+/* Same reasoning as the collection's cards: the mode/campaign badges'
+usual tinted-transparent fill assumes a solid card background, and loses
+contrast over a light patch of an arbitrary photo without a solid fill. */
+.results :deep(.badge-primary) {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.results :deep(.badge-accent) {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+/* Always light text/fixed colors here too - same reasoning as the
+collection's cards, the scrim sits over a photo, not the theme background. */
+.results :deep(.meta) {
   display: flex;
   gap: var(--space-3);
   flex-wrap: wrap;
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.75);
 }
 
-.tags {
+.results :deep(.tags) {
   display: flex;
   gap: var(--space-2);
   flex-wrap: wrap;

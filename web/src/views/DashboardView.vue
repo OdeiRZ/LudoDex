@@ -6,7 +6,7 @@ import { useGamesStore } from '@/stores/games'
 import { useToastStore } from '@/stores/toast'
 import { useCollectionDensity } from '@/composables/useCollectionDensity'
 import DensityToggle from '@/components/DensityToggle.vue'
-import GameThumbnail from '@/components/GameThumbnail.vue'
+import GameCard from '@/components/GameCard.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const auth = useAuthStore()
@@ -89,46 +89,37 @@ async function onDelete(userGameId: string) {
     </template>
 
     <ul class="games" :class="{ compact: density === 'compact' }">
-      <li v-for="entry in filtered" :key="entry.id" class="card game-card">
-        <div class="game-card-header">
-          <GameThumbnail :image-url="entry.game.image_url" :size="density === 'compact' ? 36 : 56" />
-          <div class="game-card-title">
-            <h2>{{ entry.game.name }}</h2>
-            <span
-              class="badge"
-              :class="entry.status === 'owned' ? 'badge-primary' : 'badge-accent'"
-            >
-              {{ entry.status === 'owned' ? $t('dashboard.owned') : $t('dashboard.wishlist') }}
+      <li v-for="entry in filtered" :key="entry.id" class="game-card">
+        <GameCard :image-url="entry.game.image_url" :compact="density === 'compact'">
+          <h2>{{ entry.game.name }}</h2>
+          <span class="badge" :class="entry.status === 'owned' ? 'badge-primary' : 'badge-accent'">
+            {{ entry.status === 'owned' ? $t('dashboard.owned') : $t('dashboard.wishlist') }}
+          </span>
+          <p v-if="entry.game.min_players || entry.game.max_players || entry.game.min_playtime_minutes || entry.game.max_playtime_minutes" class="meta">
+            <span v-if="entry.game.min_players || entry.game.max_players">
+              {{ $t('dashboard.players', { min: entry.game.min_players, max: entry.game.max_players }) }}
             </span>
+            <span v-if="entry.game.min_playtime_minutes || entry.game.max_playtime_minutes">
+              {{
+                $t('dashboard.duration', {
+                  min: entry.game.min_playtime_minutes,
+                  max: entry.game.max_playtime_minutes,
+                })
+              }}
+            </span>
+          </p>
+          <div class="card-actions">
+            <RouterLink
+              :to="{ name: 'edit-game', params: { id: entry.id }, query: { from: 'dashboard' } }"
+              class="btn"
+            >
+              {{ $t('dashboard.edit') }}
+            </RouterLink>
+            <button type="button" class="btn btn-danger" @click="onDelete(entry.id)">
+              {{ $t('dashboard.remove') }}
+            </button>
           </div>
-        </div>
-        <p class="meta">
-          <span v-if="entry.game.min_players || entry.game.max_players">
-            {{ $t('dashboard.players', { min: entry.game.min_players, max: entry.game.max_players }) }}
-          </span>
-          <span v-if="entry.game.min_playtime_minutes || entry.game.max_playtime_minutes">
-            {{
-              $t('dashboard.duration', {
-                min: entry.game.min_playtime_minutes,
-                max: entry.game.max_playtime_minutes,
-              })
-            }}
-          </span>
-        </p>
-        <p v-if="entry.game.mechanics.length" class="tags">
-          {{ entry.game.mechanics.join(', ') }}
-        </p>
-        <div class="card-actions">
-          <RouterLink
-            :to="{ name: 'edit-game', params: { id: entry.id }, query: { from: 'dashboard' } }"
-            class="btn"
-          >
-            {{ $t('dashboard.edit') }}
-          </RouterLink>
-          <button type="button" class="btn btn-danger" @click="onDelete(entry.id)">
-            {{ $t('dashboard.remove') }}
-          </button>
-        </div>
+        </GameCard>
       </li>
     </ul>
   </div>
@@ -177,55 +168,38 @@ async function onDelete(userGameId: string) {
   gap: var(--space-2);
 }
 
-.games.compact .game-card {
-  padding: var(--space-2);
-  gap: var(--space-1);
-}
-
-.games.compact .tags {
-  display: none;
-}
-
-.game-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.game-card-header {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-}
-
-.game-card-title {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  align-items: flex-start;
-  min-width: 0;
-}
-
-.game-card-title h2 {
+.games :deep(h2) {
+  font-size: 1.05rem;
   overflow-wrap: anywhere;
 }
 
-.meta {
+/* The status badge's usual tinted-transparent fill assumes a solid card
+background - over an arbitrary photo it can lose all contrast against a
+light patch of the image, so it needs a solid fill here instead. */
+.games :deep(.badge-primary) {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.games :deep(.badge-accent) {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+/* The scrim is always dark regardless of theme (it sits over a photo, not
+the app background), so these need their own fixed light colors instead of
+the theme's usual muted-text variable. */
+.games :deep(.meta) {
   display: flex;
   gap: var(--space-3);
   flex-wrap: wrap;
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-}
-
-.tags {
   font-size: 0.8rem;
-  color: var(--color-text-muted);
+  color: rgba(255, 255, 255, 0.75);
 }
 
-.card-actions {
+.games :deep(.card-actions) {
   display: flex;
   gap: var(--space-2);
-  margin-top: var(--space-2);
+  margin-top: var(--space-1);
 }
 </style>

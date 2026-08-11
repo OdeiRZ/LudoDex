@@ -39,6 +39,12 @@ describe('DashboardView', () => {
     expect(wrapper.text()).toContain('Todavía no has añadido ningún juego.')
   })
 
+  it('does not show mechanics on the card - that detail belongs to the edit form, not a collection glance', () => {
+    const { wrapper } = mountDashboard([makeEntry({ name: 'Root', mechanics: ['Control de área'] })])
+
+    expect(wrapper.text()).not.toContain('Control de área')
+  })
+
   it('lists every entry in the collection, owned or wishlisted', () => {
     const owned = makeEntry({ name: 'Root' }, 'owned')
     const wishlisted = makeEntry({ name: 'Ark Nova' }, 'wishlist')
