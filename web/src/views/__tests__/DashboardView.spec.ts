@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import DashboardView from '@/views/DashboardView.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useGamesStore } from '@/stores/games'
+import { useToastStore } from '@/stores/toast'
 import { makeEntry } from '@/stores/__tests__/gameFixtures'
 import { i18n } from '@/i18n'
 
@@ -102,7 +103,9 @@ describe('DashboardView', () => {
     vi.spyOn(games, 'deleteGame').mockResolvedValue()
 
     await wrapper.find('.btn-danger').trigger('click')
+    await flushPromises()
 
     expect(games.deleteGame).toHaveBeenCalledWith(entry.id)
+    expect(useToastStore().message).toBe('Juego quitado de tu colección.')
   })
 })

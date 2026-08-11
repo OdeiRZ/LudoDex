@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import AddGameView from '@/views/AddGameView.vue'
 import { useGamesStore } from '@/stores/games'
+import { useToastStore } from '@/stores/toast'
 import { i18n } from '@/i18n'
 
 function makeRouter() {
@@ -42,6 +43,7 @@ describe('AddGameView', () => {
 
     expect(store.createGame).toHaveBeenCalledWith(expect.objectContaining({ name: 'Ark Nova' }))
     expect(router.currentRoute.value.name).toBe('dashboard')
+    expect(useToastStore().message).toBe('Juego añadido.')
   })
 
   it('flattens field errors from a 422 response into a single list, instead of dropping them', async () => {

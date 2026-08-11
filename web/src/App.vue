@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/auth'
 import UserAvatar from '@/components/UserAvatar.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 import LanguageToggle from '@/components/LanguageToggle.vue'
+import ToastNotification from '@/components/ToastNotification.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -44,6 +45,8 @@ async function onLogout() {
   <main>
     <RouterView />
   </main>
+
+  <ToastNotification />
 </template>
 
 <style scoped>

@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { isAxiosError } from 'axios'
 import { useGamesStore } from '@/stores/games'
+import { useToastStore } from '@/stores/toast'
 import GameForm, { type GameFormData } from '@/components/GameForm.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
@@ -13,6 +14,7 @@ const props = defineProps<{ id: string }>()
 const route = useRoute()
 const router = useRouter()
 const games = useGamesStore()
+const toast = useToastStore()
 const { t } = useI18n()
 const { isSlow, wrap } = useSlowRequestHint()
 
@@ -86,6 +88,7 @@ async function onSubmit() {
 
   try {
     await wrap(games.updateGame(props.id, form))
+    toast.show(t('editGame.toastSaved'))
     router.push(returnTo.value)
   } catch (err) {
     if (isAxiosError(err) && err.response?.status === 422) {

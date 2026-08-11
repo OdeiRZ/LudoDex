@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useGamesStore } from '@/stores/games'
+import { useToastStore } from '@/stores/toast'
 import { useCollectionDensity } from '@/composables/useCollectionDensity'
 import DensityToggle from '@/components/DensityToggle.vue'
 import GameThumbnail from '@/components/GameThumbnail.vue'
@@ -9,6 +11,8 @@ import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const auth = useAuthStore()
 const games = useGamesStore()
+const toast = useToastStore()
+const { t } = useI18n()
 
 onMounted(() => {
   if (!auth.user) {
@@ -40,6 +44,7 @@ const { density, toggle: toggleDensity } = useCollectionDensity()
 
 async function onDelete(userGameId: string) {
   await games.deleteGame(userGameId)
+  toast.show(t('dashboard.toastRemoved'))
 }
 </script>
 

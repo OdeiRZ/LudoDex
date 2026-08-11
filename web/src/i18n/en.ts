@@ -82,6 +82,7 @@ export default {
     duration: '{min}–{max} min',
     edit: 'Edit',
     remove: 'Remove',
+    toastRemoved: 'Game removed from your collection.',
   },
   gameForm: {
     bggImportLegend: 'Import from BoardGameGeek (optional)',
@@ -115,11 +116,13 @@ export default {
   addGame: {
     title: 'Add game',
     submit: 'Save game',
+    toastSaved: 'Game added.',
   },
   editGame: {
     title: 'Edit game',
     submit: 'Save changes',
     notFound: "That game wasn't found in your collection.",
+    toastSaved: 'Changes saved.',
   },
   backLink: '← Back',
   notFound: {

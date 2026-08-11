@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import EditGameView from '@/views/EditGameView.vue'
 import { useGamesStore } from '@/stores/games'
+import { useToastStore } from '@/stores/toast'
 import { makeEntry } from '@/stores/__tests__/gameFixtures'
 import { i18n } from '@/i18n'
 
@@ -61,6 +62,7 @@ describe('EditGameView back navigation', () => {
     await flushPromises()
 
     expect(router.currentRoute.value.name).toBe('dashboard')
+    expect(useToastStore().message).toBe('Cambios guardados.')
   })
 
   it('returns to the picker after saving when it came from there', async () => {
