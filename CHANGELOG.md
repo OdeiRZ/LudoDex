@@ -7,6 +7,8 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-12
+
 ### Añadido
 
 - Selector de idioma (español/inglés), visible en la cabecera tanto antes
