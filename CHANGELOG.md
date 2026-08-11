@@ -160,6 +160,18 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   para decidir qué hacer con un juego ya guardado, a diferencia de las
   etiquetas de modo/campaña del selector, que sí son un criterio de
   decisión y se mantienen.
+- Aviso al cerrar o recargar la pestaña mientras se está importando la
+  colección (por usuario o por CSV), con el diálogo nativo del
+  navegador y un mensaje en pantalla ("No cierres ni recargues esta
+  pestaña..."). Navegar entre secciones de la propia app no interrumpe
+  ninguna de las dos importaciones (la petición sigue en curso da igual
+  qué vista esté montada, y la del CSV va dentro de una única
+  transacción, así que nunca queda a medias); el riesgo real es cerrar
+  la pestaña o recargar a mitad de la petición, que sí la corta.
+- Botón para ordenar "Tu colección" alfabéticamente (A-Z / Z-A, con un
+  clic para invertir el orden), aplicado después del buscador — de
+  momento solo por nombre, a la espera de si hace falta otro criterio
+  más adelante.
 
 ### Corregido
 
