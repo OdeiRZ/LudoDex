@@ -227,6 +227,8 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 - El botón de editar en cada resultado de "¿A qué jugamos?" usaba el
   icono de ajustes/tuerca en vez de uno de lápiz, sin relación con la
   acción real ("editar este juego", no "abrir ajustes").
+- La opción "Ambos" del modo de juego decía "Ambos (p. ej. por
+  equipos)"; ahora "Ambos (Por equipos)".
 
 ## [0.1.0] - 2026-08-09
 

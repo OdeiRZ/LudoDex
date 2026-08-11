@@ -102,7 +102,7 @@ export default {
     modeLegend: 'Modo',
     cooperative: 'Cooperativo',
     competitive: 'Competitivo',
-    both: 'Ambos (p. ej. por equipos)',
+    both: 'Ambos (Por equipos)',
     structureLegend: 'Estructura',
     hasCampaign: 'Modo campaña',
     mechanics: 'Mecánicas',
