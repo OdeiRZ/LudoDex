@@ -22,6 +22,18 @@ async function submitUsername(wrapper: ReturnType<typeof mountImport>['wrapper']
   await flushPromises()
 }
 
+async function submitCsv(wrapper: ReturnType<typeof mountImport>['wrapper']) {
+  await wrapper.find('[role="tab"]:nth-of-type(2)').trigger('click')
+
+  const file = new File(['objectname,objectid'], 'collection.csv', { type: 'text/csv' })
+  const input = wrapper.find('#csv_file')
+  Object.defineProperty(input.element, 'files', { value: [file] })
+  await input.trigger('change')
+
+  await wrapper.find('form').trigger('submit')
+  await flushPromises()
+}
+
 describe('ImportBggView', () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
@@ -120,5 +132,48 @@ describe('ImportBggView', () => {
     await flushPromises()
 
     expect(pollSpy).not.toHaveBeenCalled()
+  })
+
+  it('imports a CSV file and shows the result summary', async () => {
+    const { wrapper, store } = mountImport()
+    const importSpy = vi.spyOn(store, 'importBggCsv').mockResolvedValue({
+      imported_count: 107,
+      skipped_expansions_count: 174,
+      skipped_no_status_count: 0,
+      warnings: [],
+    })
+    const fetchAllSpy = vi.spyOn(store, 'fetchAll').mockResolvedValue()
+
+    await submitCsv(wrapper)
+
+    expect(importSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'collection.csv' }))
+    expect(wrapper.text()).toContain('Importados 107 juegos (174 expansiones omitidas por ahora).')
+    expect(fetchAllSpy).toHaveBeenCalled()
+  })
+
+  it('shows warnings returned alongside a successful CSV import', async () => {
+    const { wrapper, store } = mountImport()
+    vi.spyOn(store, 'importBggCsv').mockResolvedValue({
+      imported_count: 1,
+      skipped_expansions_count: 0,
+      skipped_no_status_count: 0,
+      warnings: ['Aeon\'s End: no se ha reconocido el modo/jugadores en el comentario privado.'],
+    })
+    vi.spyOn(store, 'fetchAll').mockResolvedValue()
+
+    await submitCsv(wrapper)
+
+    expect(wrapper.text()).toContain('Avisos:')
+    expect(wrapper.text()).toContain("Aeon's End: no se ha reconocido el modo/jugadores en el comentario privado.")
+  })
+
+  it('shows a generic error when the CSV import fails', async () => {
+    const { wrapper, store } = mountImport()
+    vi.spyOn(store, 'importBggCsv').mockRejectedValue(new Error('validation error'))
+
+    await submitCsv(wrapper)
+
+    expect(wrapper.text()).toContain('No se ha podido importar el archivo.')
+    expect(wrapper.find('#csv_file').exists()).toBe(true)
   })
 })

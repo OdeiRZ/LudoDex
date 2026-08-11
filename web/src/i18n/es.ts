@@ -162,6 +162,8 @@ export default {
   },
   importBgg: {
     title: 'Importar desde BoardGameGeek',
+    tabUsername: 'Por usuario',
+    tabCsv: 'Desde CSV',
     username: 'Usuario de BGG',
     submit: 'Importar',
     genericStartError: 'No se ha podido iniciar la importación.',
@@ -169,6 +171,14 @@ export default {
     pending:
       'Conectando con BoardGameGeek… Puede tardar unos segundos mientras BGG prepara la exportación de la colección.',
     completed: 'Importación completada: {count} juegos añadidos o actualizados.',
+    csvHint:
+      'Sube el archivo CSV que exportas desde tu colección en BoardGameGeek. No incluye mecánicas, categorías, imagen ni duración — se pueden rellenar más adelante.',
+    csvFile: 'Archivo CSV',
+    csvSubmit: 'Importar CSV',
+    csvSubmitting: 'Importando…',
+    csvGenericError: 'No se ha podido importar el archivo.',
+    csvCompleted: 'Importados {count} juegos ({skipped} expansiones omitidas por ahora).',
+    csvWarningsTitle: 'Avisos:',
     viewCollection: 'Ver tu colección',
   },
 }

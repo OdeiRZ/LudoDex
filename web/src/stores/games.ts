@@ -56,6 +56,13 @@ export interface BggImportStatus {
   error_message: string | null
 }
 
+export interface BggCsvImportResult {
+  imported_count: number
+  skipped_expansions_count: number
+  skipped_no_status_count: number
+  warnings: string[]
+}
+
 export interface BggGameLookup {
   bgg_id: number
   name: string
@@ -137,6 +144,18 @@ export const useGamesStore = defineStore('games', {
 
     async lookupBggGame(bggId: number): Promise<BggGameLookup> {
       const { data } = await apiClient.get(`/bgg-lookup/games/${bggId}`)
+      return data.data
+    },
+
+    /** Unlike startBggImport, this resolves with the final result directly -
+     * parsing a CSV is synchronous, so there's no pending/polling state. */
+    async importBggCsv(file: File): Promise<BggCsvImportResult> {
+      const form = new FormData()
+      form.append('file', file)
+
+      const { data } = await apiClient.post('/bgg-imports/csv', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
       return data.data
     },
   },
