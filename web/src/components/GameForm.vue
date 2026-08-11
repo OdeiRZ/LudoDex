@@ -160,7 +160,7 @@ async function onLookupBgg() {
 
     <div>
       <label for="weight">{{ $t('gameForm.weight') }}</label>
-      <input id="weight" v-model.number="form.weight" type="number" min="1" max="5" step="0.1" />
+      <input id="weight" v-model.number="form.weight" type="number" min="1" max="5" step="0.01" />
     </div>
 
     <fieldset>

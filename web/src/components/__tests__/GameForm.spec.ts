@@ -45,6 +45,20 @@ function mountGameForm(modelValue: GameFormData) {
   return { wrapper, form: modelValue }
 }
 
+describe('GameForm weight field', () => {
+  // BGG's own weight/complexity data (and the CSV importer, which rounds to
+  // 2 decimals) commonly has two decimal places (e.g. 3.64) - a step of
+  // "0.1" only allows one, so the native number input rejected those
+  // values as a step mismatch even though the backend itself accepts any
+  // numeric value here.
+  it('accepts a two-decimal value like BGG reports (step allows hundredths)', () => {
+    const { wrapper } = mountGameForm(reactiveForm())
+
+    const input = wrapper.find('#weight')
+    expect(input.attributes('step')).toBe('0.01')
+  })
+})
+
 describe('GameForm mode radio', () => {
   it('has no option selected when both flags start false', () => {
     const { wrapper } = mountGameForm(reactiveForm())
