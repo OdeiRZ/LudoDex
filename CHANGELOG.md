@@ -108,6 +108,12 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   mejor cómo se juega realmente cada partida. Las expansiones se omiten
   por ahora (el CSV no tiene el enlace expansión→juego base que sí trae la
   API XML), igual que las filas sin "Lo tengo" ni "Lo quiero" marcado.
+- Contador de juegos junto al título en "Tu colección" y en "¿A qué
+  jugamos?": con una colección de cientos de juegos, tener claro cuántos
+  hay en total (o cuántos cumplen los filtros activos en el selector) sin
+  tener que contar tarjetas a ojo. En el selector el número se recalcula
+  con cada cambio de filtro, ya que refleja los resultados filtrados, no
+  el total de la colección.
 
 ### Corregido
 
