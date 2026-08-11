@@ -114,6 +114,11 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   tener que contar tarjetas a ojo. En el selector el número se recalcula
   con cada cambio de filtro, ya que refleja los resultados filtrados, no
   el total de la colección.
+- Buscador por nombre en "Tu colección": con cientos de juegos importados
+  desde BGG, encontrar uno concreto a base de bajar la página dejó de ser
+  práctico. Filtra en el cliente sobre la colección ya cargada (igual que
+  los filtros del selector), sin llamada adicional a la API; el contador
+  del título pasa a reflejar el resultado filtrado, no el total.
 
 ### Corregido
 
