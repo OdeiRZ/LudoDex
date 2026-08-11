@@ -218,6 +218,12 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   probarlo tras el 0.1.0. Ahora el icono coincide con la acción: sol en
   modo oscuro (pulsar para aclarar), luna en modo claro (pulsar para
   oscurecer).
+- La insignia de estado ("Lo tengo"/"Lo quiero") en "Tu colección" se
+  estiraba al ancho completo de la tarjeta en vez de ajustarse a su
+  propio texto, a diferencia de las etiquetas de modo/campaña del
+  selector — heredaba el `align-items: stretch` del contenedor en
+  columna del degradado, ya que a diferencia de esas otras etiquetas no
+  vive dentro de una fila flex propia.
 
 ## [0.1.0] - 2026-08-09
 

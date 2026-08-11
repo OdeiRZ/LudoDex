@@ -201,6 +201,14 @@ async function onDelete(userGameId: string) {
   overflow-wrap: anywhere;
 }
 
+/* Without this the badge stretches to the scrim's full width, since it's
+a direct child of a column flex container (align-items: stretch by
+default) - the picker's badges look right because theirs sit inside their
+own row flex wrapper (.tags) instead of directly in the scrim. */
+.games :deep(.badge) {
+  align-self: flex-start;
+}
+
 /* The status badge's usual tinted-transparent fill assumes a solid card
 background - over an arbitrary photo it can lose all contrast against a
 light patch of the image, so it needs a solid fill here instead. */
