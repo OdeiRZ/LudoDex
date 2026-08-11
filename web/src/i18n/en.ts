@@ -74,6 +74,8 @@ export default {
     searchLabel: 'Search your collection',
     searchPlaceholder: 'Search by name…',
     noMatches: 'No game in your collection matches the search.',
+    densityToCompact: 'Compact view',
+    densityToComfortable: 'Comfortable view',
     owned: 'Own it',
     wishlist: 'Want it',
     players: '{min}–{max} players',

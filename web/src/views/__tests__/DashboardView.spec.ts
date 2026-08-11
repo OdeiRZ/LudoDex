@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import DashboardView from '@/views/DashboardView.vue'
@@ -26,6 +26,12 @@ function mountDashboard(entries: ReturnType<typeof makeEntry>[]) {
 }
 
 describe('DashboardView', () => {
+  // The density preference persists in localStorage across page loads -
+  // clear it so one test's toggle doesn't leak into the next.
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
   it('shows the empty state when the collection has no games', () => {
     const { wrapper } = mountDashboard([])
 
@@ -69,6 +75,25 @@ describe('DashboardView', () => {
 
     expect(wrapper.text()).toContain('Ningún juego de tu colección coincide con la búsqueda.')
     expect(wrapper.findAll('.game-card')).toHaveLength(0)
+  })
+
+  it('defaults to comfortable density and switches to compact on toggle, persisting the choice', async () => {
+    const { wrapper } = mountDashboard([makeEntry({ name: 'Root' })])
+
+    expect(wrapper.find('.games').classes()).not.toContain('compact')
+
+    await wrapper.find('.density-toggle').trigger('click')
+
+    expect(wrapper.find('.games').classes()).toContain('compact')
+    expect(localStorage.getItem('ludodex-collection-density')).toBe('compact')
+  })
+
+  it('starts in compact density when that was the last stored choice', () => {
+    localStorage.setItem('ludodex-collection-density', 'compact')
+
+    const { wrapper } = mountDashboard([makeEntry({ name: 'Root' })])
+
+    expect(wrapper.find('.games').classes()).toContain('compact')
   })
 
   it('removes a game from the collection when its remove button is clicked', async () => {

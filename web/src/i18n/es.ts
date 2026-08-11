@@ -74,6 +74,8 @@ export default {
     searchLabel: 'Buscar en tu colección',
     searchPlaceholder: 'Buscar por nombre…',
     noMatches: 'Ningún juego de tu colección coincide con la búsqueda.',
+    densityToCompact: 'Vista compacta',
+    densityToComfortable: 'Vista cómoda',
     owned: 'Lo tengo',
     wishlist: 'Lo quiero',
     players: '{min}–{max} jugadores',
