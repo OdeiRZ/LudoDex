@@ -123,7 +123,12 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   "Tu colección", persistido en `localStorage` igual que el tema: reduce
   el tamaño de la miniatura, el espaciado de la tarjeta y oculta las
   mecánicas para ver más juegos por pantalla sin necesidad de dos vistas
-  (grid/lista) separadas — mismo marcado, solo cambia una clase CSS.
+  (grid/lista) separadas — mismo marcado, solo cambia una clase CSS. El
+  mismo botón se añade también sobre los resultados de "¿A qué jugamos?"
+  (ahí oculta el modo/campaña en vez de las mecánicas); la lógica se
+  extrajo a un composable (`useCollectionDensity`) y a un componente
+  (`DensityToggle`) compartidos por las dos vistas, con la preferencia
+  común a ambas.
 
 ### Corregido
 
