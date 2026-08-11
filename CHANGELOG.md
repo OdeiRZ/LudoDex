@@ -94,6 +94,20 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   Actions), que abrirá PRs automáticos cuando haya actualizaciones,
   incluidas las de seguridad, en vez de depender de acordarse de auditar
   las dependencias a mano de vez en cuando.
+- Importación de la colección desde el CSV que exporta BoardGameGeek
+  (pestaña "Desde CSV" en Importar BGG, junto a la ya existente "Por
+  usuario"), como alternativa mientras la aprobación de la aplicación en
+  BGG para el token de la API XML sigue pendiente: ese fichero es una
+  exportación directa de la sesión del propio usuario, así que no depende
+  de ningún token. A diferencia de la importación por usuario, procesa el
+  fichero entero de forma síncrona (sin estado pendiente/polling) y
+  devuelve el resultado directamente. El modo de juego y el número de
+  jugadores se leen del comentario privado de cada fila (el usuario anota
+  ahí, por ejemplo, "Cooperativo - 1/4" o "Solitario") en vez de las
+  columnas oficiales de jugadores mínimos/máximos de BGG, porque reflejan
+  mejor cómo se juega realmente cada partida. Las expansiones se omiten
+  por ahora (el CSV no tiene el enlace expansión→juego base que sí trae la
+  API XML), igual que las filas sin "Lo tengo" ni "Lo quiero" marcado.
 
 ### Corregido
 
