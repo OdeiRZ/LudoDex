@@ -129,6 +129,16 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   extrajo a un composable (`useCollectionDensity`) y a un componente
   (`DensityToggle`) compartidos por las dos vistas, con la preferencia
   común a ambas.
+- Aviso ("toast") de confirmación tras añadir, editar o quitar un juego:
+  antes, guardar cambios en el formulario de edición redirigía en
+  silencio a la colección sin ninguna señal de que se hubiera guardado
+  algo, notorio sobre todo cuando el cambio no era visible a simple vista
+  en la tarjeta (p. ej. la complejidad). Un mensaje breve ("Cambios
+  guardados.", "Juego añadido.", "Juego quitado de tu colección.")
+  aparece abajo y se cierra solo a los 3 segundos. Implementado como un
+  store (`toast`) y un componente (`ToastNotification`) montado una vez
+  en `App.vue`, para que sobreviva a la navegación entre pantallas —
+  reutilizable para futuras confirmaciones sin repetir la lógica.
 
 ### Corregido
 
