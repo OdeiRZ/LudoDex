@@ -82,6 +82,15 @@ describe('PickerView', () => {
       expect(gameNames()).toEqual(['Root'])
     })
 
+    it('shows a count of the currently filtered results, not the full collection', async () => {
+      // Default player filter (2) only matches Root.
+      expect(wrapper.find('.count').text()).toBe('1 juegos')
+
+      await wrapper.find('#players').setValue('')
+
+      expect(wrapper.find('.count').text()).toBe('3 juegos')
+    })
+
     it('gives each result an edit button so games can be fixed without leaving the page', async () => {
       await wrapper.find('#players').setValue('')
 

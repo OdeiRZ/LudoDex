@@ -116,7 +116,12 @@ const filtered = computed(() => {
 
 <template>
   <div>
-    <h1>{{ $t('picker.title') }}</h1>
+    <div class="title-row">
+      <h1>{{ $t('picker.title') }}</h1>
+      <span v-if="games.loaded && playable.length" class="count">{{
+        $t('common.gamesCount', { count: filtered.length })
+      }}</span>
+    </div>
 
     <form class="filters card" @submit.prevent>
       <div>
@@ -244,6 +249,17 @@ const filtered = computed(() => {
 <style scoped>
 h1 {
   margin-bottom: var(--space-4);
+}
+
+.title-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.count {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
 }
 
 .filters {

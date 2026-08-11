@@ -26,7 +26,12 @@ async function onDelete(userGameId: string) {
 <template>
   <div>
     <div class="header">
-      <h1>{{ $t('dashboard.title') }}</h1>
+      <div class="title-row">
+        <h1>{{ $t('dashboard.title') }}</h1>
+        <span v-if="games.loaded" class="count">{{
+          $t('common.gamesCount', { count: games.collection.length })
+        }}</span>
+      </div>
       <RouterLink :to="{ name: 'add-game' }" class="btn btn-primary">{{
         $t('dashboard.addGame')
       }}</RouterLink>
@@ -94,6 +99,17 @@ async function onDelete(userGameId: string) {
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--space-6);
+}
+
+.title-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.count {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
 }
 
 .games {

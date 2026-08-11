@@ -42,6 +42,12 @@ describe('DashboardView', () => {
     expect(names).toEqual(['Root', 'Ark Nova'])
   })
 
+  it('shows the collection count next to the title', () => {
+    const { wrapper } = mountDashboard([makeEntry({ name: 'Root' }), makeEntry({ name: 'Ark Nova' })])
+
+    expect(wrapper.find('.count').text()).toBe('2 juegos')
+  })
+
   it('removes a game from the collection when its remove button is clicked', async () => {
     const entry = makeEntry({ name: 'Root' })
     const { wrapper, games } = mountDashboard([entry])

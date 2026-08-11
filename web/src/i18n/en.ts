@@ -9,6 +9,7 @@ export default {
     loadingAriaLabel: 'Loading',
     showPassword: 'Show password',
     hidePassword: 'Hide password',
+    gamesCount: '{count} games',
   },
   nav: {
     collection: 'Collection',
