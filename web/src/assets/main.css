@@ -176,3 +176,8 @@ fieldset input[type='radio'] {
   background: color-mix(in srgb, var(--color-success) 18%, transparent);
   color: var(--color-success);
 }
+
+.alert-info {
+  background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  color: var(--color-primary-hover);
+}

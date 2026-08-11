@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGamesStore, type BggImportStatus, type BggCsvImportResult } from '@/stores/games'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
@@ -90,6 +90,28 @@ async function onCsvSubmit() {
     csvSubmitting.value = false
   }
 }
+
+// In-app navigation never actually interrupts either import (the request
+// keeps running regardless of which view is rendered, and the CSV side is
+// wrapped in one DB transaction so it's all-or-nothing anyway) - the real
+// risk is closing the tab or reloading mid-request, which genuinely aborts
+// it. Warn only for that.
+const isImporting = computed(() => phase.value === 'pending' || csvSubmitting.value)
+
+function warnBeforeUnload(event: BeforeUnloadEvent) {
+  if (isImporting.value) {
+    event.preventDefault()
+    event.returnValue = ''
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('beforeunload', warnBeforeUnload)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', warnBeforeUnload)
+})
 </script>
 
 <template>
@@ -139,6 +161,7 @@ async function onCsvSubmit() {
           <p>
             {{ $t('importBgg.pending') }}
           </p>
+          <p class="alert alert-info">{{ $t('importBgg.dontCloseTab') }}</p>
         </div>
 
         <div v-else-if="phase === 'completed'" role="status" class="status-block">
@@ -168,6 +191,8 @@ async function onCsvSubmit() {
           <p v-if="csvErrorMessage" role="alert" class="alert alert-error">
             {{ csvErrorMessage }}
           </p>
+
+          <p v-if="csvSubmitting" class="alert alert-info">{{ $t('importBgg.dontCloseTab') }}</p>
 
           <button type="submit" class="btn btn-primary" :disabled="csvSubmitting || !csvFile">
             {{ csvSubmitting ? $t('importBgg.csvSubmitting') : $t('importBgg.csvSubmit') }}

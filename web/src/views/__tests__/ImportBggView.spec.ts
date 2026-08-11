@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import ImportBggView from '@/views/ImportBggView.vue'
-import { useGamesStore } from '@/stores/games'
+import { useGamesStore, type BggCsvImportResult } from '@/stores/games'
 import { i18n } from '@/i18n'
 
 function mountImport() {
@@ -175,5 +175,99 @@ describe('ImportBggView', () => {
 
     expect(wrapper.text()).toContain('No se ha podido importar el archivo.')
     expect(wrapper.find('#csv_file').exists()).toBe(true)
+  })
+
+  // Neither import actually gets interrupted by in-app navigation (the
+  // request keeps running regardless of which view is rendered) - the real
+  // risk is closing the tab or reloading mid-request, which these guard
+  // against with the browser's native confirmation prompt.
+  describe('warning before closing the tab', () => {
+    function dispatchBeforeUnload(): Event {
+      const event = new Event('beforeunload', { cancelable: true })
+      window.dispatchEvent(event)
+      return event
+    }
+
+    it('does not warn while idle', () => {
+      mountImport()
+
+      expect(dispatchBeforeUnload().defaultPrevented).toBe(false)
+    })
+
+    it('warns and shows a banner while a username import is pending', async () => {
+      const { wrapper, store } = mountImport()
+      vi.spyOn(store, 'startBggImport').mockResolvedValue({
+        id: 'import-1',
+        bgg_username: 'odei',
+        status: 'pending',
+        imported_count: null,
+        error_message: null,
+      })
+      vi.spyOn(store, 'pollBggImport').mockResolvedValue({
+        id: 'import-1',
+        bgg_username: 'odei',
+        status: 'pending',
+        imported_count: null,
+        error_message: null,
+      })
+
+      await submitUsername(wrapper)
+
+      expect(wrapper.text()).toContain('No cierres ni recargues esta pestaña mientras se importa.')
+      expect(dispatchBeforeUnload().defaultPrevented).toBe(true)
+
+      // Otherwise this listener (stuck "pending" forever, since polling is
+      // mocked to always resolve pending) leaks into every later test in
+      // this file - beforeunload listeners live on the shared `window`,
+      // not the component, so an unmounted-but-never-cleaned-up instance
+      // keeps answering for tests that mount a completely different one.
+      wrapper.unmount()
+    })
+
+    it('warns and shows a banner while a CSV import is in flight', async () => {
+      const { wrapper, store } = mountImport()
+      let resolveImport: (value: BggCsvImportResult) => void = () => {}
+      vi.spyOn(store, 'importBggCsv').mockImplementation(
+        () => new Promise<BggCsvImportResult>((resolve) => { resolveImport = resolve }),
+      )
+
+      await wrapper.find('[role="tab"]:nth-of-type(2)').trigger('click')
+      const file = new File(['objectname,objectid'], 'collection.csv', { type: 'text/csv' })
+      const input = wrapper.find('#csv_file')
+      Object.defineProperty(input.element, 'files', { value: [file] })
+      await input.trigger('change')
+      wrapper.find('form').trigger('submit')
+      await flushPromises()
+
+      expect(wrapper.text()).toContain('No cierres ni recargues esta pestaña mientras se importa.')
+      expect(dispatchBeforeUnload().defaultPrevented).toBe(true)
+
+      resolveImport({ imported_count: 1, skipped_expansions_count: 0, skipped_no_status_count: 0, warnings: [] })
+      await flushPromises()
+      wrapper.unmount()
+    })
+
+    it('stops warning once unmounted', async () => {
+      const { wrapper, store } = mountImport()
+      vi.spyOn(store, 'startBggImport').mockResolvedValue({
+        id: 'import-1',
+        bgg_username: 'odei',
+        status: 'pending',
+        imported_count: null,
+        error_message: null,
+      })
+      vi.spyOn(store, 'pollBggImport').mockResolvedValue({
+        id: 'import-1',
+        bgg_username: 'odei',
+        status: 'pending',
+        imported_count: null,
+        error_message: null,
+      })
+
+      await submitUsername(wrapper)
+      wrapper.unmount()
+
+      expect(dispatchBeforeUnload().defaultPrevented).toBe(false)
+    })
   })
 })

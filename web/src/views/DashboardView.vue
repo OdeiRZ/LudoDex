@@ -30,14 +30,28 @@ onMounted(() => {
 // being practical well before that.
 const search = ref('')
 
+// Alphabetical only for now - other criteria (e.g. weight) can follow later
+// once there's a real need for them.
+const sortOrder = ref<'asc' | 'desc'>('asc')
+
+function toggleSort() {
+  sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+}
+
 const filtered = computed(() => {
   const query = search.value.trim().toLowerCase()
 
-  if (!query) {
-    return games.collection
-  }
+  // .filter() already returns a fresh array, but the no-query branch
+  // needs its own copy too - sorting games.collection directly would
+  // mutate the store's own array in place instead of just this view.
+  const base = query
+    ? games.collection.filter((entry) => entry.game.name.toLowerCase().includes(query))
+    : [...games.collection]
 
-  return games.collection.filter((entry) => entry.game.name.toLowerCase().includes(query))
+  return base.sort((a, b) => {
+    const cmp = a.game.name.localeCompare(b.game.name)
+    return sortOrder.value === 'asc' ? cmp : -cmp
+  })
 })
 
 const { density, toggle: toggleDensity } = useCollectionDensity()
@@ -80,6 +94,15 @@ async function onDelete(userGameId: string) {
           :aria-label="$t('dashboard.searchLabel')"
           :placeholder="$t('dashboard.searchPlaceholder')"
         />
+        <button
+          type="button"
+          class="btn sort-toggle"
+          :aria-label="sortOrder === 'asc' ? $t('dashboard.sortDesc') : $t('dashboard.sortAsc')"
+          :title="sortOrder === 'asc' ? $t('dashboard.sortDesc') : $t('dashboard.sortAsc')"
+          @click="toggleSort"
+        >
+          {{ sortOrder === 'asc' ? 'A → Z' : 'Z → A' }}
+        </button>
         <DensityToggle :density="density" @toggle="toggleDensity" />
       </div>
 
@@ -153,6 +176,11 @@ async function onDelete(userGameId: string) {
 
 .search-row input {
   max-width: 320px;
+}
+
+.sort-toggle {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .games {

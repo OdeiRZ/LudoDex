@@ -51,8 +51,41 @@ describe('DashboardView', () => {
 
     const { wrapper } = mountDashboard([owned, wishlisted])
 
+    // Alphabetical by default, not insertion order - see the sort tests
+    // below for the toggle itself.
     const names = wrapper.findAll('.game-card h2').map((h2) => h2.text())
-    expect(names).toEqual(['Root', 'Ark Nova'])
+    expect(names).toEqual(['Ark Nova', 'Root'])
+  })
+
+  it('reverses the order when the sort button is clicked, and back again on a second click', async () => {
+    const { wrapper } = mountDashboard([
+      makeEntry({ name: 'Root' }),
+      makeEntry({ name: 'Ark Nova' }),
+      makeEntry({ name: 'Catan' }),
+    ])
+
+    const names = () => wrapper.findAll('.game-card h2').map((h2) => h2.text())
+    expect(names()).toEqual(['Ark Nova', 'Catan', 'Root'])
+
+    const sortButton = wrapper.find('.sort-toggle')
+    await sortButton.trigger('click')
+    expect(names()).toEqual(['Root', 'Catan', 'Ark Nova'])
+
+    await sortButton.trigger('click')
+    expect(names()).toEqual(['Ark Nova', 'Catan', 'Root'])
+  })
+
+  it('keeps sorting applied on top of the active search filter', async () => {
+    const { wrapper } = mountDashboard([
+      makeEntry({ name: 'Catan' }),
+      makeEntry({ name: 'Ark Nova' }),
+    ])
+
+    await wrapper.find('.sort-toggle').trigger('click')
+    await wrapper.find('input[type="search"]').setValue('a')
+
+    const names = wrapper.findAll('.game-card h2').map((h2) => h2.text())
+    expect(names).toEqual(['Catan', 'Ark Nova'])
   })
 
   it('shows the collection count next to the title', () => {

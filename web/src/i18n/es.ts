@@ -75,6 +75,8 @@ export default {
     addFirst: 'Añade el primero',
     searchLabel: 'Buscar en tu colección',
     searchPlaceholder: 'Buscar por nombre…',
+    sortAsc: 'Ordenar de la A a la Z',
+    sortDesc: 'Ordenar de la Z a la A',
     noMatches: 'Ningún juego de tu colección coincide con la búsqueda.',
     owned: 'Lo tengo',
     wishlist: 'Lo quiero',
@@ -191,6 +193,7 @@ export default {
     csvGenericError: 'No se ha podido importar el archivo.',
     csvCompleted: 'Importados {count} juegos ({skipped} expansiones omitidas por ahora).',
     csvWarningsTitle: 'Avisos:',
+    dontCloseTab: 'No cierres ni recargues esta pestaña mientras se importa.',
     viewCollection: 'Ver tu colección',
   },
 }
