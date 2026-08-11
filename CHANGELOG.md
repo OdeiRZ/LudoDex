@@ -139,6 +139,27 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   store (`toast`) y un componente (`ToastNotification`) montado una vez
   en `App.vue`, para que sobreviva a la navegación entre pantallas —
   reutilizable para futuras confirmaciones sin repetir la lógica.
+- Botón para eliminar un juego directamente desde su propia página de
+  edición (icono de papelera junto al título "Editar juego"), sin tener
+  que volver a la colección para quitarlo desde ahí — útil sobre todo
+  entrando desde el atajo de edición del selector, que no tiene ningún
+  botón de eliminar. Deliberadamente aparte del botón "Guardar cambios"
+  (en vez de justo encima o debajo) para que un editar y un eliminar no
+  compitan por el mismo gesto.
+- Rediseño de las tarjetas de juego en "Tu colección" y "¿A qué
+  jugamos?": la portada pasa a ocupar toda la tarjeta como fondo (con un
+  degradado oscuro fijo para que el texto se lea igual sobre cualquier
+  imagen, independientemente del tema claro/oscuro), en vez de una
+  miniatura pequeña en una esquina sobre fondo blanco. Nuevo componente
+  compartido `GameCard` que gestiona la imagen, el degradado y el
+  fallback (el dado de siempre, ahora centrado) cuando no hay imagen o
+  el enlace de BGG ha dejado de funcionar — sustituye a `GameThumbnail`,
+  eliminado por quedar sin uso. Las mecánicas dejan de mostrarse en "Tu
+  colección" (quedan solo en el formulario de edición): no aportaban
+  nada en un vistazo rápido de cientos de tarjetas y no son un criterio
+  para decidir qué hacer con un juego ya guardado, a diferencia de las
+  etiquetas de modo/campaña del selector, que sí son un criterio de
+  decisión y se mantienen.
 
 ### Corregido
 
