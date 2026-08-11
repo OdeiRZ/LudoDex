@@ -132,6 +132,12 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 - "Recuperar contraseña" mostraba el error en crudo (p. ej.
   `Error: Request failed with status code 500`) cuando el fallo no era de
   validación, en vez de un mensaje traducido como el resto de la app.
+- El campo de complejidad (peso) al editar un juego tenía `step="0.1"`,
+  que en un input numérico HTML solo admite un decimal: guardar un valor
+  con dos decimales (p. ej. 3.64, el formato habitual del dato de BGG, y
+  el mismo que ya guarda el importador CSV) lo rechazaba como inválido
+  aunque el backend siempre lo había aceptado sin problema. Ahora el paso
+  es `0.01`.
 
 - En "¿A qué jugamos?": el filtro "Solo modo campaña" sonaba ambiguo junto
   al botón "Solo" de jugador único de la misma fila (¿"solo" de "solitario"
