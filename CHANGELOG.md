@@ -119,6 +119,11 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   práctico. Filtra en el cliente sobre la colección ya cargada (igual que
   los filtros del selector), sin llamada adicional a la API; el contador
   del título pasa a reflejar el resultado filtrado, no el total.
+- Botón de densidad ("vista compacta"/"vista cómoda") junto al buscador de
+  "Tu colección", persistido en `localStorage` igual que el tema: reduce
+  el tamaño de la miniatura, el espaciado de la tarjeta y oculta las
+  mecánicas para ver más juegos por pantalla sin necesidad de dos vistas
+  (grid/lista) separadas — mismo marcado, solo cambia una clase CSS.
 
 ### Corregido
 
