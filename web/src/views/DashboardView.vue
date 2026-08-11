@@ -2,6 +2,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useGamesStore } from '@/stores/games'
+import { useCollectionDensity } from '@/composables/useCollectionDensity'
+import DensityToggle from '@/components/DensityToggle.vue'
 import GameThumbnail from '@/components/GameThumbnail.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
@@ -34,22 +36,7 @@ const filtered = computed(() => {
   return games.collection.filter((entry) => entry.game.name.toLowerCase().includes(query))
 })
 
-// Persisted the same way as the theme (localStorage, read once on load) -
-// a plain per-view preference, not something other components need, so it
-// stays local here rather than becoming a shared composable like useTheme.
-const DENSITY_STORAGE_KEY = 'ludodex-collection-density'
-type Density = 'comfortable' | 'compact'
-
-function initialDensity(): Density {
-  return localStorage.getItem(DENSITY_STORAGE_KEY) === 'compact' ? 'compact' : 'comfortable'
-}
-
-const density = ref<Density>(initialDensity())
-
-function toggleDensity() {
-  density.value = density.value === 'compact' ? 'comfortable' : 'compact'
-  localStorage.setItem(DENSITY_STORAGE_KEY, density.value)
-}
+const { density, toggle: toggleDensity } = useCollectionDensity()
 
 async function onDelete(userGameId: string) {
   await games.deleteGame(userGameId)
@@ -88,26 +75,7 @@ async function onDelete(userGameId: string) {
           :aria-label="$t('dashboard.searchLabel')"
           :placeholder="$t('dashboard.searchPlaceholder')"
         />
-        <button
-          type="button"
-          class="density-toggle"
-          :aria-label="density === 'compact' ? $t('dashboard.densityToComfortable') : $t('dashboard.densityToCompact')"
-          :title="density === 'compact' ? $t('dashboard.densityToComfortable') : $t('dashboard.densityToCompact')"
-          @click="toggleDensity"
-        >
-          <!-- Icon shows the mode a click leads to, not the current one -
-          same convention as ThemeToggle. -->
-          <svg v-if="density === 'compact'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <rect x="3" y="4" width="18" height="6" rx="1" />
-            <rect x="3" y="14" width="18" height="6" rx="1" />
-          </svg>
-          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <line x1="3" y1="5" x2="21" y2="5" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-            <line x1="3" y1="15" x2="21" y2="15" />
-            <line x1="3" y1="20" x2="21" y2="20" />
-          </svg>
-        </button>
+        <DensityToggle :density="density" @toggle="toggleDensity" />
       </div>
 
       <p v-if="filtered.length === 0" class="empty-state">
@@ -189,29 +157,6 @@ async function onDelete(userGameId: string) {
 
 .search-row input {
   max-width: 320px;
-}
-
-.density-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  flex-shrink: 0;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface);
-  color: var(--color-text);
-}
-
-.density-toggle:hover {
-  background: var(--color-surface-hover);
-}
-
-.density-toggle svg {
-  width: 18px;
-  height: 18px;
 }
 
 .games {

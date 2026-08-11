@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useGamesStore } from '@/stores/games'
+import { useCollectionDensity } from '@/composables/useCollectionDensity'
+import DensityToggle from '@/components/DensityToggle.vue'
 import GameThumbnail from '@/components/GameThumbnail.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const games = useGamesStore()
+const { density, toggle: toggleDensity } = useCollectionDensity()
 
 // Starts at 2 rather than empty: the placeholder text has no room to
 // display fully next to the "Solo" button at this width, and most groups
@@ -186,6 +189,10 @@ const filtered = computed(() => {
       </div>
     </form>
 
+    <div v-if="games.loaded && playable.length" class="results-header">
+      <DensityToggle :density="density" @toggle="toggleDensity" />
+    </div>
+
     <p v-if="games.loading" class="loading-state">
       <LoadingSpinner :size="28" />
       {{ $t('common.loadingCollection') }}
@@ -198,10 +205,10 @@ const filtered = computed(() => {
       {{ $t('picker.noMatches') }}
     </p>
 
-    <ul v-else class="results">
+    <ul v-else class="results" :class="{ compact: density === 'compact' }">
       <li v-for="entry in filtered" :key="entry.id" class="card game-card">
         <div class="game-card-header">
-          <GameThumbnail :image-url="entry.game.image_url" :size="56" />
+          <GameThumbnail :image-url="entry.game.image_url" :size="density === 'compact' ? 36 : 56" />
           <h2>{{ entry.game.name }}</h2>
           <RouterLink
             :to="{ name: 'edit-game', params: { id: entry.id }, query: { from: 'picker' } }"
@@ -308,12 +315,32 @@ h1 {
   width: auto;
 }
 
+.results-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-4);
+}
+
 .results {
   list-style: none;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: var(--space-4);
+}
+
+.results.compact {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--space-2);
+}
+
+.results.compact .game-card {
+  padding: var(--space-2);
+  gap: var(--space-1);
+}
+
+.results.compact .tags {
+  display: none;
 }
 
 .game-card {

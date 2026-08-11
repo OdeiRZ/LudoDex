@@ -21,6 +21,12 @@ function mountPicker(entries: UserGame[]) {
 }
 
 describe('PickerView', () => {
+  // The density preference persists in localStorage across page loads -
+  // clear it so one test's toggle doesn't leak into the next.
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
   it('only lists owned games, never wishlist entries or expansions', () => {
     const owned = makeEntry({ name: 'Root' }, 'owned')
     const wishlisted = makeEntry({ name: 'Ark Nova' }, 'wishlist')
@@ -146,6 +152,15 @@ describe('PickerView', () => {
     it('only offers categories that appear on an owned game', () => {
       const options = wrapper.findAll('#category option').map((option) => option.text())
       expect(options).toEqual(['Cualquiera', 'Asimétrico', 'Cartas', 'Control de territorio'])
+    })
+
+    it('toggles compact density for the results grid, persisting the choice', async () => {
+      expect(wrapper.find('.results').classes()).not.toContain('compact')
+
+      await wrapper.find('.density-toggle').trigger('click')
+
+      expect(wrapper.find('.results').classes()).toContain('compact')
+      expect(localStorage.getItem('ludodex-collection-density')).toBe('compact')
     })
 
     it('filters by cooperative/competitive mode', async () => {
