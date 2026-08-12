@@ -64,11 +64,8 @@ watch(
   inset: 0;
   width: 100%;
   height: 100%;
-  box-sizing: border-box;
   object-fit: cover;
   object-position: 50% 20%;
-  border-left: 4px solid rgba(255, 255, 255, 0.6);
-  border-right: 4px solid rgba(255, 255, 255, 0.6);
 }
 
 .cover-fallback {
@@ -105,8 +102,8 @@ gradient or how tall the scrim ends up being. */
   gap: var(--space-2);
   color: #fff;
   text-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.9),
-    0 1px 8px rgba(0, 0, 0, 0.5);
+    0 1px 2px rgba(0, 0, 0, 0.7),
+    0 1px 5px rgba(0, 0, 0, 0.3);
   background: linear-gradient(
     to top,
     rgba(15, 23, 42, 0.9) 0%,

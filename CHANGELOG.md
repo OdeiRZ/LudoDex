@@ -157,9 +157,9 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   que a menudo dejaba fuera la parte superior de la portada — la zona
   donde suele estar el título o logo del propio juego. Ahora el
   recorte favorece la parte de arriba (sin llegar a pegarse del todo,
-  para no perder según qué portadas cuyo logo está más centrado), y la
-  imagen lleva un borde blanco translúcido a los lados a modo de marco
-  sutil.
+  para no perder según qué portadas cuyo logo está más centrado). Se
+  probó también un borde blanco a los lados a modo de marco, pero
+  quedaba demasiado marcado sobre el tema oscuro y se descartó.
 - Reimportar una colección por usuario de BGG ya no borra las mecánicas
   o géneros que hubieras añadido a mano y que BGG no tenga en su propia
   lista para ese juego — antes se reemplazaba la lista entera con la de
