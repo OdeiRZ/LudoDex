@@ -33,11 +33,17 @@ function thingXml(): string
     <items>
         <item type="boardgame" id="13">
             <name type="primary" sortindex="1" value="Catan"/>
+            <yearpublished value="1995"/>
+            <minage value="10"/>
             <link type="boardgamemechanic" id="2027" value="Trading"/>
             <link type="boardgamemechanic" id="2072" value="Dice Rolling"/>
             <link type="boardgamecategory" id="1078" value="Negotiation"/>
             <statistics page="1">
                 <ratings>
+                    <average value="7.13"/>
+                    <ranks>
+                        <rank type="subtype" id="1" name="boardgame" friendlyname="Board Game Rank" value="343"/>
+                    </ranks>
                     <averageweight value="2.32"/>
                 </ratings>
             </statistics>
@@ -138,6 +144,22 @@ it('imports owned games and expansions, linking the expansion to its base game',
     expect($catan->mechanics->pluck('name')->all())->toEqual(['Trading', 'Dice Rolling']);
     expect($catan->categories->pluck('name')->all())->toEqual(['Negotiation']);
     expect($user->games()->count())->toBe(2);
+
+    // The same /thing call already fetched for mechanics/categories/weight
+    // also carries year, rank and rating - no extra request needed to
+    // populate these.
+    expect($catan->year_published)->toBe(1995)
+        ->and($catan->min_age)->toBe('10+')
+        ->and($catan->bgg_rank)->toBe(343)
+        ->and($catan->rating)->toBe(7.13);
+
+    // Seafarers' fixture has no yearpublished/minage/ranks/average at all -
+    // confirms those stay null instead of crashing when a game genuinely
+    // has none of this data.
+    expect($seafarers->year_published)->toBeNull()
+        ->and($seafarers->min_age)->toBeNull()
+        ->and($seafarers->bgg_rank)->toBeNull()
+        ->and($seafarers->rating)->toBeNull();
 });
 
 it('marks the collection status (owned vs wishlist) correctly', function () {

@@ -87,6 +87,79 @@ it('reports the game as not found instead of crashing on a non-XML /thing respon
         ->and($result['message'])->toBe(__('bgg.game_not_found'));
 });
 
+it('extracts year published, recommended age, board game rank and rating from a full /thing response', function () {
+    Http::fake(fn () => Http::response(<<<'XML'
+    <?xml version="1.0" encoding="utf-8"?>
+    <items>
+        <item type="boardgame" id="30549">
+            <name type="primary" sortindex="1" value="Pandemic"/>
+            <yearpublished value="2008"/>
+            <minage value="8"/>
+            <statistics page="1">
+                <ratings>
+                    <average value="7.51133"/>
+                    <bayesaverage value="7.40169"/>
+                    <ranks>
+                        <rank type="family" id="5497" name="strategygames" friendlyname="Strategy Game Rank" value="179" bayesaverage="7.3272"/>
+                        <rank type="subtype" id="1" name="boardgame" friendlyname="Board Game Rank" value="174" bayesaverage="7.40169"/>
+                    </ranks>
+                    <averageweight value="2.35"/>
+                </ratings>
+            </statistics>
+        </item>
+    </items>
+    XML));
+
+    $result = (new BggClient)->fetchGameByBggId(30549);
+
+    expect($result['status'])->toBe('ready')
+        ->and($result['game']['year_published'])->toBe(2008)
+        ->and($result['game']['min_age'])->toBe('8+')
+        ->and($result['game']['bgg_rank'])->toBe(174)
+        ->and($result['game']['rating'])->toBe(7.51133);
+});
+
+it('treats a "Not Ranked" board game rank as no rank, not a cast-to-zero crash', function () {
+    Http::fake(fn () => Http::response(<<<'XML'
+    <?xml version="1.0" encoding="utf-8"?>
+    <items>
+        <item type="boardgame" id="13">
+            <name type="primary" sortindex="1" value="Obscure Game"/>
+            <statistics page="1">
+                <ratings>
+                    <average value="0"/>
+                    <ranks>
+                        <rank type="subtype" id="1" name="boardgame" friendlyname="Board Game Rank" value="Not Ranked"/>
+                    </ranks>
+                </ratings>
+            </statistics>
+        </item>
+    </items>
+    XML));
+
+    $result = (new BggClient)->fetchGameByBggId(13);
+
+    expect($result['game']['bgg_rank'])->toBeNull();
+});
+
+it('treats missing yearpublished/minage/statistics on /thing as null instead of crashing', function () {
+    Http::fake(fn () => Http::response(<<<'XML'
+    <?xml version="1.0" encoding="utf-8"?>
+    <items>
+        <item type="boardgame" id="13">
+            <name type="primary" sortindex="1" value="Catan"/>
+        </item>
+    </items>
+    XML));
+
+    $result = (new BggClient)->fetchGameByBggId(13);
+
+    expect($result['game']['year_published'])->toBeNull()
+        ->and($result['game']['min_age'])->toBeNull()
+        ->and($result['game']['bgg_rank'])->toBeNull()
+        ->and($result['game']['rating'])->toBeNull();
+});
+
 it('treats a literal "N/A" avatar the same as no avatar at all', function () {
     Http::fake(fn () => Http::response(
         '<?xml version="1.0"?><user id="1" name="odei"><avatarlink value="N/A"/></user>'

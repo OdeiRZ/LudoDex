@@ -50,7 +50,7 @@ class BggImportService
 
     /**
      * @param  list<array<string, mixed>>  $items
-     * @param  array<int, array{mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_id: ?int}>  $details
+     * @param  array<int, array{mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_id: ?int, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float}>  $details
      * @return array<int, Game>
      */
     private function upsertGames(array $items, array $details): array
@@ -85,6 +85,10 @@ class BggImportService
                     'min_playtime_minutes' => $item['min_playtime_minutes'],
                     'max_playtime_minutes' => $item['max_playtime_minutes'],
                     'weight' => $detail['weight'] ?? null,
+                    'year_published' => $detail['year_published'] ?? null,
+                    'min_age' => $detail['min_age'] ?? null,
+                    'bgg_rank' => $detail['bgg_rank'] ?? null,
+                    'rating' => $detail['rating'] ?? null,
                     'is_cooperative' => $isCooperative,
                     'is_competitive' => ! $isSolo,
                     'has_campaign' => $this->anyContains($tags, 'campaign')
@@ -102,7 +106,7 @@ class BggImportService
 
     /**
      * @param  list<array<string, mixed>>  $items
-     * @param  array<int, array{mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_id: ?int}>  $details
+     * @param  array<int, array{mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_id: ?int, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float}>  $details
      * @param  array<int, Game>  $gamesByBggId
      */
     private function linkExpansions(array $items, array $details, array $gamesByBggId): void

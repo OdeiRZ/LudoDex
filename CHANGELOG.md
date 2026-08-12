@@ -39,6 +39,22 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   afectados. Como no hay soft-delete ni forma de deshacerlo, la
   confirmación no es un simple aviso: hay que escribir el número exacto
   de juegos de la colección para que el botón de confirmar se active.
+- Año de publicación, edad recomendada, ranking y valoración también al
+  importar por usuario y al usar "Rellenar desde BGG" en el formulario
+  manual, no solo al importar desde CSV: la API de BGG ya devuelve estos
+  cuatro datos en la misma llamada a `/thing` que ambas rutas hacían de
+  antes para mecánicas/categorías/complejidad, así que rellenarlos no
+  necesita ninguna petición nueva a BGG, solo parsear más del XML que ya
+  llegaba. La edad recomendada no viene tal cual en el XML (a diferencia
+  del CSV, que ya trae `"10+"` hecho) — se construye añadiendo un "+" al
+  valor numérico de BGG (`minage`), igual que la propia web de BGG lo
+  muestra ("Ages: 8+"). Un ranking reportado como el texto literal
+  "Not Ranked" (habitual en expansiones) se guarda igual que el `0` del
+  CSV: como ranking vacío, no como un valor real.
+- Aprobada la solicitud de aplicación a la API de BGG — verificado de
+  punta a punta contra una colección real (493 juegos) usando ya el
+  token, completando así el hito 3 (antes solo probado con
+  `Http::fake()`).
 - Selector "Ordenar por" en "Tu colección" (Nombre / Ranking BGG),
   junto al botón que ya invertía el orden A-Z ↔ Z-A — ahora ese mismo
   botón invierte también mejor-ranking-primero ↔ peor-ranking-primero

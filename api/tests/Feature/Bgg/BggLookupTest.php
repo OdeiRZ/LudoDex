@@ -12,6 +12,8 @@ function thingXmlForLookup(): string
             <image>https://example.com/catan.jpg</image>
             <name type="primary" sortindex="1" value="Catan"/>
             <name type="alternate" sortindex="1" value="Colonos de Catán"/>
+            <yearpublished value="1995"/>
+            <minage value="10"/>
             <minplayers value="3"/>
             <maxplayers value="4"/>
             <minplaytime value="60"/>
@@ -20,6 +22,10 @@ function thingXmlForLookup(): string
             <link type="boardgamecategory" id="1078" value="Negotiation"/>
             <statistics page="1">
                 <ratings>
+                    <average value="7.13"/>
+                    <ranks>
+                        <rank type="subtype" id="1" name="boardgame" friendlyname="Board Game Rank" value="343"/>
+                    </ranks>
                     <averageweight value="2.32"/>
                 </ratings>
             </statistics>
@@ -60,6 +66,10 @@ it('looks up a game by its BGG id', function () {
         'bgg_id' => 13,
         'name' => 'Catan',
         'image_url' => 'https://example.com/catan.jpg',
+        'year_published' => 1995,
+        'min_age' => '10+',
+        'bgg_rank' => 343,
+        'rating' => 7.13,
         'min_players' => 3,
         'max_players' => 4,
         'min_playtime_minutes' => 60,

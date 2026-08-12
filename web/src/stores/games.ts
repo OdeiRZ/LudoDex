@@ -76,6 +76,10 @@ export interface BggGameLookup {
   bgg_id: number
   name: string
   image_url: string | null
+  year_published: number | null
+  min_age: string | null
+  bgg_rank: number | null
+  rating: number | null
   min_players: number | null
   max_players: number | null
   min_playtime_minutes: number | null

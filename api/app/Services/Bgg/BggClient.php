@@ -109,7 +109,7 @@ class BggClient
 
     /**
      * @param  list<int>  $bggIds
-     * @return array<int, array{mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_id: ?int}>
+     * @return array<int, array{mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_id: ?int, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float}>
      */
     public function fetchGameDetails(array $bggIds): array
     {
@@ -140,7 +140,7 @@ class BggClient
     }
 
     /**
-     * @return array{mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_id: ?int}
+     * @return array{mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_id: ?int, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float}
      */
     private function parseGameDetail(SimpleXMLElement $item): array
     {
@@ -164,12 +164,57 @@ class BggClient
             ? (float) $item->statistics->ratings->averageweight['value']
             : null;
 
+        $rating = isset($item->statistics->ratings->average)
+            ? (float) $item->statistics->ratings->average['value']
+            : null;
+
         return [
             'mechanics' => $mechanics,
             'categories' => $categories,
             'weight' => $weight,
             'base_game_bgg_id' => $baseGameBggId,
+            'year_published' => $this->intOrNull($item->yearpublished['value'] ?? null),
+            // BGG's own site shows this value with a trailing "+" (e.g.
+            // "Ages: 8+"), not as a plain number - kept as a string here
+            // (like the CSV importer's bggrecagerange) rather than a plain
+            // int, since it's a display convention, not an exact minimum.
+            'min_age' => $this->minAgeOrNull($item->minage['value'] ?? null),
+            'bgg_rank' => $this->extractBoardGameRank($item),
+            'rating' => $rating,
         ];
+    }
+
+    /**
+     * The overall "Board Game Rank" is one of several ranks BGG tracks per
+     * game (family/subtype ranks like "Strategy Game Rank" are ignored
+     * here) - reported as the literal string "Not Ranked" rather than a
+     * missing attribute when a game has too few ratings to place, so this
+     * can't just cast to int.
+     */
+    private function extractBoardGameRank(SimpleXMLElement $item): ?int
+    {
+        if (! isset($item->statistics->ratings->ranks->rank)) {
+            return null;
+        }
+
+        foreach ($item->statistics->ratings->ranks->rank as $rank) {
+            if ((string) $rank['name'] === 'boardgame') {
+                $value = (string) $rank['value'];
+
+                return ctype_digit($value) ? (int) $value : null;
+            }
+        }
+
+        return null;
+    }
+
+    private function minAgeOrNull(mixed $value): ?string
+    {
+        if ($value === null || (string) $value === '' || (int) $value <= 0) {
+            return null;
+        }
+
+        return ((string) (int) $value).'+';
     }
 
     /**
@@ -177,7 +222,7 @@ class BggClient
      * "import from BGG" button - unlike fetchCollection, /thing answers
      * synchronously (no 202-while-queued state to poll).
      *
-     * @return array{status: 'ready'|'error', message?: string, game?: array{bgg_id: int, name: string, image_url: ?string, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int, weight: ?float, mechanics: list<string>, categories: list<string>}}
+     * @return array{status: 'ready'|'error', message?: string, game?: array{bgg_id: int, name: string, image_url: ?string, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int, weight: ?float, mechanics: list<string>, categories: list<string>}}
      */
     public function fetchGameByBggId(int $bggId): array
     {
@@ -207,7 +252,7 @@ class BggClient
     }
 
     /**
-     * @return array{bgg_id: int, name: string, image_url: ?string, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int, weight: ?float, mechanics: list<string>, categories: list<string>}
+     * @return array{bgg_id: int, name: string, image_url: ?string, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int, weight: ?float, mechanics: list<string>, categories: list<string>}
      */
     private function parseFullGameDetail(SimpleXMLElement $item): array
     {
@@ -227,6 +272,10 @@ class BggClient
             'bgg_id' => (int) $item['id'],
             'name' => $name,
             'image_url' => isset($item->image) && (string) $item->image !== '' ? (string) $item->image : null,
+            'year_published' => $detail['year_published'],
+            'min_age' => $detail['min_age'],
+            'bgg_rank' => $detail['bgg_rank'],
+            'rating' => $detail['rating'],
             'min_players' => $this->intOrNull($item->minplayers['value'] ?? null),
             'max_players' => $this->intOrNull($item->maxplayers['value'] ?? null),
             'min_playtime_minutes' => $this->intOrNull($item->minplaytime['value'] ?? null),

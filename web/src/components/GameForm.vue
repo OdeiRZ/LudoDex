@@ -75,6 +75,10 @@ async function onLookupBgg() {
     form.value.bgg_id = game.bgg_id
     form.value.name = game.name
     form.value.image_url = game.image_url
+    form.value.year_published = game.year_published
+    form.value.min_age = game.min_age
+    form.value.bgg_rank = game.bgg_rank
+    form.value.rating = game.rating
     form.value.min_players = game.min_players
     form.value.max_players = game.max_players
     form.value.min_playtime_minutes = game.min_playtime_minutes

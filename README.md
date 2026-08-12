@@ -69,13 +69,12 @@ Repo único con dos aplicaciones independientes, cada una con su propio
   [`api/README.md`](api/README.md)), la importación falla con un mensaje
   explicando el motivo en vez de un error críptico.
   **Estado**: solicitud de aplicación ("LudoDex") enviada a BGG el
-  2026-08-08, pendiente de aprobación (BGG avisa que puede tardar una
-  semana o más). Hasta que llegue el token, la importación por usuario está
-  construida y probada con `Http::fake()` pero sin verificar contra una
-  colección real. Como alternativa mientras tanto, la pestaña "Desde CSV" de
-  Importar BGG acepta el fichero que exporta la propia colección de BGG (ese
-  export viene de la sesión del usuario, no de la API con token) — verificada
-  de punta a punta contra una colección real de 281 juegos.
+  2026-08-08 y **aprobada el 2026-08-12**. Con el token ya configurado, la
+  importación por usuario quedó verificada de punta a punta contra una
+  colección real (493 juegos). La pestaña "Desde CSV" de Importar BGG
+  sigue disponible como alternativa sin token (ese fichero viene de la
+  sesión del propio usuario, no de la API) — verificada de punta a punta
+  contra una colección real de 281 juegos.
 - **Envío real de email (recuperación de contraseña)**: la API usa
   [Resend](https://resend.com) como mailer (soportado de forma nativa en
   Laravel 12). Sin verificar un dominio propio, Resend solo permite enviar
@@ -94,10 +93,10 @@ Repo único con dos aplicaciones independientes, cada una con su propio
 2. ✅ Inventario manual de juegos, con catálogo de mecánicas/categorías
    compartido (reutilizado por nombre, no duplicado) y expansiones ligadas a
    su juego base.
-3. 🔶 Importación desde BGG: por usuario, construida y probada con respuestas
-   simuladas, verificación con una colección real pendiente del token de
-   aplicación de BGG; desde CSV, alternativa sin token ya verificada de punta
-   a punta contra una colección real (ver "Requisitos externos" más arriba).
+3. ✅ Importación desde BGG: por usuario, verificada de punta a punta contra
+   una colección real (493 juegos) con el token de aplicación ya aprobado;
+   desde CSV, alternativa sin token también verificada contra una colección
+   real (ver "Requisitos externos" más arriba).
 4. ✅ Selector de "a qué jugar": filtros de jugadores, duración disponible y
    modo (cooperativo/competitivo/campaña) sobre los juegos marcados como "lo
    tengo", excluyendo expansiones sueltas (no son jugables por sí solas).

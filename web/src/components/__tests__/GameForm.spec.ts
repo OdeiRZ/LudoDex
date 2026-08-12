@@ -1,8 +1,9 @@
-import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { describe, it, expect, vi } from 'vitest'
+import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { reactive } from 'vue'
 import GameForm, { type GameFormData } from '@/components/GameForm.vue'
+import { useGamesStore, type BggGameLookup } from '@/stores/games'
 import { i18n } from '@/i18n'
 
 function reactiveForm(overrides: Partial<GameFormData> = {}): GameFormData {
@@ -106,5 +107,37 @@ describe('GameForm mode radio', () => {
 
     expect(form.is_cooperative).toBe(true)
     expect(form.is_competitive).toBe(true)
+  })
+})
+
+describe('GameForm BGG lookup', () => {
+  it('fills year, recommended age, rank and rating from the lookup result, alongside the existing fields', async () => {
+    const { wrapper, form } = mountGameForm(reactiveForm({ bgg_id: 30549 }))
+    const games = useGamesStore()
+    const lookupResult: BggGameLookup = {
+      bgg_id: 30549,
+      name: 'Pandemic',
+      image_url: 'https://example.com/pandemic.jpg',
+      year_published: 2008,
+      min_age: '8+',
+      bgg_rank: 174,
+      rating: 7.51,
+      min_players: 2,
+      max_players: 4,
+      min_playtime_minutes: 45,
+      max_playtime_minutes: 45,
+      weight: 2.4,
+      mechanics: [],
+      categories: [],
+    }
+    vi.spyOn(games, 'lookupBggGame').mockResolvedValue(lookupResult)
+
+    await wrapper.find('.bgg-lookup-row button').trigger('click')
+    await flushPromises()
+
+    expect(form.year_published).toBe(2008)
+    expect(form.min_age).toBe('8+')
+    expect(form.bgg_rank).toBe(174)
+    expect(form.rating).toBe(7.51)
   })
 })
