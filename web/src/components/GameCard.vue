@@ -102,8 +102,8 @@ gradient or how tall the scrim ends up being. */
   gap: var(--space-2);
   color: #fff;
   text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.7),
-    0 1px 5px rgba(0, 0, 0, 0.3);
+    0 1px 2.5px rgba(0, 0, 0, 0.8),
+    0 1px 6.5px rgba(0, 0, 0, 0.4);
   background: linear-gradient(
     to top,
     rgba(15, 23, 42, 0.9) 0%,
