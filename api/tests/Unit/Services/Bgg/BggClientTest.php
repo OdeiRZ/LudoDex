@@ -179,3 +179,56 @@ it('returns null instead of crashing when the avatar lookup gets a non-XML body'
 
     expect((new BggClient)->fetchUserAvatar('odei'))->toBeNull();
 });
+
+// BGG's XML API terms of use ask that /thing results be cached rather than
+// re-requested - a game's mechanics/rank/rating barely change day to day,
+// and the same popular games keep coming up across different imports.
+
+it('caches a /thing lookup so a second fetchGameByBggId for the same id does not call BGG again', function () {
+    Http::fake(fn () => Http::response(<<<'XML'
+    <?xml version="1.0" encoding="utf-8"?>
+    <items>
+        <item type="boardgame" id="13">
+            <name type="primary" sortindex="1" value="Catan"/>
+        </item>
+    </items>
+    XML));
+
+    $client = new BggClient;
+
+    $first = $client->fetchGameByBggId(13);
+    $second = $client->fetchGameByBggId(13);
+
+    Http::assertSentCount(1);
+    expect($first['game']['name'])->toBe('Catan')
+        ->and($second['game']['name'])->toBe('Catan');
+});
+
+it('only requests the ids not already cached in a mixed batch, keeping the cached one in the result', function () {
+    // A single fake that echoes back whatever ids were actually requested -
+    // needed because Http::fake() calls don't override each other (the
+    // first unconditional stub keeps matching later requests too), so a
+    // response that depends on the request is the only way to tell the two
+    // fetchGameDetails() calls below apart.
+    Http::fake(function (ClientRequest $request) {
+        parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $query);
+
+        $items = collect(explode(',', $query['id']))
+            ->map(fn (string $id) => "<item type=\"boardgame\" id=\"{$id}\"><name type=\"primary\" sortindex=\"1\" value=\"Game {$id}\"/></item>")
+            ->implode('');
+
+        return Http::response('<?xml version="1.0" encoding="utf-8"?><items>'.$items.'</items>');
+    });
+
+    $client = new BggClient;
+    $client->fetchGameDetails([13]);
+    $result = $client->fetchGameDetails([13, 9209]);
+
+    Http::assertSentCount(2);
+    $secondRequestUrl = Http::recorded()->last()[0]->url();
+
+    expect($secondRequestUrl)->toContain('id=9209')
+        ->and($secondRequestUrl)->not->toContain('13')
+        ->and($result[13]['name'])->toBe('Game 13')
+        ->and($result[9209]['name'])->toBe('Game 9209');
+});

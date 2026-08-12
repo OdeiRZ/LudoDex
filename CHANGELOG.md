@@ -92,6 +92,18 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   simplemente invisible. El nombre del juego base se resuelve en el
   backend a partir de `base_game_id` para que se vea aunque ese juego
   base no esté en la propia colección del usuario.
+- Logotipo "Powered by BGG" (exigido por los términos de uso de la API de
+  BGG para cualquier aplicación pública) en el pie de página, visible en
+  toda la app y enlazando a boardgamegeek.com. Usa la versión clara u
+  oscura del propio logo oficial de BGG según el tema activo de LudoDex.
+- Caché de 24 horas (configurable) para las respuestas de BGG sobre un
+  mismo juego (mecánicas, categorías, año, edad, ranking, valoración...),
+  tanto en la importación por usuario/CSV como en "Rellenar desde BGG".
+  Antes cada importación repetía la consulta a BGG para juegos ya
+  consultados recientemente (habitual entre distintos usuarios con
+  juegos populares en común, o al reimportar la propia colección) - BGG
+  pide explícitamente cachear resultados en vez de repetir peticiones
+  innecesarias.
 
 ### Corregido
 

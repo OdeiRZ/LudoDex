@@ -5,6 +5,7 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 import LanguageToggle from '@/components/LanguageToggle.vue'
 import ToastNotification from '@/components/ToastNotification.vue'
+import PoweredByBgg from '@/components/PoweredByBgg.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -45,6 +46,10 @@ async function onLogout() {
   <main>
     <RouterView />
   </main>
+
+  <footer>
+    <PoweredByBgg />
+  </footer>
 
   <ToastNotification />
 </template>
@@ -98,5 +103,13 @@ header {
   gap: var(--space-2);
   color: var(--color-text-muted);
   font-size: 0.9rem;
+}
+
+footer {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-6) 0 var(--space-4);
+  margin-top: var(--space-6);
+  border-top: 1px solid var(--color-border);
 }
 </style>

@@ -3,6 +3,7 @@
 namespace App\Services\Bgg;
 
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use SimpleXMLElement;
 
@@ -109,13 +110,24 @@ class BggClient
 
     /**
      * @param  list<int>  $bggIds
-     * @return array<int, array{mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_id: ?int, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float}>
+     * @return array<int, array{name: string, image_url: ?string, mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_id: ?int, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int}>
      */
     public function fetchGameDetails(array $bggIds): array
     {
         $details = [];
+        $idsToFetch = [];
 
-        foreach (array_chunk($bggIds, 20) as $chunk) {
+        foreach ($bggIds as $bggId) {
+            $cached = Cache::get($this->cacheKey($bggId));
+
+            if ($cached !== null) {
+                $details[$bggId] = $cached;
+            } else {
+                $idsToFetch[] = $bggId;
+            }
+        }
+
+        foreach (array_chunk($idsToFetch, 20) as $chunk) {
             $response = $this->httpClient()->get(self::BASE_URL.'/thing', [
                 'id' => implode(',', $chunk),
                 'stats' => 1,
@@ -132,15 +144,38 @@ class BggClient
             }
 
             foreach ($xml->item as $item) {
-                $details[(int) $item['id']] = $this->parseGameDetail($item);
+                $id = (int) $item['id'];
+                $detail = $this->parseGameDetail($item);
+
+                Cache::put($this->cacheKey($id), $detail, $this->cacheTtl());
+                $details[$id] = $detail;
             }
         }
 
         return $details;
     }
 
+    private function cacheKey(int $bggId): string
+    {
+        return "bgg:thing:{$bggId}";
+    }
+
+    private function cacheTtl(): int
+    {
+        return (int) config('bgg.cache_ttl');
+    }
+
     /**
-     * @return array{mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_id: ?int, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float}
+     * The single source of truth for everything /thing knows about a game -
+     * shared by the bulk import path (fetchGameDetails) and the single-game
+     * lookup path (fetchGameByBggId), and what gets cached per BGG id. The
+     * bulk path only reads a handful of these keys back out (see
+     * BggImportService::upsertGames, which sources name/image/player counts
+     * from the /collection call instead), the rest exist for the lookup
+     * path - keeping one shape here instead of two nearly-identical parsers
+     * is what makes caching a single entry per id possible.
+     *
+     * @return array{name: string, image_url: ?string, mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_id: ?int, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int}
      */
     private function parseGameDetail(SimpleXMLElement $item): array
     {
@@ -168,7 +203,19 @@ class BggClient
             ? (float) $item->statistics->ratings->average['value']
             : null;
 
+        $name = '';
+
+        foreach ($item->name as $nameLink) {
+            if ((string) $nameLink['type'] === 'primary') {
+                $name = (string) $nameLink['value'];
+
+                break;
+            }
+        }
+
         return [
+            'name' => $name,
+            'image_url' => isset($item->image) && (string) $item->image !== '' ? (string) $item->image : null,
             'mechanics' => $mechanics,
             'categories' => $categories,
             'weight' => $weight,
@@ -181,6 +228,10 @@ class BggClient
             'min_age' => $this->minAgeOrNull($item->minage['value'] ?? null),
             'bgg_rank' => $this->extractBoardGameRank($item),
             'rating' => $rating,
+            'min_players' => $this->intOrNull($item->minplayers['value'] ?? null),
+            'max_players' => $this->intOrNull($item->maxplayers['value'] ?? null),
+            'min_playtime_minutes' => $this->intOrNull($item->minplaytime['value'] ?? null),
+            'max_playtime_minutes' => $this->intOrNull($item->maxplaytime['value'] ?? null),
         ];
     }
 
@@ -233,6 +284,12 @@ class BggClient
             ];
         }
 
+        $cached = Cache::get($this->cacheKey($bggId));
+
+        if ($cached !== null) {
+            return ['status' => 'ready', 'game' => $this->buildLookupResult($bggId, $cached)];
+        }
+
         $response = $this->httpClient()->get(self::BASE_URL.'/thing', [
             'id' => $bggId,
             'stats' => 1,
@@ -248,38 +305,30 @@ class BggClient
             return ['status' => 'error', 'message' => __('bgg.game_not_found')];
         }
 
-        return ['status' => 'ready', 'game' => $this->parseFullGameDetail($xml->item)];
+        $detail = $this->parseGameDetail($xml->item);
+        Cache::put($this->cacheKey($bggId), $detail, $this->cacheTtl());
+
+        return ['status' => 'ready', 'game' => $this->buildLookupResult($bggId, $detail)];
     }
 
     /**
+     * @param  array{name: string, image_url: ?string, mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_id: ?int, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int}  $detail
      * @return array{bgg_id: int, name: string, image_url: ?string, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int, weight: ?float, mechanics: list<string>, categories: list<string>}
      */
-    private function parseFullGameDetail(SimpleXMLElement $item): array
+    private function buildLookupResult(int $bggId, array $detail): array
     {
-        $name = '';
-
-        foreach ($item->name as $nameLink) {
-            if ((string) $nameLink['type'] === 'primary') {
-                $name = (string) $nameLink['value'];
-
-                break;
-            }
-        }
-
-        $detail = $this->parseGameDetail($item);
-
         return [
-            'bgg_id' => (int) $item['id'],
-            'name' => $name,
-            'image_url' => isset($item->image) && (string) $item->image !== '' ? (string) $item->image : null,
+            'bgg_id' => $bggId,
+            'name' => $detail['name'],
+            'image_url' => $detail['image_url'],
             'year_published' => $detail['year_published'],
             'min_age' => $detail['min_age'],
             'bgg_rank' => $detail['bgg_rank'],
             'rating' => $detail['rating'],
-            'min_players' => $this->intOrNull($item->minplayers['value'] ?? null),
-            'max_players' => $this->intOrNull($item->maxplayers['value'] ?? null),
-            'min_playtime_minutes' => $this->intOrNull($item->minplaytime['value'] ?? null),
-            'max_playtime_minutes' => $this->intOrNull($item->maxplaytime['value'] ?? null),
+            'min_players' => $detail['min_players'],
+            'max_players' => $detail['max_players'],
+            'min_playtime_minutes' => $detail['min_playtime_minutes'],
+            'max_playtime_minutes' => $detail['max_playtime_minutes'],
             'weight' => $detail['weight'],
             'mechanics' => $detail['mechanics'],
             'categories' => $detail['categories'],
