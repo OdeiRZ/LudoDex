@@ -230,6 +230,12 @@ describe('ImportBggView', () => {
       vi.spyOn(store, 'importBggCsv').mockImplementation(
         () => new Promise<BggCsvImportResult>((resolve) => { resolveImport = resolve }),
       )
+      // A successful import triggers a real (unmocked) games.fetchAll()
+      // call further down in this test - without stubbing it too, that
+      // hits the network for real, which CI has no backend to answer and
+      // fails as an unhandled rejection even though every assertion here
+      // still passes.
+      vi.spyOn(store, 'fetchAll').mockResolvedValue()
 
       await wrapper.find('[role="tab"]:nth-of-type(2)').trigger('click')
       const file = new File(['objectname,objectid'], 'collection.csv', { type: 'text/csv' })
