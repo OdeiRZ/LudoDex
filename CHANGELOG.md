@@ -144,6 +144,15 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Corregido
 
+- El título (y el resto del texto) de cada tarjeta de juego podía quedar
+  difícil de leer según qué zona de la imagen del juego cayera detrás
+  — en casos como "5 More Minutes" el título de la app llegaba a
+  solaparse casi por completo con el propio logo de la caja. El
+  degradado oscuro ya no se desvanece del todo en la parte alta de la
+  tarjeta, y el texto lleva ahora su propia sombra, así que se lee bien
+  independientemente de la imagen de fondo. De paso, las tarjetas son
+  algo menos altas — antes dejaban una franja de imagen sin ningún
+  texto encima, más grande de lo que hacía falta.
 - Reimportar una colección por usuario de BGG ya no borra las mecánicas
   o géneros que hubieras añadido a mano y que BGG no tenga en su propia
   lista para ese juego — antes se reemplazaba la lista entera con la de

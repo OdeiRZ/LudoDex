@@ -48,7 +48,7 @@ watch(
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  min-height: 220px;
+  min-height: 190px;
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--color-surface-hover);
@@ -56,7 +56,7 @@ watch(
 }
 
 .game-cover.compact {
-  min-height: 140px;
+  min-height: 120px;
 }
 
 .cover-image {
@@ -83,7 +83,15 @@ watch(
 
 /* Always a dark scrim regardless of light/dark theme - it sits over an
 arbitrary photo, not the app's own background, so it needs its own fixed
-contrast rather than the theme's card colors. */
+contrast rather than the theme's card colors. Never fades to fully
+transparent at its own top edge (unlike the old 100%-transparent version) -
+that edge is where the title sits, and a card with more content below it
+(wrapped badges, longer meta text) pushes the title further up into a
+taller scrim, landing it in a lighter part of the gradient on a
+percentage-based fade. The text-shadow below is the real guarantee though:
+it keeps the title/meta legible even in the worst case (a bright, busy
+part of the source photo right behind the text), independent of the
+gradient or how tall the scrim ends up being. */
 .cover-scrim {
   position: relative;
   z-index: 1;
@@ -92,11 +100,14 @@ contrast rather than the theme's card colors. */
   flex-direction: column;
   gap: var(--space-2);
   color: #fff;
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.9),
+    0 1px 8px rgba(0, 0, 0, 0.5);
   background: linear-gradient(
     to top,
-    rgba(15, 23, 42, 0.85) 0%,
-    rgba(15, 23, 42, 0.55) 65%,
-    transparent 100%
+    rgba(15, 23, 42, 0.9) 0%,
+    rgba(15, 23, 42, 0.75) 60%,
+    rgba(15, 23, 42, 0.35) 100%
   );
 }
 
