@@ -153,6 +153,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   independientemente de la imagen de fondo. De paso, las tarjetas son
   algo menos altas — antes dejaban una franja de imagen sin ningún
   texto encima, más grande de lo que hacía falta.
+- La imagen de cada tarjeta se recortaba centrada verticalmente, lo
+  que a menudo dejaba fuera la parte superior de la portada — la zona
+  donde suele estar el título o logo del propio juego. Ahora el
+  recorte favorece la parte de arriba (sin llegar a pegarse del todo,
+  para no perder según qué portadas cuyo logo está más centrado), y la
+  imagen lleva un borde blanco translúcido a los lados a modo de marco
+  sutil.
 - Reimportar una colección por usuario de BGG ya no borra las mecánicas
   o géneros que hubieras añadido a mano y que BGG no tenga en su propia
   lista para ese juego — antes se reemplazaba la lista entera con la de

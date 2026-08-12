@@ -64,7 +64,11 @@ watch(
   inset: 0;
   width: 100%;
   height: 100%;
+  box-sizing: border-box;
   object-fit: cover;
+  object-position: 50% 20%;
+  border-left: 4px solid rgba(255, 255, 255, 0.6);
+  border-right: 4px solid rgba(255, 255, 255, 0.6);
 }
 
 .cover-fallback {
