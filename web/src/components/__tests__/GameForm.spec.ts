@@ -165,6 +165,25 @@ describe('GameForm mechanics/genre translation', () => {
       expect.stringContaining('Juego de cartas'),
     ])
   })
+
+  // Confirms GameForm wires the real BGG tables into TagInput's normalize
+  // prop too, converging a hand-typed Spanish translation on the same
+  // English value a BGG import would store (TagInput.spec.ts covers the
+  // generic mechanism with a fake normalize function).
+  it('normalizes a hand-typed Spanish translation to the matching BGG English term', async () => {
+    const { wrapper, form } = mountGameForm(reactiveForm())
+
+    const mechanicsInput = wrapper.find('#mechanics')
+    await mechanicsInput.setValue('Colocación de trabajadores')
+    await mechanicsInput.trigger('keydown', { key: 'Enter' })
+
+    const categoriesInput = wrapper.find('#categories')
+    await categoriesInput.setValue('Juego de cartas')
+    await categoriesInput.trigger('keydown', { key: 'Enter' })
+
+    expect(form.mechanics).toEqual(['Worker Placement'])
+    expect(form.categories).toEqual(['Card Game'])
+  })
 })
 
 describe('GameForm base game selector', () => {

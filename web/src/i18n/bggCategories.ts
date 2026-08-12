@@ -85,3 +85,15 @@ export function translateCategory(category: string, locale: Locale): string {
 
   return ES_TRANSLATIONS[category] ?? category
 }
+
+const ES_TO_EN = new Map(Object.entries(ES_TRANSLATIONS).map(([en, es]) => [es.toLowerCase(), en]))
+
+// Hand-typed input that happens to match a known Spanish translation
+// converges on BGG's own English term instead of creating a second,
+// disconnected tag for the same category (regardless of the app's current
+// language - the point is one stored value, not what's on screen right
+// now). Anything not in this table, in either language, passes through
+// unchanged.
+export function normalizeCategory(value: string): string {
+  return ES_TO_EN.get(value.toLowerCase()) ?? value
+}

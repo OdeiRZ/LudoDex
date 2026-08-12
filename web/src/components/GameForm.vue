@@ -5,8 +5,8 @@ import { useI18n } from 'vue-i18n'
 import TagInput from '@/components/TagInput.vue'
 import { useGamesStore } from '@/stores/games'
 import { getLocale } from '@/i18n'
-import { translateCategory } from '@/i18n/bggCategories'
-import { translateMechanic } from '@/i18n/bggMechanics'
+import { translateCategory, normalizeCategory } from '@/i18n/bggCategories'
+import { translateMechanic, normalizeMechanic } from '@/i18n/bggMechanics'
 
 export interface GameFormData {
   name: string
@@ -245,6 +245,7 @@ async function onLookupBgg() {
       list-id="mechanics"
       :suggestions="games.mechanicOptions"
       :translate="translateMechanicLabel"
+      :normalize="normalizeMechanic"
     />
 
     <TagInput
@@ -253,6 +254,7 @@ async function onLookupBgg() {
       list-id="categories"
       :suggestions="games.categoryOptions"
       :translate="translateCategoryLabel"
+      :normalize="normalizeCategory"
     />
 
     <div>

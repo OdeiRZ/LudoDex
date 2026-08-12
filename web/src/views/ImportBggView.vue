@@ -192,7 +192,10 @@ onUnmounted(() => {
             {{ csvErrorMessage }}
           </p>
 
-          <p v-if="csvSubmitting" class="alert alert-info">{{ $t('importBgg.dontCloseTab') }}</p>
+          <p v-if="csvSubmitting" class="alert alert-info csv-submitting">
+            <LoadingSpinner :size="20" />
+            {{ $t('importBgg.dontCloseTab') }}
+          </p>
 
           <button type="submit" class="btn btn-primary" :disabled="csvSubmitting || !csvFile">
             {{ csvSubmitting ? $t('importBgg.csvSubmitting') : $t('importBgg.csvSubmit') }}
@@ -271,6 +274,12 @@ h1 {
   gap: var(--space-4);
   align-items: flex-start;
   color: var(--color-text-muted);
+}
+
+.csv-submitting {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .warnings {

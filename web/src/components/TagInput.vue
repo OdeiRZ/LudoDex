@@ -13,8 +13,14 @@ const props = withDefaults(
     // the identity function for tag sets with nothing to translate (e.g.
     // free-form, non-BGG values).
     translate?: (value: string) => string
+    // Runs on a value right before it's stored (typed free text or a
+    // picked suggestion alike), so e.g. a hand-typed translation of a
+    // known term can converge on the same stored value an import would
+    // use instead of creating a second, disconnected tag. Defaults to the
+    // identity function.
+    normalize?: (value: string) => string
   }>(),
-  { translate: (value: string) => value },
+  { translate: (value: string) => value, normalize: (value: string) => value },
 )
 
 const emit = defineEmits<{
@@ -43,10 +49,10 @@ const filteredSuggestions = computed(() => {
 })
 
 function addTag(value: string = draft.value) {
-  const trimmed = value.trim()
+  const normalized = props.normalize(value.trim())
 
-  if (trimmed && !props.modelValue.includes(trimmed)) {
-    emit('update:modelValue', [...props.modelValue, trimmed])
+  if (normalized && !props.modelValue.includes(normalized)) {
+    emit('update:modelValue', [...props.modelValue, normalized])
   }
 
   draft.value = ''

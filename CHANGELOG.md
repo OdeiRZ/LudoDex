@@ -128,6 +128,19 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   enlazar ahora nombra el juego base cuando lo tenemos en caché de una
   consulta anterior a BGG (de cualquier importación o "Rellenar desde
   BGG"), en vez del mensaje genérico de siempre.
+- Al escribir a mano una mecánica o género en el formulario de
+  añadir/editar juego, si el texto coincide con la traducción al
+  español de un término conocido de BGG (p. ej. escribir "Colocación
+  de trabajadores"), se guarda directamente como el término original en
+  inglés ("Worker Placement"), el mismo que usan las importaciones de
+  BGG — así ambas fuentes convergen en la misma etiqueta en vez de
+  quedar como dos etiquetas distintas para lo mismo. Solo afecta a los
+  términos que ya conocíamos por las tablas de traducción; cualquier
+  otro texto se guarda tal cual, como hasta ahora.
+- Indicador de carga (el dado girando) durante una importación por
+  CSV, igual que ya tenía la importación por usuario — antes solo se
+  veía el aviso de texto "no cierres esta pestaña", sin ninguna
+  animación mientras se esperaba.
 
 ### Corregido
 

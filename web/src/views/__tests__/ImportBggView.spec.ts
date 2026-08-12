@@ -3,6 +3,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import ImportBggView from '@/views/ImportBggView.vue'
 import { useGamesStore, type BggCsvImportResult } from '@/stores/games'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import { i18n } from '@/i18n'
 
 function mountImport() {
@@ -262,6 +263,7 @@ describe('ImportBggView', () => {
       await flushPromises()
 
       expect(wrapper.text()).toContain('No cierres ni recargues esta pestaña mientras se importa.')
+      expect(wrapper.find('.csv-submitting').findComponent(LoadingSpinner).exists()).toBe(true)
       expect(dispatchBeforeUnload().defaultPrevented).toBe(true)
 
       resolveImport({ imported_count: 1, skipped_expansions_count: 0, skipped_no_status_count: 0, warnings: [] })

@@ -7,6 +7,7 @@ function mountTagInput(
   modelValue: string[] = [],
   suggestions: string[] = [],
   translate?: (value: string) => string,
+  normalize?: (value: string) => string,
 ) {
   return mount(TagInput, {
     global: { plugins: [i18n] },
@@ -16,6 +17,7 @@ function mountTagInput(
       label: 'Mecánicas',
       listId: 'mechanics',
       ...(translate ? { translate } : {}),
+      ...(normalize ? { normalize } : {}),
     },
   })
 }
@@ -163,6 +165,40 @@ describe('TagInput', () => {
 
       const options = wrapper.findAll('.suggestions button').map((btn) => btn.text())
       expect(options).toEqual(['Juego de cartas'])
+    })
+  })
+
+  describe('normalize prop', () => {
+    const normalize = (value: string) => (value.toLowerCase() === 'juego de cartas' ? 'Card Game' : value)
+
+    it('converts a hand-typed value to its normalized form before storing it', async () => {
+      const wrapper = mountTagInput([], [], undefined, normalize)
+      const input = wrapper.find('input')
+
+      await input.setValue('Juego de cartas')
+      await input.trigger('keydown', { key: 'Enter' })
+
+      expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([['Card Game']])
+    })
+
+    it('treats a hand-typed value as a duplicate of an existing tag once normalized', async () => {
+      const wrapper = mountTagInput(['Card Game'], [], undefined, normalize)
+      const input = wrapper.find('input')
+
+      await input.setValue('juego de cartas')
+      await input.trigger('keydown', { key: 'Enter' })
+
+      expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    })
+
+    it('leaves a value normalize does not recognize untouched', async () => {
+      const wrapper = mountTagInput([], [], undefined, normalize)
+      const input = wrapper.find('input')
+
+      await input.setValue('Faroleo')
+      await input.trigger('keydown', { key: 'Enter' })
+
+      expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([['Faroleo']])
     })
   })
 })
