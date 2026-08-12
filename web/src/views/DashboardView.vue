@@ -237,10 +237,15 @@ async function onClearCollection() {
 </template>
 
 <style scoped>
+/* flex-end, not center: .header-actions stacks two buttons now, taller
+than the title-row next to it - centering them left a lot of dead air
+above the title and below it (on top of this row's own margin-bottom),
+pushing the search bar down for no reason. Bottom-aligning puts the
+title at the same baseline as "Añadir juego" instead. */
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
   margin-bottom: var(--space-6);
 }
 
