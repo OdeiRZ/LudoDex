@@ -7,5 +7,4 @@ return [
     'user_not_found' => 'BoardGameGeek user not found.',
     'game_not_found' => 'No game with that id was found on BoardGameGeek.',
     'csv_invalid_format' => "This file doesn't look like a BoardGameGeek collection export (missing expected columns).",
-    'csv_unparsed_mode' => ":name: couldn't recognize the mode/players in the private comment.",
 ];

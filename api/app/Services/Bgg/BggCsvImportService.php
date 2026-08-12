@@ -25,6 +25,7 @@ class BggCsvImportService
     private const REQUIRED_COLUMNS = [
         'objectname', 'objectid', 'itemtype', 'own', 'wishlist', 'privatecomment', 'avgweight',
         'minplaytime', 'maxplaytime', 'yearpublished', 'rank', 'average', 'bggrecagerange',
+        'minplayers', 'maxplayers',
     ];
 
     /**
@@ -46,7 +47,7 @@ class BggCsvImportService
         $skippedNoStatus = 0;
         $warnings = [];
 
-        DB::transaction(function () use ($handle, $header, $user, &$importedCount, &$skippedExpansions, &$skippedNoStatus, &$warnings) {
+        DB::transaction(function () use ($handle, $header, $user, &$importedCount, &$skippedExpansions, &$skippedNoStatus) {
             while (($row = fgetcsv($handle)) !== false) {
                 if (count($row) !== count($header)) {
                     continue;
@@ -115,12 +116,19 @@ class BggCsvImportService
                     $attributes['min_age'] = $minAge;
                 }
 
-                $parsed = $this->parsePrivateComment($data['privatecomment']);
+                $minPlayers = $this->parsePositiveInt($data['minplayers']);
+                if ($minPlayers !== null) {
+                    $attributes['min_players'] = $minPlayers;
+                }
 
-                if ($parsed !== null) {
-                    $attributes = [...$attributes, ...$parsed];
-                } else {
-                    $warnings[] = __('bgg.csv_unparsed_mode', ['name' => $data['objectname']]);
+                $maxPlayers = $this->parsePositiveInt($data['maxplayers']);
+                if ($maxPlayers !== null) {
+                    $attributes['max_players'] = $maxPlayers;
+                }
+
+                $mode = $this->parseMode($data['privatecomment']);
+                if ($mode !== null) {
+                    $attributes = [...$attributes, ...$mode];
                 }
 
                 $game = Game::updateOrCreate(['bgg_id' => $bggId], $attributes);
@@ -170,47 +178,30 @@ class BggCsvImportService
     }
 
     /**
-     * The user annotates every collection entry's "private comment" with
-     * their own mode and player count (e.g. "Cooperativo - 1/4",
-     * "Competitivo - 2", "Solitario"), sometimes followed by a free-text
-     * review on later lines - deliberately more trustworthy here than
-     * BGG's own box-reported min/maxplayers columns in the same export,
-     * since it reflects how they actually play a game rather than what
-     * the publisher printed (confirmed against real data: 48 of 281 rows
-     * in the reference export disagree with BGG's own numbers).
+     * Some collections (namely the app author's own) annotate the
+     * cooperative/competitive mode in the private comment's first line
+     * (e.g. "Cooperativo - 1/4") - a personal convention, not something
+     * any BGG export carries in a dedicated column, so unlike player
+     * counts (read from BGG's own minplayers/maxplayers columns above)
+     * there's no fallback source for this. Returning null when neither
+     * keyword is found leaves the flags alone instead of forcing them to
+     * false, the same way every other field here avoids overwriting a
+     * game's existing good data with blank/default values from a row
+     * that simply doesn't carry that information.
      *
-     * @return array{is_cooperative: bool, is_competitive: bool, min_players: int, max_players: ?int}|null
+     * @return array{is_cooperative: bool, is_competitive: bool}|null
      */
-    private function parsePrivateComment(string $raw): ?array
+    private function parseMode(string $raw): ?array
     {
-        $firstLine = trim(strtok($raw, "\n"));
+        $firstLine = mb_strtolower(trim(strtok($raw, "\n")));
 
-        if (preg_match('/^([^-]+?)\s*-\s*(\d+)(?:\s*\/\s*(\d+|X))?\s*$/ui', $firstLine, $m)) {
-            $mode = $m[1];
-            $min = (int) $m[2];
+        $isCooperative = str_contains($firstLine, 'cooperativo');
+        $isCompetitive = str_contains($firstLine, 'competitivo');
 
-            if (! isset($m[3])) {
-                $max = $min;
-            } elseif (ctype_digit($m[3])) {
-                $max = (int) $m[3];
-            } else {
-                $max = null;
-            }
-        } elseif (mb_strtolower($firstLine) === 'solitario') {
-            $mode = $firstLine;
-            $min = 1;
-            $max = 1;
-        } else {
+        if (! $isCooperative && ! $isCompetitive) {
             return null;
         }
 
-        $modeLower = mb_strtolower($mode);
-
-        return [
-            'is_cooperative' => str_contains($modeLower, 'cooperativo'),
-            'is_competitive' => str_contains($modeLower, 'competitivo'),
-            'min_players' => $min,
-            'max_players' => $max,
-        ];
+        return ['is_cooperative' => $isCooperative, 'is_competitive' => $isCompetitive];
     }
 }

@@ -38,6 +38,17 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   de cada juego quedaba vacía tras importar por CSV (a diferencia de la
   importación por usuario vía API, que sí la traía) y el filtro de
   duración de "¿A qué jugamos?" no tenía nada con lo que comparar.
+- El número de jugadores (mínimo/máximo) al importar el CSV de BGG se
+  sacaba únicamente interpretando el "comentario privado" de cada fila
+  (p. ej. "Cooperativo - 1/4"), una convención puramente personal del
+  propio autor de la app para anotar su colección, no algo que traiga
+  ninguna exportación de BGG en general. Cualquier fila sin ese
+  formato exacto se importaba sin jugadores en absoluto. Ahora el
+  número de jugadores se lee directamente de las columnas propias de
+  BGG `minplayers`/`maxplayers`; el comentario privado se sigue usando,
+  pero solo como fuente opcional del modo cooperativo/competitivo
+  cuando contiene esas palabras, sin generar ya ningún aviso si no las
+  reconoce.
 
 ## [0.2.0] - 2026-08-12
 
