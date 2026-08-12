@@ -20,6 +20,11 @@ class UpdateUserGameRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'max:255'],
             'image_url' => ['sometimes', 'nullable', 'url', 'max:2048'],
+            'bgg_id' => ['sometimes', 'nullable', 'integer', 'min:1'],
+            'year_published' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:'.(date('Y') + 1)],
+            'min_age' => ['sometimes', 'nullable', 'string', 'max:20'],
+            'bgg_rank' => ['sometimes', 'nullable', 'integer', 'min:1'],
+            'rating' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:10'],
             'min_players' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:99'],
             'max_players' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:99', 'gte:min_players'],
             'min_playtime_minutes' => ['sometimes', 'nullable', 'integer', 'min:1'],

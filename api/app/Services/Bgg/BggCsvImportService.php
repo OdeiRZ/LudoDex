@@ -14,15 +14,18 @@ use Illuminate\Validation\ValidationException;
  * application-approval process is still pending), since this file comes
  * from the user's own logged-in BGG session rather than the gated XML API.
  *
- * Deliberately narrower than the XML import: mechanics, categories, image
- * and playtime aren't in this export at all, and expansions are skipped
- * entirely because the file has no equivalent to the XML API's
- * expansion -> base game link, so an imported expansion could never be
- * excluded from the picker the way a properly-linked one is.
+ * Deliberately narrower than the XML import: mechanics, categories and
+ * image aren't in this export at all, and expansions are skipped entirely
+ * because the file has no equivalent to the XML API's expansion -> base
+ * game link, so an imported expansion could never be excluded from the
+ * picker the way a properly-linked one is.
  */
 class BggCsvImportService
 {
-    private const REQUIRED_COLUMNS = ['objectname', 'objectid', 'itemtype', 'own', 'wishlist', 'privatecomment', 'avgweight'];
+    private const REQUIRED_COLUMNS = [
+        'objectname', 'objectid', 'itemtype', 'own', 'wishlist', 'privatecomment', 'avgweight',
+        'minplaytime', 'maxplaytime', 'yearpublished', 'rank', 'average', 'bggrecagerange',
+    ];
 
     /**
      * @return array{imported_count: int, skipped_expansions_count: int, skipped_no_status_count: int, warnings: list<string>}
@@ -73,9 +76,43 @@ class BggCsvImportService
 
                 $attributes = ['name' => $data['objectname']];
 
-                $weight = $this->parseWeight($data['avgweight']);
+                $weight = $this->parsePositiveFloat($data['avgweight']);
                 if ($weight !== null) {
                     $attributes['weight'] = $weight;
+                }
+
+                $rating = $this->parsePositiveFloat($data['average']);
+                if ($rating !== null) {
+                    $attributes['rating'] = $rating;
+                }
+
+                $minPlaytime = $this->parsePositiveInt($data['minplaytime']);
+                if ($minPlaytime !== null) {
+                    $attributes['min_playtime_minutes'] = $minPlaytime;
+                }
+
+                $maxPlaytime = $this->parsePositiveInt($data['maxplaytime']);
+                if ($maxPlaytime !== null) {
+                    $attributes['max_playtime_minutes'] = $maxPlaytime;
+                }
+
+                $yearPublished = $this->parsePositiveInt($data['yearpublished']);
+                if ($yearPublished !== null) {
+                    $attributes['year_published'] = $yearPublished;
+                }
+
+                // 0 is BGG's own way of saying "unranked" (too few ratings
+                // to place it), not "we don't know" - parsePositiveInt
+                // already turns that into null, which is exactly what we
+                // want stored.
+                $rank = $this->parsePositiveInt($data['rank']);
+                if ($rank !== null) {
+                    $attributes['bgg_rank'] = $rank;
+                }
+
+                $minAge = trim($data['bggrecagerange']);
+                if ($minAge !== '') {
+                    $attributes['min_age'] = $minAge;
                 }
 
                 $parsed = $this->parsePrivateComment($data['privatecomment']);
@@ -118,11 +155,18 @@ class BggCsvImportService
         return null;
     }
 
-    private function parseWeight(string $raw): ?float
+    private function parsePositiveFloat(string $raw): ?float
     {
         $value = (float) $raw;
 
         return $value > 0 ? round($value, 2) : null;
+    }
+
+    private function parsePositiveInt(string $raw): ?int
+    {
+        $value = (int) $raw;
+
+        return $value > 0 ? $value : null;
     }
 
     /**

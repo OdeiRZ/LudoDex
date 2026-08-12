@@ -17,6 +17,10 @@ class Game extends Model
         'bgg_id',
         'name',
         'image_url',
+        'year_published',
+        'min_age',
+        'bgg_rank',
+        'rating',
         'min_players',
         'max_players',
         'min_playtime_minutes',
@@ -35,6 +39,7 @@ class Game extends Model
             'is_competitive' => 'boolean',
             'has_campaign' => 'boolean',
             'weight' => 'float',
+            'rating' => 'float',
         ];
     }
 

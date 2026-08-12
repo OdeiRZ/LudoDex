@@ -6,7 +6,12 @@ use App\Models\Mechanic;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Testing\TestResponse;
 
-const CSV_HEADER = 'objectname,objectid,itemtype,own,wishlist,privatecomment,avgweight';
+const CSV_HEADER = 'objectname,objectid,itemtype,own,wishlist,privatecomment,avgweight,minplaytime,maxplaytime,yearpublished,rank,average,bggrecagerange';
+
+// Neutral values appended to every existing row below so they still match
+// CSV_HEADER's column count - the dedicated tests further down exercise
+// what each of these six fields actually parses into.
+const CSV_EXTRA = ['30', '60', '2020', '100', '7.5', '10+'];
 
 function csvUpload(string $header, array $rows): UploadedFile
 {
@@ -50,7 +55,7 @@ it('imports an owned game, parsing mode and players from the private comment', f
     $user = actingAsUser();
 
     $file = csvUpload(CSV_HEADER, [
-        ["\"Aeon's End\"", '191189', 'standalone', '1', '0', '"Cooperativo - 1/4"', '2.7997'],
+        ["\"Aeon's End\"", '191189', 'standalone', '1', '0', '"Cooperativo - 1/4"', '2.7997', ...CSV_EXTRA],
     ]);
 
     $response = postCsv($file)->assertOk();
@@ -75,7 +80,7 @@ it('imports a wishlist game as wishlist, not owned', function () {
     $user = actingAsUser();
 
     $file = csvUpload(CSV_HEADER, [
-        ['"Ark Nova"', '342942', 'standalone', '0', '1', '"Competitivo - 1/4"', '3.7'],
+        ['"Ark Nova"', '342942', 'standalone', '0', '1', '"Competitivo - 1/4"', '3.7', ...CSV_EXTRA],
     ]);
 
     postCsv($file)->assertOk();
@@ -88,8 +93,8 @@ it('recognizes the cooperative/competitive combo and the solo-only case', functi
     actingAsUser();
 
     $file = csvUpload(CSV_HEADER, [
-        ['"Combo Game"', '1', 'standalone', '1', '0', '"Cooperativo/Competitivo - 1/4"', '0'],
-        ['"Solo Game"', '2', 'standalone', '1', '0', '"Solitario"', '0'],
+        ['"Combo Game"', '1', 'standalone', '1', '0', '"Cooperativo/Competitivo - 1/4"', '0', ...CSV_EXTRA],
+        ['"Solo Game"', '2', 'standalone', '1', '0', '"Solitario"', '0', ...CSV_EXTRA],
     ]);
 
     postCsv($file)->assertOk();
@@ -108,7 +113,7 @@ it('treats a literal X maximum as no upper limit instead of a parse failure', fu
     actingAsUser();
 
     $file = csvUpload(CSV_HEADER, [
-        ['"Poker Dice"', '3', 'standalone', '1', '0', '"Competitivo - 2/X"', '1'],
+        ['"Poker Dice"', '3', 'standalone', '1', '0', '"Competitivo - 2/X"', '1', ...CSV_EXTRA],
     ]);
 
     postCsv($file)
@@ -123,7 +128,7 @@ it('imports the game anyway, with a warning, when the private comment format is 
     actingAsUser();
 
     $file = csvUpload(CSV_HEADER, [
-        ['"Mystery Game"', '4', 'standalone', '1', '0', '"no idea what this means"', '0'],
+        ['"Mystery Game"', '4', 'standalone', '1', '0', '"no idea what this means"', '0', ...CSV_EXTRA],
     ]);
 
     $response = test()->withHeader('Accept-Language', 'en')->withHeader('Accept', 'application/json')
@@ -140,7 +145,7 @@ it('skips expansions entirely, since this export has no expansion -> base game l
     $user = actingAsUser();
 
     $file = csvUpload(CSV_HEADER, [
-        ['"Some Expansion"', '5', 'expansion', '1', '0', '"Competitivo - 2/4"', '0'],
+        ['"Some Expansion"', '5', 'expansion', '1', '0', '"Competitivo - 2/4"', '0', ...CSV_EXTRA],
     ]);
 
     $response = postCsv($file)->assertOk();
@@ -156,7 +161,7 @@ it('skips a row that is neither owned nor wishlisted', function () {
     actingAsUser();
 
     $file = csvUpload(CSV_HEADER, [
-        ['"Traded Away"', '6', 'standalone', '0', '0', '"Competitivo - 2/4"', '0'],
+        ['"Traded Away"', '6', 'standalone', '0', '0', '"Competitivo - 2/4"', '0', ...CSV_EXTRA],
     ]);
 
     $response = postCsv($file)->assertOk();
@@ -169,7 +174,7 @@ it('updates rather than duplicates when the same bgg id is imported twice', func
     $user = actingAsUser();
 
     $makeFile = fn () => csvUpload(CSV_HEADER, [
-        ["\"Aeon's End\"", '191189', 'standalone', '1', '0', '"Cooperativo - 1/4"', '2.8'],
+        ["\"Aeon's End\"", '191189', 'standalone', '1', '0', '"Cooperativo - 1/4"', '2.8', ...CSV_EXTRA],
     ]);
 
     postCsv($makeFile())->assertOk();
@@ -186,7 +191,7 @@ it('does not wipe mechanics/categories already set on a game from a real BGG imp
     $game->categories()->attach(Category::factory()->create(['name' => 'Fantasy']));
 
     $file = csvUpload(CSV_HEADER, [
-        ["\"Aeon's End\"", '191189', 'standalone', '1', '0', '"Cooperativo - 1/4"', '2.8'],
+        ["\"Aeon's End\"", '191189', 'standalone', '1', '0', '"Cooperativo - 1/4"', '2.8', ...CSV_EXTRA],
     ]);
 
     postCsv($file)->assertOk();
@@ -197,8 +202,39 @@ it('does not wipe mechanics/categories already set on a game from a real BGG imp
 
 it('rejects unauthenticated requests', function () {
     $file = csvUpload(CSV_HEADER, [
-        ["\"Aeon's End\"", '191189', 'standalone', '1', '0', '"Cooperativo - 1/4"', '2.8'],
+        ["\"Aeon's End\"", '191189', 'standalone', '1', '0', '"Cooperativo - 1/4"', '2.8', ...CSV_EXTRA],
     ]);
 
     postCsv($file)->assertUnauthorized();
+});
+
+it('imports playtime, year, rank, rating and the literal age range from a row', function () {
+    actingAsUser();
+
+    $file = csvUpload(CSV_HEADER, [
+        ['"New Fields Game"', '7', 'standalone', '1', '0', '"Competitivo - 2/4"', '3.5', '45', '90', '2019', '120', '8.2', '4-12'],
+    ]);
+
+    postCsv($file)->assertOk();
+
+    $game = Game::where('bgg_id', 7)->first();
+    expect($game->min_playtime_minutes)->toBe(45)
+        ->and($game->max_playtime_minutes)->toBe(90)
+        ->and($game->year_published)->toBe(2019)
+        ->and($game->bgg_rank)->toBe(120)
+        ->and($game->rating)->toBe(8.2)
+        ->and($game->min_age)->toBe('4-12');
+});
+
+it('stores a null bgg_rank when the csv rank is 0, since that means unranked, not unknown', function () {
+    actingAsUser();
+
+    $file = csvUpload(CSV_HEADER, [
+        ['"Unranked Game"', '8', 'standalone', '1', '0', '"Competitivo - 2/4"', '2.0', '30', '60', '2021', '0', '6.5', '8+'],
+    ]);
+
+    postCsv($file)->assertOk();
+
+    $game = Game::where('bgg_id', 8)->first();
+    expect($game->bgg_rank)->toBeNull();
 });
