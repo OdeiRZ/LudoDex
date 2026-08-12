@@ -269,6 +269,16 @@ async function onClearCollection() {
   margin-left: auto;
 }
 
+/* Same fixed width for both, since they no longer sit next to each
+other where a shared flex parent could size them to match automatically
+- "Vaciar biblioteca" is the longer label in every language this app
+translates to, so it sets the width both buttons use. */
+.clear-library-btn,
+.add-game-btn {
+  min-width: 9.5rem;
+  justify-content: center;
+}
+
 .clear-confirm {
   border-color: var(--color-danger);
   margin-bottom: var(--space-4);
