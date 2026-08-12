@@ -141,3 +141,20 @@ describe('GameForm BGG lookup', () => {
     expect(form.rating).toBe(7.51)
   })
 })
+
+describe('GameForm mechanics/genre translation', () => {
+  // Confirms GameForm actually wires the real BGG translation tables into
+  // TagInput's translate prop (TagInput.spec.ts covers the generic
+  // mechanism itself with a fake translate function).
+  it('shows already-picked mechanics and genres translated to Spanish', () => {
+    const { wrapper } = mountGameForm(
+      reactiveForm({ mechanics: ['Worker Placement'], categories: ['Card Game'] }),
+    )
+
+    const tagTexts = wrapper.findAll('.tags li').map((li) => li.text())
+    expect(tagTexts).toEqual([
+      expect.stringContaining('Colocación de trabajadores'),
+      expect.stringContaining('Juego de cartas'),
+    ])
+  })
+})

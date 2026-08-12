@@ -182,7 +182,7 @@ return [
         'is_competitive' => 'competitivo',
         'has_campaign' => 'modo campaña',
         'mechanics' => 'mecánicas',
-        'categories' => 'categorías',
+        'categories' => 'género',
         'status' => 'estado',
         'notes' => 'notas',
     ],

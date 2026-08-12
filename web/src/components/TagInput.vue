@@ -1,12 +1,21 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 
-const props = defineProps<{
-  modelValue: string[]
-  suggestions: string[]
-  label: string
-  listId: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    modelValue: string[]
+    suggestions: string[]
+    label: string
+    listId: string
+    // Display-only: the stored value (in modelValue and every suggestion
+    // in the list below) always stays whatever was passed in - only the
+    // tag pill and suggestion button text run through this. Defaults to
+    // the identity function for tag sets with nothing to translate (e.g.
+    // free-form, non-BGG values).
+    translate?: (value: string) => string
+  }>(),
+  { translate: (value: string) => value },
+)
 
 const emit = defineEmits<{
   'update:modelValue': [value: string[]]
@@ -18,14 +27,18 @@ const isOpen = ref(false)
 // Shows every not-yet-picked suggestion on focus (not only once the user
 // starts typing, unlike a plain <datalist>) while still narrowing as they
 // type, and free text that matches nothing here still becomes a new tag on
-// Enter/blur - see addTag.
+// Enter/blur - see addTag. Matches against the translated label too, not
+// just the raw stored value, so typing "cartas" finds "Card Game" via its
+// Spanish translation "Juego de cartas".
 const filteredSuggestions = computed(() => {
   const query = draft.value.trim().toLowerCase()
 
   return props.suggestions.filter(
     (suggestion) =>
       !props.modelValue.includes(suggestion) &&
-      (query === '' || suggestion.toLowerCase().includes(query)),
+      (query === '' ||
+        suggestion.toLowerCase().includes(query) ||
+        props.translate(suggestion).toLowerCase().includes(query)),
   )
 })
 
@@ -73,8 +86,8 @@ function onBlur() {
 
     <ul v-if="modelValue.length" class="tags">
       <li v-for="tag in modelValue" :key="tag" class="badge">
-        {{ tag }}
-        <button type="button" :aria-label="$t('tagInput.remove', { tag })" @click="removeTag(tag)">×</button>
+        {{ translate(tag) }}
+        <button type="button" :aria-label="$t('tagInput.remove', { tag: translate(tag) })" @click="removeTag(tag)">×</button>
       </li>
     </ul>
 
@@ -104,7 +117,7 @@ function onBlur() {
                dropping focus back to <body>. Keyboard users can still add
                any suggestion by typing its text and pressing Enter. -->
           <button type="button" tabindex="-1" @mousedown.prevent="selectSuggestion(suggestion)">
-            {{ suggestion }}
+            {{ translate(suggestion) }}
           </button>
         </li>
       </ul>

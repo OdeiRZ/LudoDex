@@ -4,6 +4,9 @@ import { isAxiosError } from 'axios'
 import { useI18n } from 'vue-i18n'
 import TagInput from '@/components/TagInput.vue'
 import { useGamesStore } from '@/stores/games'
+import { getLocale } from '@/i18n'
+import { translateCategory } from '@/i18n/bggCategories'
+import { translateMechanic } from '@/i18n/bggMechanics'
 
 export interface GameFormData {
   name: string
@@ -35,6 +38,9 @@ defineProps<{
 const games = useGamesStore()
 const { t } = useI18n()
 const form = defineModel<GameFormData>({ required: true })
+const locale = computed(() => getLocale())
+const translateMechanicLabel = (value: string) => translateMechanic(value, locale.value)
+const translateCategoryLabel = (value: string) => translateCategory(value, locale.value)
 
 const bggLookupError = ref<string | null>(null)
 const bggLookupLoading = ref(false)
@@ -214,6 +220,7 @@ async function onLookupBgg() {
       :label="$t('gameForm.mechanics')"
       list-id="mechanics"
       :suggestions="games.mechanicOptions"
+      :translate="translateMechanicLabel"
     />
 
     <TagInput
@@ -221,6 +228,7 @@ async function onLookupBgg() {
       :label="$t('gameForm.categories')"
       list-id="categories"
       :suggestions="games.categoryOptions"
+      :translate="translateCategoryLabel"
     />
 
     <div>

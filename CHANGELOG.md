@@ -71,6 +71,15 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   no por el inglés. Una categoría que no esté en la tabla (por ejemplo,
   una escrita a mano en el catálogo) se muestra tal cual en vez de
   desaparecer.
+- Esa misma traducción, ahora también en las sugerencias de "Mecánicas"
+  y "Género" (antes "Categorías", unificado con el nombre que ya usaba
+  el selector del buscador) del formulario de alta/edición — tanto en
+  la lista desplegable como en las etiquetas ya añadidas a un juego.
+  Se puede buscar escribiendo en español o en inglés indistintamente
+  (p. ej. "trabajad" encuentra "Worker Placement" vía su traducción
+  "Colocación de trabajadores"). El texto libre para añadir mecánicas o
+  géneros que no existan todavía sigue funcionando igual que antes, sin
+  restringir a la lista.
 
 ### Corregido
 

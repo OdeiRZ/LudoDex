@@ -127,7 +127,7 @@ export default {
     structureLegend: 'Structure',
     hasCampaign: 'Campaign mode',
     mechanics: 'Mechanics',
-    categories: 'Categories',
+    categories: 'Genre',
     status: 'Status',
     owned: 'Own it',
     wishlist: 'Want it',
