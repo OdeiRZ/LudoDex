@@ -9,6 +9,11 @@ function reactiveForm(overrides: Partial<GameFormData> = {}): GameFormData {
   return reactive({
     name: '',
     image_url: null,
+    bgg_id: null,
+    year_published: null,
+    min_age: null,
+    bgg_rank: null,
+    rating: null,
     min_players: null,
     max_players: null,
     min_playtime_minutes: null,

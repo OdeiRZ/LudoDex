@@ -239,10 +239,17 @@ const filtered = computed(() => {
               }}
             </span>
           </p>
-          <p v-if="entry.game.is_cooperative || entry.game.is_competitive || entry.game.has_campaign" class="tags">
+          <p v-if="entry.game.is_cooperative || entry.game.is_competitive || entry.game.has_campaign || entry.game.bgg_id !== null" class="tags">
             <span v-if="entry.game.is_cooperative" class="badge badge-primary">{{ $t('picker.cooperative') }}</span>
             <span v-if="entry.game.is_competitive" class="badge badge-primary">{{ $t('picker.competitive') }}</span>
             <span v-if="entry.game.has_campaign" class="badge badge-accent">{{ $t('picker.campaign') }}</span>
+            <span v-if="entry.game.bgg_id !== null" class="badge badge-rank">
+              {{
+                entry.game.bgg_rank !== null
+                  ? $t('dashboard.rank', { rank: entry.game.bgg_rank })
+                  : $t('dashboard.unranked')
+              }}
+            </span>
           </p>
         </GameCard>
       </li>
@@ -371,6 +378,11 @@ contrast over a light patch of an arbitrary photo without a solid fill. */
 
 .results :deep(.badge-accent) {
   background: var(--color-accent);
+  color: #fff;
+}
+
+.results :deep(.badge-rank) {
+  background: rgba(255, 255, 255, 0.2);
   color: #fff;
 }
 

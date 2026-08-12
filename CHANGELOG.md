@@ -7,6 +7,38 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Añadido
+
+- Año de publicación, edad recomendada, ranking y valoración de BGG como
+  nuevos campos del juego, editables desde el formulario de
+  creación/edición y rellenados automáticamente al importar el CSV de
+  BGG (columnas `yearpublished`, `bggrecagerange`, `rank` y `average`
+  respectivamente). La edad recomendada se guarda tal cual la reporta
+  BGG (`"10+"`, `"4-12"`...) en vez de intentar reducirla a un único
+  número, ya que el formato no siempre es un rango limpio; se muestra
+  seguida de la palabra "años", igual que en la propia BGG. Para la
+  valoración se usa el campo `average` de BGG (la media simple de las
+  puntuaciones) y no `bayesaverage` ("Geek Rating", el valor ajustado
+  con el que BGG calcula su propio ranking): puede salir más alto en
+  juegos con pocos votos, pero es el número que BGG muestra de forma
+  más visible. Un ranking a `0` en el CSV de BGG significa "todavía sin
+  suficientes votos para tener puesto", no "desconocido" — se guarda
+  como ranking vacío y las tarjetas de la colección y del selector
+  muestran una insignia "Sin ranking en BGG" en vez de un "#0" sin
+  sentido. El id de BGG del juego (`objectid` en el CSV), aunque ya se
+  usaba internamente para no duplicar juegos al reimportar, nunca se
+  guardaba ni se mostraba al crear/editar un juego a mano a pesar de
+  tener ahí mismo el botón "Rellenar desde BGG" — ahora el propio campo
+  de ese id queda enlazado al juego real.
+
+### Corregido
+
+- El importador del CSV de BGG leía las columnas `minplaytime` y
+  `maxplaytime` del fichero pero nunca las guardaba, así que la duración
+  de cada juego quedaba vacía tras importar por CSV (a diferencia de la
+  importación por usuario vía API, que sí la traía) y el filtro de
+  duración de "¿A qué jugamos?" no tenía nada con lo que comparar.
+
 ## [0.2.0] - 2026-08-12
 
 ### Añadido

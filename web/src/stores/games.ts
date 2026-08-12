@@ -7,6 +7,10 @@ export interface Game {
   base_game_id: string | null
   name: string
   image_url: string | null
+  year_published: number | null
+  min_age: string | null
+  bgg_rank: number | null
+  rating: number | null
   min_players: number | null
   max_players: number | null
   min_playtime_minutes: number | null
@@ -29,6 +33,11 @@ export interface UserGame {
 export interface UserGamePayload {
   name: string
   image_url?: string | null
+  bgg_id?: number | null
+  year_published?: number | null
+  min_age?: string | null
+  bgg_rank?: number | null
+  rating?: number | null
   min_players?: number | null
   max_players?: number | null
   min_playtime_minutes?: number | null

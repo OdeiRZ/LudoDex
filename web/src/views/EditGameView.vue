@@ -30,6 +30,11 @@ const returnTo = computed(() =>
 const form = reactive<GameFormData>({
   name: '',
   image_url: null,
+  bgg_id: null,
+  year_published: null,
+  min_age: null,
+  bgg_rank: null,
+  rating: null,
   min_players: null,
   max_players: null,
   min_playtime_minutes: null,
@@ -58,6 +63,11 @@ function fillFormFromEntry() {
 
   form.name = game.name
   form.image_url = game.image_url
+  form.bgg_id = game.bgg_id
+  form.year_published = game.year_published
+  form.min_age = game.min_age
+  form.bgg_rank = game.bgg_rank
+  form.rating = game.rating
   form.min_players = game.min_players
   form.max_players = game.max_players
   form.min_playtime_minutes = game.min_playtime_minutes

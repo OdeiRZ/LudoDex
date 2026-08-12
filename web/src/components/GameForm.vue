@@ -8,6 +8,11 @@ import { useGamesStore } from '@/stores/games'
 export interface GameFormData {
   name: string
   image_url: string | null
+  bgg_id: number | null
+  year_published: number | null
+  min_age: string | null
+  bgg_rank: number | null
+  rating: number | null
   min_players: number | null
   max_players: number | null
   min_playtime_minutes: number | null
@@ -31,7 +36,6 @@ const games = useGamesStore()
 const { t } = useI18n()
 const form = defineModel<GameFormData>({ required: true })
 
-const bggId = ref<number | null>(null)
 const bggLookupError = ref<string | null>(null)
 const bggLookupLoading = ref(false)
 const imageBroken = ref(false)
@@ -58,7 +62,7 @@ const modeChoice = computed<ModeChoice>({
 })
 
 async function onLookupBgg() {
-  if (!bggId.value) {
+  if (!form.value.bgg_id) {
     return
   }
 
@@ -66,8 +70,9 @@ async function onLookupBgg() {
   bggLookupLoading.value = true
 
   try {
-    const game = await games.lookupBggGame(bggId.value)
+    const game = await games.lookupBggGame(form.value.bgg_id)
 
+    form.value.bgg_id = game.bgg_id
     form.value.name = game.name
     form.value.image_url = game.image_url
     form.value.min_players = game.min_players
@@ -94,7 +99,7 @@ async function onLookupBgg() {
       <legend>{{ $t('gameForm.bggImportLegend') }}</legend>
       <div class="bgg-lookup-row">
         <input
-          v-model.number="bggId"
+          v-model.number="form.bgg_id"
           type="number"
           min="1"
           :placeholder="$t('gameForm.bggIdPlaceholder')"
@@ -103,7 +108,7 @@ async function onLookupBgg() {
         <button
           type="button"
           class="btn"
-          :disabled="!bggId || bggLookupLoading"
+          :disabled="!form.bgg_id || bggLookupLoading"
           @click="onLookupBgg"
         >
           {{ bggLookupLoading ? $t('gameForm.bggFillLoading') : $t('gameForm.bggFillButton') }}
@@ -134,6 +139,31 @@ async function onLookupBgg() {
         class="game-image-preview"
         @error="imageBroken = true"
       />
+    </div>
+
+    <div class="field-row">
+      <div>
+        <label for="year_published">{{ $t('gameForm.yearPublished') }}</label>
+        <input id="year_published" v-model.number="form.year_published" type="number" min="1" />
+      </div>
+      <div>
+        <label for="min_age">{{ $t('gameForm.minAge') }}</label>
+        <div class="input-with-suffix">
+          <input id="min_age" v-model="form.min_age" type="text" :placeholder="$t('gameForm.minAgePlaceholder')" />
+          <span class="input-suffix">{{ $t('gameForm.years') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div>
+        <label for="bgg_rank">{{ $t('gameForm.bggRank') }}</label>
+        <input id="bgg_rank" v-model.number="form.bgg_rank" type="number" min="1" />
+      </div>
+      <div>
+        <label for="rating">{{ $t('gameForm.rating') }}</label>
+        <input id="rating" v-model.number="form.rating" type="number" min="0" max="10" step="0.01" />
+      </div>
     </div>
 
     <div class="field-row">
@@ -233,6 +263,23 @@ async function onLookupBgg() {
 
 .name-field label:not(:first-child) {
   margin-top: var(--space-2);
+}
+
+.input-with-suffix {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.input-with-suffix input {
+  flex: 1;
+  min-width: 0;
+}
+
+.input-suffix {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .game-image-preview {

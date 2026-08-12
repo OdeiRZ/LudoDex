@@ -115,9 +115,18 @@ async function onDelete(userGameId: string) {
       <li v-for="entry in filtered" :key="entry.id" class="game-card">
         <GameCard :image-url="entry.game.image_url" :compact="density === 'compact'">
           <h2>{{ entry.game.name }}</h2>
-          <span class="badge" :class="entry.status === 'owned' ? 'badge-primary' : 'badge-accent'">
-            {{ entry.status === 'owned' ? $t('dashboard.owned') : $t('dashboard.wishlist') }}
-          </span>
+          <div class="badge-row">
+            <span class="badge" :class="entry.status === 'owned' ? 'badge-primary' : 'badge-accent'">
+              {{ entry.status === 'owned' ? $t('dashboard.owned') : $t('dashboard.wishlist') }}
+            </span>
+            <span v-if="entry.game.bgg_id !== null" class="badge badge-rank">
+              {{
+                entry.game.bgg_rank !== null
+                  ? $t('dashboard.rank', { rank: entry.game.bgg_rank })
+                  : $t('dashboard.unranked')
+              }}
+            </span>
+          </div>
           <p v-if="entry.game.min_players || entry.game.max_players || entry.game.min_playtime_minutes || entry.game.max_playtime_minutes" class="meta">
             <span v-if="entry.game.min_players || entry.game.max_players">
               {{ $t('dashboard.players', { min: entry.game.min_players, max: entry.game.max_players }) }}
@@ -201,12 +210,15 @@ async function onDelete(userGameId: string) {
   overflow-wrap: anywhere;
 }
 
-/* Without this the badge stretches to the scrim's full width, since it's
-a direct child of a column flex container (align-items: stretch by
+/* Without this the badge row stretches to the scrim's full width, since
+it's a direct child of a column flex container (align-items: stretch by
 default) - the picker's badges look right because theirs sit inside their
 own row flex wrapper (.tags) instead of directly in the scrim. */
-.games :deep(.badge) {
+.games :deep(.badge-row) {
+  display: flex;
   align-self: flex-start;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
 /* The status badge's usual tinted-transparent fill assumes a solid card
@@ -219,6 +231,11 @@ light patch of the image, so it needs a solid fill here instead. */
 
 .games :deep(.badge-accent) {
   background: var(--color-accent);
+  color: #fff;
+}
+
+.games :deep(.badge-rank) {
+  background: rgba(255, 255, 255, 0.2);
   color: #fff;
 }
 
