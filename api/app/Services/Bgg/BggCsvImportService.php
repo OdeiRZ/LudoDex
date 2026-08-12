@@ -9,16 +9,19 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Imports a user's own collection from BGG's "Export as CSV" file - a
- * workaround for when BGG_APPLICATION_TOKEN isn't configured (or BGG's
+ * Imports a user's own collection from BGG's "Export as CSV" file - works
+ * even without BGG_APPLICATION_TOKEN configured (or while BGG's
  * application-approval process is still pending), since this file comes
  * from the user's own logged-in BGG session rather than the gated XML API.
  *
  * Deliberately narrower than the XML import: mechanics, categories and
- * image aren't in this export at all, and expansions are skipped entirely
- * because the file has no equivalent to the XML API's expansion -> base
- * game link, so an imported expansion could never be excluded from the
- * picker the way a properly-linked one is.
+ * image aren't in this export at all. Expansions are only linked to their
+ * base game when a token IS available - the CSV itself has no equivalent
+ * to the XML API's expansion -> base game link, so getting one means a
+ * /thing call BggClient can't make without a token. Without one, expansions
+ * are skipped entirely (this importer's original behaviour), since an
+ * imported-but-unlinked expansion could never be excluded from the picker
+ * the way a properly-linked one is.
  */
 class BggCsvImportService
 {
@@ -27,6 +30,8 @@ class BggCsvImportService
         'minplaytime', 'maxplaytime', 'yearpublished', 'rank', 'average', 'bggrecagerange',
         'minplayers', 'maxplayers',
     ];
+
+    public function __construct(private readonly BggClient $client) {}
 
     /**
      * @return array{imported_count: int, skipped_expansions_count: int, skipped_no_status_count: int, warnings: list<string>}
@@ -42,20 +47,50 @@ class BggCsvImportService
             throw ValidationException::withMessages(['file' => [__('bgg.csv_invalid_format')]]);
         }
 
+        $rows = [];
+
+        while (($row = fgetcsv($handle)) !== false) {
+            if (count($row) === count($header)) {
+                $rows[] = array_combine($header, $row);
+            }
+        }
+
+        fclose($handle);
+
+        // Needs every expansion's bgg_id up front, before processing any
+        // row, so the batched /thing lookup (fetchGameDetails already
+        // chunks this at BGG's own 20-id-per-request limit) only has to
+        // happen once for the whole file instead of once per row.
+        $hasToken = filled(config('bgg.application_token'));
+        $expansionBggIds = [];
+
+        if ($hasToken) {
+            foreach ($rows as $data) {
+                $bggId = (int) $data['objectid'];
+
+                if ($data['itemtype'] === 'expansion' && $bggId > 0) {
+                    $expansionBggIds[] = $bggId;
+                }
+            }
+        }
+
+        $expansionDetails = $expansionBggIds !== [] ? $this->client->fetchGameDetails($expansionBggIds) : [];
+
         $importedCount = 0;
         $skippedExpansions = 0;
         $skippedNoStatus = 0;
         $warnings = [];
+        $gamesByBggId = [];
+        $importedExpansionBggIds = [];
 
-        DB::transaction(function () use ($handle, $header, $user, &$importedCount, &$skippedExpansions, &$skippedNoStatus) {
-            while (($row = fgetcsv($handle)) !== false) {
-                if (count($row) !== count($header)) {
-                    continue;
-                }
+        DB::transaction(function () use (
+            $rows, $user, $hasToken, $expansionDetails,
+            &$importedCount, &$skippedExpansions, &$skippedNoStatus, &$warnings, &$gamesByBggId, &$importedExpansionBggIds
+        ) {
+            foreach ($rows as $data) {
+                $isExpansion = $data['itemtype'] === 'expansion';
 
-                $data = array_combine($header, $row);
-
-                if ($data['itemtype'] === 'expansion') {
+                if ($isExpansion && ! $hasToken) {
                     $skippedExpansions++;
 
                     continue;
@@ -135,11 +170,25 @@ class BggCsvImportService
 
                 $user->games()->updateOrCreate(['game_id' => $game->id], ['status' => $status]);
 
+                $gamesByBggId[$bggId] = $game;
+
+                if ($isExpansion) {
+                    $importedExpansionBggIds[] = $bggId;
+                }
+
                 $importedCount++;
             }
-        });
 
-        fclose($handle);
+            foreach ($importedExpansionBggIds as $bggId) {
+                $baseBggId = $expansionDetails[$bggId]['base_game_bgg_id'] ?? null;
+
+                if ($baseBggId !== null && isset($gamesByBggId[$baseBggId])) {
+                    $gamesByBggId[$bggId]->update(['base_game_id' => $gamesByBggId[$baseBggId]->id]);
+                } else {
+                    $warnings[] = __('bgg.csv_expansion_not_linked', ['name' => $gamesByBggId[$bggId]->name]);
+                }
+            }
+        });
 
         return [
             'imported_count' => $importedCount,

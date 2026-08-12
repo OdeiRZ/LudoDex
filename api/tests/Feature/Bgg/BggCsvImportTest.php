@@ -4,6 +4,7 @@ use App\Models\Category;
 use App\Models\Game;
 use App\Models\Mechanic;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\TestResponse;
 
 const CSV_HEADER = 'objectname,objectid,itemtype,own,wishlist,privatecomment,avgweight,minplaytime,maxplaytime,yearpublished,rank,average,bggrecagerange,minplayers,maxplayers';
@@ -142,8 +143,11 @@ it('leaves max_players unset when BGG reports 0 (no known maximum), instead of s
     expect($game->min_players)->toBe(2)->and($game->max_players)->toBeNull();
 });
 
-it('skips expansions entirely, since this export has no expansion -> base game link', function () {
+it('skips expansions entirely when no BGG token is configured, since the CSV alone has no base game link', function () {
     $user = actingAsUser();
+    config(['bgg.application_token' => null]);
+
+    Http::fake(fn () => Http::response('should not be called', 500));
 
     $file = csvUpload(CSV_HEADER, [
         ['"Some Expansion"', '5', 'expansion', '1', '0', '"Competitivo - 2/4"', '0', ...CSV_EXTRA, '2', '4'],
@@ -156,6 +160,72 @@ it('skips expansions entirely, since this export has no expansion -> base game l
 
     expect(Game::where('bgg_id', 5)->exists())->toBeFalse();
     expect($user->games()->count())->toBe(0);
+    Http::assertNothingSent();
+});
+
+it('imports and links an expansion to its base game when a BGG token is available', function () {
+    $user = actingAsUser();
+
+    Http::fake(fn () => Http::response(<<<'XML'
+    <?xml version="1.0" encoding="utf-8"?>
+    <items>
+        <item type="boardgameexpansion" id="9209">
+            <name type="primary" sortindex="1" value="Catan: Seafarers"/>
+            <link type="boardgameexpansion" id="13" value="Catan" inbound="true"/>
+        </item>
+    </items>
+    XML));
+
+    $file = csvUpload(CSV_HEADER, [
+        ['"Catan"', '13', 'standalone', '1', '0', '""', '0', ...CSV_EXTRA, '3', '4'],
+        ['"Catan: Seafarers"', '9209', 'expansion', '1', '0', '""', '0', ...CSV_EXTRA, '3', '4'],
+    ]);
+
+    $response = postCsv($file)->assertOk();
+
+    $response->assertJsonPath('data.imported_count', 2)
+        ->assertJsonPath('data.skipped_expansions_count', 0)
+        ->assertJsonPath('data.warnings', []);
+
+    $catan = Game::where('bgg_id', 13)->first();
+    $seafarers = Game::where('bgg_id', 9209)->first();
+
+    expect($seafarers->base_game_id)->toBe($catan->id);
+    expect($user->games()->count())->toBe(2);
+
+    // fetchGameDetails() only needs the expansion's own id - the base
+    // game's data all comes straight from its own CSV row, same as before.
+    Http::assertSent(fn ($request) => str_contains($request->url(), 'id=9209') && ! str_contains($request->url(), '13'));
+});
+
+it('imports an expansion without linking it, and warns about it, when its base game is not in the same file', function () {
+    actingAsUser();
+
+    Http::fake(fn () => Http::response(<<<'XML'
+    <?xml version="1.0" encoding="utf-8"?>
+    <items>
+        <item type="boardgameexpansion" id="9209">
+            <name type="primary" sortindex="1" value="Catan: Seafarers"/>
+            <link type="boardgameexpansion" id="13" value="Catan" inbound="true"/>
+        </item>
+    </items>
+    XML));
+
+    $file = csvUpload(CSV_HEADER, [
+        ['"Catan: Seafarers"', '9209', 'expansion', '1', '0', '""', '0', ...CSV_EXTRA, '3', '4'],
+    ]);
+
+    $response = postCsv($file)->assertOk();
+
+    $response->assertJsonPath('data.imported_count', 1)
+        ->assertJsonPath('data.skipped_expansions_count', 0);
+
+    $seafarers = Game::where('bgg_id', 9209)->first();
+    expect($seafarers)->not->toBeNull()
+        ->and($seafarers->base_game_id)->toBeNull();
+
+    expect($response->json('data.warnings'))->toHaveCount(1)
+        ->and($response->json('data.warnings.0'))->toContain('Catan: Seafarers');
 });
 
 it('skips a row that is neither owned nor wishlisted', function () {

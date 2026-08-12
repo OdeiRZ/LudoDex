@@ -151,6 +151,22 @@ describe('ImportBggView', () => {
     expect(fetchAllSpy).toHaveBeenCalled()
   })
 
+  it('shows a plain count, with no "expansions skipped" clause, when none were skipped', async () => {
+    const { wrapper, store } = mountImport()
+    vi.spyOn(store, 'importBggCsv').mockResolvedValue({
+      imported_count: 42,
+      skipped_expansions_count: 0,
+      skipped_no_status_count: 0,
+      warnings: [],
+    })
+    vi.spyOn(store, 'fetchAll').mockResolvedValue()
+
+    await submitCsv(wrapper)
+
+    expect(wrapper.text()).toContain('Importados 42 juegos.')
+    expect(wrapper.text()).not.toContain('omitidas')
+  })
+
   it('shows warnings returned alongside a successful CSV import', async () => {
     const { wrapper, store } = mountImport()
     vi.spyOn(store, 'importBggCsv').mockResolvedValue({

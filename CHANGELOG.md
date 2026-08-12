@@ -104,6 +104,19 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   juegos populares en común, o al reimportar la propia colección) - BGG
   pide explícitamente cachear resultados en vez de repetir peticiones
   innecesarias.
+- La importación por CSV ya no se salta las expansiones: si hay un token
+  de BGG configurado, se importan igual que cualquier otro juego y se
+  intentan enlazar con su juego base consultando BGG (misma llamada
+  agrupada de 20 en 20 que ya usaba la importación por usuario - probado
+  en vivo con un archivo real de 281 juegos, sin problemas de lentitud).
+  Cuando el juego base no está en ese mismo archivo, la expansión se
+  importa igualmente pero sin enlazar, y se añade un aviso indicándolo
+  en el resultado de la importación. Sin token configurado, el
+  comportamiento no cambia: se siguen omitiendo por completo, como
+  hasta ahora.
+- El mensaje final de la importación por CSV ya no menciona expansiones
+  omitidas cuando no se ha omitido ninguna (antes decía siempre "(0
+  expansiones omitidas por ahora)").
 
 ### Corregido
 

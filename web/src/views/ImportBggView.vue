@@ -202,10 +202,12 @@ onUnmounted(() => {
         <div v-else role="status" class="status-block">
           <p>
             {{
-              $t('importBgg.csvCompleted', {
-                count: csvResult.imported_count,
-                skipped: csvResult.skipped_expansions_count,
-              })
+              csvResult.skipped_expansions_count > 0
+                ? $t('importBgg.csvCompletedWithSkipped', {
+                    count: csvResult.imported_count,
+                    skipped: csvResult.skipped_expansions_count,
+                  })
+                : $t('importBgg.csvCompleted', { count: csvResult.imported_count })
             }}
           </p>
 

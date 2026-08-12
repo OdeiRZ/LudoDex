@@ -7,4 +7,5 @@ return [
     'user_not_found' => 'BoardGameGeek user not found.',
     'game_not_found' => 'No game with that id was found on BoardGameGeek.',
     'csv_invalid_format' => "This file doesn't look like a BoardGameGeek collection export (missing expected columns).",
+    'csv_expansion_not_linked' => 'The expansion ":name" was imported, but could not be linked to its base game (it is not in this same file).',
 ];
