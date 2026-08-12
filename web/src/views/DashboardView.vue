@@ -255,4 +255,13 @@ the theme's usual muted-text variable. */
   gap: var(--space-2);
   margin-top: var(--space-1);
 }
+
+/* At the compact grid's narrower card width, "Editar"/"Quitar" side by
+side at their normal padding/font-size don't fit - the card's own
+overflow: hidden then clips "Quitar" instead of letting it wrap or
+overflow visibly. */
+.games.compact :deep(.card-actions .btn) {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8rem;
+}
 </style>

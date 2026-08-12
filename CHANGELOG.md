@@ -55,6 +55,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   cambiaba el resultado en absoluto. Se retira; el formulario conserva
   el `@submit.prevent` solo para evitar que Intro en el campo de
   jugadores recargue la página.
+- Los botones "Editar"/"Quitar" de cada tarjeta en "Tu colección" se
+  cortaban en la vista compacta (el ancho de tarjeta más estrecho no
+  dejaba sitio para los dos uno junto al otro con su padding habitual,
+  y el propio recorte de la tarjeta ocultaba el sobrante en vez de
+  dejarlo desbordar). Ahora usan un padding y tamaño de letra más
+  pequeños solo en modo compacto; en modo cómodo y escritorio quedan
+  igual que antes. Detectado con una captura de la app en el móvil.
 
 ## [0.2.0] - 2026-08-12
 
