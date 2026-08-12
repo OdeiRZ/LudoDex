@@ -139,6 +139,10 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   contrapartida: si BGG deja de reportar una mecánica/género para un
   juego más adelante, esa etiqueta ya no desaparece sola — habría que
   quitarla a mano.
+- El selector "Es una expansión de" ofrecía toda la colección, incluidas
+  otras expansiones — elegir una de ellas como base habría creado una
+  cadena de dos niveles sin sentido (una expansión de otra expansión).
+  Ahora solo aparecen los juegos que son de verdad un juego base.
 
 - El importador del CSV de BGG leía las columnas `minplaytime` y
   `maxplaytime` del fichero pero nunca las guardaba, así que la duración

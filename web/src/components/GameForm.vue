@@ -48,11 +48,13 @@ const translateCategoryLabel = (value: string) => translateCategory(value, local
 
 // Only offered from the user's own collection, not the whole shared
 // catalog - the common case is owning both the expansion and its base
-// game, and a full-catalog search is a bigger feature (see the app's own
-// pending notes on this) left for later.
+// game, and a full-catalog search is a bigger feature left for later.
+// Also excludes games that are themselves already an expansion of
+// something else - picking one as a base would create a nonsensical
+// two-level chain (an expansion of an expansion).
 const baseGameOptions = computed(() =>
   [...new Map(games.collection.map((entry) => [entry.game.id, entry.game])).values()]
-    .filter((game) => game.id !== props.currentGameId)
+    .filter((game) => game.id !== props.currentGameId && game.base_game_id === null)
     .sort((a, b) => a.name.localeCompare(b.name)),
 )
 

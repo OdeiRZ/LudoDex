@@ -181,6 +181,18 @@ describe('GameForm base game selector', () => {
     expect(selectEl.options[selectEl.selectedIndex]?.text).toBe('No es una expansión')
   })
 
+  it('excludes a game that is already an expansion of something else, to avoid a two-level chain', () => {
+    const { wrapper } = mountGameForm(reactiveForm(), {
+      entries: [
+        makeEntry({ id: 'catan', name: 'Catan' }),
+        makeEntry({ id: 'seafarers', name: 'Seafarers', base_game_id: 'catan' }),
+      ],
+    })
+
+    const options = wrapper.find('#base_game_id').findAll('option')
+    expect(options.map((o) => o.text())).toEqual(['No es una expansión', 'Catan'])
+  })
+
   it('excludes the game currently being edited from its own base game options', () => {
     const { wrapper } = mountGameForm(reactiveForm(), {
       entries: [makeEntry({ id: 'catan', name: 'Catan' }), makeEntry({ id: 'seafarers', name: 'Seafarers' })],
