@@ -117,8 +117,28 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 - El mensaje final de la importación por CSV ya no menciona expansiones
   omitidas cuando no se ha omitido ninguna (antes decía siempre "(0
   expansiones omitidas por ahora)").
+- Selector "Es una expansión de" en el formulario de añadir/editar juego,
+  para marcar a mano que un juego es una expansión y de cuál — hasta
+  ahora era un dato que solo rellenaban las importaciones de BGG, sin
+  ninguna forma de corregirlo o completarlo manualmente. Ofrece los
+  juegos de tu propia colección (no todavía el catálogo completo
+  compartido entre usuarios), y no permite elegir el propio juego como
+  su base.
+- El aviso de una expansión importada por CSV que no se ha podido
+  enlazar ahora nombra el juego base cuando lo tenemos en caché de una
+  consulta anterior a BGG (de cualquier importación o "Rellenar desde
+  BGG"), en vez del mensaje genérico de siempre.
 
 ### Corregido
+
+- Reimportar una colección por usuario de BGG ya no borra las mecánicas
+  o géneros que hubieras añadido a mano y que BGG no tenga en su propia
+  lista para ese juego — antes se reemplazaba la lista entera con la de
+  BGG en cada importación, perdiendo silenciosamente cualquier etiqueta
+  propia. Ahora se añaden las de BGG sin quitar las que ya hubiera. La
+  contrapartida: si BGG deja de reportar una mecánica/género para un
+  juego más adelante, esa etiqueta ya no desaparece sola — habría que
+  quitarla a mano.
 
 - El importador del CSV de BGG leía las columnas `minplaytime` y
   `maxplaytime` del fichero pero nunca las guardaba, así que la duración

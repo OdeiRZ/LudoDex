@@ -24,15 +24,19 @@ export interface GameFormData {
   is_cooperative: boolean
   is_competitive: boolean
   has_campaign: boolean
+  base_game_id: string | null
   mechanics: string[]
   categories: string[]
   status: 'owned' | 'wishlist'
 }
 
-defineProps<{
+const props = defineProps<{
   submitting: boolean
   submitLabel: string
   errors: Record<string, string[]>
+  // The game currently being edited, if any - excluded from its own "base
+  // game" options below (a new game being added has none yet).
+  currentGameId?: string | null
 }>()
 
 const games = useGamesStore()
@@ -41,6 +45,16 @@ const form = defineModel<GameFormData>({ required: true })
 const locale = computed(() => getLocale())
 const translateMechanicLabel = (value: string) => translateMechanic(value, locale.value)
 const translateCategoryLabel = (value: string) => translateCategory(value, locale.value)
+
+// Only offered from the user's own collection, not the whole shared
+// catalog - the common case is owning both the expansion and its base
+// game, and a full-catalog search is a bigger feature (see the app's own
+// pending notes on this) left for later.
+const baseGameOptions = computed(() =>
+  [...new Map(games.collection.map((entry) => [entry.game.id, entry.game])).values()]
+    .filter((game) => game.id !== props.currentGameId)
+    .sort((a, b) => a.name.localeCompare(b.name)),
+)
 
 const bggLookupError = ref<string | null>(null)
 const bggLookupLoading = ref(false)
@@ -214,6 +228,14 @@ async function onLookupBgg() {
       <legend>{{ $t('gameForm.structureLegend') }}</legend>
       <label><input v-model="form.has_campaign" type="checkbox" /> {{ $t('gameForm.hasCampaign') }}</label>
     </fieldset>
+
+    <div>
+      <label for="base_game_id">{{ $t('gameForm.baseGame') }}</label>
+      <select id="base_game_id" v-model="form.base_game_id">
+        <option :value="null">{{ $t('gameForm.baseGameNone') }}</option>
+        <option v-for="game in baseGameOptions" :key="game.id" :value="game.id">{{ game.name }}</option>
+      </select>
+    </div>
 
     <TagInput
       v-model="form.mechanics"

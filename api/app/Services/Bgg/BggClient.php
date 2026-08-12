@@ -160,6 +160,26 @@ class BggClient
         return "bgg:thing:{$bggId}";
     }
 
+    /**
+     * Best-effort name lookup for a BGG id we may already know about from an
+     * earlier cached /thing call, without triggering a new one - used to
+     * name a game we don't have a Game row for at all (e.g. an expansion's
+     * base game that isn't in the same CSV/collection being imported).
+     * Returns null on a cache miss rather than falling back to a live BGG
+     * call, since this is only ever for a "nice to have" detail in a
+     * message, not something worth the extra request on its own.
+     */
+    public function getCachedGameName(int $bggId): ?string
+    {
+        $cached = Cache::get($this->cacheKey($bggId));
+
+        if ($cached === null || $cached['name'] === '') {
+            return null;
+        }
+
+        return $cached['name'];
+    }
+
     private function cacheTtl(): int
     {
         return (int) config('bgg.cache_ttl');

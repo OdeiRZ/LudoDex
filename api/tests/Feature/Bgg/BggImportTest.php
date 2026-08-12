@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\BggImport;
+use App\Models\Category;
 use App\Models\Game;
+use App\Models\Mechanic;
 use App\Models\User;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
@@ -160,6 +162,25 @@ it('imports owned games and expansions, linking the expansion to its base game',
         ->and($seafarers->min_age)->toBeNull()
         ->and($seafarers->bgg_rank)->toBeNull()
         ->and($seafarers->rating)->toBeNull();
+});
+
+it('keeps a manually-added mechanic/category after re-importing from BGG, instead of wiping it', function () {
+    $user = actingAsUser();
+    $catan = Game::factory()->create(['bgg_id' => 13, 'name' => 'Catan']);
+    $catan->mechanics()->attach(Mechanic::factory()->create(['name' => 'Homebrew Mechanic']));
+    $catan->categories()->attach(Category::factory()->create(['name' => 'Homebrew Category']));
+
+    fakeSuccessfulBggImport();
+
+    $this->postJson('/api/bgg-imports', ['bgg_username' => 'odei'])->assertCreated();
+
+    $mechanicNames = $catan->refresh()->mechanics->pluck('name')->sort()->values()->all();
+    $categoryNames = $catan->categories->pluck('name')->sort()->values()->all();
+
+    // BGG's own mechanics/categories for Catan (see thingXml()) are added
+    // alongside the homebrew ones, not instead of them.
+    expect($mechanicNames)->toBe(['Dice Rolling', 'Homebrew Mechanic', 'Trading'])
+        ->and($categoryNames)->toBe(['Homebrew Category', 'Negotiation']);
 });
 
 it('marks the collection status (owned vs wishlist) correctly', function () {

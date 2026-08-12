@@ -31,6 +31,7 @@ const form = reactive<GameFormData>({
   is_cooperative: false,
   is_competitive: false,
   has_campaign: false,
+  base_game_id: null,
   mechanics: [],
   categories: [],
   status: 'owned',

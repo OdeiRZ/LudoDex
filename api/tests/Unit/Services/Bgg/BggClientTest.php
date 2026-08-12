@@ -2,6 +2,7 @@
 
 use App\Services\Bgg\BggClient;
 use Illuminate\Http\Client\Request as ClientRequest;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 // fetchCollection() always makes two requests (boardgame, then
@@ -202,6 +203,21 @@ it('caches a /thing lookup so a second fetchGameByBggId for the same id does not
     Http::assertSentCount(1);
     expect($first['game']['name'])->toBe('Catan')
         ->and($second['game']['name'])->toBe('Catan');
+});
+
+it('returns a cached game name without making a BGG call', function () {
+    Cache::put('bgg:thing:13', ['name' => 'Catan'], now()->addDay());
+    Http::fake(fn () => Http::response('should not be called', 500));
+
+    expect((new BggClient)->getCachedGameName(13))->toBe('Catan');
+    Http::assertNothingSent();
+});
+
+it('returns null for a game name that is not cached, without making a BGG call either', function () {
+    Http::fake(fn () => Http::response('should not be called', 500));
+
+    expect((new BggClient)->getCachedGameName(999))->toBeNull();
+    Http::assertNothingSent();
 });
 
 it('only requests the ids not already cached in a mixed batch, keeping the cached one in the result', function () {

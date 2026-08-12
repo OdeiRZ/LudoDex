@@ -8,4 +8,5 @@ return [
     'game_not_found' => 'No se ha encontrado ningún juego con ese id en BoardGameGeek.',
     'csv_invalid_format' => 'Este archivo no parece ser una exportación de colección de BoardGameGeek (faltan columnas esperadas).',
     'csv_expansion_not_linked' => 'La expansión ":name" se ha importado, pero no se ha podido enlazar con su juego base (no está en este mismo archivo).',
+    'csv_expansion_not_linked_with_base_name' => 'La expansión ":name" se ha importado, pero no se ha podido enlazar con su juego base ":base_name" (no está en este mismo archivo).',
 ];

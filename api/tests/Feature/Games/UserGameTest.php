@@ -5,6 +5,7 @@ use App\Models\Game;
 use App\Models\Mechanic;
 use App\Models\User;
 use App\Models\UserGame;
+use Illuminate\Support\Str;
 
 it('rejects unauthenticated access', function () {
     $this->getJson('/api/games')->assertUnauthorized();
@@ -111,6 +112,58 @@ it('updates the underlying game fields and taxonomies', function () {
     ])->assertOk()
         ->assertJsonPath('data.game.name', 'New Name')
         ->assertJsonPath('data.game.mechanics', ['Deck Building']);
+});
+
+it('sets the base game when creating a game as an expansion of one already in the collection', function () {
+    actingAsUser();
+    $catan = Game::factory()->create(['name' => 'Catan']);
+
+    $response = $this->postJson('/api/games', [
+        'name' => 'Catan: Seafarers',
+        'base_game_id' => $catan->id,
+        'mechanics' => [],
+        'categories' => [],
+        'status' => 'owned',
+    ]);
+
+    $response->assertCreated()->assertJsonPath('data.game.base_game_id', $catan->id);
+});
+
+it('rejects a base_game_id that does not exist', function () {
+    actingAsUser();
+
+    $this->postJson('/api/games', [
+        'name' => 'Catan: Seafarers',
+        'base_game_id' => (string) Str::ulid(),
+        'mechanics' => [],
+        'categories' => [],
+        'status' => 'owned',
+    ])->assertUnprocessable()->assertJsonValidationErrors('base_game_id');
+});
+
+it('sets and later clears the base game on an existing game', function () {
+    $user = actingAsUser();
+    $catan = Game::factory()->create(['name' => 'Catan']);
+    $seafarers = Game::factory()->create(['name' => 'Catan: Seafarers']);
+    $userGame = UserGame::factory()->for($user)->for($seafarers)->create();
+
+    $this->putJson("/api/games/{$userGame->id}", ['base_game_id' => $catan->id])
+        ->assertOk()
+        ->assertJsonPath('data.game.base_game_id', $catan->id);
+
+    $this->putJson("/api/games/{$userGame->id}", ['base_game_id' => null])
+        ->assertOk()
+        ->assertJsonPath('data.game.base_game_id', null);
+});
+
+it('rejects setting a game as its own expansion', function () {
+    $user = actingAsUser();
+    $game = Game::factory()->create(['name' => 'Catan']);
+    $userGame = UserGame::factory()->for($user)->for($game)->create();
+
+    $this->putJson("/api/games/{$userGame->id}", ['base_game_id' => $game->id])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('base_game_id');
 });
 
 it('forbids updating another user\'s game entry', function () {

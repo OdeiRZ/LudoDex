@@ -33,6 +33,7 @@ class StoreUserGameRequest extends FormRequest
             'is_cooperative' => ['boolean'],
             'is_competitive' => ['boolean'],
             'has_campaign' => ['boolean'],
+            'base_game_id' => ['nullable', 'ulid', 'exists:games,id'],
 
             'mechanics' => ['array'],
             'mechanics.*' => ['string', 'max:255'],

@@ -128,6 +128,8 @@ export default {
     both: 'Ambos (Por equipos)',
     structureLegend: 'Estructura',
     hasCampaign: 'Modo campaña',
+    baseGame: 'Es una expansión de',
+    baseGameNone: 'No es una expansión',
     mechanics: 'Mecánicas',
     categories: 'Género',
     status: 'Estado',

@@ -3,7 +3,8 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { reactive } from 'vue'
 import GameForm, { type GameFormData } from '@/components/GameForm.vue'
-import { useGamesStore, type BggGameLookup } from '@/stores/games'
+import { useGamesStore, type BggGameLookup, type UserGame } from '@/stores/games'
+import { makeEntry } from '@/stores/__tests__/gameFixtures'
 import { i18n } from '@/i18n'
 
 function reactiveForm(overrides: Partial<GameFormData> = {}): GameFormData {
@@ -23,6 +24,7 @@ function reactiveForm(overrides: Partial<GameFormData> = {}): GameFormData {
     is_cooperative: false,
     is_competitive: false,
     has_campaign: false,
+    base_game_id: null,
     mechanics: [],
     categories: [],
     status: 'owned',
@@ -35,8 +37,13 @@ function reactiveForm(overrides: Partial<GameFormData> = {}): GameFormData {
 // radio mutates fields on that shared object directly rather than
 // reassigning the whole model, so tests pass a reactive() object too and
 // assert on it, the same way the real parent views observe changes.
-function mountGameForm(modelValue: GameFormData) {
+function mountGameForm(
+  modelValue: GameFormData,
+  options: { entries?: UserGame[]; currentGameId?: string | null } = {},
+) {
   setActivePinia(createPinia())
+  const games = useGamesStore()
+  games.collection = options.entries ?? []
 
   const wrapper = mount(GameForm, {
     global: { plugins: [i18n] },
@@ -45,6 +52,7 @@ function mountGameForm(modelValue: GameFormData) {
       submitting: false,
       submitLabel: 'Guardar',
       errors: {},
+      currentGameId: options.currentGameId ?? null,
     },
   })
 
@@ -156,5 +164,49 @@ describe('GameForm mechanics/genre translation', () => {
       expect.stringContaining('Colocación de trabajadores'),
       expect.stringContaining('Juego de cartas'),
     ])
+  })
+})
+
+describe('GameForm base game selector', () => {
+  it('offers every game in the collection, sorted by name, with "no es una expansión" as the default', () => {
+    const { wrapper } = mountGameForm(reactiveForm(), {
+      entries: [makeEntry({ id: 'root', name: 'Root' }), makeEntry({ id: 'catan', name: 'Catan' })],
+    })
+
+    const select = wrapper.find('#base_game_id')
+    const options = select.findAll('option')
+    expect(options.map((o) => o.text())).toEqual(['No es una expansión', 'Catan', 'Root'])
+
+    const selectEl = select.element as HTMLSelectElement
+    expect(selectEl.options[selectEl.selectedIndex]?.text).toBe('No es una expansión')
+  })
+
+  it('excludes the game currently being edited from its own base game options', () => {
+    const { wrapper } = mountGameForm(reactiveForm(), {
+      entries: [makeEntry({ id: 'catan', name: 'Catan' }), makeEntry({ id: 'seafarers', name: 'Seafarers' })],
+      currentGameId: 'seafarers',
+    })
+
+    const options = wrapper.find('#base_game_id').findAll('option')
+    expect(options.map((o) => o.text())).toEqual(['No es una expansión', 'Catan'])
+  })
+
+  it('pre-selects the game\'s current base game when editing an already-linked expansion', () => {
+    const { wrapper } = mountGameForm(
+      reactiveForm({ base_game_id: 'catan' }),
+      { entries: [makeEntry({ id: 'catan', name: 'Catan' })] },
+    )
+
+    expect((wrapper.find('#base_game_id').element as HTMLSelectElement).value).toBe('catan')
+  })
+
+  it('updates the model when a base game is picked', async () => {
+    const { wrapper, form } = mountGameForm(reactiveForm(), {
+      entries: [makeEntry({ id: 'catan', name: 'Catan' })],
+    })
+
+    await wrapper.find('#base_game_id').setValue('catan')
+
+    expect(form.base_game_id).toBe('catan')
   })
 })

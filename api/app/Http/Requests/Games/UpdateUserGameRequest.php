@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Games;
 
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -33,6 +34,14 @@ class UpdateUserGameRequest extends FormRequest
             'is_cooperative' => ['sometimes', 'boolean'],
             'is_competitive' => ['sometimes', 'boolean'],
             'has_campaign' => ['sometimes', 'boolean'],
+            'base_game_id' => [
+                'sometimes', 'nullable', 'ulid', 'exists:games,id',
+                function (string $attribute, mixed $value, Closure $fail) {
+                    if ($value !== null && $value === $this->route('userGame')?->game_id) {
+                        $fail(__('validation.custom.base_game_id.not_self'));
+                    }
+                },
+            ],
 
             'mechanics' => ['sometimes', 'array'],
             'mechanics.*' => ['string', 'max:255'],

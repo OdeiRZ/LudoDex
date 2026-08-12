@@ -4,6 +4,7 @@ use App\Models\Category;
 use App\Models\Game;
 use App\Models\Mechanic;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\TestResponse;
 
@@ -226,6 +227,32 @@ it('imports an expansion without linking it, and warns about it, when its base g
 
     expect($response->json('data.warnings'))->toHaveCount(1)
         ->and($response->json('data.warnings.0'))->toContain('Catan: Seafarers');
+});
+
+it('names the base game in the warning when it is already cached from an earlier BGG call', function () {
+    actingAsUser();
+    Cache::put('bgg:thing:13', ['name' => 'Catan'], now()->addDay());
+
+    Http::fake(fn () => Http::response(<<<'XML'
+    <?xml version="1.0" encoding="utf-8"?>
+    <items>
+        <item type="boardgameexpansion" id="9209">
+            <name type="primary" sortindex="1" value="Catan: Seafarers"/>
+            <link type="boardgameexpansion" id="13" value="Catan" inbound="true"/>
+        </item>
+    </items>
+    XML));
+
+    $file = csvUpload(CSV_HEADER, [
+        ['"Catan: Seafarers"', '9209', 'expansion', '1', '0', '""', '0', ...CSV_EXTRA, '3', '4'],
+    ]);
+
+    $response = postCsv($file)->assertOk();
+
+    expect($response->json('data.warnings'))->toHaveCount(1)
+        ->and($response->json('data.warnings.0'))
+        ->toContain('Catan: Seafarers')
+        ->toContain('Catan"');
 });
 
 it('skips a row that is neither owned nor wishlisted', function () {

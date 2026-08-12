@@ -184,9 +184,19 @@ class BggCsvImportService
 
                 if ($baseBggId !== null && isset($gamesByBggId[$baseBggId])) {
                     $gamesByBggId[$bggId]->update(['base_game_id' => $gamesByBggId[$baseBggId]->id]);
-                } else {
-                    $warnings[] = __('bgg.csv_expansion_not_linked', ['name' => $gamesByBggId[$bggId]->name]);
+
+                    continue;
                 }
+
+                // The base game isn't in this file, but it might already be
+                // cached from an earlier /thing call (anyone's import or
+                // lookup) - if so, name it in the warning instead of the
+                // generic message.
+                $baseName = $baseBggId !== null ? $this->client->getCachedGameName($baseBggId) : null;
+
+                $warnings[] = $baseName !== null
+                    ? __('bgg.csv_expansion_not_linked_with_base_name', ['name' => $gamesByBggId[$bggId]->name, 'base_name' => $baseName])
+                    : __('bgg.csv_expansion_not_linked', ['name' => $gamesByBggId[$bggId]->name]);
             }
         });
 

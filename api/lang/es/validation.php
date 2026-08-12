@@ -157,7 +157,9 @@ return [
     'uuid' => 'El campo :attribute debe ser un UUID válido.',
 
     'custom' => [
-        //
+        'base_game_id' => [
+            'not_self' => 'Un juego no puede ser expansión de sí mismo.',
+        ],
     ],
 
     'attributes' => [

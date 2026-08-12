@@ -47,6 +47,7 @@ export interface UserGamePayload {
   is_cooperative: boolean
   is_competitive: boolean
   has_campaign: boolean
+  base_game_id?: string | null
   mechanics: string[]
   categories: string[]
   status: 'owned' | 'wishlist'

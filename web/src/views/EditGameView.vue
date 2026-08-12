@@ -43,6 +43,7 @@ const form = reactive<GameFormData>({
   is_cooperative: false,
   is_competitive: false,
   has_campaign: false,
+  base_game_id: null,
   mechanics: [],
   categories: [],
   status: 'owned',
@@ -76,6 +77,7 @@ function fillFormFromEntry() {
   form.is_cooperative = game.is_cooperative
   form.is_competitive = game.is_competitive
   form.has_campaign = game.has_campaign
+  form.base_game_id = game.base_game_id
   form.mechanics = [...game.mechanics]
   form.categories = [...game.categories]
   form.status = status
@@ -176,6 +178,7 @@ async function onDelete() {
         :submitting="submitting"
         :submit-label="$t('editGame.submit')"
         :errors="errors"
+        :current-game-id="entry?.game.id"
       />
 
       <p v-if="isSlow" class="slow-request-hint">

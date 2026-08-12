@@ -128,6 +128,8 @@ export default {
     both: 'Both (Team-based)',
     structureLegend: 'Structure',
     hasCampaign: 'Campaign mode',
+    baseGame: 'Is an expansion of',
+    baseGameNone: 'Not an expansion',
     mechanics: 'Mechanics',
     categories: 'Genre',
     status: 'Status',

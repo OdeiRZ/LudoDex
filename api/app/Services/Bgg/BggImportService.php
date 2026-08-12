@@ -96,7 +96,7 @@ class BggImportService
                 ]
             );
 
-            $this->taxonomySyncer->sync($game, $mechanics, $categories);
+            $this->taxonomySyncer->syncFromBgg($game, $mechanics, $categories);
 
             $gamesByBggId[$item['bgg_id']] = $game;
         }
