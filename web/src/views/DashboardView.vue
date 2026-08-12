@@ -113,9 +113,19 @@ async function onClearCollection() {
           $t('common.gamesCount', { count: filtered.length })
         }}</span>
       </div>
-      <RouterLink :to="{ name: 'add-game' }" class="btn btn-primary">{{
-        $t('dashboard.addGame')
-      }}</RouterLink>
+      <div class="header-actions">
+        <button
+          v-if="games.loaded && games.collection.length > 0"
+          type="button"
+          class="btn btn-danger clear-library-btn"
+          @click="openClearConfirm"
+        >
+          {{ $t('dashboard.clearLibrary') }}
+        </button>
+        <RouterLink :to="{ name: 'add-game' }" class="btn btn-primary">{{
+          $t('dashboard.addGame')
+        }}</RouterLink>
+      </div>
     </div>
 
     <p v-if="games.loading" class="loading-state">
@@ -146,9 +156,6 @@ async function onClearCollection() {
           {{ sortOrder === 'asc' ? 'A → Z' : 'Z → A' }}
         </button>
         <DensityToggle :density="density" @toggle="toggleDensity" />
-        <button type="button" class="btn btn-danger clear-library-btn" @click="openClearConfirm">
-          {{ $t('dashboard.clearLibrary') }}
-        </button>
       </div>
 
       <div v-if="clearConfirmOpen" class="clear-confirm card" role="alertdialog">
@@ -243,6 +250,20 @@ async function onClearCollection() {
   gap: var(--space-2);
 }
 
+/* No explicit width needed - a flex column's default align-items: stretch
+already makes every child match the width of the widest one (here,
+"Vaciar biblioteca"), which is exactly what "same size" means for two
+buttons with different label lengths. */
+.header-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.header-actions .btn {
+  justify-content: center;
+}
+
 .count {
   color: var(--color-text-muted);
   font-size: 0.9rem;
@@ -258,10 +279,6 @@ async function onClearCollection() {
 
 .search-row input {
   max-width: 320px;
-}
-
-.clear-library-btn {
-  margin-left: auto;
 }
 
 .clear-confirm {
