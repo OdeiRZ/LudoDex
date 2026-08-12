@@ -201,4 +201,44 @@ describe('PickerView', () => {
       expect(gameNames()).toEqual(['Friday'])
     })
   })
+
+  describe('genre translation', () => {
+    // BGG's category vocabulary is always in English, regardless of the
+    // app's own language - unlike the fixtures above (arbitrary strings,
+    // not BGG's real names), these use BGG's actual category names to
+    // exercise the translation table itself.
+    it('shows BGG categories translated to Spanish, still sorted by the translated label', () => {
+      const wrapper = mountPicker([
+        makeEntry({ name: 'Catan', categories: ['Negotiation'] }),
+        makeEntry({ name: 'Root', categories: ['Card Game'] }),
+      ])
+
+      const options = wrapper.findAll('#category option').map((option) => option.text())
+
+      // "Juego de cartas" sorts before "Negociación" in Spanish, the
+      // opposite of "Card Game"/"Negotiation" in English - proves the sort
+      // itself uses the translated label, not the raw stored value.
+      expect(options).toEqual(['Cualquiera', 'Juego de cartas', 'Negociación'])
+    })
+
+    it('filters by the underlying English value even though the option shows the Spanish label', async () => {
+      const wrapper = mountPicker([
+        makeEntry({ name: 'Catan', categories: ['Negotiation'] }),
+        makeEntry({ name: 'Root', categories: ['Card Game'] }),
+      ])
+
+      await wrapper.find('#players').setValue('')
+      await wrapper.find('#category').setValue('Card Game')
+
+      const names = wrapper.findAll('.game-card h2').map((h2) => h2.text())
+      expect(names).toEqual(['Root'])
+    })
+
+    it('falls back to the original name for a category not in the translation table', () => {
+      const wrapper = mountPicker([makeEntry({ name: 'Homebrew', categories: ['Not A Real BGG Category'] })])
+
+      const options = wrapper.findAll('#category option').map((option) => option.text())
+      expect(options).toEqual(['Cualquiera', 'Not A Real BGG Category'])
+    })
+  })
 })

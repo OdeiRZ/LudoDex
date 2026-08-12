@@ -2,12 +2,15 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useGamesStore } from '@/stores/games'
 import { useCollectionDensity } from '@/composables/useCollectionDensity'
+import { getLocale } from '@/i18n'
+import { translateCategory } from '@/i18n/bggCategories'
 import DensityToggle from '@/components/DensityToggle.vue'
 import GameCard from '@/components/GameCard.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const games = useGamesStore()
 const { density, toggle: toggleDensity } = useCollectionDensity()
+const locale = computed(() => getLocale())
 
 // Starts at 2 rather than empty: the placeholder text has no room to
 // display fully next to the "Solo" button at this width, and most groups
@@ -66,7 +69,7 @@ const playable = computed(() =>
 // would otherwise show up as a choice that can never return a result here.
 const availableCategories = computed(() =>
   [...new Set(playable.value.flatMap(({ game }) => game.categories))].sort((a, b) =>
-    a.localeCompare(b),
+    translateCategory(a, locale.value).localeCompare(translateCategory(b, locale.value)),
   ),
 )
 
@@ -178,7 +181,7 @@ const filtered = computed(() => {
         <select id="category" v-model="categoryFilter">
           <option value="">{{ $t('picker.any') }}</option>
           <option v-for="category in availableCategories" :key="category" :value="category">
-            {{ category }}
+            {{ translateCategory(category, locale) }}
           </option>
         </select>
       </div>

@@ -62,6 +62,15 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   vinculados a BGG, o con muy pocos votos para tener puesto) se quedan
   siempre al final de la lista en ambos sentidos, en vez de intercalarse
   como si un "sin ranking" fuera mejor o peor que cualquier número real.
+- Traducción al castellano de las categorías de BGG en el selector
+  "Género" de "¿A qué jugamos?" (p. ej. "Card Game" → "Juego de
+  cartas"). BGG solo las da en inglés, sea cual sea el idioma de la
+  app, así que la traducción es solo de cara al usuario: el valor real
+  usado para filtrar sigue siendo el nombre en inglés de BGG, y el
+  desplegable se ordena alfabéticamente por la etiqueta ya traducida,
+  no por el inglés. Una categoría que no esté en la tabla (por ejemplo,
+  una escrita a mano en el catálogo) se muestra tal cual en vez de
+  desaparecer.
 
 ### Corregido
 
