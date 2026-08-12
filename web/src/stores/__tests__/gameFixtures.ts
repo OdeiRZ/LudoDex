@@ -5,6 +5,7 @@ export function makeGame(overrides: Partial<Game> = {}): Game {
     id: overrides.id ?? crypto.randomUUID(),
     bgg_id: null,
     base_game_id: null,
+    base_game_name: null,
     name: 'Juego',
     image_url: null,
     year_published: null,

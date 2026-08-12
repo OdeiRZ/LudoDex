@@ -22,7 +22,7 @@ class UserGameController extends Controller
     {
         $userGames = $request->user()
             ->games()
-            ->with(['game.mechanics', 'game.categories'])
+            ->with(['game.mechanics', 'game.categories', 'game.baseGame'])
             ->latest()
             ->get();
 
@@ -47,7 +47,7 @@ class UserGameController extends Controller
             ]);
         });
 
-        return new UserGameResource($userGame->load(['game.mechanics', 'game.categories']));
+        return new UserGameResource($userGame->load(['game.mechanics', 'game.categories', 'game.baseGame']));
     }
 
     public function update(UpdateUserGameRequest $request, UserGame $userGame): UserGameResource
@@ -72,7 +72,7 @@ class UserGameController extends Controller
             $userGame->update($request->safe()->only(['status', 'notes']));
         });
 
-        return new UserGameResource($userGame->load(['game.mechanics', 'game.categories']));
+        return new UserGameResource($userGame->load(['game.mechanics', 'game.categories', 'game.baseGame']));
     }
 
     public function destroy(UserGame $userGame): Response

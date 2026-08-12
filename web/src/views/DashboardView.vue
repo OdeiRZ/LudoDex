@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useGamesStore } from '@/stores/games'
 import { useToastStore } from '@/stores/toast'
 import { useCollectionDensity } from '@/composables/useCollectionDensity'
+import { useExpansionCounts } from '@/composables/useExpansionCounts'
 import DensityToggle from '@/components/DensityToggle.vue'
 import GameCard from '@/components/GameCard.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
@@ -94,6 +95,7 @@ const filtered = computed(() => {
 })
 
 const { density, toggle: toggleDensity } = useCollectionDensity()
+const expansionCounts = useExpansionCounts(computed(() => games.collection))
 
 async function onDelete(userGameId: string) {
   await games.deleteGame(userGameId)
@@ -246,6 +248,12 @@ async function onClearCollection() {
                   : $t('dashboard.unranked')
               }}
             </span>
+            <span v-if="expansionCounts[entry.game.id]" class="badge badge-expansion">
+              {{ $t('dashboard.expansionsCount', { count: expansionCounts[entry.game.id] }) }}
+            </span>
+            <span v-if="entry.game.base_game_id !== null" class="badge badge-expansion">
+              {{ $t('dashboard.expansionOf', { name: entry.game.base_game_name }) }}
+            </span>
           </div>
           <p v-if="entry.game.min_players || entry.game.max_players || entry.game.min_playtime_minutes || entry.game.max_playtime_minutes" class="meta">
             <span v-if="entry.game.min_players || entry.game.max_players">
@@ -394,7 +402,8 @@ light patch of the image, so it needs a solid fill here instead. */
   color: #fff;
 }
 
-.games :deep(.badge-rank) {
+.games :deep(.badge-rank),
+.games :deep(.badge-expansion) {
   background: rgba(255, 255, 255, 0.2);
   color: #fff;
 }

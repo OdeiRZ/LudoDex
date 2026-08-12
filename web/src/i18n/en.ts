@@ -89,6 +89,8 @@ export default {
     duration: '{min}–{max} min',
     rank: '#{rank} on BGG',
     unranked: 'Unranked on BGG',
+    expansionsCount: '+{count} expansions',
+    expansionOf: 'Expansion of {name}',
     edit: 'Edit',
     remove: 'Remove',
     toastRemoved: 'Game removed from your collection.',

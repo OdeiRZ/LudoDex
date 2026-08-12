@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useGamesStore } from '@/stores/games'
 import { useCollectionDensity } from '@/composables/useCollectionDensity'
+import { useExpansionCounts } from '@/composables/useExpansionCounts'
 import { getLocale } from '@/i18n'
 import { translateCategory } from '@/i18n/bggCategories'
 import DensityToggle from '@/components/DensityToggle.vue'
@@ -11,6 +12,7 @@ import LoadingSpinner from '@/components/LoadingSpinner.vue'
 const games = useGamesStore()
 const { density, toggle: toggleDensity } = useCollectionDensity()
 const locale = computed(() => getLocale())
+const expansionCounts = useExpansionCounts(computed(() => games.collection))
 
 // Starts at 2 rather than empty: the placeholder text has no room to
 // display fully next to the "Solo" button at this width, and most groups
@@ -237,7 +239,16 @@ const filtered = computed(() => {
               }}
             </span>
           </p>
-          <p v-if="entry.game.is_cooperative || entry.game.is_competitive || entry.game.has_campaign || entry.game.bgg_id !== null" class="tags">
+          <p
+            v-if="
+              entry.game.is_cooperative ||
+              entry.game.is_competitive ||
+              entry.game.has_campaign ||
+              entry.game.bgg_id !== null ||
+              expansionCounts[entry.game.id]
+            "
+            class="tags"
+          >
             <span v-if="entry.game.is_cooperative" class="badge badge-primary">{{ $t('picker.cooperative') }}</span>
             <span v-if="entry.game.is_competitive" class="badge badge-primary">{{ $t('picker.competitive') }}</span>
             <span v-if="entry.game.has_campaign" class="badge badge-accent">{{ $t('picker.campaign') }}</span>
@@ -247,6 +258,9 @@ const filtered = computed(() => {
                   ? $t('dashboard.rank', { rank: entry.game.bgg_rank })
                   : $t('dashboard.unranked')
               }}
+            </span>
+            <span v-if="expansionCounts[entry.game.id]" class="badge badge-expansion">
+              {{ $t('dashboard.expansionsCount', { count: expansionCounts[entry.game.id] }) }}
             </span>
           </p>
         </GameCard>
@@ -379,7 +393,8 @@ contrast over a light patch of an arbitrary photo without a solid fill. */
   color: #fff;
 }
 
-.results :deep(.badge-rank) {
+.results :deep(.badge-rank),
+.results :deep(.badge-expansion) {
   background: rgba(255, 255, 255, 0.2);
   color: #fff;
 }

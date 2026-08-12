@@ -80,6 +80,18 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   "Colocación de trabajadores"). El texto libre para añadir mecánicas o
   géneros que no existan todavía sigue funcionando igual que antes, sin
   restringir a la lista.
+- Vínculo visual entre un juego base y sus expansiones, tanto en "Tu
+  colección" como en "¿A qué jugamos?": la tarjeta del juego base
+  muestra una insignia "+N expansiones" contando cuántas de sus
+  expansiones están en la colección (tenidas o deseadas, sin
+  distinción), y la tarjeta de cada expansión muestra "Expansión de
+  [nombre]" en vez del contador. En el selector de "¿A qué jugamos?"
+  las expansiones ya no aparecían como resultado jugable por sí solas
+  (no tiene sentido elegirlas sueltas), pero ahora esa ausencia queda
+  explicada por el contador en la tarjeta del juego base en vez de ser
+  simplemente invisible. El nombre del juego base se resuelve en el
+  backend a partir de `base_game_id` para que se vea aunque ese juego
+  base no esté en la propia colección del usuario.
 
 ### Corregido
 

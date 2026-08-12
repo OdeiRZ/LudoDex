@@ -190,6 +190,35 @@ describe('DashboardView', () => {
     expect(useToastStore().message).toBe('Juego quitado de tu colección.')
   })
 
+  describe('expansion badges', () => {
+    it('shows an expansion count badge on a base game that has expansions in the collection', () => {
+      const catan = makeEntry({ id: 'catan', name: 'Catan' })
+      const seafarers = makeEntry({ base_game_id: 'catan', name: 'Catan: Seafarers' })
+
+      const { wrapper } = mountDashboard([catan, seafarers])
+
+      const catanCard = wrapper.findAll('.game-card').find((card) => card.text().includes('Catan') && !card.text().includes('Seafarers'))
+      expect(catanCard?.text()).toContain('+1 expansiones')
+    })
+
+    it('shows an "Expansión de X" badge on the expansion itself, not a count', () => {
+      const catan = makeEntry({ id: 'catan', name: 'Catan' })
+      const seafarers = makeEntry({ base_game_id: 'catan', base_game_name: 'Catan', name: 'Catan: Seafarers' })
+
+      const { wrapper } = mountDashboard([catan, seafarers])
+
+      const seafarersCard = wrapper.findAll('.game-card').find((card) => card.text().includes('Seafarers'))
+      expect(seafarersCard?.text()).toContain('Expansión de Catan')
+      expect(seafarersCard?.text()).not.toContain('expansiones')
+    })
+
+    it('shows neither badge for a standalone game with no base game and no expansions', () => {
+      const { wrapper } = mountDashboard([makeEntry({ name: 'Root' })])
+
+      expect(wrapper.find('.game-card').text()).not.toContain('expansi')
+    })
+  })
+
   describe('clearing the whole library', () => {
     it('does not show the confirmation panel by default', () => {
       const { wrapper } = mountDashboard([makeEntry({ name: 'Root' }), makeEntry({ name: 'Ark Nova' })])

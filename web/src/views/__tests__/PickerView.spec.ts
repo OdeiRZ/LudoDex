@@ -241,4 +241,21 @@ describe('PickerView', () => {
       expect(options).toEqual(['Cualquiera', 'Not A Real BGG Category'])
     })
   })
+
+  describe('expansion badge', () => {
+    it('shows an expansion count badge on a base game, counting owned and wishlisted expansions alike', () => {
+      const root = makeEntry({ name: 'Root' }, 'owned')
+      const expansion = makeEntry({ name: 'Root: Riverfolk', base_game_id: root.game.id }, 'wishlist')
+
+      const wrapper = mountPicker([root, expansion])
+
+      expect(wrapper.find('.game-card').text()).toContain('+1 expansiones')
+    })
+
+    it('never shows the badge for a game with no expansions in the collection', () => {
+      const wrapper = mountPicker([makeEntry({ name: 'Root' }, 'owned')])
+
+      expect(wrapper.find('.game-card').text()).not.toContain('expansi')
+    })
+  })
 })

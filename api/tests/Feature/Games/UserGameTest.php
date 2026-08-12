@@ -168,6 +168,17 @@ it('rejects unauthenticated requests to clear the collection', function () {
     $this->deleteJson('/api/games')->assertUnauthorized();
 });
 
+it('includes the base game name on an expansion, resolved via base_game_id', function () {
+    $user = actingAsUser();
+    $catan = Game::factory()->create(['name' => 'Catan']);
+    $seafarers = Game::factory()->create(['name' => 'Catan: Seafarers', 'base_game_id' => $catan->id]);
+    UserGame::factory()->for($user)->for($seafarers)->create();
+
+    $response = $this->getJson('/api/games');
+
+    $response->assertOk()->assertJsonPath('data.0.game.base_game_name', 'Catan');
+});
+
 it('lists the mechanics and categories catalog', function () {
     actingAsUser();
     Mechanic::factory()->count(3)->create();

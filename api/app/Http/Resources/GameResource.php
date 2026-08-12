@@ -20,6 +20,7 @@ class GameResource extends JsonResource
             'id' => $this->id,
             'bgg_id' => $this->bgg_id,
             'base_game_id' => $this->base_game_id,
+            'base_game_name' => $this->whenLoaded('baseGame', fn () => $this->baseGame?->name),
             'name' => $this->name,
             'image_url' => $this->image_url,
             'year_published' => $this->year_published,

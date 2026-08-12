@@ -5,6 +5,7 @@ export interface Game {
   id: string
   bgg_id: number | null
   base_game_id: string | null
+  base_game_name: string | null
   name: string
   image_url: string | null
   year_published: number | null
