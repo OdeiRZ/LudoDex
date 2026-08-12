@@ -75,6 +75,48 @@ describe('DashboardView', () => {
     expect(names()).toEqual(['Ark Nova', 'Catan', 'Root'])
   })
 
+  it('sorts by BGG rank when that criterion is selected, best rank first', async () => {
+    const { wrapper } = mountDashboard([
+      makeEntry({ name: 'Mid', bgg_rank: 50 }),
+      makeEntry({ name: 'Best', bgg_rank: 1 }),
+      makeEntry({ name: 'Worst', bgg_rank: 200 }),
+    ])
+
+    await wrapper.find('.sort-criterion').setValue('rank')
+
+    const names = wrapper.findAll('.game-card h2').map((h2) => h2.text())
+    expect(names).toEqual(['Best', 'Mid', 'Worst'])
+  })
+
+  it('reverses the rank order (worst first) when the sort button is clicked', async () => {
+    const { wrapper } = mountDashboard([
+      makeEntry({ name: 'Mid', bgg_rank: 50 }),
+      makeEntry({ name: 'Best', bgg_rank: 1 }),
+      makeEntry({ name: 'Worst', bgg_rank: 200 }),
+    ])
+
+    await wrapper.find('.sort-criterion').setValue('rank')
+    await wrapper.find('.sort-toggle').trigger('click')
+
+    const names = wrapper.findAll('.game-card h2').map((h2) => h2.text())
+    expect(names).toEqual(['Worst', 'Mid', 'Best'])
+  })
+
+  it('always sinks games with no BGG rank to the bottom, in either direction', async () => {
+    const { wrapper } = mountDashboard([
+      makeEntry({ name: 'Unranked', bgg_rank: null }),
+      makeEntry({ name: 'Best', bgg_rank: 1 }),
+      makeEntry({ name: 'Mid', bgg_rank: 50 }),
+    ])
+
+    await wrapper.find('.sort-criterion').setValue('rank')
+    const names = () => wrapper.findAll('.game-card h2').map((h2) => h2.text())
+    expect(names()).toEqual(['Best', 'Mid', 'Unranked'])
+
+    await wrapper.find('.sort-toggle').trigger('click')
+    expect(names()).toEqual(['Mid', 'Best', 'Unranked'])
+  })
+
   it('keeps sorting applied on top of the active search filter', async () => {
     const { wrapper } = mountDashboard([
       makeEntry({ name: 'Catan' }),

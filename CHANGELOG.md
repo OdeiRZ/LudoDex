@@ -39,6 +39,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   afectados. Como no hay soft-delete ni forma de deshacerlo, la
   confirmación no es un simple aviso: hay que escribir el número exacto
   de juegos de la colección para que el botón de confirmar se active.
+- Selector "Ordenar por" en "Tu colección" (Nombre / Ranking BGG),
+  junto al botón que ya invertía el orden A-Z ↔ Z-A — ahora ese mismo
+  botón invierte también mejor-ranking-primero ↔ peor-ranking-primero
+  cuando el criterio es el ranking. Los juegos sin ranking (no
+  vinculados a BGG, o con muy pocos votos para tener puesto) se quedan
+  siempre al final de la lista en ambos sentidos, en vez de intercalarse
+  como si un "sin ranking" fuera mejor o peor que cualquier número real.
 
 ### Corregido
 

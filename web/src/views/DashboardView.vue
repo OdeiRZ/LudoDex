@@ -30,13 +30,33 @@ onMounted(() => {
 // being practical well before that.
 const search = ref('')
 
-// Alphabetical only for now - other criteria (e.g. weight) can follow later
-// once there's a real need for them.
+type SortCriterion = 'name' | 'rank'
+
+const sortCriterion = ref<SortCriterion>('name')
 const sortOrder = ref<'asc' | 'desc'>('asc')
 
 function toggleSort() {
   sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
 }
+
+// The visible label always shows the *current* order; the aria-label/
+// title describe what clicking will change it to instead (the same
+// convention the old hardcoded "A → Z"/"Z → A" button already followed).
+const sortToggleLabel = computed(() => {
+  if (sortCriterion.value === 'rank') {
+    return sortOrder.value === 'asc' ? '#1 → #N' : '#N → #1'
+  }
+
+  return sortOrder.value === 'asc' ? 'A → Z' : 'Z → A'
+})
+
+const sortToggleActionLabel = computed(() => {
+  if (sortCriterion.value === 'rank') {
+    return sortOrder.value === 'asc' ? t('dashboard.sortRankDesc') : t('dashboard.sortRankAsc')
+  }
+
+  return sortOrder.value === 'asc' ? t('dashboard.sortDesc') : t('dashboard.sortAsc')
+})
 
 const filtered = computed(() => {
   const query = search.value.trim().toLowerCase()
@@ -47,6 +67,25 @@ const filtered = computed(() => {
   const base = query
     ? games.collection.filter((entry) => entry.game.name.toLowerCase().includes(query))
     : [...games.collection]
+
+  if (sortCriterion.value === 'rank') {
+    return base.sort((a, b) => {
+      const rankA = a.game.bgg_rank
+      const rankB = b.game.bgg_rank
+
+      // Games without a BGG rank (never linked, or too few votes on BGG
+      // to place them) have no meaningful position - they always sink to
+      // the bottom of the list regardless of sort direction, rather than
+      // being treated as rank 0 (which would put them first) or Infinity
+      // (which would flip to first on "worst first").
+      if (rankA === null && rankB === null) return 0
+      if (rankA === null) return 1
+      if (rankB === null) return -1
+
+      const cmp = rankA - rankB
+      return sortOrder.value === 'asc' ? cmp : -cmp
+    })
+  }
 
   return base.sort((a, b) => {
     const cmp = a.game.name.localeCompare(b.game.name)
@@ -141,14 +180,18 @@ async function onClearCollection() {
           :aria-label="$t('dashboard.searchLabel')"
           :placeholder="$t('dashboard.searchPlaceholder')"
         />
+        <select v-model="sortCriterion" :aria-label="$t('dashboard.sortByLabel')" class="sort-criterion">
+          <option value="name">{{ $t('dashboard.sortByName') }}</option>
+          <option value="rank">{{ $t('dashboard.sortByRank') }}</option>
+        </select>
         <button
           type="button"
           class="btn sort-toggle"
-          :aria-label="sortOrder === 'asc' ? $t('dashboard.sortDesc') : $t('dashboard.sortAsc')"
-          :title="sortOrder === 'asc' ? $t('dashboard.sortDesc') : $t('dashboard.sortAsc')"
+          :aria-label="sortToggleActionLabel"
+          :title="sortToggleActionLabel"
           @click="toggleSort"
         >
-          {{ sortOrder === 'asc' ? 'A → Z' : 'Z → A' }}
+          {{ sortToggleLabel }}
         </button>
         <DensityToggle :density="density" @toggle="toggleDensity" />
         <RouterLink :to="{ name: 'add-game' }" class="btn btn-primary add-game-btn">{{
@@ -296,6 +339,12 @@ translates to, so it sets the width both buttons use. */
 .clear-confirm-row input {
   flex: 1;
   min-width: 160px;
+}
+
+.sort-criterion {
+  flex-shrink: 0;
+  width: auto;
+  max-width: 160px;
 }
 
 .sort-toggle {
