@@ -87,6 +87,14 @@ export default {
     edit: 'Editar',
     remove: 'Quitar',
     toastRemoved: 'Juego quitado de tu colección.',
+    clearLibrary: 'Vaciar biblioteca',
+    clearConfirmWarning:
+      'Esto quitará los {count} juegos de tu colección (el juego en sí seguirá en el catálogo compartido, solo se borra tu "Lo tengo"/"Lo quiero"). No se puede deshacer.',
+    clearConfirmInstructions: 'Escribe {count} para confirmar.',
+    clearConfirmPlaceholder: 'Escribe {count}',
+    clearConfirmButton: 'Vaciar biblioteca',
+    cancel: 'Cancelar',
+    toastCleared: 'Colección vaciada.',
   },
   gameForm: {
     bggImportLegend: 'Importar de BoardGameGeek (opcional)',

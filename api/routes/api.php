@@ -27,6 +27,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/games', [UserGameController::class, 'store']);
     Route::put('/games/{userGame}', [UserGameController::class, 'update']);
     Route::delete('/games/{userGame}', [UserGameController::class, 'destroy']);
+    Route::delete('/games', [UserGameController::class, 'clear']);
 
     Route::get('/mechanics', [MechanicController::class, 'index']);
     Route::get('/categories', [CategoryController::class, 'index']);

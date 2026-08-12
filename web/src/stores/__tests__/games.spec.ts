@@ -102,4 +102,15 @@ describe('useGamesStore', () => {
 
     expect(store.collection).toEqual([other])
   })
+
+  it('empties the collection after clearing it', async () => {
+    const store = useGamesStore()
+    store.collection = [makeEntry({ name: 'Root' }), makeEntry({ name: 'Ark Nova' })]
+    vi.mocked(apiClient.delete).mockResolvedValue({ data: null })
+
+    await store.clearCollection()
+
+    expect(apiClient.delete).toHaveBeenCalledWith('/games')
+    expect(store.collection).toEqual([])
+  })
 })

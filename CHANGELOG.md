@@ -30,6 +30,15 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   guardaba ni se mostraba al crear/editar un juego a mano a pesar de
   tener ahí mismo el botón "Rellenar desde BGG" — ahora el propio campo
   de ese id queda enlazado al juego real.
+- Botón "Vaciar biblioteca" en "Tu colección", para reiniciar de golpe
+  (p. ej. antes de una reimportación limpia) en vez de quitar juego a
+  juego. Solo borra las entradas de colección del usuario (su "Lo
+  tengo"/"Lo quiero" y notas); los juegos en sí son un catálogo
+  compartido y no se tocan, así que el resto de usuarios y los propios
+  datos del juego (mecánicas, ranking de BGG, etc.) no se ven
+  afectados. Como no hay soft-delete ni forma de deshacerlo, la
+  confirmación no es un simple aviso: hay que escribir el número exacto
+  de juegos de la colección para que el botón de confirmar se active.
 
 ### Corregido
 

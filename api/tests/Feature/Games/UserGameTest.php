@@ -139,6 +139,35 @@ it('forbids deleting another user\'s game entry', function () {
     $this->deleteJson("/api/games/{$userGame->id}")->assertForbidden();
 });
 
+it('clears the entire collection in one request', function () {
+    $user = actingAsUser();
+    UserGame::factory()->for($user)->count(3)->create();
+
+    $this->deleteJson('/api/games')->assertNoContent();
+
+    expect($user->games()->count())->toBe(0);
+});
+
+it('clearing the collection only affects the current user, not the underlying games or other users', function () {
+    $user = actingAsUser();
+    $otherUser = User::factory()->create();
+
+    $game = Game::factory()->create();
+    UserGame::factory()->for($user)->for($game)->create();
+    $otherUserGame = UserGame::factory()->for($otherUser)->create();
+
+    $this->deleteJson('/api/games')->assertNoContent();
+
+    expect($user->games()->count())->toBe(0);
+    expect($otherUser->games()->count())->toBe(1);
+    $this->assertDatabaseHas('user_games', ['id' => $otherUserGame->id]);
+    $this->assertDatabaseHas('games', ['id' => $game->id]);
+});
+
+it('rejects unauthenticated requests to clear the collection', function () {
+    $this->deleteJson('/api/games')->assertUnauthorized();
+});
+
 it('lists the mechanics and categories catalog', function () {
     actingAsUser();
     Mechanic::factory()->count(3)->create();

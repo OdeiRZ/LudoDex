@@ -141,6 +141,14 @@ export const useGamesStore = defineStore('games', {
       this.collection = this.collection.filter((entry) => entry.id !== userGameId)
     },
 
+    /** Only removes this user's collection entries (status/notes) - the
+     * underlying games are a catalog shared with everyone else, so they
+     * and other users' collections are untouched. */
+    async clearCollection() {
+      await apiClient.delete('/games')
+      this.collection = []
+    },
+
     async startBggImport(username: string): Promise<BggImportStatus> {
       const { data } = await apiClient.post('/bgg-imports', { bgg_username: username })
       return data.data

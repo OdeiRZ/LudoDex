@@ -60,6 +60,48 @@ async function onDelete(userGameId: string) {
   await games.deleteGame(userGameId)
   toast.show(t('dashboard.toastRemoved'))
 }
+
+// Clearing the whole collection is permanent (no soft-delete/undo on the
+// backend), so a plain "are you sure?" isn't enough friction - typing the
+// exact count makes the user actually look at how many games they're
+// about to lose instead of reflexively confirming a dialog. The count is
+// snapshotted when the panel opens rather than read live from
+// games.collection, so it can't silently change (or hit 0) while the
+// confirmation is still open.
+const clearConfirmOpen = ref(false)
+const clearConfirmCount = ref(0)
+const clearConfirmText = ref('')
+const clearing = ref(false)
+
+function openClearConfirm() {
+  clearConfirmCount.value = games.collection.length
+  clearConfirmText.value = ''
+  clearConfirmOpen.value = true
+}
+
+function closeClearConfirm() {
+  clearConfirmOpen.value = false
+}
+
+const clearConfirmMatches = computed(
+  () => clearConfirmText.value.trim() === String(clearConfirmCount.value),
+)
+
+async function onClearCollection() {
+  if (!clearConfirmMatches.value) {
+    return
+  }
+
+  clearing.value = true
+
+  try {
+    await games.clearCollection()
+    toast.show(t('dashboard.toastCleared'))
+    clearConfirmOpen.value = false
+  } finally {
+    clearing.value = false
+  }
+}
 </script>
 
 <template>
@@ -104,6 +146,36 @@ async function onDelete(userGameId: string) {
           {{ sortOrder === 'asc' ? 'A → Z' : 'Z → A' }}
         </button>
         <DensityToggle :density="density" @toggle="toggleDensity" />
+        <button type="button" class="btn btn-danger clear-library-btn" @click="openClearConfirm">
+          {{ $t('dashboard.clearLibrary') }}
+        </button>
+      </div>
+
+      <div v-if="clearConfirmOpen" class="clear-confirm card" role="alertdialog">
+        <p>{{ $t('dashboard.clearConfirmWarning', { count: clearConfirmCount }) }}</p>
+        <label for="clear-confirm-input">{{
+          $t('dashboard.clearConfirmInstructions', { count: clearConfirmCount })
+        }}</label>
+        <div class="clear-confirm-row">
+          <input
+            id="clear-confirm-input"
+            v-model="clearConfirmText"
+            type="text"
+            :placeholder="$t('dashboard.clearConfirmPlaceholder', { count: clearConfirmCount })"
+            autocomplete="off"
+          />
+          <button type="button" class="btn" :disabled="clearing" @click="closeClearConfirm">
+            {{ $t('dashboard.cancel') }}
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger"
+            :disabled="!clearConfirmMatches || clearing"
+            @click="onClearCollection"
+          >
+            {{ $t('dashboard.clearConfirmButton') }}
+          </button>
+        </div>
       </div>
 
       <p v-if="filtered.length === 0" class="empty-state">
@@ -181,10 +253,34 @@ async function onDelete(userGameId: string) {
   align-items: center;
   gap: var(--space-3);
   margin-bottom: var(--space-4);
+  flex-wrap: wrap;
 }
 
 .search-row input {
   max-width: 320px;
+}
+
+.clear-library-btn {
+  margin-left: auto;
+}
+
+.clear-confirm {
+  border-color: var(--color-danger);
+  margin-bottom: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.clear-confirm-row {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.clear-confirm-row input {
+  flex: 1;
+  min-width: 160px;
 }
 
 .sort-toggle {

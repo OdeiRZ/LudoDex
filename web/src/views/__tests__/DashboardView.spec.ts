@@ -141,10 +141,78 @@ describe('DashboardView', () => {
     const { wrapper, games } = mountDashboard([entry])
     vi.spyOn(games, 'deleteGame').mockResolvedValue()
 
-    await wrapper.find('.btn-danger').trigger('click')
+    await wrapper.find('.card-actions .btn-danger').trigger('click')
     await flushPromises()
 
     expect(games.deleteGame).toHaveBeenCalledWith(entry.id)
     expect(useToastStore().message).toBe('Juego quitado de tu colección.')
+  })
+
+  describe('clearing the whole library', () => {
+    it('does not show the confirmation panel by default', () => {
+      const { wrapper } = mountDashboard([makeEntry({ name: 'Root' }), makeEntry({ name: 'Ark Nova' })])
+
+      expect(wrapper.find('.clear-confirm').exists()).toBe(false)
+    })
+
+    it('shows the confirmation panel with the count once "Vaciar biblioteca" is clicked', async () => {
+      const { wrapper } = mountDashboard([makeEntry({ name: 'Root' }), makeEntry({ name: 'Ark Nova' })])
+
+      await wrapper.find('.clear-library-btn').trigger('click')
+
+      expect(wrapper.find('.clear-confirm').text()).toContain('2')
+    })
+
+    it('keeps the confirm button disabled until the typed text matches the exact count', async () => {
+      const { wrapper } = mountDashboard([makeEntry({ name: 'Root' })])
+
+      await wrapper.find('.clear-library-btn').trigger('click')
+      const confirmButton = wrapper.find('.clear-confirm-row .btn-danger')
+      expect(confirmButton.attributes('disabled')).toBeDefined()
+
+      await wrapper.find('#clear-confirm-input').setValue('2')
+      expect(confirmButton.attributes('disabled')).toBeDefined()
+
+      await wrapper.find('#clear-confirm-input').setValue('1')
+      expect(confirmButton.attributes('disabled')).toBeUndefined()
+    })
+
+    it('clears the collection once the count is confirmed', async () => {
+      const { wrapper, games } = mountDashboard([makeEntry({ name: 'Root' }), makeEntry({ name: 'Ark Nova' })])
+      vi.spyOn(games, 'clearCollection').mockResolvedValue()
+
+      await wrapper.find('.clear-library-btn').trigger('click')
+      await wrapper.find('#clear-confirm-input').setValue('2')
+      await wrapper.find('.clear-confirm-row .btn-danger').trigger('click')
+      await flushPromises()
+
+      expect(games.clearCollection).toHaveBeenCalledOnce()
+      expect(useToastStore().message).toBe('Colección vaciada.')
+      expect(wrapper.find('.clear-confirm').exists()).toBe(false)
+    })
+
+    it('does nothing and stays open when "Vaciar biblioteca" is clicked with a wrong count', async () => {
+      const { wrapper, games } = mountDashboard([makeEntry({ name: 'Root' })])
+      vi.spyOn(games, 'clearCollection').mockResolvedValue()
+
+      await wrapper.find('.clear-library-btn').trigger('click')
+      await wrapper.find('#clear-confirm-input').setValue('99')
+      await wrapper.find('.clear-confirm-row .btn-danger').trigger('click')
+      await flushPromises()
+
+      expect(games.clearCollection).not.toHaveBeenCalled()
+      expect(wrapper.find('.clear-confirm').exists()).toBe(true)
+    })
+
+    it('closes the panel without clearing anything when cancelled', async () => {
+      const { wrapper, games } = mountDashboard([makeEntry({ name: 'Root' })])
+      vi.spyOn(games, 'clearCollection').mockResolvedValue()
+
+      await wrapper.find('.clear-library-btn').trigger('click')
+      await wrapper.find('.clear-confirm-row').findAll('.btn').filter((b) => !b.classes('btn-danger'))[0].trigger('click')
+
+      expect(games.clearCollection).not.toHaveBeenCalled()
+      expect(wrapper.find('.clear-confirm').exists()).toBe(false)
+    })
   })
 })

@@ -87,6 +87,14 @@ export default {
     edit: 'Edit',
     remove: 'Remove',
     toastRemoved: 'Game removed from your collection.',
+    clearLibrary: 'Clear library',
+    clearConfirmWarning:
+      "This will remove all {count} games from your collection (the games themselves stay in the shared catalog - only your \"Own it\"/\"Want it\" is deleted). This can't be undone.",
+    clearConfirmInstructions: 'Type {count} to confirm.',
+    clearConfirmPlaceholder: 'Type {count}',
+    clearConfirmButton: 'Clear library',
+    cancel: 'Cancel',
+    toastCleared: 'Collection cleared.',
   },
   gameForm: {
     bggImportLegend: 'Import from BoardGameGeek (optional)',

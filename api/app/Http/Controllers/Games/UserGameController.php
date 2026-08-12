@@ -83,4 +83,20 @@ class UserGameController extends Controller
 
         return response()->noContent();
     }
+
+    /**
+     * Wipes the current user's entire collection in one go - a reset for
+     * whoever wants to start over (e.g. before a clean re-import) rather
+     * than removing each entry by hand. Only deletes the user_games rows
+     * that link this user to a game and its status/notes; the underlying
+     * Game rows are a catalog shared across every user, so other people's
+     * collections and the game data itself (mechanics, categories, BGG
+     * metadata...) are untouched.
+     */
+    public function clear(Request $request): Response
+    {
+        $request->user()->games()->delete();
+
+        return response()->noContent();
+    }
 }
