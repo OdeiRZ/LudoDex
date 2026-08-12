@@ -183,11 +183,6 @@ const filtered = computed(() => {
         </select>
       </div>
 
-      <div>
-        <span class="filter-label-spacer" aria-hidden="true">&nbsp;</span>
-        <button type="submit" class="btn btn-primary">{{ $t('picker.search') }}</button>
-      </div>
-
       <div v-if="games.loaded && playable.length" class="density-toggle-slot">
         <span class="filter-label-spacer" aria-hidden="true">&nbsp;</span>
         <DensityToggle :density="density" @toggle="toggleDensity" />

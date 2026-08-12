@@ -49,6 +49,12 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   pero solo como fuente opcional del modo cooperativo/competitivo
   cuando contiene esas palabras, sin generar ya ningún aviso si no las
   reconoce.
+- El botón "Buscar" de "¿A qué jugamos?" no hacía nada: los filtros ya
+  se aplican al momento sobre un valor reactivo en cuanto se cambian
+  (jugadores, duración, modo, categoría...), así que pulsarlo no
+  cambiaba el resultado en absoluto. Se retira; el formulario conserva
+  el `@submit.prevent` solo para evitar que Intro en el campo de
+  jugadores recargue la página.
 
 ## [0.2.0] - 2026-08-12
 

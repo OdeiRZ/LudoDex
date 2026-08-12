@@ -156,7 +156,6 @@ export default {
     mode: 'Modo',
     onlyCampaign: 'Con modo campaña',
     genre: 'Género',
-    search: 'Buscar',
     emptyOwned: 'No tienes juegos marcados como "Lo tengo" todavía.',
     addOne: 'Añade uno',
     noMatches: 'Ningún juego de tu colección encaja con estos filtros.',
