@@ -113,19 +113,14 @@ async function onClearCollection() {
           $t('common.gamesCount', { count: filtered.length })
         }}</span>
       </div>
-      <div class="header-actions">
-        <button
-          v-if="games.loaded && games.collection.length > 0"
-          type="button"
-          class="btn btn-danger clear-library-btn"
-          @click="openClearConfirm"
-        >
-          {{ $t('dashboard.clearLibrary') }}
-        </button>
-        <RouterLink :to="{ name: 'add-game' }" class="btn btn-primary">{{
-          $t('dashboard.addGame')
-        }}</RouterLink>
-      </div>
+      <button
+        v-if="games.loaded && games.collection.length > 0"
+        type="button"
+        class="btn btn-danger clear-library-btn"
+        @click="openClearConfirm"
+      >
+        {{ $t('dashboard.clearLibrary') }}
+      </button>
     </div>
 
     <p v-if="games.loading" class="loading-state">
@@ -156,6 +151,9 @@ async function onClearCollection() {
           {{ sortOrder === 'asc' ? 'A → Z' : 'Z → A' }}
         </button>
         <DensityToggle :density="density" @toggle="toggleDensity" />
+        <RouterLink :to="{ name: 'add-game' }" class="btn btn-primary add-game-btn">{{
+          $t('dashboard.addGame')
+        }}</RouterLink>
       </div>
 
       <div v-if="clearConfirmOpen" class="clear-confirm card" role="alertdialog">
@@ -237,15 +235,10 @@ async function onClearCollection() {
 </template>
 
 <style scoped>
-/* flex-end, not center: .header-actions stacks two buttons now, taller
-than the title-row next to it - centering them left a lot of dead air
-above the title and below it (on top of this row's own margin-bottom),
-pushing the search bar down for no reason. Bottom-aligning puts the
-title at the same baseline as "Añadir juego" instead. */
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   margin-bottom: var(--space-6);
 }
 
@@ -253,20 +246,6 @@ title at the same baseline as "Añadir juego" instead. */
   display: flex;
   align-items: baseline;
   gap: var(--space-2);
-}
-
-/* No explicit width needed - a flex column's default align-items: stretch
-already makes every child match the width of the widest one (here,
-"Vaciar biblioteca"), which is exactly what "same size" means for two
-buttons with different label lengths. */
-.header-actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.header-actions .btn {
-  justify-content: center;
 }
 
 .count {
@@ -284,6 +263,10 @@ buttons with different label lengths. */
 
 .search-row input {
   max-width: 320px;
+}
+
+.add-game-btn {
+  margin-left: auto;
 }
 
 .clear-confirm {
