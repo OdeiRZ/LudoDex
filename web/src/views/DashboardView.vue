@@ -396,6 +396,17 @@ their icon here instead, freeing up the room the full labels needed. */
     min-width: 0;
     padding: 0.5rem;
   }
+
+  /* "+" sits right after the density toggle here (not pushed to the
+  row's own far edge) - the trash icon above lines up with it instead of
+  with this row's own right edge, so the two read as a matched pair. */
+  .add-game-btn {
+    margin-left: 0;
+  }
+
+  .clear-library-btn {
+    margin-right: 20px;
+  }
 }
 
 .clear-confirm {
