@@ -34,6 +34,7 @@ const modeFilter = ref<'any' | 'cooperative' | 'competitive'>('any')
 // three-way any/campaign/arcade radio was one option too many.
 const onlyCampaign = ref(false)
 const categoryFilter = ref('')
+const search = ref('')
 
 onMounted(() => {
   if (!games.loaded) {
@@ -86,8 +87,11 @@ function asFilterNumber(value: number | null): number | null {
 const filtered = computed(() => {
   const minPlayersFilter = asFilterNumber(players.value)
   const maxDurationFilter = durationBucket.value === 'any' ? null : Number(durationBucket.value)
+  const query = search.value.trim().toLowerCase()
 
   return playable.value.filter(({ game }) => {
+    if (query !== '' && !game.name.toLowerCase().includes(query)) return false
+
     if (minPlayersFilter !== null) {
       if (game.min_players !== null && minPlayersFilter < game.min_players) return false
       if (game.max_players !== null && minPlayersFilter > game.max_players) return false
@@ -132,6 +136,16 @@ const filtered = computed(() => {
     </div>
 
     <form class="filters card" @submit.prevent>
+      <div>
+        <label for="search">{{ $t('picker.searchLabel') }}</label>
+        <input
+          id="search"
+          v-model="search"
+          type="search"
+          :placeholder="$t('picker.searchPlaceholder')"
+        />
+      </div>
+
       <div>
         <label for="players">{{ $t('picker.players') }}</label>
         <div class="players-row">

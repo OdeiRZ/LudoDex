@@ -162,6 +162,8 @@ export default {
   },
   picker: {
     title: '¿A qué jugamos?',
+    searchLabel: 'Buscar',
+    searchPlaceholder: 'Nombre del juego…',
     players: 'Jugadores',
     solo: 'Solo',
     duration: 'Minutos disponibles',

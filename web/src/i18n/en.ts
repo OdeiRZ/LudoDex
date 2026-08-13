@@ -162,6 +162,8 @@ export default {
   },
   picker: {
     title: 'What should we play?',
+    searchLabel: 'Search',
+    searchPlaceholder: 'Game name…',
     players: 'Players',
     solo: 'Solo',
     duration: 'Time available',

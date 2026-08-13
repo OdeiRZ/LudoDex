@@ -7,6 +7,15 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Añadido
+
+- Buscador por nombre en "¿A qué jugamos?", junto al resto de filtros
+  (jugadores, duración, modo, género) — con una colección de cientos
+  de juegos, incluso tras aplicar esos filtros puede quedar una lista
+  larga que recorrer. Funciona igual que el de "Tu colección": filtra
+  al momento sobre la lista ya cargada, combinándose con el resto de
+  filtros activos en vez de sustituirlos.
+
 ### Corregido
 
 - "Rellenar desde BGG" (en el formulario de añadir/editar juego) podía

@@ -149,6 +149,23 @@ describe('PickerView', () => {
       expect(gameNames()).toEqual(['Friday'])
     })
 
+    it('filters by name, case-insensitively', async () => {
+      await wrapper.find('#players').setValue('')
+      await wrapper.find('#search').setValue('ROOT')
+
+      expect(gameNames()).toEqual(['Root'])
+    })
+
+    it('combines the name search with the other active filters', async () => {
+      await wrapper.find('#players').setValue('')
+      await wrapper.find('input[type="radio"][value="cooperative"]').setValue()
+      await wrapper.find('#search').setValue('a')
+
+      // "a" matches both Friday and Catan by name, but the cooperative
+      // filter only leaves Friday - proving both filters apply together.
+      expect(gameNames()).toEqual(['Friday'])
+    })
+
     it('only offers categories that appear on an owned game', () => {
       const options = wrapper.findAll('#category option').map((option) => option.text())
       expect(options).toEqual(['Cualquiera', 'Asimétrico', 'Cartas', 'Control de territorio'])
