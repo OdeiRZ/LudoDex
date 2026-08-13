@@ -184,13 +184,13 @@ const filtered = computed(() => {
         <label><input v-model="modeFilter" type="radio" value="competitive" /> {{ $t('picker.competitive') }}</label>
       </fieldset>
 
-      <div>
-        <span class="filter-label-spacer" aria-hidden="true">&nbsp;</span>
+      <fieldset>
+        <legend>{{ $t('picker.structureLegend') }}</legend>
         <label class="checkbox-label">
           <input v-model="onlyCampaign" type="checkbox" />
           {{ $t('picker.onlyCampaign') }}
         </label>
-      </div>
+      </fieldset>
 
       <div v-if="availableCategories.length">
         <label for="category">{{ $t('picker.genre') }}</label>
