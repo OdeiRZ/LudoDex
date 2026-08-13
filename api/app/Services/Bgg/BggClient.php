@@ -215,12 +215,20 @@ class BggClient
             }
         }
 
+        // BGG reports these with far more precision than anyone needs (4-5
+        // decimal places is typical, e.g. "2.2809") - the game/edit form's
+        // number inputs only accept two (step="0.01", matching the DB
+        // columns' own decimal(_,2)), so an unrounded value filled in via
+        // "Rellenar desde BGG" failed the browser's own native validation
+        // on save. Rounds to two decimals here, the same as the CSV
+        // importer's parsePositiveFloat() already does, including treating
+        // a reported 0 (no votes yet) as "no data" rather than a real zero.
         $weight = isset($item->statistics->ratings->averageweight)
-            ? (float) $item->statistics->ratings->averageweight['value']
+            ? $this->positiveFloatOrNull((string) $item->statistics->ratings->averageweight['value'])
             : null;
 
         $rating = isset($item->statistics->ratings->average)
-            ? (float) $item->statistics->ratings->average['value']
+            ? $this->positiveFloatOrNull((string) $item->statistics->ratings->average['value'])
             : null;
 
         $name = '';
@@ -394,6 +402,19 @@ class BggClient
         }
 
         return (int) $value;
+    }
+
+    /**
+     * Same convention as BggCsvImportService::parsePositiveFloat(): 0 (or
+     * blank) means "no data yet", not a real zero, and the result is
+     * rounded to two decimals to match both the DB columns' own
+     * decimal(_,2) precision and the edit form's step="0.01" inputs.
+     */
+    private function positiveFloatOrNull(string $value): ?float
+    {
+        $floatValue = (float) $value;
+
+        return $floatValue > 0 ? round($floatValue, 2) : null;
     }
 
     private function httpClient(): PendingRequest

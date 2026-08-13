@@ -7,6 +7,17 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Corregido
+
+- "Rellenar desde BGG" (en el formulario de añadir/editar juego) podía
+  dejar la valoración o la complejidad con más decimales de los que
+  admite el propio campo (BGG los reporta con 4-5 decimales, p. ej.
+  `2.2809`, pero el input solo acepta 2), y el navegador bloqueaba el
+  guardado con su propio aviso de formato antes de llegar siquiera al
+  backend. Ahora se redondean a 2 decimales al traerlos de BGG, igual
+  que ya hacía el importador de CSV — de paso, un valor de `0` (sin
+  votos todavía) se trata como "sin dato" en vez de un cero real.
+
 ## [0.3.0] - 2026-08-13
 
 ### Añadido

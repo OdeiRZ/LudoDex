@@ -117,7 +117,52 @@ it('extracts year published, recommended age, board game rank and rating from a 
         ->and($result['game']['year_published'])->toBe(2008)
         ->and($result['game']['min_age'])->toBe('8+')
         ->and($result['game']['bgg_rank'])->toBe(174)
-        ->and($result['game']['rating'])->toBe(7.51133);
+        ->and($result['game']['rating'])->toBe(7.51)
+        ->and($result['game']['weight'])->toBe(2.35);
+});
+
+it('rounds rating/weight to two decimals, since BGG reports far more precision than the edit form\'s step="0.01" inputs accept', function () {
+    Http::fake(fn () => Http::response(<<<'XML'
+    <?xml version="1.0" encoding="utf-8"?>
+    <items>
+        <item type="boardgame" id="13">
+            <name type="primary" sortindex="1" value="Catan"/>
+            <statistics page="1">
+                <ratings>
+                    <average value="7.09045"/>
+                    <averageweight value="2.2809"/>
+                </ratings>
+            </statistics>
+        </item>
+    </items>
+    XML));
+
+    $result = (new BggClient)->fetchGameByBggId(13);
+
+    expect($result['game']['rating'])->toBe(7.09)
+        ->and($result['game']['weight'])->toBe(2.28);
+});
+
+it('treats a reported rating/weight of 0 as no data yet, not a real zero', function () {
+    Http::fake(fn () => Http::response(<<<'XML'
+    <?xml version="1.0" encoding="utf-8"?>
+    <items>
+        <item type="boardgame" id="13">
+            <name type="primary" sortindex="1" value="Obscure Game"/>
+            <statistics page="1">
+                <ratings>
+                    <average value="0"/>
+                    <averageweight value="0"/>
+                </ratings>
+            </statistics>
+        </item>
+    </items>
+    XML));
+
+    $result = (new BggClient)->fetchGameByBggId(13);
+
+    expect($result['game']['rating'])->toBeNull()
+        ->and($result['game']['weight'])->toBeNull();
 });
 
 it('treats a "Not Ranked" board game rank as no rank, not a cast-to-zero crash', function () {
