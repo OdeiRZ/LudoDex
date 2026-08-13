@@ -179,9 +179,20 @@ async function onClearCollection() {
         v-if="games.loaded && games.collection.length > 0"
         type="button"
         class="btn btn-danger clear-library-btn"
+        :aria-label="$t('dashboard.clearLibrary')"
+        :title="$t('dashboard.clearLibrary')"
         @click="openClearConfirm"
       >
-        {{ $t('dashboard.clearLibrary') }}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"
+          />
+          <line x1="10" y1="11" x2="10" y2="17" stroke-linecap="round" />
+          <line x1="14" y1="11" x2="14" y2="17" stroke-linecap="round" />
+        </svg>
+        <span class="btn-full-label">{{ $t('dashboard.clearLibrary') }}</span>
       </button>
     </div>
 
@@ -217,9 +228,17 @@ async function onClearCollection() {
           {{ sortToggleLabel }}
         </button>
         <DensityToggle :density="density" @toggle="toggleDensity" />
-        <RouterLink :to="{ name: 'add-game' }" class="btn btn-primary add-game-btn">{{
-          $t('dashboard.addGame')
-        }}</RouterLink>
+        <RouterLink
+          :to="{ name: 'add-game' }"
+          class="btn btn-primary add-game-btn"
+          :aria-label="$t('dashboard.addGame')"
+          :title="$t('dashboard.addGame')"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" d="M12 5v14M5 12h14" />
+          </svg>
+          <span class="btn-full-label">{{ $t('dashboard.addGame') }}</span>
+        </RouterLink>
       </div>
 
       <div v-if="clearConfirmOpen" class="clear-confirm card" role="alertdialog">
@@ -354,6 +373,30 @@ translates to, so it sets the width both buttons use. */
 .add-game-btn {
   min-width: 9.5rem;
   justify-content: center;
+}
+
+.clear-library-btn svg,
+.add-game-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Narrow enough that "Vaciar biblioteca" at its usual width pushed "Tu
+colección"/the game count onto their own wrapped line, and "+ Añadir
+juego" no longer fit next to the density toggle - both shrink to just
+their icon here instead, freeing up the room the full labels needed. */
+@media (max-width: 480px) {
+  .btn-full-label {
+    display: none;
+  }
+
+  .clear-library-btn,
+  .add-game-btn {
+    min-width: 0;
+    padding: 0.5rem;
+    margin-left: 0;
+  }
 }
 
 .clear-confirm {

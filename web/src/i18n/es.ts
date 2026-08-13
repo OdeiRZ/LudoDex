@@ -70,7 +70,7 @@ export default {
   },
   dashboard: {
     title: 'Tu colección',
-    addGame: '+ Añadir juego',
+    addGame: 'Añadir juego',
     empty: 'Todavía no has añadido ningún juego.',
     addFirst: 'Añade el primero',
     searchLabel: 'Buscar en tu colección',
