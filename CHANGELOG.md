@@ -7,6 +7,8 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-13
+
 ### Añadido
 
 - Año de publicación, edad recomendada, ranking y valoración de BGG como
