@@ -373,6 +373,14 @@ one row (.card's own padding leaves ~488px for them) - flex-wrap moves a
 whole field down to its own line rather than shrinking to fit once the
 basis for all four together stops fitting, so this is close to the most
 room they can have without "Complejidad" falling onto a second line. */
+/* Some of these labels wrap to two lines at this width and some don't
+("Ranking en BGG" fits, "Año de publicación" doesn't) - reserving room for
+two lines on all of them keeps every input starting at the same height
+regardless of which labels happen to wrap in the active language. */
+.field-compact label {
+  min-height: 2.8rem;
+}
+
 .field-compact {
   flex: 0 1 108px;
   min-width: 90px;

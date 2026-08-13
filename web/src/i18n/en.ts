@@ -110,7 +110,7 @@ export default {
     bggFillButton: 'Fill from BGG',
     bggFillLoading: 'Looking up…',
     bggLookupGenericError: "Couldn't reach BoardGameGeek.",
-    bggNameChangedNotice: 'Name updated from BGG (was: "{previous}"). Searching for it later under the old name won\'t find it.',
+    bggNameChangedNotice: 'Name updated from BGG (was: "{previous}").',
     name: 'Name',
     imageUrl: 'Image URL',
     yearPublished: 'Year published',
