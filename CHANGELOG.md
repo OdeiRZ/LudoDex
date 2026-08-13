@@ -7,6 +7,8 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-14
+
 ### Añadido
 
 - Buscador por nombre en "¿A qué jugamos?", junto al resto de filtros
@@ -15,6 +17,39 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   larga que recorrer. Funciona igual que el de "Tu colección": filtra
   al momento sobre la lista ya cargada, combinándose con el resto de
   filtros activos en vez de sustituirlos.
+- Filtro por tipo de juego (solo juegos base / solo expansiones) en
+  "Tu colección", combinable con el buscador y el resto de filtros
+  existentes.
+- Confirmación de doble toque antes de eliminar un juego ("¿Seguro?
+  Toca de nuevo") tanto en la ficha de edición como en cada tarjeta de
+  "Tu colección" — sustituye al borrado directo de antes, sin revertir
+  a un modal aparte. El aviso se desarma solo pasados unos segundos si
+  no se confirma.
+
+### Cambiado
+
+- "Rellenar desde BGG" (en el formulario de añadir/editar juego) ya no
+  sobrescribe el nombre o la imagen si el campo ya tiene un valor —
+  solo rellena lo que esté vacío, con un aviso junto al botón y una
+  nota específica por campo cuando se ha mantenido el valor existente
+  en vez de traer el de BGG. Evitaba que reimportar/rellenar cambiara
+  sin avisar un nombre en español por el nombre canónico (normalmente
+  en inglés) que BGG reporta en `/thing`.
+- Rediseño de los campos numéricos del formulario (año de juego,
+  ranking, valoración, complejidad) para que quepan en una sola fila
+  en vez de apilarse; los campos de jugadores y duración pasan a un
+  grupo con mínimo/máximo etiquetados ("Min."/"Max.") en vez de solo
+  `aria-label`.
+- El botón de eliminar juego de cada tarjeta ("Editar"/"Quitar") ahora
+  reparte el ancho disponible a partes iguales en vez de usar un ancho
+  fijo, para no desbordar en tarjetas estrechas (vista compacta en
+  pantallas pequeñas).
+- "Vaciar biblioteca" y "Añadir juego" muestran un icono en pantallas
+  estrechas en vez del texto completo, para dejar más espacio al resto
+  de controles de la barra de búsqueda.
+- El filtro "Con modo campaña" de "¿A qué jugamos?" pasa a tener su
+  propio grupo con borde, igual que el resto de filtros (Modo, Minutos
+  disponibles), en vez de un `<div>` suelto.
 
 ### Corregido
 
@@ -30,6 +65,26 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   quedaba pegada arriba en vez de centrada frente al bloque de nombre
   + URL de la imagen (dos campos apilados, más alto que la propia
   miniatura), por lo que se veía descolgada hacia la parte superior.
+- Igual que la anterior, el bloque de estado del importador por
+  usuario (spinner/mensaje mientras BGG prepara la exportación) se
+  veía pegado a la izquierda en vez de centrado.
+- Una importación por nombre de usuario que quedaba en curso (BGG
+  puede tardar varios minutos en preparar la exportación) se perdía
+  por completo si la pestaña se recargaba o el sistema la suspendía en
+  segundo plano (típico al bloquearse el móvil por inactividad): no
+  quedaba ningún indicio de que siguiera funcionando en el servidor,
+  solo un formulario en blanco. Ahora el id de la importación en curso
+  se guarda localmente y se retoma el sondeo automáticamente al volver
+  a cargar la página; además, un fallo de red puntual durante el
+  sondeo ya no se trataba como un error definitivo (se reintenta en
+  vez de quedarse colgado en silencio).
+- En el mismo sentido, el propio backend daba por fallida una
+  importación tras un único fallo puntual al conectar con BGG, sin
+  posibilidad de recuperarse aunque el siguiente sondeo sí hubiera
+  tenido éxito. Ahora un fallo de conexión transitorio (a diferencia de
+  un usuario de BGG inexistente, que sigue fallando al momento) cuenta
+  como intento fallido sin cambiar el estado, y solo se marca como
+  fallida tras varios fallos consecutivos.
 
 ## [0.3.0] - 2026-08-13
 
