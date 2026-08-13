@@ -218,14 +218,14 @@ async function onClearCollection() {
           :aria-label="$t('dashboard.searchLabel')"
           :placeholder="$t('dashboard.searchPlaceholder')"
         />
-        <select v-model="sortCriterion" :aria-label="$t('dashboard.sortByLabel')" class="sort-criterion">
-          <option value="name">{{ $t('dashboard.sortByName') }}</option>
-          <option value="rank">{{ $t('dashboard.sortByRank') }}</option>
-        </select>
         <select v-model="typeFilter" :aria-label="$t('dashboard.typeFilterLabel')" class="type-filter">
           <option value="all">{{ $t('dashboard.typeAll') }}</option>
           <option value="base">{{ $t('dashboard.typeBase') }}</option>
           <option value="expansion">{{ $t('dashboard.typeExpansion') }}</option>
+        </select>
+        <select v-model="sortCriterion" :aria-label="$t('dashboard.sortByLabel')" class="sort-criterion">
+          <option value="name">{{ $t('dashboard.sortByName') }}</option>
+          <option value="rank">{{ $t('dashboard.sortByRank') }}</option>
         </select>
         <button
           type="button"
