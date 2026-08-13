@@ -124,7 +124,7 @@ export default {
     max: 'Max.',
     playtime: 'Duración',
     minutesShort: 'min',
-    weight: 'Complejidad (1-5)',
+    weight: 'Complejid. (1-5)',
     modeLegend: 'Modo',
     cooperative: 'Cooperativo',
     competitive: 'Competitivo',
