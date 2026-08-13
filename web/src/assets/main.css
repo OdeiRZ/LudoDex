@@ -55,6 +55,15 @@
   color: #fff;
 }
 
+/* Filled instead of the usual outline-only .btn-danger once a second click
+would actually delete - a clearer "this is now armed" signal than a text
+change alone, especially for anyone skimming rather than reading. Used by
+both the collection's "Quitar" and the edit page's "Eliminar juego". */
+.btn-danger-confirm {
+  background: var(--color-danger);
+  color: #fff;
+}
+
 /* Cards */
 .card {
   background: var(--color-surface);

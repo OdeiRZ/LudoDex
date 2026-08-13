@@ -102,6 +102,27 @@ async function onDelete(userGameId: string) {
   toast.show(t('dashboard.toastRemoved'))
 }
 
+// Same lightweight "click again to confirm" pattern as the edit page's own
+// delete button - only one card can be armed at a time, so arming a new one
+// (or the timeout firing) disarms whichever was armed before it.
+const confirmingDeleteId = ref<string | null>(null)
+let confirmingDeleteTimeout: ReturnType<typeof setTimeout> | undefined
+
+function onDeleteClick(userGameId: string) {
+  if (confirmingDeleteId.value !== userGameId) {
+    clearTimeout(confirmingDeleteTimeout)
+    confirmingDeleteId.value = userGameId
+    confirmingDeleteTimeout = setTimeout(() => {
+      confirmingDeleteId.value = null
+    }, 4000)
+    return
+  }
+
+  clearTimeout(confirmingDeleteTimeout)
+  confirmingDeleteId.value = null
+  onDelete(userGameId)
+}
+
 // Clearing the whole collection is permanent (no soft-delete/undo on the
 // backend), so a plain "are you sure?" isn't enough friction - typing the
 // exact count makes the user actually look at how many games they're
@@ -275,8 +296,13 @@ async function onClearCollection() {
             >
               {{ $t('dashboard.edit') }}
             </RouterLink>
-            <button type="button" class="btn btn-danger" @click="onDelete(entry.id)">
-              {{ $t('dashboard.remove') }}
+            <button
+              type="button"
+              class="btn btn-danger"
+              :class="{ 'btn-danger-confirm': confirmingDeleteId === entry.id }"
+              @click="onDeleteClick(entry.id)"
+            >
+              {{ confirmingDeleteId === entry.id ? $t('dashboard.removeConfirm') : $t('dashboard.remove') }}
             </button>
           </div>
         </GameCard>
@@ -425,12 +451,30 @@ the theme's usual muted-text variable. */
   margin-top: var(--space-1);
 }
 
+/* Fixed rather than sized to content - "Quitar" and its own armed label
+("¿Seguro?") are different lengths, and without this the button would
+shift width when it arms/reverts. Applied to "Editar" too so both buttons
+in the row match instead of just the danger one standing out. */
+.games :deep(.card-actions .btn) {
+  width: 6.5rem;
+  flex-shrink: 0;
+  justify-content: center;
+}
+
 /* At the compact grid's narrower card width, "Editar"/"Quitar" side by
 side at their normal padding/font-size don't fit - the card's own
 overflow: hidden then clips "Quitar" instead of letting it wrap or
-overflow visibly. */
+overflow visibly. The fixed width from the comfortable rule above is
+narrowed further here too, and the gap between them trimmed - at 5.5rem
+each plus the usual gap, the pair ran a few pixels past the card's own
+right edge. */
 .games.compact :deep(.card-actions .btn) {
+  width: 4.75rem;
   padding: 0.35rem 0.5rem;
   font-size: 0.8rem;
+}
+
+.games.compact :deep(.card-actions) {
+  gap: var(--space-1);
 }
 </style>

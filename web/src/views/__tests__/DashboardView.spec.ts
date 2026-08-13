@@ -178,16 +178,71 @@ describe('DashboardView', () => {
     expect(wrapper.find('.games').classes()).toContain('compact')
   })
 
-  it('removes a game from the collection when its remove button is clicked', async () => {
-    const entry = makeEntry({ name: 'Root' })
-    const { wrapper, games } = mountDashboard([entry])
-    vi.spyOn(games, 'deleteGame').mockResolvedValue()
+  describe('removing a game', () => {
+    it('does not remove on the first click, but arms a confirmation instead', async () => {
+      const entry = makeEntry({ name: 'Root' })
+      const { wrapper, games } = mountDashboard([entry])
+      vi.spyOn(games, 'deleteGame').mockResolvedValue()
 
-    await wrapper.find('.card-actions .btn-danger').trigger('click')
-    await flushPromises()
+      await wrapper.find('.card-actions .btn-danger').trigger('click')
 
-    expect(games.deleteGame).toHaveBeenCalledWith(entry.id)
-    expect(useToastStore().message).toBe('Juego quitado de tu colección.')
+      expect(games.deleteGame).not.toHaveBeenCalled()
+      expect(wrapper.find('.card-actions .btn-danger').text()).toContain('¿Seguro?')
+    })
+
+    it('removes the game on a second click, showing a confirmation toast', async () => {
+      const entry = makeEntry({ name: 'Root' })
+      const { wrapper, games } = mountDashboard([entry])
+      vi.spyOn(games, 'deleteGame').mockResolvedValue()
+
+      const button = wrapper.find('.card-actions .btn-danger')
+      await button.trigger('click')
+      await button.trigger('click')
+      await flushPromises()
+
+      expect(games.deleteGame).toHaveBeenCalledWith(entry.id)
+      expect(useToastStore().message).toBe('Juego quitado de tu colección.')
+    })
+
+    it('reverts to the normal label if the second click never comes', async () => {
+      const { wrapper } = mountDashboard([makeEntry({ name: 'Root' })])
+
+      // Fake timers from here on, so the setTimeout the click below arms is
+      // the one actually mocked (same reasoning as EditGameView's own
+      // equivalent test - mountDashboard itself must run on real timers).
+      vi.useFakeTimers()
+
+      await wrapper.find('.card-actions .btn-danger').trigger('click')
+      expect(wrapper.find('.card-actions .btn-danger').text()).toContain('¿Seguro?')
+
+      vi.advanceTimersByTime(4000)
+      await wrapper.vm.$nextTick()
+      vi.useRealTimers()
+
+      expect(wrapper.find('.card-actions .btn-danger').text()).not.toContain('¿Seguro?')
+      expect(wrapper.find('.card-actions .btn-danger').text()).toContain('Quitar')
+    })
+
+    it('arming one card\'s confirmation does not arm or remove a different card', async () => {
+      const root = makeEntry({ name: 'Root' })
+      const catan = makeEntry({ name: 'Catan' })
+      const { wrapper, games } = mountDashboard([root, catan])
+      vi.spyOn(games, 'deleteGame').mockResolvedValue()
+
+      function removeButtonFor(name: string) {
+        const card = wrapper.findAll('.game-card').find((c) => c.text().includes(name))
+        return card!.find('.card-actions .btn-danger')
+      }
+
+      await removeButtonFor('Root').trigger('click')
+      // Clicking Catan's own button while Root's is still armed should arm
+      // Catan instead of treating it as Root's confirming click.
+      await removeButtonFor('Catan').trigger('click')
+
+      expect(games.deleteGame).not.toHaveBeenCalled()
+      expect(removeButtonFor('Root').text()).not.toContain('¿Seguro?')
+      expect(removeButtonFor('Catan').text()).toContain('¿Seguro?')
+    })
   })
 
   describe('expansion badges', () => {
