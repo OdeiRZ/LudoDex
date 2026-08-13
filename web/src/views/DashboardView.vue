@@ -395,7 +395,6 @@ their icon here instead, freeing up the room the full labels needed. */
   .add-game-btn {
     min-width: 0;
     padding: 0.5rem;
-    margin-left: 0;
   }
 }
 
