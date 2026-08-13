@@ -17,6 +17,7 @@ class BggImport extends Model
         'status',
         'imported_count',
         'error_message',
+        'failed_attempts',
     ];
 
     /**

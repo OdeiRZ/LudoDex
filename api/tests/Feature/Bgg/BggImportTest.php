@@ -267,3 +267,44 @@ it('forbids polling another user\'s import', function () {
 
     $this->getJson("/api/bgg-imports/{$import->id}")->assertForbidden();
 });
+
+it('stays pending and counts a transient BGG failure instead of failing immediately', function () {
+    $user = actingAsUser();
+    $import = BggImport::factory()->for($user)->create(['bgg_username' => 'odei']);
+
+    Http::fake(fn () => Http::response('', 500));
+
+    $this->getJson("/api/bgg-imports/{$import->id}")
+        ->assertOk()
+        ->assertJsonPath('data.status', 'pending');
+
+    expect($import->refresh()->failed_attempts)->toBe(1);
+});
+
+it('only gives up after several consecutive transient BGG failures', function () {
+    $user = actingAsUser();
+    $import = BggImport::factory()->for($user)->create(['bgg_username' => 'odei']);
+
+    Http::fake(fn () => Http::response('', 500));
+
+    $this->getJson("/api/bgg-imports/{$import->id}")->assertJsonPath('data.status', 'pending');
+    $this->getJson("/api/bgg-imports/{$import->id}")->assertJsonPath('data.status', 'pending');
+    $response = $this->getJson("/api/bgg-imports/{$import->id}");
+
+    $response->assertJsonPath('data.status', 'failed')
+        ->assertJsonPath('data.error_message', "Couldn't reach BoardGameGeek.");
+});
+
+it('resets the transient failure count once BGG answers successfully again', function () {
+    $user = actingAsUser();
+    $import = BggImport::factory()->for($user)->create([
+        'bgg_username' => 'odei',
+        'failed_attempts' => 2,
+    ]);
+
+    fakeSuccessfulBggImport();
+
+    $this->getJson("/api/bgg-imports/{$import->id}")->assertJsonPath('data.status', 'completed');
+
+    expect($import->refresh()->failed_attempts)->toBe(0);
+});

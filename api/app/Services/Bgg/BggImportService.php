@@ -9,6 +9,15 @@ use Illuminate\Support\Facades\DB;
 
 class BggImportService
 {
+    /**
+     * A single BGG hiccup (a dropped connection, a 5xx, a garbled body)
+     * shouldn't strand an import in a permanent 'failed' state that the
+     * polling loop can never recover from (see attempt()'s own re-entrant
+     * guard above) - only give up once several polls in a row have all hit
+     * a transient error, since each poll is itself several minutes apart.
+     */
+    private const MAX_CONSECUTIVE_FAILURES = 3;
+
     public function __construct(
         private readonly BggClient $client,
         private readonly GameTaxonomySyncer $taxonomySyncer,
@@ -31,9 +40,21 @@ class BggImportService
         }
 
         if ($collection['status'] === 'error') {
+            $isTransient = $collection['transient'] ?? false;
+
+            if ($isTransient && $import->failed_attempts + 1 < self::MAX_CONSECUTIVE_FAILURES) {
+                $import->increment('failed_attempts');
+
+                return;
+            }
+
             $import->update(['status' => 'failed', 'error_message' => $collection['message']]);
 
             return;
+        }
+
+        if ($import->failed_attempts > 0) {
+            $import->update(['failed_attempts' => 0]);
         }
 
         $items = $collection['items'];

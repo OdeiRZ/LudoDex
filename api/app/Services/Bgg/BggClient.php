@@ -17,7 +17,7 @@ class BggClient
      * value per request and defaults to boardgame-only, so expansions need a
      * second call - done here so callers don't have to know that.
      *
-     * @return array{status: 'pending'|'error'|'ready', message?: string, items?: list<array{bgg_id: int, name: string, image_url: ?string, is_expansion: bool, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int, collection_status: 'owned'|'wishlist'}>}
+     * @return array{status: 'pending'|'error'|'ready', message?: string, transient?: bool, items?: list<array{bgg_id: int, name: string, image_url: ?string, is_expansion: bool, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int, collection_status: 'owned'|'wishlist'}>}
      */
     public function fetchCollection(string $username): array
     {
@@ -25,6 +25,7 @@ class BggClient
             return [
                 'status' => 'error',
                 'message' => __('bgg.token_missing'),
+                'transient' => false,
             ];
         }
 
@@ -47,7 +48,7 @@ class BggClient
     }
 
     /**
-     * @return array{status: 'pending'|'error'|'ready', message?: string, items?: list<array<string, mixed>>}
+     * @return array{status: 'pending'|'error'|'ready', message?: string, transient?: bool, items?: list<array<string, mixed>>}
      */
     private function fetchCollectionBySubtype(string $username, string $subtype): array
     {
@@ -61,14 +62,18 @@ class BggClient
             return ['status' => 'pending'];
         }
 
+        // A non-2xx response or garbled body is BGG (or the network) having
+        // a bad moment, not evidence the request itself is wrong - worth
+        // retrying. A well-formed <errors> response (bad username) below is
+        // not: retrying it would just get the same answer.
         if (! $response->successful()) {
-            return ['status' => 'error', 'message' => __('bgg.unreachable')];
+            return ['status' => 'error', 'message' => __('bgg.unreachable'), 'transient' => true];
         }
 
         $xml = @simplexml_load_string($response->body());
 
         if ($xml === false) {
-            return ['status' => 'error', 'message' => __('bgg.unexpected_response')];
+            return ['status' => 'error', 'message' => __('bgg.unexpected_response'), 'transient' => true];
         }
 
         if ($xml->getName() === 'errors') {
@@ -76,7 +81,7 @@ class BggClient
                 ? (string) $xml->error->message
                 : __('bgg.user_not_found');
 
-            return ['status' => 'error', 'message' => $message];
+            return ['status' => 'error', 'message' => $message, 'transient' => false];
         }
 
         $items = [];
