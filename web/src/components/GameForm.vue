@@ -289,7 +289,7 @@ async function onLookupBgg() {
 .name-and-image {
   display: flex;
   gap: var(--space-4);
-  align-items: flex-start;
+  align-items: center;
 }
 
 .name-field {

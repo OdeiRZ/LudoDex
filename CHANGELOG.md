@@ -17,6 +17,10 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   backend. Ahora se redondean a 2 decimales al traerlos de BGG, igual
   que ya hacía el importador de CSV — de paso, un valor de `0` (sin
   votos todavía) se trata como "sin dato" en vez de un cero real.
+- La miniatura de la portada en el formulario de añadir/editar juego
+  quedaba pegada arriba en vez de centrada frente al bloque de nombre
+  + URL de la imagen (dos campos apilados, más alto que la propia
+  miniatura), por lo que se veía descolgada hacia la parte superior.
 
 ## [0.3.0] - 2026-08-13
 
