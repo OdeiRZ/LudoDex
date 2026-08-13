@@ -451,25 +451,24 @@ the theme's usual muted-text variable. */
   margin-top: var(--space-1);
 }
 
-/* Fixed rather than sized to content - "Quitar" and its own armed label
-("¿Seguro?") are different lengths, and without this the button would
-shift width when it arms/reverts. Applied to "Editar" too so both buttons
-in the row match instead of just the danger one standing out. */
+/* Equal flex share rather than a fixed width tuned to one card size -
+"Quitar" and its own armed label ("¿Seguro?") are different lengths, and
+without this the button would shift width (shoving "Editar" sideways)
+when it arms/reverts. flex:1 on both keeps them an even 50/50 split of
+whatever room the row actually has, so unlike a fixed rem value it can't
+run past the card's edge at a narrower card size (a 2-up compact grid on
+a phone, say) that wasn't around to test against directly. */
 .games :deep(.card-actions .btn) {
-  width: 6.5rem;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
   justify-content: center;
 }
 
 /* At the compact grid's narrower card width, "Editar"/"Quitar" side by
 side at their normal padding/font-size don't fit - the card's own
 overflow: hidden then clips "Quitar" instead of letting it wrap or
-overflow visibly. The fixed width from the comfortable rule above is
-narrowed further here too, and the gap between them trimmed - at 5.5rem
-each plus the usual gap, the pair ran a few pixels past the card's own
-right edge. */
+overflow visibly. */
 .games.compact :deep(.card-actions .btn) {
-  width: 4.75rem;
   padding: 0.35rem 0.5rem;
   font-size: 0.8rem;
 }
