@@ -148,6 +148,75 @@ describe('GameForm BGG lookup', () => {
     expect(form.bgg_rank).toBe(174)
     expect(form.rating).toBe(7.51)
   })
+
+  const lookupResult: BggGameLookup = {
+    bgg_id: 30549,
+    name: 'Pandemic',
+    image_url: null,
+    year_published: null,
+    min_age: null,
+    bgg_rank: null,
+    rating: null,
+    min_players: null,
+    max_players: null,
+    min_playtime_minutes: null,
+    max_playtime_minutes: null,
+    weight: null,
+    mechanics: [],
+    categories: [],
+  }
+
+  // BGG's catalog name (usually English) can silently replace a name the
+  // game was saved under before (a hand-typed Spanish title, CSV-imported
+  // text...) - without this notice, a later search for the old name just
+  // comes up empty with no clue why.
+  it('warns when the fetched name replaces a different existing name', async () => {
+    const { wrapper, form } = mountGameForm(reactiveForm({ bgg_id: 30549, name: 'Pandemia' }))
+    const games = useGamesStore()
+    vi.spyOn(games, 'lookupBggGame').mockResolvedValue(lookupResult)
+
+    await wrapper.find('.bgg-lookup-row button').trigger('click')
+    await flushPromises()
+
+    expect(form.name).toBe('Pandemic')
+    expect(wrapper.text()).toContain('Pandemia')
+  })
+
+  it('shows no notice when there was no previous name to replace', async () => {
+    const { wrapper } = mountGameForm(reactiveForm({ bgg_id: 30549 }))
+    const games = useGamesStore()
+    vi.spyOn(games, 'lookupBggGame').mockResolvedValue(lookupResult)
+
+    await wrapper.find('.bgg-lookup-row button').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('.name-change-notice').exists()).toBe(false)
+  })
+
+  it('shows no notice when the fetched name matches the existing one', async () => {
+    const { wrapper } = mountGameForm(reactiveForm({ bgg_id: 30549, name: 'Pandemic' }))
+    const games = useGamesStore()
+    vi.spyOn(games, 'lookupBggGame').mockResolvedValue(lookupResult)
+
+    await wrapper.find('.bgg-lookup-row button').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('.name-change-notice').exists()).toBe(false)
+  })
+
+  it('clears the notice once the name is edited by hand', async () => {
+    const { wrapper } = mountGameForm(reactiveForm({ bgg_id: 30549, name: 'Pandemia' }))
+    const games = useGamesStore()
+    vi.spyOn(games, 'lookupBggGame').mockResolvedValue(lookupResult)
+
+    await wrapper.find('.bgg-lookup-row button').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.name-change-notice').exists()).toBe(true)
+
+    await wrapper.find('#name').setValue('Pandemic (edición española)')
+
+    expect(wrapper.find('.name-change-notice').exists()).toBe(false)
+  })
 })
 
 describe('GameForm mechanics/genre translation', () => {

@@ -61,6 +61,11 @@ const baseGameOptions = computed(() =>
 const bggLookupError = ref<string | null>(null)
 const bggLookupLoading = ref(false)
 const imageBroken = ref(false)
+// BGG's name is always in its own catalog language (usually English),
+// which can silently differ from whatever the game was previously saved
+// under (e.g. a Spanish title typed by hand, or CSV-imported text) - flagging
+// the swap here means a later search for the old name isn't a mystery.
+const nameChangeNotice = ref<string | null>(null)
 
 // UI-only concept: the two flags stay independent in the data (a team game
 // can genuinely be both cooperative and competitive - see the games
@@ -90,12 +95,19 @@ async function onLookupBgg() {
 
   bggLookupError.value = null
   bggLookupLoading.value = true
+  nameChangeNotice.value = null
 
   try {
     const game = await games.lookupBggGame(form.value.bgg_id)
+    const previousName = form.value.name.trim()
 
     form.value.bgg_id = game.bgg_id
     form.value.name = game.name
+
+    if (previousName && previousName !== game.name) {
+      nameChangeNotice.value = previousName
+    }
+
     form.value.image_url = game.image_url
     form.value.year_published = game.year_published
     form.value.min_age = game.min_age
@@ -146,7 +158,10 @@ async function onLookupBgg() {
     <div class="name-and-image">
       <div class="name-field">
         <label for="name">{{ $t('gameForm.name') }}</label>
-        <input id="name" v-model="form.name" type="text" required />
+        <input id="name" v-model="form.name" type="text" required @input="nameChangeNotice = null" />
+        <p v-if="nameChangeNotice" class="alert alert-info name-change-notice">
+          {{ $t('gameForm.bggNameChangedNotice', { previous: nameChangeNotice }) }}
+        </p>
 
         <label for="image_url">{{ $t('gameForm.imageUrl') }}</label>
         <input
@@ -167,11 +182,35 @@ async function onLookupBgg() {
       />
     </div>
 
+    <!-- Year/rank/rating/weight are all 1-4 digits - the shared .field-row
+    layout below (built for two roughly-equal fields like name/players)
+    left each of them stretched across half the form's width for almost
+    nothing to show. .field-compact caps them to just enough room instead,
+    so all four fit comfortably on one line. -->
     <div class="field-row">
-      <div>
+      <div class="field-compact">
         <label for="year_published">{{ $t('gameForm.yearPublished') }}</label>
         <input id="year_published" v-model.number="form.year_published" type="number" min="1" />
       </div>
+      <div class="field-compact">
+        <label for="bgg_rank">{{ $t('gameForm.bggRank') }}</label>
+        <input id="bgg_rank" v-model.number="form.bgg_rank" type="number" min="1" />
+      </div>
+      <div class="field-compact">
+        <label for="rating">{{ $t('gameForm.rating') }}</label>
+        <input id="rating" v-model.number="form.rating" type="number" min="0" max="10" step="0.01" />
+      </div>
+      <div class="field-compact">
+        <label for="weight">{{ $t('gameForm.weight') }}</label>
+        <input id="weight" v-model.number="form.weight" type="number" min="1" max="5" step="0.01" />
+      </div>
+    </div>
+
+    <!-- Edad recomendada alone took a full-width row for a field that's
+    barely wider than its own placeholder, while Estructura (just one
+    checkbox) sat in its own mostly-empty fieldset right below it - pairing
+    them uses both blocks' spare room instead of wasting two. -->
+    <div class="field-row">
       <div>
         <label for="min_age">{{ $t('gameForm.minAge') }}</label>
         <div class="input-with-suffix">
@@ -179,44 +218,46 @@ async function onLookupBgg() {
           <span class="input-suffix">{{ $t('gameForm.years') }}</span>
         </div>
       </div>
+      <fieldset>
+        <legend>{{ $t('gameForm.structureLegend') }}</legend>
+        <label><input v-model="form.has_campaign" type="checkbox" /> {{ $t('gameForm.hasCampaign') }}</label>
+      </fieldset>
     </div>
 
+    <!-- Min/max are a single range, not two unrelated numbers - a fieldset
+    (same grouping already used for Mode/Structure below) reads that way
+    at a glance, and matches how the range shows up later on the game's
+    own card ("2-4 jugadores") better than two full-width fields stacked
+    on top of each other. Each input gets its own small "Min."/"Max."
+    caption underneath, since the dash between them alone didn't say which
+    side was which. -->
     <div class="field-row">
-      <div>
-        <label for="bgg_rank">{{ $t('gameForm.bggRank') }}</label>
-        <input id="bgg_rank" v-model.number="form.bgg_rank" type="number" min="1" />
-      </div>
-      <div>
-        <label for="rating">{{ $t('gameForm.rating') }}</label>
-        <input id="rating" v-model.number="form.rating" type="number" min="0" max="10" step="0.01" />
-      </div>
-    </div>
+      <fieldset class="range-field">
+        <legend>{{ $t('gameForm.players') }}</legend>
+        <div class="range-input">
+          <input id="min_players" v-model.number="form.min_players" type="number" min="1" />
+          <label for="min_players">{{ $t('gameForm.min') }}</label>
+        </div>
+        <span class="range-sep">–</span>
+        <div class="range-input">
+          <input id="max_players" v-model.number="form.max_players" type="number" min="1" />
+          <label for="max_players">{{ $t('gameForm.max') }}</label>
+        </div>
+      </fieldset>
 
-    <div class="field-row">
-      <div>
-        <label for="min_players">{{ $t('gameForm.minPlayers') }}</label>
-        <input id="min_players" v-model.number="form.min_players" type="number" min="1" />
-      </div>
-      <div>
-        <label for="max_players">{{ $t('gameForm.maxPlayers') }}</label>
-        <input id="max_players" v-model.number="form.max_players" type="number" min="1" />
-      </div>
-    </div>
-
-    <div class="field-row">
-      <div>
-        <label for="min_playtime">{{ $t('gameForm.minPlaytime') }}</label>
-        <input id="min_playtime" v-model.number="form.min_playtime_minutes" type="number" min="1" />
-      </div>
-      <div>
-        <label for="max_playtime">{{ $t('gameForm.maxPlaytime') }}</label>
-        <input id="max_playtime" v-model.number="form.max_playtime_minutes" type="number" min="1" />
-      </div>
-    </div>
-
-    <div>
-      <label for="weight">{{ $t('gameForm.weight') }}</label>
-      <input id="weight" v-model.number="form.weight" type="number" min="1" max="5" step="0.01" />
+      <fieldset class="range-field">
+        <legend>{{ $t('gameForm.playtime') }}</legend>
+        <div class="range-input">
+          <input id="min_playtime" v-model.number="form.min_playtime_minutes" type="number" min="1" />
+          <label for="min_playtime">{{ $t('gameForm.min') }}</label>
+        </div>
+        <span class="range-sep">–</span>
+        <div class="range-input">
+          <input id="max_playtime" v-model.number="form.max_playtime_minutes" type="number" min="1" />
+          <label for="max_playtime">{{ $t('gameForm.max') }}</label>
+        </div>
+        <span class="input-suffix">{{ $t('gameForm.minutesShort') }}</span>
+      </fieldset>
     </div>
 
     <fieldset>
@@ -224,11 +265,6 @@ async function onLookupBgg() {
       <label><input v-model="modeChoice" type="radio" value="cooperative" /> {{ $t('gameForm.cooperative') }}</label>
       <label><input v-model="modeChoice" type="radio" value="competitive" /> {{ $t('gameForm.competitive') }}</label>
       <label><input v-model="modeChoice" type="radio" value="both" /> {{ $t('gameForm.both') }}</label>
-    </fieldset>
-
-    <fieldset>
-      <legend>{{ $t('gameForm.structureLegend') }}</legend>
-      <label><input v-model="form.has_campaign" type="checkbox" /> {{ $t('gameForm.hasCampaign') }}</label>
     </fieldset>
 
     <div>
@@ -327,5 +363,50 @@ async function onLookupBgg() {
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border-strong);
   flex-shrink: 0;
+}
+
+/* Overrides .field-row's default flex:1/min-width:140px, which was sized
+for roughly-equal fields like name/image - a 1-4 digit number doesn't need
+anywhere near that much room, just a bit more than the previous, tighter
+100px. Capped at 108px rather than higher still, since four of these share
+one row (.card's own padding leaves ~488px for them) - flex-wrap moves a
+whole field down to its own line rather than shrinking to fit once the
+basis for all four together stops fitting, so this is close to the most
+room they can have without "Complejidad" falling onto a second line. */
+.field-compact {
+  flex: 0 1 108px;
+  min-width: 90px;
+}
+
+.range-field {
+  flex: 0 1 auto;
+  min-width: 0;
+  align-items: flex-start;
+}
+
+.range-field input {
+  width: 70px;
+  flex: 0 0 auto;
+}
+
+/* Min./Max. sit right under their own input rather than off to the side,
+so it's unambiguous which one they're labelling even once the fieldset
+also wraps to a second line on a narrow screen. */
+.range-input {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.range-input label {
+  margin: var(--space-1) 0 0;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.range-sep {
+  align-self: center;
+  margin-top: 0.4rem;
+  color: var(--color-text-muted);
 }
 </style>
