@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { isAxiosError } from 'axios'
 import { useGamesStore, type BggImportStatus, type BggCsvImportResult } from '@/stores/games'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
@@ -18,14 +19,33 @@ const submitting = ref(false)
 const POLL_INTERVAL_MS = 3000
 let pollTimer: ReturnType<typeof setTimeout> | undefined
 
+// BGG's own export can take minutes for a large collection, and nothing
+// here survives a reload on its own - a backgrounded tab getting suspended
+// (or just reloaded to free memory) loses all local state, so without this
+// the only sign the user gets back is a blank form, with no idea an import
+// is still quietly working server-side. Persisting just the id (not the
+// whole in-progress state) lets onMounted below pick the polling back up
+// instead of inviting a redundant, forgotten-about second attempt.
+const PENDING_IMPORT_KEY = 'ludodex_pending_bgg_import'
+
+function savePendingImportId(id: string) {
+  localStorage.setItem(PENDING_IMPORT_KEY, id)
+}
+
+function clearPendingImportId() {
+  localStorage.removeItem(PENDING_IMPORT_KEY)
+}
+
 function handleResult(result: BggImportStatus) {
   phase.value = result.status
 
   if (result.status === 'pending') {
+    savePendingImportId(result.id)
     pollTimer = setTimeout(() => poll(result.id), POLL_INTERVAL_MS)
     return
   }
 
+  clearPendingImportId()
   importedCount.value = result.imported_count
   errorMessage.value = result.error_message
 
@@ -35,8 +55,26 @@ function handleResult(result: BggImportStatus) {
 }
 
 async function poll(id: string) {
-  const result = await games.pollBggImport(id)
-  handleResult(result)
+  try {
+    const result = await games.pollBggImport(id)
+    handleResult(result)
+  } catch (err) {
+    if (isAxiosError(err) && err.response) {
+      // A real response came back and it wasn't OK (e.g. this id doesn't
+      // belong to us, or the row is gone) - stop chasing a stale id
+      // instead of retrying it forever.
+      clearPendingImportId()
+      phase.value = 'failed'
+      errorMessage.value = t('importBgg.genericFailedError')
+      return
+    }
+
+    // No response at all - a dropped connection, or the tab just resumed
+    // from being backgrounded/a free-tier cold start - transient, so keep
+    // trying rather than losing track of an import that may still be
+    // working fine on BGG's own side.
+    pollTimer = setTimeout(() => poll(id), POLL_INTERVAL_MS)
+  }
 }
 
 async function onSubmit() {
@@ -111,6 +149,15 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('beforeunload', warnBeforeUnload)
+})
+
+onMounted(() => {
+  const pendingId = localStorage.getItem(PENDING_IMPORT_KEY)
+
+  if (pendingId) {
+    phase.value = 'pending'
+    poll(pendingId)
+  }
 })
 </script>
 

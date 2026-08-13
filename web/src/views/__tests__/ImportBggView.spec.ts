@@ -38,6 +38,12 @@ async function submitCsv(wrapper: ReturnType<typeof mountImport>['wrapper']) {
 describe('ImportBggView', () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
+    // The pending-import id persisted to localStorage is what the next
+    // couple of describe blocks are actually testing, but it would just
+    // as easily leak in from any *other* test here that submits and never
+    // reaches a terminal status (e.g. the unmount test below) - every test
+    // in this file starts from a clean slate instead.
+    localStorage.clear()
   })
 
   afterEach(() => {
@@ -66,6 +72,7 @@ describe('ImportBggView', () => {
 
     expect(wrapper.find('[role="status"]').exists()).toBe(true)
     expect(pollSpy).not.toHaveBeenCalled()
+    expect(localStorage.getItem('ludodex_pending_bgg_import')).toBe('import-1')
 
     await vi.advanceTimersByTimeAsync(3000)
     await flushPromises()
@@ -73,6 +80,7 @@ describe('ImportBggView', () => {
     expect(pollSpy).toHaveBeenCalledWith('import-1')
     expect(wrapper.text()).toContain('Importación completada: 12 juegos añadidos o actualizados.')
     expect(fetchAllSpy).toHaveBeenCalled()
+    expect(localStorage.getItem('ludodex_pending_bgg_import')).toBeNull()
   })
 
   it('shows the failure state with the backend message when the import fails while pending', async () => {
@@ -133,6 +141,130 @@ describe('ImportBggView', () => {
     await flushPromises()
 
     expect(pollSpy).not.toHaveBeenCalled()
+  })
+
+  // A backgrounded tab getting suspended (or just reloaded to free memory)
+  // loses every local ref - the persisted id in localStorage is the only
+  // thing that survives, which is exactly what these cover.
+  describe('resuming a pending import after a reload', () => {
+    // mountImport() mounts as part of setup, which fires onMounted (and
+    // so a real, unmocked pollBggImport call) before a spy attached
+    // afterwards could intercept it - these need the store spied on
+    // first, so setup is inlined instead of going through that helper.
+    function mountWithPendingImport() {
+      setActivePinia(createPinia())
+      const store = useGamesStore()
+      return { store, mount: () => mount(ImportBggView, { global: { stubs: { RouterLink: true }, plugins: [i18n] } }) }
+    }
+
+    it('picks the import back up on mount instead of showing a blank form', async () => {
+      localStorage.setItem('ludodex_pending_bgg_import', 'import-1')
+      const { store, mount: doMount } = mountWithPendingImport()
+      const pollSpy = vi.spyOn(store, 'pollBggImport').mockResolvedValue({
+        id: 'import-1',
+        bgg_username: 'odei',
+        status: 'pending',
+        imported_count: null,
+        error_message: null,
+      })
+
+      const wrapper = doMount()
+      await flushPromises()
+
+      expect(pollSpy).toHaveBeenCalledWith('import-1')
+      expect(wrapper.find('[role="status"]').exists()).toBe(true)
+      expect(wrapper.find('#bgg_username').exists()).toBe(false)
+
+      // Stays "pending" for the rest of this test (pollBggImport is mocked
+      // to always resolve pending) - same beforeunload-listener leak the
+      // "warns and shows a banner" test below already guards against.
+      wrapper.unmount()
+    })
+
+    it('clears the persisted id once a resumed import reaches a terminal state', async () => {
+      localStorage.setItem('ludodex_pending_bgg_import', 'import-1')
+      const { store, mount: doMount } = mountWithPendingImport()
+      vi.spyOn(store, 'pollBggImport').mockResolvedValue({
+        id: 'import-1',
+        bgg_username: 'odei',
+        status: 'completed',
+        imported_count: 493,
+        error_message: null,
+      })
+      vi.spyOn(store, 'fetchAll').mockResolvedValue()
+
+      const wrapper = doMount()
+      await flushPromises()
+
+      expect(wrapper.text()).toContain('493')
+      expect(localStorage.getItem('ludodex_pending_bgg_import')).toBeNull()
+    })
+
+    it('does nothing on mount when there is no persisted import', () => {
+      const { wrapper } = mountImport()
+
+      expect(wrapper.find('#bgg_username').exists()).toBe(true)
+    })
+  })
+
+  describe('a network hiccup while polling', () => {
+    it('keeps retrying rather than failing outright', async () => {
+      const { wrapper, store } = mountImport()
+      vi.spyOn(store, 'startBggImport').mockResolvedValue({
+        id: 'import-1',
+        bgg_username: 'odei',
+        status: 'pending',
+        imported_count: null,
+        error_message: null,
+      })
+      const pollSpy = vi
+        .spyOn(store, 'pollBggImport')
+        .mockRejectedValueOnce(new Error('network error'))
+        .mockResolvedValueOnce({
+          id: 'import-1',
+          bgg_username: 'odei',
+          status: 'completed',
+          imported_count: 5,
+          error_message: null,
+        })
+
+      await submitUsername(wrapper)
+      await vi.advanceTimersByTimeAsync(3000)
+      await flushPromises()
+
+      // Still pending/polling, not the failure screen - a dropped
+      // connection alone shouldn't lose track of the import.
+      expect(wrapper.find('[role="status"]').exists()).toBe(true)
+      expect(wrapper.find('#bgg_username').exists()).toBe(false)
+
+      await vi.advanceTimersByTimeAsync(3000)
+      await flushPromises()
+
+      expect(pollSpy).toHaveBeenCalledTimes(2)
+      expect(wrapper.text()).toContain('Importación completada: 5 juegos añadidos o actualizados.')
+    })
+
+    it('stops and clears the persisted id when the server rejects the id outright', async () => {
+      const { wrapper, store } = mountImport()
+      vi.spyOn(store, 'startBggImport').mockResolvedValue({
+        id: 'import-1',
+        bgg_username: 'odei',
+        status: 'pending',
+        imported_count: null,
+        error_message: null,
+      })
+      vi.spyOn(store, 'pollBggImport').mockRejectedValue({
+        isAxiosError: true,
+        response: { status: 404, data: {} },
+      })
+
+      await submitUsername(wrapper)
+      await vi.advanceTimersByTimeAsync(3000)
+      await flushPromises()
+
+      expect(wrapper.find('#bgg_username').exists()).toBe(true)
+      expect(localStorage.getItem('ludodex_pending_bgg_import')).toBeNull()
+    })
   })
 
   it('imports a CSV file and shows the result summary', async () => {
