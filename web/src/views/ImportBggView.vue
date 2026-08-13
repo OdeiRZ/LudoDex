@@ -272,7 +272,8 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  align-items: flex-start;
+  align-items: center;
+  text-align: center;
   color: var(--color-text-muted);
 }
 
