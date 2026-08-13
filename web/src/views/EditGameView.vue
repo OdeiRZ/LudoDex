@@ -53,6 +53,27 @@ const errors = ref<Record<string, string[]>>({})
 const submitting = ref(false)
 const deleting = ref(false)
 
+// A single click deletes immediately elsewhere in the app (the collection's
+// own "Quitar" button), which is fine when the game is right there in front
+// of you - but this button sits at the bottom of a whole form of fields to
+// review, so a lightweight "click again to confirm" guards against a stray
+// click while scrolling past it without adding a whole confirmation dialog.
+const confirmingDelete = ref(false)
+let confirmingDeleteTimeout: ReturnType<typeof setTimeout> | undefined
+
+function onDeleteClick() {
+  if (!confirmingDelete.value) {
+    confirmingDelete.value = true
+    confirmingDeleteTimeout = setTimeout(() => {
+      confirmingDelete.value = false
+    }, 4000)
+    return
+  }
+
+  clearTimeout(confirmingDeleteTimeout)
+  onDelete()
+}
+
 const entry = computed(() => games.collection.find((item) => item.id === props.id))
 
 function fillFormFromEntry() {
@@ -125,6 +146,7 @@ async function onDelete() {
     router.push(returnTo.value)
   } catch {
     errors.value = { general: [t('editGame.deleteError')] }
+    confirmingDelete.value = false
   } finally {
     deleting.value = false
   }
@@ -135,33 +157,7 @@ async function onDelete() {
   <div class="edit-game">
     <RouterLink :to="returnTo" class="back-link">{{ $t('backLink') }}</RouterLink>
 
-    <div class="title-row">
-      <h1>{{ $t('editGame.title') }}</h1>
-      <!-- Icon rather than a labeled button, and set apart from the save
-      flow entirely - deleting is the rare, irreversible exception here,
-      not a form action, so it reads better as something you do to the
-      game itself (next to its title) than as a button that could get
-      mistaken for part of submitting the form. -->
-      <button
-        v-if="entry"
-        type="button"
-        class="delete-icon-button"
-        :disabled="submitting || deleting"
-        :aria-label="$t('editGame.delete')"
-        :title="$t('editGame.delete')"
-        @click="onDelete"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"
-          />
-          <line x1="10" y1="11" x2="10" y2="17" stroke-linecap="round" />
-          <line x1="14" y1="11" x2="14" y2="17" stroke-linecap="round" />
-        </svg>
-      </button>
-    </div>
+    <h1>{{ $t('editGame.title') }}</h1>
 
     <p v-if="games.loading" class="loading-state">
       <LoadingSpinner :size="28" />
@@ -187,10 +183,31 @@ async function onDelete() {
       </p>
     </form>
 
-    <p v-if="deleting" class="loading-state">
-      <LoadingSpinner :size="16" />
-      {{ $t('editGame.deleting') }}
-    </p>
+    <div v-if="entry" class="danger-zone">
+      <button
+        type="button"
+        class="btn btn-danger"
+        :class="{ 'btn-danger-confirm': confirmingDelete }"
+        :disabled="submitting || deleting"
+        @click="onDeleteClick"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"
+          />
+          <line x1="10" y1="11" x2="10" y2="17" stroke-linecap="round" />
+          <line x1="14" y1="11" x2="14" y2="17" stroke-linecap="round" />
+        </svg>
+        {{ confirmingDelete ? $t('editGame.deleteConfirm') : $t('editGame.delete') }}
+      </button>
+
+      <p v-if="deleting" class="loading-state">
+        <LoadingSpinner :size="16" />
+        {{ $t('editGame.deleting') }}
+      </p>
+    </div>
   </div>
 </template>
 
@@ -207,38 +224,31 @@ async function onDelete() {
   font-size: 0.9rem;
 }
 
-.title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+h1 {
   margin-bottom: var(--space-4);
 }
 
-.delete-icon-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface);
-  color: var(--color-danger);
+.danger-zone {
+  margin-top: var(--space-6);
+  /* Left/right match .card's own padding below - .danger-zone sits outside
+  the card (it isn't part of the save flow), so without this its button
+  would run wider than "Guardar cambios" instead of lining up with it. */
+  padding: var(--space-4) var(--space-4) 0;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
-.delete-icon-button:hover:not(:disabled) {
-  background: var(--color-danger);
-  color: #fff;
+/* Matches the submit button's own full-width look (it stretches to fill
+.form's flex column by default) instead of shrinking to fit its label. */
+.danger-zone .btn {
+  width: 100%;
 }
 
-.delete-icon-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.delete-icon-button svg {
+.danger-zone .btn svg {
   width: 16px;
   height: 16px;
+  margin-right: var(--space-1);
 }
 </style>

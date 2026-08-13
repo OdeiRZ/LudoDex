@@ -77,11 +77,23 @@ describe('EditGameView back navigation', () => {
 })
 
 describe('EditGameView delete', () => {
-  it('deletes the game and returns to the collection, showing a confirmation toast', async () => {
+  it('does not delete on the first click, but arms a confirmation instead', async () => {
+    const { wrapper, store } = await mountEdit('/games/g1/edit', 'g1')
+    vi.spyOn(store, 'deleteGame').mockResolvedValue()
+
+    await wrapper.find('.danger-zone button').trigger('click')
+
+    expect(store.deleteGame).not.toHaveBeenCalled()
+    expect(wrapper.find('.danger-zone button').text()).toContain('¿Seguro?')
+  })
+
+  it('deletes the game on a second click, returning to the collection with a confirmation toast', async () => {
     const { wrapper, store, router } = await mountEdit('/games/g1/edit', 'g1')
     vi.spyOn(store, 'deleteGame').mockResolvedValue()
 
-    await wrapper.find('.delete-icon-button').trigger('click')
+    const button = wrapper.find('.danger-zone button')
+    await button.trigger('click')
+    await button.trigger('click')
     await flushPromises()
 
     expect(store.deleteGame).toHaveBeenCalledWith('g1')
@@ -89,25 +101,48 @@ describe('EditGameView delete', () => {
     expect(useToastStore().message).toBe('Juego quitado de tu colección.')
   })
 
+  it('reverts to the normal label if the second click never comes', async () => {
+    // mountEdit resolves using real timers (its own flushPromises() calls
+    // are themselves setTimeout-based) - only fake the clock afterwards, so
+    // the setTimeout armed by the click below is the one actually mocked.
+    const { wrapper } = await mountEdit('/games/g1/edit', 'g1')
+    vi.useFakeTimers()
+
+    await wrapper.find('.danger-zone button').trigger('click')
+    expect(wrapper.find('.danger-zone button').text()).toContain('¿Seguro?')
+
+    vi.advanceTimersByTime(4000)
+    await wrapper.vm.$nextTick()
+    vi.useRealTimers()
+
+    expect(wrapper.find('.danger-zone button').text()).not.toContain('¿Seguro?')
+    expect(wrapper.find('.danger-zone button').text()).toContain('Eliminar juego')
+  })
+
   it('returns to the picker after deleting when it came from there', async () => {
     const { wrapper, store, router } = await mountEdit('/games/g1/edit?from=picker', 'g1')
     vi.spyOn(store, 'deleteGame').mockResolvedValue()
 
-    await wrapper.find('.delete-icon-button').trigger('click')
+    const button = wrapper.find('.danger-zone button')
+    await button.trigger('click')
+    await button.trigger('click')
     await flushPromises()
 
     expect(router.currentRoute.value.name).toBe('picker')
   })
 
-  it('shows a generic error and stays on the page when deleting fails', async () => {
+  it('shows a generic error, stays on the page, and un-arms the confirmation when deleting fails', async () => {
     const { wrapper, store, router } = await mountEdit('/games/g1/edit', 'g1')
     vi.spyOn(store, 'deleteGame').mockRejectedValue(new Error('network error'))
 
-    await wrapper.find('.delete-icon-button').trigger('click')
+    const button = wrapper.find('.danger-zone button')
+    await button.trigger('click')
+    await button.trigger('click')
     await flushPromises()
 
     expect(wrapper.text()).toContain('No se ha podido eliminar el juego.')
     expect(router.currentRoute.value.name).toBe('edit-game')
+    expect(wrapper.find('.danger-zone button').text()).not.toContain('¿Seguro?')
   })
 })
 
