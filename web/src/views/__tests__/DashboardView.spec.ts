@@ -155,8 +155,58 @@ describe('DashboardView', () => {
 
     await wrapper.find('input[type="search"]').setValue('nonexistent')
 
-    expect(wrapper.text()).toContain('Ningún juego de tu colección coincide con la búsqueda.')
+    expect(wrapper.text()).toContain('Ningún juego de tu colección encaja con estos filtros.')
     expect(wrapper.findAll('.game-card')).toHaveLength(0)
+  })
+
+  describe('filtering by base game / expansion', () => {
+    function names(wrapper: ReturnType<typeof mountDashboard>['wrapper']) {
+      return wrapper.findAll('.game-card h2').map((h2) => h2.text())
+    }
+
+    it('shows everything by default', () => {
+      const { wrapper } = mountDashboard([
+        makeEntry({ id: 'root', name: 'Root' }),
+        makeEntry({ name: 'Root: Riverfolk', base_game_id: 'root' }),
+      ])
+
+      expect(names(wrapper)).toEqual(['Root', 'Root: Riverfolk'])
+    })
+
+    it('shows only base games when that option is picked', async () => {
+      const { wrapper } = mountDashboard([
+        makeEntry({ id: 'root', name: 'Root' }),
+        makeEntry({ name: 'Root: Riverfolk', base_game_id: 'root' }),
+      ])
+
+      await wrapper.find('.type-filter').setValue('base')
+
+      expect(names(wrapper)).toEqual(['Root'])
+    })
+
+    it('shows only expansions when that option is picked', async () => {
+      const { wrapper } = mountDashboard([
+        makeEntry({ id: 'root', name: 'Root' }),
+        makeEntry({ name: 'Root: Riverfolk', base_game_id: 'root' }),
+      ])
+
+      await wrapper.find('.type-filter').setValue('expansion')
+
+      expect(names(wrapper)).toEqual(['Root: Riverfolk'])
+    })
+
+    it('combines the type filter with the active search', async () => {
+      const { wrapper } = mountDashboard([
+        makeEntry({ id: 'root', name: 'Root' }),
+        makeEntry({ name: 'Root: Riverfolk', base_game_id: 'root' }),
+        makeEntry({ name: 'Catan' }),
+      ])
+
+      await wrapper.find('.type-filter').setValue('base')
+      await wrapper.find('input[type="search"]').setValue('root')
+
+      expect(names(wrapper)).toEqual(['Root'])
+    })
   })
 
   it('defaults to comfortable density and switches to compact on toggle, persisting the choice', async () => {

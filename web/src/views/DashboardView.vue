@@ -31,6 +31,9 @@ onMounted(() => {
 // being practical well before that.
 const search = ref('')
 
+type TypeFilter = 'all' | 'base' | 'expansion'
+const typeFilter = ref<TypeFilter>('all')
+
 type SortCriterion = 'name' | 'rank'
 
 const sortCriterion = ref<SortCriterion>('name')
@@ -62,12 +65,13 @@ const sortToggleActionLabel = computed(() => {
 const filtered = computed(() => {
   const query = search.value.trim().toLowerCase()
 
-  // .filter() already returns a fresh array, but the no-query branch
-  // needs its own copy too - sorting games.collection directly would
-  // mutate the store's own array in place instead of just this view.
-  const base = query
-    ? games.collection.filter((entry) => entry.game.name.toLowerCase().includes(query))
-    : [...games.collection]
+  const base = games.collection.filter((entry) => {
+    if (query !== '' && !entry.game.name.toLowerCase().includes(query)) return false
+    if (typeFilter.value === 'base' && entry.game.base_game_id !== null) return false
+    if (typeFilter.value === 'expansion' && entry.game.base_game_id === null) return false
+
+    return true
+  })
 
   if (sortCriterion.value === 'rank') {
     return base.sort((a, b) => {
@@ -217,6 +221,11 @@ async function onClearCollection() {
         <select v-model="sortCriterion" :aria-label="$t('dashboard.sortByLabel')" class="sort-criterion">
           <option value="name">{{ $t('dashboard.sortByName') }}</option>
           <option value="rank">{{ $t('dashboard.sortByRank') }}</option>
+        </select>
+        <select v-model="typeFilter" :aria-label="$t('dashboard.typeFilterLabel')" class="type-filter">
+          <option value="all">{{ $t('dashboard.typeAll') }}</option>
+          <option value="base">{{ $t('dashboard.typeBase') }}</option>
+          <option value="expansion">{{ $t('dashboard.typeExpansion') }}</option>
         </select>
         <button
           type="button"
@@ -428,7 +437,8 @@ their icon here instead, freeing up the room the full labels needed. */
   min-width: 160px;
 }
 
-.sort-criterion {
+.sort-criterion,
+.type-filter {
   flex-shrink: 0;
   width: auto;
   max-width: 160px;
