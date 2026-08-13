@@ -365,13 +365,13 @@ async function onClearCollection() {
   margin-left: auto;
 }
 
-/* Same fixed width for both, since they no longer sit next to each
-other where a shared flex parent could size them to match automatically
-- "Vaciar biblioteca" is the longer label in every language this app
-translates to, so it sets the width both buttons use. */
+/* Same fixed width for both, so the two rows' right edges line up
+(the button up top and this one below read as one vertical pair) instead
+of "Vaciar biblioteca" (the longer label, now also carrying an icon)
+running wider than "+ Añadir juego" underneath it. */
 .clear-library-btn,
 .add-game-btn {
-  min-width: 9.5rem;
+  min-width: 11rem;
   justify-content: center;
 }
 
