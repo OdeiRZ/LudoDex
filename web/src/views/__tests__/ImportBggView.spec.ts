@@ -227,6 +227,11 @@ describe('ImportBggView', () => {
           imported_count: 5,
           error_message: null,
         })
+      // Reaching 'completed' triggers a real (unmocked) games.fetchAll()
+      // call further down - without stubbing it too, that hits the network
+      // for real, which CI has no backend to answer and fails as an
+      // unhandled rejection even though every assertion here still passes.
+      vi.spyOn(store, 'fetchAll').mockResolvedValue()
 
       await submitUsername(wrapper)
       await vi.advanceTimersByTimeAsync(3000)
