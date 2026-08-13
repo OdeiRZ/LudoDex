@@ -61,11 +61,16 @@ const baseGameOptions = computed(() =>
 const bggLookupError = ref<string | null>(null)
 const bggLookupLoading = ref(false)
 const imageBroken = ref(false)
-// BGG's name is always in its own catalog language (usually English),
-// which can silently differ from whatever the game was previously saved
-// under (e.g. a Spanish title typed by hand, or CSV-imported text) - flagging
-// the swap here means a later search for the old name isn't a mystery.
-const nameChangeNotice = ref<string | null>(null)
+// BGG's own /thing lookup only ever knows the game's canonical (usually
+// English) name and image - it has no idea about the specific edition
+// version someone linked in their own BGG collection, which is what a
+// profile import actually pulls its (often localized) name/image from.
+// Overwriting an already-filled name/image here would silently replace
+// that with the generic one, so this only ever fills them in when empty;
+// these two flags say when that happened, so the notices below can
+// explain why nothing changed instead of leaving it a mystery.
+const nameKept = ref(false)
+const imageKept = ref(false)
 
 // UI-only concept: the two flags stay independent in the data (a team game
 // can genuinely be both cooperative and competitive - see the games
@@ -95,20 +100,26 @@ async function onLookupBgg() {
 
   bggLookupError.value = null
   bggLookupLoading.value = true
-  nameChangeNotice.value = null
+  nameKept.value = false
+  imageKept.value = false
 
   try {
     const game = await games.lookupBggGame(form.value.bgg_id)
-    const previousName = form.value.name.trim()
 
     form.value.bgg_id = game.bgg_id
-    form.value.name = game.name
 
-    if (previousName && previousName !== game.name) {
-      nameChangeNotice.value = previousName
+    if (form.value.name.trim()) {
+      nameKept.value = true
+    } else {
+      form.value.name = game.name
     }
 
-    form.value.image_url = game.image_url
+    if (form.value.image_url?.trim()) {
+      imageKept.value = true
+    } else {
+      form.value.image_url = game.image_url
+    }
+
     form.value.year_published = game.year_published
     form.value.min_age = game.min_age
     form.value.bgg_rank = game.bgg_rank
@@ -152,15 +163,16 @@ async function onLookupBgg() {
           {{ bggLookupLoading ? $t('gameForm.bggFillLoading') : $t('gameForm.bggFillButton') }}
         </button>
       </div>
+      <p class="hint">{{ $t('gameForm.bggFillHint') }}</p>
       <p v-if="bggLookupError" role="alert" class="alert alert-error">{{ bggLookupError }}</p>
     </fieldset>
 
     <div class="name-and-image">
       <div class="name-field">
         <label for="name">{{ $t('gameForm.name') }}</label>
-        <input id="name" v-model="form.name" type="text" required @input="nameChangeNotice = null" />
-        <p v-if="nameChangeNotice" class="alert alert-info name-change-notice">
-          {{ $t('gameForm.bggNameChangedNotice', { previous: nameChangeNotice }) }}
+        <input id="name" v-model="form.name" type="text" required @input="nameKept = false" />
+        <p v-if="nameKept" class="alert alert-info field-kept-notice">
+          {{ $t('gameForm.bggNameKeptNotice') }}
         </p>
 
         <label for="image_url">{{ $t('gameForm.imageUrl') }}</label>
@@ -169,8 +181,11 @@ async function onLookupBgg() {
           v-model="form.image_url"
           type="url"
           placeholder="https://…"
-          @input="imageBroken = false"
+          @input="imageBroken = false; imageKept = false"
         />
+        <p v-if="imageKept" class="alert alert-info field-kept-notice">
+          {{ $t('gameForm.bggImageKeptNotice') }}
+        </p>
       </div>
 
       <img
@@ -320,6 +335,12 @@ async function onLookupBgg() {
 
 .bgg-lookup-row input {
   flex: 1;
+}
+
+.hint {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  margin-top: var(--space-2);
 }
 
 .name-and-image {

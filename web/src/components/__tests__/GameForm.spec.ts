@@ -152,7 +152,7 @@ describe('GameForm BGG lookup', () => {
   const lookupResult: BggGameLookup = {
     bgg_id: 30549,
     name: 'Pandemic',
-    image_url: null,
+    image_url: 'https://example.com/pandemic.jpg',
     year_published: null,
     min_age: null,
     bgg_rank: null,
@@ -166,11 +166,11 @@ describe('GameForm BGG lookup', () => {
     categories: [],
   }
 
-  // BGG's catalog name (usually English) can silently replace a name the
-  // game was saved under before (a hand-typed Spanish title, CSV-imported
-  // text...) - without this notice, a later search for the old name just
-  // comes up empty with no clue why.
-  it('warns when the fetched name replaces a different existing name', async () => {
+  // BGG's /thing lookup only ever knows the game's canonical name/image,
+  // not the (often localized) name/image a profile import pulled from the
+  // specific edition someone linked in their own BGG collection -
+  // overwriting an already-filled value here would silently lose that.
+  it('keeps an existing name instead of overwriting it from BGG, and says so', async () => {
     const { wrapper, form } = mountGameForm(reactiveForm({ bgg_id: 30549, name: 'Pandemia' }))
     const games = useGamesStore()
     vi.spyOn(games, 'lookupBggGame').mockResolvedValue(lookupResult)
@@ -178,44 +178,47 @@ describe('GameForm BGG lookup', () => {
     await wrapper.find('.bgg-lookup-row button').trigger('click')
     await flushPromises()
 
+    expect(form.name).toBe('Pandemia')
+    expect(wrapper.find('.field-kept-notice').exists()).toBe(true)
+  })
+
+  it('fills the name from BGG when there was none set yet, without a kept notice', async () => {
+    const { wrapper, form } = mountGameForm(reactiveForm({ bgg_id: 30549 }))
+    const games = useGamesStore()
+    vi.spyOn(games, 'lookupBggGame').mockResolvedValue(lookupResult)
+
+    await wrapper.find('.bgg-lookup-row button').trigger('click')
+    await flushPromises()
+
     expect(form.name).toBe('Pandemic')
-    expect(wrapper.text()).toContain('Pandemia')
+    expect(wrapper.find('.field-kept-notice').exists()).toBe(false)
   })
 
-  it('shows no notice when there was no previous name to replace', async () => {
-    const { wrapper } = mountGameForm(reactiveForm({ bgg_id: 30549 }))
+  it('keeps an existing image URL instead of overwriting it from BGG', async () => {
+    const { wrapper, form } = mountGameForm(
+      reactiveForm({ bgg_id: 30549, image_url: 'https://example.com/mine.jpg' }),
+    )
     const games = useGamesStore()
     vi.spyOn(games, 'lookupBggGame').mockResolvedValue(lookupResult)
 
     await wrapper.find('.bgg-lookup-row button').trigger('click')
     await flushPromises()
 
-    expect(wrapper.find('.name-change-notice').exists()).toBe(false)
+    expect(form.image_url).toBe('https://example.com/mine.jpg')
   })
 
-  it('shows no notice when the fetched name matches the existing one', async () => {
-    const { wrapper } = mountGameForm(reactiveForm({ bgg_id: 30549, name: 'Pandemic' }))
-    const games = useGamesStore()
-    vi.spyOn(games, 'lookupBggGame').mockResolvedValue(lookupResult)
-
-    await wrapper.find('.bgg-lookup-row button').trigger('click')
-    await flushPromises()
-
-    expect(wrapper.find('.name-change-notice').exists()).toBe(false)
-  })
-
-  it('clears the notice once the name is edited by hand', async () => {
+  it('clears the kept notice once the name is edited by hand', async () => {
     const { wrapper } = mountGameForm(reactiveForm({ bgg_id: 30549, name: 'Pandemia' }))
     const games = useGamesStore()
     vi.spyOn(games, 'lookupBggGame').mockResolvedValue(lookupResult)
 
     await wrapper.find('.bgg-lookup-row button').trigger('click')
     await flushPromises()
-    expect(wrapper.find('.name-change-notice').exists()).toBe(true)
+    expect(wrapper.find('.field-kept-notice').exists()).toBe(true)
 
-    await wrapper.find('#name').setValue('Pandemic (edición española)')
+    await wrapper.find('#name').setValue('Pandemic (edicion espanola)')
 
-    expect(wrapper.find('.name-change-notice').exists()).toBe(false)
+    expect(wrapper.find('.field-kept-notice').exists()).toBe(false)
   })
 })
 
