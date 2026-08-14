@@ -374,7 +374,10 @@ h1 {
 
 .filters {
   display: flex;
-  gap: var(--space-6);
+  /* Tighter than the space-6 this used before - freeing up a few pixels
+  per gap is what lets Ordenar por fit on the same row as the rest of the
+  top-line filters instead of wrapping to its own line. */
+  gap: var(--space-4);
   flex-wrap: wrap;
   align-items: flex-start;
   margin-bottom: var(--space-6);
@@ -402,8 +405,15 @@ h1 {
   gap: var(--space-2);
 }
 
+/* Fixed and deliberately tight - just enough for "Nombre" (the default
+option) to read in full. A <select> otherwise sizes itself to its widest
+option regardless of which one is picked (so "Ranking BGG" was pushing
+this past the same 180px cap every other filter column keeps to, and
+overflowing the card entirely once that cap was removed to compensate).
+"Ranking BGG" clipping when picked is an accepted trade-off, not a bug. */
 .sort-row select {
-  min-width: 0;
+  width: 6.5rem;
+  flex-shrink: 0;
 }
 
 .sort-toggle {
