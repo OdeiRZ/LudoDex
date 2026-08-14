@@ -422,10 +422,14 @@ which is what lets them share one row together once narrow. */
   grid-area: add;
 }
 
-/* Same fixed width for both, so the two rows' right edges line up
-(the button up top and this one below read as one vertical pair) instead
-of "Vaciar biblioteca" (the longer label, now also carrying an icon)
-running wider than "+ Añadir juego" underneath it. */
+/* Same fixed width for both - on a wide screen so the two rows' right
+edges line up (the button up top and this one below read as one
+vertical pair) instead of "Vaciar biblioteca" (the longer label, now
+also carrying an icon) running wider than "+ Añadir juego" underneath
+it; once they're side by side instead (below 890px), kept for the same
+reason in spirit - shrinking only "+ Añadir juego" down to its own
+shorter content while "Vaciar biblioteca" stayed put read as one button
+being singled out rather than both simply not needing to shrink yet. */
 .clear-library-btn,
 .add-game-btn {
   min-width: 11rem;
@@ -441,17 +445,13 @@ running wider than "+ Añadir juego" underneath it. */
 
 /* Below this, "clear"/"add" no longer read as a top-row/bottom-row pair
 each aligned with something else (the title above one, the search
-controls above the other), so they group into one row of their own
-instead, Vaciar biblioteca on the left and Añadir juego right next to it
-(not spread to opposite edges - that stranded "+ Añadir juego" alone
-with nothing beside it, same problem this is replacing). */
+controls above the other) - trying them grouped next to the title
+instead, in the same spot "clear" alone used to sit. */
 @media (max-width: 890px) {
   .dashboard-toolbar {
-    grid-template-columns: 1fr;
     grid-template-areas:
-      'title'
-      'search'
-      'buttons';
+      'title buttons'
+      'search search';
   }
 
   .action-buttons {
@@ -459,10 +459,20 @@ with nothing beside it, same problem this is replacing). */
     grid-area: buttons;
     gap: var(--space-3);
   }
+}
 
-  .clear-library-btn,
-  .add-game-btn {
-    min-width: 0;
+/* Below this, even next to the title is too tight - drop the pair below
+the search controls into a row of their own instead, Vaciar biblioteca
+on the left and Añadir juego right next to it (not spread to opposite
+edges - that stranded "+ Añadir juego" alone with nothing beside it,
+same problem this is replacing). */
+@media (max-width: 693px) {
+  .dashboard-toolbar {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'title'
+      'search'
+      'buttons';
   }
 }
 
@@ -475,6 +485,7 @@ both shrink to just their icon here instead. */
 
   .clear-library-btn,
   .add-game-btn {
+    min-width: 0;
     padding: 0.5rem;
   }
 }
