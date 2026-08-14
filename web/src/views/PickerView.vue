@@ -398,8 +398,13 @@ it's neither: Minutos and Modo together already fill the second row
 that far, so the toggle drops to a lone third line, left-aligned and
 stranded. Moving it up next to the title instead avoids that orphaned
 line entirely, same technique as the two title/form pairs already used
-elsewhere on this page. */
-@media (min-width: 982px) and (max-width: 1023px) {
+elsewhere on this page.
+
+626-673px gets the same treatment for a different reason - asked for
+directly, to pair with the 674-765px tier's own row split just below
+it (Estructura/Genero moving down to their own second row leaves even
+less headroom for the toggle at the end here too). */
+@media (min-width: 982px) and (max-width: 1023px), (min-width: 626px) and (max-width: 673px) {
   .title-density-toggle {
     display: block;
   }
@@ -704,8 +709,14 @@ reason as the 973-981px tier's own version further down, and restored
 by hand as margin-bottom on each row's own trailing item(s) instead -
 except here every row needs it, not just the one next to the break,
 since row-gap being off applies to every line in the card, not only
-the split one. */
-@media (min-width: 674px) and (max-width: 765px) {
+the split one.
+
+626-673px reuses the exact same split, asked for directly alongside
+moving the toggle up to the title row (see that rule above) - giving
+.density-toggle-slot an order here is harmless even though it's hidden
+in this range, so sharing one block for both ranges is simpler than
+duplicating it. */
+@media (min-width: 674px) and (max-width: 765px), (min-width: 626px) and (max-width: 673px) {
   .filters > .search-field,
   .filters > .search-field + div {
     margin-bottom: var(--space-4);
@@ -774,9 +785,9 @@ three real rows there instead. */
   }
 }
 
-/* Same cascade-order reasoning, paired with the 674-765px block's own
-margin-bottom rules instead. */
-@media (min-width: 674px) and (max-width: 765px) {
+/* Same cascade-order reasoning, paired with the 674-765px/626-673px
+block's own margin-bottom rules instead. */
+@media (min-width: 674px) and (max-width: 765px), (min-width: 626px) and (max-width: 673px) {
   .filters {
     row-gap: 0;
   }
