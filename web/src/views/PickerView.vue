@@ -499,6 +499,44 @@ needed. */
   margin-bottom: var(--space-6);
 }
 
+/* Tablet width - bounded on both ends (rather than reusing the ≤480px
+block above or just adding a plain max-width) so it can't cascade
+against or get cascaded over by that block's own order/width rules;
+the two ranges never overlap, so which one comes first in the file
+doesn't matter either way. At this width there's room for Buscar,
+Jugadores, Estructura and Genero to all share the first row instead of
+Genero wrapping alone - genre-field's default 180px cap left it 1px
+short of the room left after the first three, so it's trimmed here
+just enough to clear that. Ordenar por and the density toggle move to
+order 1/2 for the same reason as the ≤480px tier: pushed past Minutos
+and Modo (both still default order: 0) to land right after Modo
+instead of its own natural spot ahead of Minutos - margin-left: auto on
+the toggle below matches the ≤480px tier too, flush against the card's
+right edge instead of sitting wherever it lands right after
+.sort-field. */
+@media (min-width: 481px) and (max-width: 768px) {
+  .filters > .genre-field {
+    max-width: 170px;
+  }
+
+  .filters > .sort-field {
+    order: 1;
+  }
+
+  .filters > .density-toggle-slot {
+    order: 2;
+    margin-left: auto;
+  }
+
+  /* Same fix as the ≤480px tier: .sort-row (which .sort-toggle's own
+  padding makes taller than a plain select) is taller than the density
+  toggle button, so without this it sits flush with the row's top
+  instead of centered against it. */
+  .filters > .density-toggle-slot :deep(.density-toggle) {
+    margin-top: 5px;
+  }
+}
+
 /* Placed after .filters itself (not inside the ≤480px block above) so
 its column-gap wins the cascade tie against .filters' own unconditional
 gap: shorthand above - same specificity either way (both just

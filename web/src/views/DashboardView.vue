@@ -508,8 +508,12 @@ instead, in the same spot "clear" alone used to sit. */
 pair living inside .sort-group instead of the labelled one above (see
 the template comment by .inline-actions for why a separate grid column
 for the same job couldn't sit flush against the density toggle it's
-conceptually joining). */
-@media (max-width: 693px) {
+conceptually joining). 768px rather than the narrower width this used
+before: at tablet width, "Vaciar biblioteca"/"+ Añadir juego" next to
+the title (the 890px tier just above) already read as cramped even
+though they technically fit - icon-only merged with the view toggle
+reads cleaner there too, not just once it's a genuine fit problem. */
+@media (max-width: 768px) {
   .dashboard-toolbar {
     grid-template-columns: 1fr;
     grid-template-areas:
