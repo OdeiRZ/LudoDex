@@ -164,6 +164,54 @@ it('imports owned games and expansions, linking the expansion to its base game',
         ->and($seafarers->rating)->toBeNull();
 });
 
+it('links an expansion to whichever of its several base games is actually owned', function () {
+    // Reproduces a real case: "Agricola: Corbarius Deck" lists BGG inbound
+    // boardgameexpansion links to both "Agricola (Revised Edition)" (owned
+    // here) and "Agricola 15" (a bundled reimplementation, not owned) - it
+    // must link to the one actually in the collection, not whichever link
+    // happens to come first/last in BGG's own response.
+    $user = actingAsUser();
+
+    Http::fake(function (ClientRequest $request) {
+        $url = $request->url();
+
+        if (str_contains($url, '/collection') && str_contains($url, 'subtype=boardgame&')) {
+            return Http::response(collectionXml('boardgame', [
+                'id' => 200680, 'name' => 'Agricola (Revised Edition)', 'image' => 'https://example.com/agricola.jpg',
+                'own' => 1, 'wishlist' => 0,
+            ]));
+        }
+
+        if (str_contains($url, '/collection') && str_contains($url, 'subtype=boardgameexpansion')) {
+            return Http::response(collectionXml('boardgameexpansion', [
+                'id' => 271144, 'name' => 'Agricola: Corbarius Deck', 'image' => 'https://example.com/corbarius.jpg',
+                'own' => 1, 'wishlist' => 0,
+            ]));
+        }
+
+        return Http::response(<<<'XML'
+        <?xml version="1.0" encoding="utf-8"?>
+        <items>
+            <item type="boardgame" id="200680">
+                <name type="primary" sortindex="1" value="Agricola (Revised Edition)"/>
+            </item>
+            <item type="boardgameexpansion" id="271144">
+                <name type="primary" sortindex="1" value="Agricola: Corbarius Deck"/>
+                <link type="boardgameexpansion" id="200680" value="Agricola (Revised Edition)" inbound="true"/>
+                <link type="boardgameexpansion" id="359999" value="Agricola 15" inbound="true"/>
+            </item>
+        </items>
+        XML);
+    });
+
+    $this->postJson('/api/bgg-imports', ['bgg_username' => 'odei'])->assertCreated();
+
+    $agricola = Game::where('bgg_id', 200680)->first();
+    $corbarius = Game::where('bgg_id', 271144)->first();
+
+    expect($corbarius->base_game_id)->toBe($agricola->id);
+});
+
 it('keeps a manually-added mechanic/category after re-importing from BGG, instead of wiping it', function () {
     $user = actingAsUser();
     $catan = Game::factory()->create(['bgg_id' => 13, 'name' => 'Catan']);

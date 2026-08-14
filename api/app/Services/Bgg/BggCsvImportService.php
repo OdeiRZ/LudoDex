@@ -180,19 +180,41 @@ class BggCsvImportService
             }
 
             foreach ($importedExpansionBggIds as $bggId) {
-                $baseBggId = $expansionDetails[$bggId]['base_game_bgg_id'] ?? null;
+                // An expansion can list more than one base game (e.g. a deck
+                // sold for both a game and a bundled reimplementation of it)
+                // - link to whichever candidate is actually in this file,
+                // instead of always the first/last one BGG reports, which
+                // may not be owned at all.
+                $baseBggIds = $expansionDetails[$bggId]['base_game_bgg_ids'] ?? [];
+                $linkedBaseBggId = null;
 
-                if ($baseBggId !== null && isset($gamesByBggId[$baseBggId])) {
-                    $gamesByBggId[$bggId]->update(['base_game_id' => $gamesByBggId[$baseBggId]->id]);
+                foreach ($baseBggIds as $baseBggId) {
+                    if (isset($gamesByBggId[$baseBggId])) {
+                        $linkedBaseBggId = $baseBggId;
+
+                        break;
+                    }
+                }
+
+                if ($linkedBaseBggId !== null) {
+                    $gamesByBggId[$bggId]->update(['base_game_id' => $gamesByBggId[$linkedBaseBggId]->id]);
 
                     continue;
                 }
 
-                // The base game isn't in this file, but it might already be
-                // cached from an earlier /thing call (anyone's import or
-                // lookup) - if so, name it in the warning instead of the
-                // generic message.
-                $baseName = $baseBggId !== null ? $this->client->getCachedGameName($baseBggId) : null;
+                // None of its candidate base games are in this file, but one
+                // might already be cached from an earlier /thing call
+                // (anyone's import or lookup) - if so, name it in the
+                // warning instead of the generic message.
+                $baseName = null;
+
+                foreach ($baseBggIds as $baseBggId) {
+                    $baseName = $this->client->getCachedGameName($baseBggId);
+
+                    if ($baseName !== null) {
+                        break;
+                    }
+                }
 
                 $warnings[] = $baseName !== null
                     ? __('bgg.csv_expansion_not_linked_with_base_name', ['name' => $gamesByBggId[$bggId]->name, 'base_name' => $baseName])

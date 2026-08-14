@@ -115,7 +115,7 @@ class BggClient
 
     /**
      * @param  list<int>  $bggIds
-     * @return array<int, array{name: string, image_url: ?string, mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_id: ?int, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int}>
+     * @return array<int, array{name: string, image_url: ?string, mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_ids: list<int>, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int}>
      */
     public function fetchGameDetails(array $bggIds): array
     {
@@ -200,13 +200,21 @@ class BggClient
      * path - keeping one shape here instead of two nearly-identical parsers
      * is what makes caching a single entry per id possible.
      *
-     * @return array{name: string, image_url: ?string, mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_id: ?int, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int}
+     * @return array{name: string, image_url: ?string, mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_ids: list<int>, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int}
      */
     private function parseGameDetail(SimpleXMLElement $item): array
     {
         $mechanics = [];
         $categories = [];
-        $baseGameBggId = null;
+        // An expansion can carry more than one inbound boardgameexpansion
+        // link - e.g. a deck sold as an expansion for both the base game
+        // and a bundled reimplementation of it. Collecting all of them
+        // (instead of keeping only the last one seen) lets the caller pick
+        // whichever candidate is actually the one present in a given
+        // collection/CSV, rather than silently linking to - or failing to
+        // link to anything at all because of - one that happens to be last
+        // in BGG's own response order.
+        $baseGameBggIds = [];
 
         foreach ($item->link as $link) {
             $type = (string) $link['type'];
@@ -216,7 +224,7 @@ class BggClient
             } elseif ($type === 'boardgamecategory') {
                 $categories[] = (string) $link['value'];
             } elseif ($type === 'boardgameexpansion' && (string) $link['inbound'] === 'true') {
-                $baseGameBggId = (int) $link['id'];
+                $baseGameBggIds[] = (int) $link['id'];
             }
         }
 
@@ -252,7 +260,7 @@ class BggClient
             'mechanics' => $mechanics,
             'categories' => $categories,
             'weight' => $weight,
-            'base_game_bgg_id' => $baseGameBggId,
+            'base_game_bgg_ids' => $baseGameBggIds,
             'year_published' => $this->intOrNull($item->yearpublished['value'] ?? null),
             // BGG's own site shows this value with a trailing "+" (e.g.
             // "Ages: 8+"), not as a plain number - kept as a string here
@@ -345,7 +353,7 @@ class BggClient
     }
 
     /**
-     * @param  array{name: string, image_url: ?string, mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_id: ?int, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int}  $detail
+     * @param  array{name: string, image_url: ?string, mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_ids: list<int>, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int}  $detail
      * @return array{bgg_id: int, name: string, image_url: ?string, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int, weight: ?float, mechanics: list<string>, categories: list<string>}
      */
     private function buildLookupResult(int $bggId, array $detail): array

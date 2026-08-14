@@ -71,7 +71,7 @@ class BggImportService
 
     /**
      * @param  list<array<string, mixed>>  $items
-     * @param  array<int, array{mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_id: ?int, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float}>  $details
+     * @param  array<int, array{mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_ids: list<int>, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float}>  $details
      * @return array<int, Game>
      */
     private function upsertGames(array $items, array $details): array
@@ -127,16 +127,25 @@ class BggImportService
 
     /**
      * @param  list<array<string, mixed>>  $items
-     * @param  array<int, array{mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_id: ?int, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float}>  $details
+     * @param  array<int, array{mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_ids: list<int>, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float}>  $details
      * @param  array<int, Game>  $gamesByBggId
      */
     private function linkExpansions(array $items, array $details, array $gamesByBggId): void
     {
         foreach ($items as $item) {
-            $baseBggId = $details[$item['bgg_id']]['base_game_bgg_id'] ?? null;
+            $baseBggIds = $details[$item['bgg_id']]['base_game_bgg_ids'] ?? [];
 
-            if ($baseBggId !== null && isset($gamesByBggId[$baseBggId])) {
-                $gamesByBggId[$item['bgg_id']]->update(['base_game_id' => $gamesByBggId[$baseBggId]->id]);
+            // An expansion can list more than one base game (e.g. a deck
+            // sold for both a game and a bundled reimplementation of it) -
+            // link to whichever candidate is actually part of this
+            // collection, instead of always the first/last one BGG reports,
+            // which may not be owned at all.
+            foreach ($baseBggIds as $baseBggId) {
+                if (isset($gamesByBggId[$baseBggId])) {
+                    $gamesByBggId[$item['bgg_id']]->update(['base_game_id' => $gamesByBggId[$baseBggId]->id]);
+
+                    break;
+                }
             }
         }
     }

@@ -199,6 +199,40 @@ it('imports and links an expansion to its base game when a BGG token is availabl
     Http::assertSent(fn ($request) => str_contains($request->url(), 'id=9209') && ! str_contains($request->url(), '13'));
 });
 
+it('links an expansion to whichever of its several base games is in the same file', function () {
+    $user = actingAsUser();
+
+    // Same real case as the username-import test: the expansion lists two
+    // inbound links (a reimplementation not in this file, and the actual
+    // base game that is) - it must link to the one it can, regardless of
+    // which link BGG happens to report first.
+    Http::fake(fn () => Http::response(<<<'XML'
+    <?xml version="1.0" encoding="utf-8"?>
+    <items>
+        <item type="boardgameexpansion" id="271144">
+            <name type="primary" sortindex="1" value="Agricola: Corbarius Deck"/>
+            <link type="boardgameexpansion" id="359999" value="Agricola 15" inbound="true"/>
+            <link type="boardgameexpansion" id="200680" value="Agricola (Revised Edition)" inbound="true"/>
+        </item>
+    </items>
+    XML));
+
+    $file = csvUpload(CSV_HEADER, [
+        ['"Agricola (Revised Edition)"', '200680', 'standalone', '1', '0', '""', '0', ...CSV_EXTRA, '1', '5'],
+        ['"Agricola: Corbarius Deck"', '271144', 'expansion', '1', '0', '""', '0', ...CSV_EXTRA, '1', '5'],
+    ]);
+
+    $response = postCsv($file)->assertOk();
+
+    $response->assertJsonPath('data.warnings', []);
+
+    $agricola = Game::where('bgg_id', 200680)->first();
+    $corbarius = Game::where('bgg_id', 271144)->first();
+
+    expect($corbarius->base_game_id)->toBe($agricola->id);
+    expect($user->games()->count())->toBe(2);
+});
+
 it('imports an expansion without linking it, and warns about it, when its base game is not in the same file', function () {
     actingAsUser();
 
