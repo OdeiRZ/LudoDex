@@ -169,32 +169,75 @@ async function onClearCollection() {
 
 <template>
   <div>
-    <div class="header">
+    <div class="dashboard-toolbar">
       <div class="title-row">
         <h1>{{ $t('dashboard.title') }}</h1>
         <span v-if="games.loaded" class="count">{{
           $t('common.gamesCount', { count: filtered.length })
         }}</span>
       </div>
-      <button
-        v-if="games.loaded && games.collection.length > 0"
-        type="button"
-        class="btn btn-danger clear-library-btn"
-        :aria-label="$t('dashboard.clearLibrary')"
-        :title="$t('dashboard.clearLibrary')"
-        @click="openClearConfirm"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"
+
+      <template v-if="games.loaded && games.collection.length > 0">
+        <div class="search-controls">
+          <input
+            v-model="search"
+            type="search"
+            :aria-label="$t('dashboard.searchLabel')"
+            :placeholder="$t('dashboard.searchPlaceholder')"
           />
-          <line x1="10" y1="11" x2="10" y2="17" stroke-linecap="round" />
-          <line x1="14" y1="11" x2="14" y2="17" stroke-linecap="round" />
-        </svg>
-        <span class="btn-full-label">{{ $t('dashboard.clearLibrary') }}</span>
-      </button>
+          <select v-model="typeFilter" :aria-label="$t('dashboard.typeFilterLabel')" class="type-filter">
+            <option value="all">{{ $t('dashboard.typeAll') }}</option>
+            <option value="base">{{ $t('dashboard.typeBase') }}</option>
+            <option value="expansion">{{ $t('dashboard.typeExpansion') }}</option>
+          </select>
+          <select v-model="sortCriterion" :aria-label="$t('dashboard.sortByLabel')" class="sort-criterion">
+            <option value="name">{{ $t('dashboard.sortByName') }}</option>
+            <option value="rank">{{ $t('dashboard.sortByRank') }}</option>
+          </select>
+          <button
+            type="button"
+            class="btn sort-toggle"
+            :aria-label="sortToggleActionLabel"
+            :title="sortToggleActionLabel"
+            @click="toggleSort"
+          >
+            {{ sortToggleLabel }}
+          </button>
+          <DensityToggle :density="density" @toggle="toggleDensity" />
+        </div>
+
+        <div class="action-buttons">
+          <button
+            type="button"
+            class="btn btn-danger clear-library-btn"
+            :aria-label="$t('dashboard.clearLibrary')"
+            :title="$t('dashboard.clearLibrary')"
+            @click="openClearConfirm"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"
+              />
+              <line x1="10" y1="11" x2="10" y2="17" stroke-linecap="round" />
+              <line x1="14" y1="11" x2="14" y2="17" stroke-linecap="round" />
+            </svg>
+            <span class="btn-full-label">{{ $t('dashboard.clearLibrary') }}</span>
+          </button>
+          <RouterLink
+            :to="{ name: 'add-game' }"
+            class="btn btn-primary add-game-btn"
+            :aria-label="$t('dashboard.addGame')"
+            :title="$t('dashboard.addGame')"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" d="M12 5v14M5 12h14" />
+            </svg>
+            <span class="btn-full-label">{{ $t('dashboard.addGame') }}</span>
+          </RouterLink>
+        </div>
+      </template>
     </div>
 
     <p v-if="games.loading" class="loading-state">
@@ -208,45 +251,6 @@ async function onClearCollection() {
     </p>
 
     <template v-else-if="games.loaded">
-      <div class="search-row">
-        <input
-          v-model="search"
-          type="search"
-          :aria-label="$t('dashboard.searchLabel')"
-          :placeholder="$t('dashboard.searchPlaceholder')"
-        />
-        <select v-model="typeFilter" :aria-label="$t('dashboard.typeFilterLabel')" class="type-filter">
-          <option value="all">{{ $t('dashboard.typeAll') }}</option>
-          <option value="base">{{ $t('dashboard.typeBase') }}</option>
-          <option value="expansion">{{ $t('dashboard.typeExpansion') }}</option>
-        </select>
-        <select v-model="sortCriterion" :aria-label="$t('dashboard.sortByLabel')" class="sort-criterion">
-          <option value="name">{{ $t('dashboard.sortByName') }}</option>
-          <option value="rank">{{ $t('dashboard.sortByRank') }}</option>
-        </select>
-        <button
-          type="button"
-          class="btn sort-toggle"
-          :aria-label="sortToggleActionLabel"
-          :title="sortToggleActionLabel"
-          @click="toggleSort"
-        >
-          {{ sortToggleLabel }}
-        </button>
-        <DensityToggle :density="density" @toggle="toggleDensity" />
-        <RouterLink
-          :to="{ name: 'add-game' }"
-          class="btn btn-primary add-game-btn"
-          :aria-label="$t('dashboard.addGame')"
-          :title="$t('dashboard.addGame')"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path stroke-linecap="round" d="M12 5v14M5 12h14" />
-          </svg>
-          <span class="btn-full-label">{{ $t('dashboard.addGame') }}</span>
-        </RouterLink>
-      </div>
-
       <div v-if="clearConfirmOpen" class="clear-confirm card" role="alertdialog">
         <p>{{ $t('dashboard.clearConfirmWarning', { count: clearConfirmCount }) }}</p>
         <label for="clear-confirm-input">{{
@@ -337,14 +341,26 @@ async function onClearCollection() {
 </template>
 
 <style scoped>
-.header {
-  display: flex;
-  justify-content: space-between;
+/* A grid instead of two separate flex rows (title+clear-library-btn,
+then search-controls+add-game-btn) so the layout can be reshuffled per
+breakpoint below - "clear"/"add" sit each in their own row on a wide
+screen, but need to end up sharing one row together once things get
+narrow, which isn't something two independent flex containers can do
+without literally moving markup between them. */
+.dashboard-toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    'title clear'
+    'search add';
+  column-gap: var(--space-4);
+  row-gap: var(--space-4);
   align-items: center;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-4);
 }
 
 .title-row {
+  grid-area: title;
   display: flex;
   align-items: baseline;
   gap: var(--space-2);
@@ -355,20 +371,39 @@ async function onClearCollection() {
   font-size: 0.9rem;
 }
 
-.search-row {
+.search-controls {
+  grid-area: search;
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  margin-bottom: var(--space-4);
   flex-wrap: wrap;
 }
 
-.search-row input {
+/* Every other control in this row already resists shrinking (the two
+selects are flex-shrink: 0, the buttons have their own min-width) - this
+one didn't, so as the row ran out of room it silently crushed the search
+box down to an unusably narrow sliver instead of doing what flex-wrap is
+there for. A firm floor makes the row wrap onto two clean lines instead,
+once it truly doesn't fit. */
+.search-controls input {
   max-width: 320px;
+  min-width: 180px;
+}
+
+/* display: contents on a wide screen keeps these two as independent grid
+items (their own grid-area below places them in separate rows) - the
+@media override further down switches this to a real flex box instead,
+which is what lets them share one row together once narrow. */
+.action-buttons {
+  display: contents;
+}
+
+.clear-library-btn {
+  grid-area: clear;
 }
 
 .add-game-btn {
-  margin-left: auto;
+  grid-area: add;
 }
 
 /* Same fixed width for both, so the two rows' right edges line up
@@ -388,10 +423,36 @@ running wider than "+ Añadir juego" underneath it. */
   flex-shrink: 0;
 }
 
-/* Narrow enough that "Vaciar biblioteca" at its usual width pushed "Tu
-colección"/the game count onto their own wrapped line, and "+ Añadir
-juego" no longer fit next to the density toggle - both shrink to just
-their icon here instead, freeing up the room the full labels needed. */
+/* Below this, .search-controls no longer fits everything on one line
+(per its own input's min-width above) and wraps to its own second line -
+at that point "clear"/"add" no longer read as a top-row/bottom-row pair
+each aligned with something else, so they group into one row of their
+own instead, Vaciar biblioteca on the left and Añadir juego right next
+to it (not spread to opposite edges - that stranded "+ Añadir juego"
+alone with nothing beside it, same problem this is replacing). */
+@media (max-width: 1005px) {
+  .dashboard-toolbar {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'title'
+      'search'
+      'buttons';
+  }
+
+  .action-buttons {
+    display: flex;
+    grid-area: buttons;
+    gap: var(--space-3);
+  }
+
+  .clear-library-btn,
+  .add-game-btn {
+    min-width: 0;
+  }
+}
+
+/* Narrow enough that the full labels no longer fit next to each other -
+both shrink to just their icon here instead. */
 @media (max-width: 480px) {
   .btn-full-label {
     display: none;
@@ -399,9 +460,7 @@ their icon here instead, freeing up the room the full labels needed. */
 
   .clear-library-btn,
   .add-game-btn {
-    min-width: 0;
     padding: 0.5rem;
-    margin-right: var(--space-2);
   }
 }
 
