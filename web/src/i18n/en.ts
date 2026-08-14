@@ -101,7 +101,7 @@ export default {
     toastRemoved: 'Game removed from your collection.',
     clearLibrary: 'Clear library',
     clearConfirmWarning:
-      "This will remove all {count} games from your collection (the games themselves stay in the shared catalog - only your \"Own it\"/\"Want it\" is deleted). This can't be undone.",
+      "This will remove all {count} games from your collection (the shared catalog isn't affected). This can't be undone.",
     clearConfirmInstructions: 'Type {count} to confirm.',
     clearConfirmPlaceholder: 'Type {count}',
     clearConfirmButton: 'Clear library',

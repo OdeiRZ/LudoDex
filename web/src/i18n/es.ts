@@ -101,7 +101,7 @@ export default {
     toastRemoved: 'Juego quitado de tu colección.',
     clearLibrary: 'Vaciar biblioteca',
     clearConfirmWarning:
-      'Esto quitará los {count} juegos de tu colección (el juego en sí seguirá en el catálogo compartido, solo se borra tu "Lo tengo"/"Lo quiero"). No se puede deshacer.',
+      'Esto quitará los {count} juegos de tu colección (el catálogo compartido no se ve afectado). No se puede deshacer.',
     clearConfirmInstructions: 'Escribe {count} para confirmar.',
     clearConfirmPlaceholder: 'Escribe {count}',
     clearConfirmButton: 'Vaciar biblioteca',
