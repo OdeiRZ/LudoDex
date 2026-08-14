@@ -179,31 +179,35 @@ async function onClearCollection() {
 
       <template v-if="games.loaded && games.collection.length > 0">
         <div class="search-controls">
-          <input
-            v-model="search"
-            type="search"
-            :aria-label="$t('dashboard.searchLabel')"
-            :placeholder="$t('dashboard.searchPlaceholder')"
-          />
-          <select v-model="typeFilter" :aria-label="$t('dashboard.typeFilterLabel')" class="type-filter">
-            <option value="all">{{ $t('dashboard.typeAll') }}</option>
-            <option value="base">{{ $t('dashboard.typeBase') }}</option>
-            <option value="expansion">{{ $t('dashboard.typeExpansion') }}</option>
-          </select>
-          <select v-model="sortCriterion" :aria-label="$t('dashboard.sortByLabel')" class="sort-criterion">
-            <option value="name">{{ $t('dashboard.sortByName') }}</option>
-            <option value="rank">{{ $t('dashboard.sortByRank') }}</option>
-          </select>
-          <button
-            type="button"
-            class="btn sort-toggle"
-            :aria-label="sortToggleActionLabel"
-            :title="sortToggleActionLabel"
-            @click="toggleSort"
-          >
-            {{ sortToggleLabel }}
-          </button>
-          <DensityToggle :density="density" @toggle="toggleDensity" />
+          <div class="search-group">
+            <input
+              v-model="search"
+              type="search"
+              :aria-label="$t('dashboard.searchLabel')"
+              :placeholder="$t('dashboard.searchPlaceholder')"
+            />
+            <select v-model="typeFilter" :aria-label="$t('dashboard.typeFilterLabel')" class="type-filter">
+              <option value="all">{{ $t('dashboard.typeAll') }}</option>
+              <option value="base">{{ $t('dashboard.typeBase') }}</option>
+              <option value="expansion">{{ $t('dashboard.typeExpansion') }}</option>
+            </select>
+          </div>
+          <div class="sort-group">
+            <select v-model="sortCriterion" :aria-label="$t('dashboard.sortByLabel')" class="sort-criterion">
+              <option value="name">{{ $t('dashboard.sortByName') }}</option>
+              <option value="rank">{{ $t('dashboard.sortByRank') }}</option>
+            </select>
+            <button
+              type="button"
+              class="btn sort-toggle"
+              :aria-label="sortToggleActionLabel"
+              :title="sortToggleActionLabel"
+              @click="toggleSort"
+            >
+              {{ sortToggleLabel }}
+            </button>
+            <DensityToggle :density="density" @toggle="toggleDensity" />
+          </div>
         </div>
 
         <div class="action-buttons">
@@ -371,6 +375,11 @@ without literally moving markup between them. */
   font-size: 0.9rem;
 }
 
+/* Each of the two child groups below wraps as a single flex item, not
+the controls inside it individually - without that, a control could end
+up wrapping on its own regardless of which one it started next to,
+splitting e.g. the sort select from its own toggle button rather than
+moving them to the next line together. */
 .search-controls {
   grid-area: search;
   display: flex;
@@ -379,13 +388,20 @@ without literally moving markup between them. */
   flex-wrap: wrap;
 }
 
+.search-group,
+.sort-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 /* Every other control in this row already resists shrinking (the two
 selects are flex-shrink: 0, the buttons have their own min-width) - this
 one didn't, so as the row ran out of room it silently crushed the search
 box down to an unusably narrow sliver instead of doing what flex-wrap is
 there for. A firm floor makes the row wrap onto two clean lines instead,
 once it truly doesn't fit. */
-.search-controls input {
+.search-group input {
   max-width: 320px;
   min-width: 180px;
 }
