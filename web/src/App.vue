@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { RouterLink, RouterView, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import UserAvatar from '@/components/UserAvatar.vue'
@@ -14,6 +15,18 @@ async function onLogout() {
   await auth.logout()
   router.push({ name: 'login' })
 }
+
+// A stored token survives a reload, but the user object it belongs to
+// doesn't - without this, the header's name/avatar only ever appeared if
+// the session happened to pass through a view that fetched it itself
+// (previously only the dashboard did), staying blank on a reload/deep
+// link landing anywhere else. Lives here, at the root, so it runs once
+// regardless of which page that turns out to be.
+onMounted(() => {
+  if (auth.isAuthenticated && !auth.user) {
+    auth.fetchCurrentUser()
+  }
+})
 </script>
 
 <template>

@@ -2,18 +2,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import DashboardView from '@/views/DashboardView.vue'
-import { useAuthStore } from '@/stores/auth'
 import { useGamesStore } from '@/stores/games'
 import { useToastStore } from '@/stores/toast'
 import { makeEntry } from '@/stores/__tests__/gameFixtures'
 import { i18n } from '@/i18n'
 
-// Pre-seeding both stores as already loaded keeps onMounted from firing a
-// real network request through fetchCurrentUser()/fetchAll().
+// Pre-seeding the store as already loaded keeps onMounted from firing a
+// real network request through fetchAll().
 function mountDashboard(entries: ReturnType<typeof makeEntry>[]) {
   setActivePinia(createPinia())
-  const auth = useAuthStore()
-  auth.user = { id: 1, name: 'Odei', email: 'odei@example.com', bgg_username: null, avatar_url: null }
 
   const games = useGamesStore()
   games.collection = entries

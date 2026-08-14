@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '@/stores/auth'
 import { useGamesStore } from '@/stores/games'
 import { useToastStore } from '@/stores/toast'
 import { useCollectionDensity } from '@/composables/useCollectionDensity'
@@ -10,16 +9,14 @@ import DensityToggle from '@/components/DensityToggle.vue'
 import GameCard from '@/components/GameCard.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
-const auth = useAuthStore()
 const games = useGamesStore()
 const toast = useToastStore()
 const { t } = useI18n()
 
+// Restoring the logged-in user from a stored token (e.g. after a reload)
+// is App.vue's job now, not this view's - it needs to happen regardless
+// of which page a reload/deep link lands on, not just this one.
 onMounted(() => {
-  if (!auth.user) {
-    auth.fetchCurrentUser()
-  }
-
   if (!games.loaded) {
     games.fetchAll()
   }
