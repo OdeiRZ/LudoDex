@@ -108,13 +108,57 @@ describe('ImportBggView', () => {
     expect(wrapper.find('#bgg_username').exists()).toBe(true)
   })
 
-  it('shows a generic error when starting the import throws', async () => {
+  it('shows a generic error when starting the import is rejected outright', async () => {
     const { wrapper, store } = mountImport()
-    vi.spyOn(store, 'startBggImport').mockRejectedValue(new Error('network error'))
+    vi.spyOn(store, 'startBggImport').mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 422, data: {} },
+    })
 
     await submitUsername(wrapper)
 
     expect(wrapper.text()).toContain('No se ha podido iniciar la importación.')
+  })
+
+  it('retries starting the import after a network hiccup instead of failing outright', async () => {
+    const { wrapper, store } = mountImport()
+    const startSpy = vi
+      .spyOn(store, 'startBggImport')
+      .mockRejectedValueOnce(new Error('network error'))
+      .mockResolvedValueOnce({
+        id: 'import-1',
+        bgg_username: 'odei',
+        status: 'pending',
+        imported_count: null,
+        error_message: null,
+      })
+    vi.spyOn(store, 'pollBggImport').mockResolvedValue({
+      id: 'import-1',
+      bgg_username: 'odei',
+      status: 'pending',
+      imported_count: null,
+      error_message: null,
+    })
+
+    await submitUsername(wrapper)
+
+    // Still the pending screen, not a form with an error - a dropped
+    // connection while starting shouldn't read as "couldn't start" when it
+    // may well have gone through.
+    expect(wrapper.find('[role="status"]').exists()).toBe(true)
+    expect(wrapper.find('#bgg_username').exists()).toBe(false)
+
+    await vi.advanceTimersByTimeAsync(3000)
+    await flushPromises()
+
+    expect(startSpy).toHaveBeenCalledTimes(2)
+    expect(localStorage.getItem('ludodex_pending_bgg_import')).toBe('import-1')
+
+    // Otherwise this listener (stuck "pending" forever, since polling is
+    // mocked to always resolve pending) leaks into every later test in
+    // this file - see the same note on the "resuming a pending import"
+    // tests above.
+    wrapper.unmount()
   })
 
   it('stops polling once the component is unmounted', async () => {

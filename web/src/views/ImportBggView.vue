@@ -82,14 +82,28 @@ async function onSubmit() {
   phase.value = 'pending'
   errorMessage.value = null
 
+  await attemptStart(username.value)
+
+  submitting.value = false
+}
+
+async function attemptStart(usernameValue: string) {
   try {
-    const result = await games.startBggImport(username.value)
+    const result = await games.startBggImport(usernameValue)
     handleResult(result)
-  } catch {
-    phase.value = 'failed'
-    errorMessage.value = t('importBgg.genericStartError')
-  } finally {
-    submitting.value = false
+  } catch (err) {
+    if (isAxiosError(err) && err.response) {
+      phase.value = 'failed'
+      errorMessage.value = t('importBgg.genericStartError')
+      return
+    }
+
+    // Same reasoning as poll()'s own retry: a dropped connection or a tab
+    // resuming from being backgrounded shouldn't read as "couldn't start
+    // the import" when it may well have gone through - the backend reuses
+    // a still-pending import for this username instead of starting a
+    // duplicate, so retrying here is safe.
+    pollTimer = setTimeout(() => attemptStart(usernameValue), POLL_INTERVAL_MS)
   }
 }
 
