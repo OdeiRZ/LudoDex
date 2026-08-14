@@ -31,7 +31,7 @@ onMounted(() => {
 
 <template>
   <header>
-    <RouterLink :to="{ name: 'dashboard' }" class="brand">🎲 LudoDex</RouterLink>
+    <RouterLink :to="{ name: 'dashboard' }" class="brand">🎲 <span class="brand-name">LudoDex</span></RouterLink>
 
     <nav v-if="auth.isAuthenticated" class="primary-nav">
       <RouterLink :to="{ name: 'dashboard' }">{{ $t('nav.collection') }}</RouterLink>
@@ -87,6 +87,16 @@ header {
 
 .brand:hover {
   text-decoration: none;
+}
+
+/* Below this the header's own wrapping (brand/nav on one line, session
+below) starts looking cramped - dropping the text next to the dice
+keeps the brand mark itself without needing the full wordmark's width,
+freeing up a bit more room for primary-nav next to it. */
+@media (max-width: 475px) {
+  .brand-name {
+    display: none;
+  }
 }
 
 .primary-nav {
