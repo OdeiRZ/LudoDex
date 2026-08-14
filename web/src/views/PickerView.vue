@@ -414,7 +414,7 @@ elsewhere on this page. */
   }
 }
 
-/* 821-981px: at this width the card's default (unbounded) flex-wrap
+/* 807-981px: at this width the card's default (unbounded) flex-wrap
 already reflows into a usable 2-line shape on its own (Ordenar por
 tags along on the first line with Buscar/Jugadores/Estructura/Genero,
 Minutos/Modo/the toggle sharing the second) - nothing here was actually
@@ -423,8 +423,12 @@ and the toggle pushed past Minutos and Modo (both left at their default
 order: 0) to land together as the last line, flush against the card's
 right edge - same order-based technique as the ≤480px and ≤768px tiers,
 so wider layouts (where this media query doesn't apply) keep the plain
-DOM order Ordenar por already had. */
-@media (min-width: 821px) and (max-width: 981px) {
+DOM order Ordenar por already had. 807px (rather than a rounder number)
+is deliberate - confirmed with a real window right at that edge that
+Modo, Ordenar por and the toggle still fit together on their own line
+that far down without needing the 973-981px tier's line-break trick
+further up. */
+@media (min-width: 807px) and (max-width: 981px) {
   .filters > .sort-field {
     order: 1;
   }
