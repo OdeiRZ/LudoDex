@@ -184,7 +184,7 @@ export default {
     upTo2h: 'Hasta 2h',
     mode: 'Modo',
     structureLegend: 'Estructura',
-    onlyCampaign: 'Con modo campaña',
+    onlyCampaign: 'Modo campaña',
     genre: 'Género',
     emptyOwned: 'No tienes juegos marcados como "Lo tengo" todavía.',
     addOne: 'Añade uno',

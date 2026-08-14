@@ -111,14 +111,15 @@ describe('PickerView', () => {
     it('shows every owned game once the player filter is cleared', async () => {
       await wrapper.find('#players').setValue('')
 
-      expect(gameNames()).toEqual(['Root', 'Friday', 'Catan'])
+      // Alphabetical by default, not collection/insertion order.
+      expect(gameNames()).toEqual(['Catan', 'Friday', 'Root'])
     })
 
     it('filters by player count using each game min/max range', async () => {
       await wrapper.find('#players').setValue(4)
 
       // Root and Catan both allow 4, Friday tops out at 1.
-      expect(gameNames()).toEqual(['Root', 'Catan'])
+      expect(gameNames()).toEqual(['Catan', 'Root'])
     })
 
     it('filters by duration using whichever playtime value is set, min preferred', async () => {
@@ -131,10 +132,10 @@ describe('PickerView', () => {
       // included too - this is the exact shape of data (one playtime
       // value, not a real min/max pair) that made this filter a no-op
       // before, since it only ever checked max_playtime_minutes.
-      expect(gameNames()).toEqual(['Friday', 'Catan'])
+      expect(gameNames()).toEqual(['Catan', 'Friday'])
     })
 
-    it('filters to only games with a campaign when "Con modo campaña" is checked', async () => {
+    it('filters to only games with a campaign when "Modo campaña" is checked', async () => {
       await wrapper.find('#players').setValue('')
       await wrapper.find('input[type="checkbox"]').setValue(true)
 
@@ -184,16 +185,16 @@ describe('PickerView', () => {
       await wrapper.find('#players').setValue('')
       await wrapper.find('input[type="radio"][value="cooperative"]').setValue()
 
-      expect(gameNames()).toEqual(['Root', 'Friday'])
+      expect(gameNames()).toEqual(['Friday', 'Root'])
     })
 
     it('sets players to 1 and hides the mode filter when "Solo" is clicked', async () => {
-      expect(wrapper.text()).toContain('Modo')
+      expect(wrapper.find('input[type="radio"][value="cooperative"]').exists()).toBe(true)
 
       await wrapper.find('.players-row button').trigger('click')
 
       expect((wrapper.find('#players').element as HTMLInputElement).value).toBe('1')
-      expect(wrapper.text()).not.toContain('Modo')
+      expect(wrapper.find('input[type="radio"][value="cooperative"]').exists()).toBe(false)
       expect(gameNames()).toEqual(['Friday'])
     })
 
@@ -209,13 +210,76 @@ describe('PickerView', () => {
     it('drops an active mode filter once "Solo" is selected', async () => {
       await wrapper.find('#players').setValue('')
       await wrapper.find('input[type="radio"][value="competitive"]').setValue()
-      expect(gameNames()).toEqual(['Root', 'Catan'])
+      expect(gameNames()).toEqual(['Catan', 'Root'])
 
       await wrapper.find('.players-row button').trigger('click')
 
       // Mode radios are hidden and ignored while solo, so Friday (the only
       // game that fits 1 player) is back regardless of the mode picked above.
       expect(gameNames()).toEqual(['Friday'])
+    })
+  })
+
+  describe('sort controls', () => {
+    function gameNames(wrapper: ReturnType<typeof mountPicker>) {
+      return wrapper.findAll('.game-card h2').map((h2) => h2.text())
+    }
+
+    it('sorts alphabetically by default', async () => {
+      const wrapper = mountPicker([makeEntry({ name: 'Root' }), makeEntry({ name: 'Ark Nova' }), makeEntry({ name: 'Catan' })])
+      await wrapper.find('#players').setValue('')
+
+      expect(gameNames(wrapper)).toEqual(['Ark Nova', 'Catan', 'Root'])
+    })
+
+    it('reverses the order when the sort button is clicked, and back again on a second click', async () => {
+      const wrapper = mountPicker([makeEntry({ name: 'Root' }), makeEntry({ name: 'Ark Nova' }), makeEntry({ name: 'Catan' })])
+      await wrapper.find('#players').setValue('')
+
+      const sortButton = wrapper.find('.sort-toggle')
+      await sortButton.trigger('click')
+      expect(gameNames(wrapper)).toEqual(['Root', 'Catan', 'Ark Nova'])
+
+      await sortButton.trigger('click')
+      expect(gameNames(wrapper)).toEqual(['Ark Nova', 'Catan', 'Root'])
+    })
+
+    it('sorts by BGG rank when that criterion is selected, best rank first', async () => {
+      const wrapper = mountPicker([
+        makeEntry({ name: 'Mid', bgg_rank: 50 }),
+        makeEntry({ name: 'Best', bgg_rank: 1 }),
+        makeEntry({ name: 'Worst', bgg_rank: 200 }),
+      ])
+      await wrapper.find('#players').setValue('')
+
+      await wrapper.find('#sort-criterion').setValue('rank')
+
+      expect(gameNames(wrapper)).toEqual(['Best', 'Mid', 'Worst'])
+    })
+
+    it('always sinks games with no BGG rank to the bottom, in either direction', async () => {
+      const wrapper = mountPicker([
+        makeEntry({ name: 'Unranked', bgg_rank: null }),
+        makeEntry({ name: 'Best', bgg_rank: 1 }),
+        makeEntry({ name: 'Mid', bgg_rank: 50 }),
+      ])
+      await wrapper.find('#players').setValue('')
+
+      await wrapper.find('#sort-criterion').setValue('rank')
+      expect(gameNames(wrapper)).toEqual(['Best', 'Mid', 'Unranked'])
+
+      await wrapper.find('.sort-toggle').trigger('click')
+      expect(gameNames(wrapper)).toEqual(['Mid', 'Best', 'Unranked'])
+    })
+
+    it('keeps sorting applied on top of the active search filter', async () => {
+      const wrapper = mountPicker([makeEntry({ name: 'Catan' }), makeEntry({ name: 'Ark Nova' })])
+      await wrapper.find('#players').setValue('')
+
+      await wrapper.find('.sort-toggle').trigger('click')
+      await wrapper.find('#search').setValue('a')
+
+      expect(gameNames(wrapper)).toEqual(['Catan', 'Ark Nova'])
     })
   })
 

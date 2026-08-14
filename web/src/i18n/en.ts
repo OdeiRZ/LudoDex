@@ -184,7 +184,7 @@ export default {
     upTo2h: 'Up to 2h',
     mode: 'Mode',
     structureLegend: 'Structure',
-    onlyCampaign: 'Campaign mode only',
+    onlyCampaign: 'Campaign mode',
     genre: 'Genre',
     emptyOwned: 'You don\'t have any games marked "Own it" yet.',
     addOne: 'Add one',

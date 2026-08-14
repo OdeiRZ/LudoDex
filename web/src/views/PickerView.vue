@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useGamesStore } from '@/stores/games'
 import { useCollectionDensity } from '@/composables/useCollectionDensity'
 import { useExpansionCounts } from '@/composables/useExpansionCounts'
@@ -10,6 +11,7 @@ import GameCard from '@/components/GameCard.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const games = useGamesStore()
+const { t } = useI18n()
 const { density, toggle: toggleDensity } = useCollectionDensity()
 const locale = computed(() => getLocale())
 const expansionCounts = useExpansionCounts(computed(() => games.collection))
@@ -35,6 +37,36 @@ const modeFilter = ref<'any' | 'cooperative' | 'competitive'>('any')
 const onlyCampaign = ref(false)
 const categoryFilter = ref('')
 const search = ref('')
+
+// Same criterion/order pair as the collection's own sort controls (and the
+// same reasoning for a toggle button over a second radio group) - the
+// collection can come back from the API in an order that has nothing to do
+// with the name (BGG import order, insertion order...), so without this the
+// results here could just as easily land reverse-alphabetical as not.
+type SortCriterion = 'name' | 'rank'
+
+const sortCriterion = ref<SortCriterion>('name')
+const sortOrder = ref<'asc' | 'desc'>('asc')
+
+function toggleSort() {
+  sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+}
+
+const sortToggleLabel = computed(() => {
+  if (sortCriterion.value === 'rank') {
+    return sortOrder.value === 'asc' ? '#1 → #N' : '#N → #1'
+  }
+
+  return sortOrder.value === 'asc' ? 'A → Z' : 'Z → A'
+})
+
+const sortToggleActionLabel = computed(() => {
+  if (sortCriterion.value === 'rank') {
+    return sortOrder.value === 'asc' ? t('dashboard.sortRankDesc') : t('dashboard.sortRankAsc')
+  }
+
+  return sortOrder.value === 'asc' ? t('dashboard.sortDesc') : t('dashboard.sortAsc')
+})
 
 onMounted(() => {
   if (!games.loaded) {
@@ -89,7 +121,7 @@ const filtered = computed(() => {
   const maxDurationFilter = durationBucket.value === 'any' ? null : Number(durationBucket.value)
   const query = search.value.trim().toLowerCase()
 
-  return playable.value.filter(({ game }) => {
+  const base = playable.value.filter(({ game }) => {
     if (query !== '' && !game.name.toLowerCase().includes(query)) return false
 
     if (minPlayersFilter !== null) {
@@ -122,6 +154,28 @@ const filtered = computed(() => {
     }
 
     return true
+  })
+
+  if (sortCriterion.value === 'rank') {
+    return base.sort((a, b) => {
+      const rankA = a.game.bgg_rank
+      const rankB = b.game.bgg_rank
+
+      // Same as the collection's own rank sort: unranked games (never
+      // linked to BGG, or too few votes there to place) have no meaningful
+      // position, so they always sink to the bottom regardless of order.
+      if (rankA === null && rankB === null) return 0
+      if (rankA === null) return 1
+      if (rankB === null) return -1
+
+      const cmp = rankA - rankB
+      return sortOrder.value === 'asc' ? cmp : -cmp
+    })
+  }
+
+  return base.sort((a, b) => {
+    const cmp = a.game.name.localeCompare(b.game.name)
+    return sortOrder.value === 'asc' ? cmp : -cmp
   })
 })
 </script>
@@ -169,22 +223,6 @@ const filtered = computed(() => {
       </div>
 
       <fieldset>
-        <legend>{{ $t('picker.duration') }}</legend>
-        <label><input v-model="durationBucket" type="radio" value="any" /> {{ $t('picker.any') }}</label>
-        <label><input v-model="durationBucket" type="radio" value="30" /> {{ $t('picker.upTo30') }}</label>
-        <label><input v-model="durationBucket" type="radio" value="60" /> {{ $t('picker.upTo1h') }}</label>
-        <label><input v-model="durationBucket" type="radio" value="90" /> {{ $t('picker.upTo1h30') }}</label>
-        <label><input v-model="durationBucket" type="radio" value="120" /> {{ $t('picker.upTo2h') }}</label>
-      </fieldset>
-
-      <fieldset v-if="!isSoloPlayer">
-        <legend>{{ $t('picker.mode') }}</legend>
-        <label><input v-model="modeFilter" type="radio" value="any" /> {{ $t('picker.any') }}</label>
-        <label><input v-model="modeFilter" type="radio" value="cooperative" /> {{ $t('picker.cooperative') }}</label>
-        <label><input v-model="modeFilter" type="radio" value="competitive" /> {{ $t('picker.competitive') }}</label>
-      </fieldset>
-
-      <fieldset>
         <legend>{{ $t('picker.structureLegend') }}</legend>
         <label class="checkbox-label">
           <input v-model="onlyCampaign" type="checkbox" />
@@ -201,6 +239,41 @@ const filtered = computed(() => {
           </option>
         </select>
       </div>
+
+      <div>
+        <label for="sort-criterion">{{ $t('dashboard.sortByLabel') }}</label>
+        <div class="sort-row">
+          <select id="sort-criterion" v-model="sortCriterion">
+            <option value="name">{{ $t('dashboard.sortByName') }}</option>
+            <option value="rank">{{ $t('dashboard.sortByRank') }}</option>
+          </select>
+          <button
+            type="button"
+            class="btn sort-toggle"
+            :aria-label="sortToggleActionLabel"
+            :title="sortToggleActionLabel"
+            @click="toggleSort"
+          >
+            {{ sortToggleLabel }}
+          </button>
+        </div>
+      </div>
+
+      <fieldset>
+        <legend>{{ $t('picker.duration') }}</legend>
+        <label><input v-model="durationBucket" type="radio" value="any" /> {{ $t('picker.any') }}</label>
+        <label><input v-model="durationBucket" type="radio" value="30" /> {{ $t('picker.upTo30') }}</label>
+        <label><input v-model="durationBucket" type="radio" value="60" /> {{ $t('picker.upTo1h') }}</label>
+        <label><input v-model="durationBucket" type="radio" value="90" /> {{ $t('picker.upTo1h30') }}</label>
+        <label><input v-model="durationBucket" type="radio" value="120" /> {{ $t('picker.upTo2h') }}</label>
+      </fieldset>
+
+      <fieldset v-if="!isSoloPlayer">
+        <legend>{{ $t('picker.mode') }}</legend>
+        <label><input v-model="modeFilter" type="radio" value="any" /> {{ $t('picker.any') }}</label>
+        <label><input v-model="modeFilter" type="radio" value="cooperative" /> {{ $t('picker.cooperative') }}</label>
+        <label><input v-model="modeFilter" type="radio" value="competitive" /> {{ $t('picker.competitive') }}</label>
+      </fieldset>
 
       <div v-if="games.loaded && playable.length" class="density-toggle-slot">
         <span class="filter-label-spacer" aria-hidden="true">&nbsp;</span>
@@ -322,6 +395,20 @@ h1 {
   min-width: 0;
   width: 4.5rem;
   flex: none;
+}
+
+.sort-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.sort-row select {
+  min-width: 0;
+}
+
+.sort-toggle {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .filter-label-spacer {
