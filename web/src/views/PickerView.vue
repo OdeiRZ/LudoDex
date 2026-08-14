@@ -187,6 +187,9 @@ const filtered = computed(() => {
       <span v-if="games.loaded && playable.length" class="count">{{
         $t('common.gamesCount', { count: filtered.length })
       }}</span>
+      <div v-if="games.loaded && playable.length" class="title-density-toggle">
+        <DensityToggle :density="density" @toggle="toggleDensity" />
+      </div>
     </div>
 
     <form class="filters card" @submit.prevent>
@@ -372,6 +375,47 @@ h1 {
   font-size: 0.9rem;
 }
 
+/* Hidden by default - only the .density-toggle-slot copy down in the
+filters form shows outside the narrow band below. Same "two renditions,
+toggle via CSS" pattern used everywhere else on this page: the two
+spots sit in entirely different flex containers, so a single shared
+element can't straddle both. */
+.title-density-toggle {
+  display: none;
+  align-self: center;
+  margin-left: auto;
+}
+
+/* 940-1023px: right in between the tablet tier below (≤768px, where
+the toggle already sits at the end of the filters card next to Ordenar
+por) and wide desktop (#app's own max-width: 1024px caps the card's
+content width from here on, and the toggle fits flush after Modo once
+it does). In this band it's neither - Modo alone fills the row that
+far, so the toggle drops to a lone line under it, left-aligned and
+stranded. Moving it up next to the title instead avoids that orphaned
+line entirely. The exact edges were measured with the content-width
+simulation this whole page's media queries were tuned with (961-1004),
+then widened with margin on both sides after a real (not simulated)
+1020px-wide window turned out to still show the orphaned toggle -
+same real-vs-simulated gap hit earlier on this page's narrow end, just
+on the wide end this time. Applying the fix a bit outside the exact
+range it's strictly needed doesn't cost anything visually, so the
+margin errs generous rather than chasing the precise pixel. */
+@media (min-width: 940px) and (max-width: 1023px) {
+  .title-density-toggle {
+    display: block;
+  }
+
+  /* .filters > div (unconditional, no media query) sets display: flex
+  on this same element with higher specificity (class + element vs.
+  just a class) than a plain .density-toggle-slot selector here would
+  have - matching its ".filters > " prefix is what actually outweighs
+  it, same fix as everywhere else this page hides that slot. */
+  .filters > .density-toggle-slot {
+    display: none;
+  }
+}
+
 @media (max-width: 480px) {
   /* Narrower than the usual 180px cap, just enough that Buscar still
   fits next to Jugadores at the narrowest phone widths this card has to
@@ -505,9 +549,7 @@ against or get cascaded over by that block's own order/width rules;
 the two ranges never overlap, so which one comes first in the file
 doesn't matter either way. At this width there's room for Buscar,
 Jugadores, Estructura and Genero to all share the first row instead of
-Genero wrapping alone - genre-field's default 180px cap left it 1px
-short of the room left after the first three, so it's trimmed here
-just enough to clear that. Ordenar por and the density toggle move to
+Genero wrapping alone. Ordenar por and the density toggle move to
 order 1/2 for the same reason as the ≤480px tier: pushed past Minutos
 and Modo (both still default order: 0) to land right after Modo
 instead of its own natural spot ahead of Minutos - margin-left: auto on
@@ -515,8 +557,13 @@ the toggle below matches the ≤480px tier too, flush against the card's
 right edge instead of sitting wherever it lands right after
 .sort-field. */
 @media (min-width: 481px) and (max-width: 768px) {
+  /* 160px rather than the 179px this row technically had left after
+  Buscar/Jugadores/Estructura (measured via content-width simulation) -
+  that left only ~9px of slack, and this page has already hit the real
+  vs. simulated gap enough times elsewhere to not trust a margin that
+  thin holding up on an actual device. */
   .filters > .genre-field {
-    max-width: 170px;
+    max-width: 160px;
   }
 
   .filters > .sort-field {
