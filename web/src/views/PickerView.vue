@@ -656,8 +656,14 @@ and Modo (both still default order: 0) to land right after Modo
 instead of its own natural spot ahead of Minutos - margin-left: auto on
 the toggle below matches the ≤480px tier too, flush against the card's
 right edge instead of sitting wherever it lands right after
-.sort-field. */
-@media (min-width: 481px) and (max-width: 768px) {
+.sort-field. Upper bound is 806px, not 768px - 769-806px used to fall
+through to the plain unbounded default (Ordenar por landing next to
+Minutos instead of Modo), which this tier's own reordering also fixes
+just as well, so it's simplest to just extend this same tier over that
+gap rather than add a third near-identical block. 807px is where the
+next tier up (821px originally, later extended down) takes over
+instead. */
+@media (min-width: 481px) and (max-width: 806px) {
   /* 160px rather than the 179px this row technically had left after
   Buscar/Jugadores/Estructura (measured via content-width simulation) -
   that left only ~9px of slack, and this page has already hit the real
@@ -685,6 +691,61 @@ right edge instead of sitting wherever it lands right after
   }
 }
 
+/* 674-765px: right in the middle of the 481-806px tier above, Buscar/
+Jugadores/Estructura/Genero are too tight a fit on one line to want
+them squeezed there rather than split. Estructura and Genero move down
+to their own second row instead - a single ::before break forces that
+split; unlike the 973-981px tier's two-break case, Minutos (wide enough
+on its own to always force its own line regardless of what precedes it)
+and Modo/Ordenar por/the toggle (already reordered to follow it by the
+parent tier above) don't need breaks of their own, they just naturally
+fall in after. row-gap is turned off the same way and cascade-order
+reason as the 973-981px tier's own version further down, and restored
+by hand as margin-bottom on each row's own trailing item(s) instead -
+except here every row needs it, not just the one next to the break,
+since row-gap being off applies to every line in the card, not only
+the split one. */
+@media (min-width: 674px) and (max-width: 765px) {
+  .filters > .search-field,
+  .filters > .search-field + div {
+    margin-bottom: var(--space-4);
+  }
+
+  .filters::before {
+    content: '';
+    order: 1;
+    flex-basis: 100%;
+    height: 0;
+  }
+
+  .filters > .structure-field {
+    order: 2;
+    margin-bottom: var(--space-4);
+  }
+
+  .filters > .genre-field {
+    order: 2;
+    margin-bottom: var(--space-4);
+  }
+
+  .filters > .duration-field {
+    order: 3;
+    margin-bottom: var(--space-4);
+  }
+
+  .filters > .mode-fieldset {
+    order: 4;
+  }
+
+  .filters > .sort-field {
+    order: 5;
+  }
+
+  .filters > .density-toggle-slot {
+    order: 6;
+  }
+}
+
 /* Placed after .filters itself (not inside the ≤480px block above) so
 its column-gap wins the cascade tie against .filters' own unconditional
 gap: shorthand above - same specificity either way (both just
@@ -708,6 +769,14 @@ tie. Paired with the margin-bottom rules in the 973-981px block further
 up, which restore a normal-looking single gap by hand between the
 three real rows there instead. */
 @media (min-width: 973px) and (max-width: 981px) {
+  .filters {
+    row-gap: 0;
+  }
+}
+
+/* Same cascade-order reasoning, paired with the 674-765px block's own
+margin-bottom rules instead. */
+@media (min-width: 674px) and (max-width: 765px) {
   .filters {
     row-gap: 0;
   }
