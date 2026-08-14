@@ -187,9 +187,6 @@ const filtered = computed(() => {
       <span v-if="games.loaded && playable.length" class="count">{{
         $t('common.gamesCount', { count: filtered.length })
       }}</span>
-      <div v-if="games.loaded && playable.length" class="title-density-toggle">
-        <DensityToggle :density="density" @toggle="toggleDensity" />
-      </div>
     </div>
 
     <form class="filters card" @submit.prevent>
@@ -243,7 +240,7 @@ const filtered = computed(() => {
         </select>
       </div>
 
-      <div>
+      <div class="sort-field">
         <label for="sort-criterion">{{ $t('dashboard.sortByLabel') }}</label>
         <div class="sort-row">
           <select id="sort-criterion" v-model="sortCriterion">
@@ -271,7 +268,7 @@ const filtered = computed(() => {
         <label><input v-model="durationBucket" type="radio" value="120" /> {{ $t('picker.upTo2h') }}</label>
       </fieldset>
 
-      <fieldset v-if="!isSoloPlayer">
+      <fieldset v-if="!isSoloPlayer" class="mode-fieldset">
         <legend>{{ $t('picker.mode') }}</legend>
         <label><input v-model="modeFilter" type="radio" value="any" /> {{ $t('picker.any') }}</label>
         <label><input v-model="modeFilter" type="radio" value="cooperative" /> {{ $t('picker.cooperative') }}</label>
@@ -375,37 +372,13 @@ h1 {
   font-size: 0.9rem;
 }
 
-/* Hidden by default - only the .density-toggle-slot copy further down
-(next to the filters, not the title) shows above the breakpoint below.
-Mirrors the same "two renditions, toggle via CSS" pattern used for the
-collection's own toolbar buttons, since this one also needs to live in
-two different flex contexts (this row vs. the filters form) that a
-single shared element can't straddle. */
-.title-density-toggle {
-  display: none;
-  align-self: center;
-  margin-left: auto;
-}
-
 @media (max-width: 480px) {
-  .title-density-toggle {
-    display: block;
-  }
-
-  /* .filters > div (unconditional, no media query) sets display: flex on
-  this same element with higher specificity (class + element vs. just a
-  class) than a plain .density-toggle-slot selector here would have -
-  the same mismatch already hit once before for .sort-field. Matching
-  its ".filters > " prefix is what actually outweighs it. */
-  .filters > .density-toggle-slot {
-    display: none;
-  }
-
   /* Narrower than the usual 180px cap, just enough that Buscar still
   fits next to Jugadores, and Genero next to Estructura, at the
   narrowest phone widths this card has to support (iPhone SE's 375px)
-  instead of each wrapping onto its own line - same ".filters > "
-  specificity fix as .density-toggle-slot above. Two different values
+  instead of each wrapping onto its own line - a plain class selector
+  wouldn't beat .filters > div's own specificity (class + element),
+  hence matching its ".filters > " prefix here too. Two different values
   since Jugadores (143px) and Estructura (152px) aren't the same width
   themselves. */
   .filters > .search-field {
@@ -414,6 +387,76 @@ single shared element can't straddle. */
 
   .filters > .genre-field {
     max-width: 140px;
+  }
+
+  /* Pushed to the end via order, past Minutos and Modo (both still
+  default order: 0, so they keep their DOM position) - moves it off its
+  old spot above Minutos and lets it share the last row with the density
+  toggle instead (order: 2 below), rather than physically relocating the
+  markup and disturbing wider layouts where this media query doesn't
+  apply. Widened past the usual 180px cap for the same reason as before
+  - room for "Ranking BGG" (135px measured) to read in full - with the
+  density toggle's own ~40px plus the row gap still comfortably fitting
+  alongside it in the ~343-363px this card has at these widths. */
+  .filters > .sort-field {
+    order: 1;
+    max-width: 260px;
+  }
+
+  .filters > .sort-field select {
+    width: 9rem;
+  }
+
+  /* Order 2, right after .sort-field's order: 1 above - together they
+  land on the row Modo's own width: 100% forces below it, sitting side
+  by side as the last thing in the card instead of density-toggle-slot's
+  original spot right after Modo in DOM order (still true above this
+  breakpoint, where order isn't set). margin-left: auto pushes it flush
+  against the card's right edge instead of sitting wherever it lands
+  right after .sort-field, using up whatever's left of the row instead
+  of the ~40px gap that would otherwise sit unused past it. Its own
+  .filter-label-spacer (unchanged) still matches the "Ordenar por" label
+  above .sort-row, so the button already starts level with .sort-row -
+  the margin-top below only corrects the last bit: .sort-row is taller
+  than the button (42.6px vs 32px, since .sort-toggle's padding makes it
+  the taller of the two), so without it the button sits flush with the
+  row's top instead of centered in its height. */
+  .filters > .density-toggle-slot {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .filters > .density-toggle-slot :deep(.density-toggle) {
+    margin-top: 5px;
+  }
+
+  /* Trims the fieldset's own padding, and stretches it to the row's
+  full width instead of shrink-wrapping its content - between the two,
+  the labels fit one line even on iPhone SE's 375px without needing to
+  touch each label's own icon-to-text gap (still the usual space-2,
+  same as every other fieldset). justify-content: space-between (rather
+  than a fixed gap) spreads the three across whatever width that ends
+  up being instead of leaving them bunched at the left edge with the
+  same cramped gap regardless of how much slack a wider phone actually
+  has - gap here is only the floor space-between won't shrink below,
+  not the real spacing at most widths. */
+  .mode-fieldset {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: space-between;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-2);
+  }
+}
+
+/* Only iPhone SE's 375px is actually this tight - everything from
+~380px up already fits with each label's usual icon-to-text gap
+(space-2, same as every other fieldset), so narrowing it much further
+down than 480px keeps that default everywhere it's not strictly
+needed. */
+@media (max-width: 379px) {
+  .mode-fieldset label {
+    gap: 2px;
   }
 }
 
@@ -455,7 +498,9 @@ option) to read in full. A <select> otherwise sizes itself to its widest
 option regardless of which one is picked (so "Ranking BGG" was pushing
 this past the same 180px cap every other filter column keeps to, and
 overflowing the card entirely once that cap was removed to compensate).
-"Ranking BGG" clipping when picked is an accepted trade-off, not a bug. */
+"Ranking BGG" clipping when picked is an accepted trade-off above the
+480px breakpoint, where .filters > .sort-field select below widens it
+enough to show in full instead. */
 .sort-row select {
   width: 6.5rem;
   flex-shrink: 0;
