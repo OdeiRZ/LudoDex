@@ -207,6 +207,43 @@ async function onClearCollection() {
               {{ sortToggleLabel }}
             </button>
             <DensityToggle :density="density" @toggle="toggleDensity" />
+
+            <!-- Same two buttons as .action-buttons below, shown instead of
+            it (not alongside) once things get tight enough to need them
+            icon-only - see the media query. Living here, right in
+            .sort-group's own flex flow, is what lets them sit flush
+            against the density toggle instead of stranded in a separate
+            grid column that can only ever line up with .search-controls'
+            widest wrapped line (.search-group's, not this one). -->
+            <div class="inline-actions">
+              <button
+                type="button"
+                class="btn btn-danger clear-library-btn"
+                :aria-label="$t('dashboard.clearLibrary')"
+                :title="$t('dashboard.clearLibrary')"
+                @click="openClearConfirm"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"
+                  />
+                  <line x1="10" y1="11" x2="10" y2="17" stroke-linecap="round" />
+                  <line x1="14" y1="11" x2="14" y2="17" stroke-linecap="round" />
+                </svg>
+              </button>
+              <RouterLink
+                :to="{ name: 'add-game' }"
+                class="btn btn-primary add-game-btn"
+                :aria-label="$t('dashboard.addGame')"
+                :title="$t('dashboard.addGame')"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" d="M12 5v14M5 12h14" />
+                </svg>
+              </RouterLink>
+            </div>
           </div>
         </div>
 
@@ -395,6 +432,12 @@ moving them to the next line together. */
   gap: var(--space-3);
 }
 
+/* Hidden by default - only swapped in for .action-buttons below the
+narrowest breakpoint further down, never shown alongside it. */
+.inline-actions {
+  display: none;
+}
+
 /* Every other control in this row already resists shrinking (the two
 selects are flex-shrink: 0, the buttons have their own min-width) - this
 one didn't, so as the row ran out of room it silently crushed the search
@@ -461,26 +504,26 @@ instead, in the same spot "clear" alone used to sit. */
   }
 }
 
-/* Below this, even next to the title is too tight - drop the pair below
-the search controls into a row of their own instead, Vaciar biblioteca
-on the left and Añadir juego right next to it (not spread to opposite
-edges - that stranded "+ Añadir juego" alone with nothing beside it,
-same problem this is replacing). */
+/* Below this, even next to the title is too tight - swap in the icon-only
+pair living inside .sort-group instead of the labelled one above (see
+the template comment by .inline-actions for why a separate grid column
+for the same job couldn't sit flush against the density toggle it's
+conceptually joining). */
 @media (max-width: 693px) {
   .dashboard-toolbar {
     grid-template-columns: 1fr;
     grid-template-areas:
       'title'
-      'search'
-      'buttons';
+      'search';
   }
-}
 
-/* Narrow enough that the full labels no longer fit next to each other -
-both shrink to just their icon here instead. */
-@media (max-width: 480px) {
-  .btn-full-label {
+  .action-buttons {
     display: none;
+  }
+
+  .inline-actions {
+    display: flex;
+    gap: var(--space-2);
   }
 
   .clear-library-btn,
