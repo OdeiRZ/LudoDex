@@ -262,7 +262,7 @@ const filtered = computed(() => {
         </div>
       </div>
 
-      <fieldset>
+      <fieldset class="duration-field">
         <legend>{{ $t('picker.duration') }}</legend>
         <label><input v-model="durationBucket" type="radio" value="any" /> {{ $t('picker.any') }}</label>
         <label><input v-model="durationBucket" type="radio" value="30" /> {{ $t('picker.upTo30') }}</label>
@@ -386,22 +386,20 @@ element can't straddle both. */
   margin-left: auto;
 }
 
-/* 940-1023px: right in between the tablet tier below (≤768px, where
-the toggle already sits at the end of the filters card next to Ordenar
-por) and wide desktop (#app's own max-width: 1024px caps the card's
-content width from here on, and the toggle fits flush after Modo once
-it does). In this band it's neither - Modo alone fills the row that
-far, so the toggle drops to a lone line under it, left-aligned and
+/* 982-1023px: confirmed with real (not simulated) windows at 987px and
+1020px, unlike an earlier attempt at this same gap that turned out to
+be measured while the browser's real width had silently drifted
+somewhere else entirely. Right in between the 821-981px tier above
+(where Ordenar por joining the first row still leaves enough room for
+Minutos/Modo/the toggle to share the second) and wide desktop (#app's
+own max-width: 1024px caps the card's content width from here on, and
+the toggle fits flush after Minutos/Modo once it does) - in this band
+it's neither: Minutos and Modo together already fill the second row
+that far, so the toggle drops to a lone third line, left-aligned and
 stranded. Moving it up next to the title instead avoids that orphaned
-line entirely. The exact edges were measured with the content-width
-simulation this whole page's media queries were tuned with (961-1004),
-then widened with margin on both sides after a real (not simulated)
-1020px-wide window turned out to still show the orphaned toggle -
-same real-vs-simulated gap hit earlier on this page's narrow end, just
-on the wide end this time. Applying the fix a bit outside the exact
-range it's strictly needed doesn't cost anything visually, so the
-margin errs generous rather than chasing the precise pixel. */
-@media (min-width: 940px) and (max-width: 1023px) {
+line entirely, same technique as the two title/form pairs already used
+elsewhere on this page. */
+@media (min-width: 982px) and (max-width: 1023px) {
   .title-density-toggle {
     display: block;
   }
@@ -413,6 +411,105 @@ margin errs generous rather than chasing the precise pixel. */
   it, same fix as everywhere else this page hides that slot. */
   .filters > .density-toggle-slot {
     display: none;
+  }
+}
+
+/* 821-981px: at this width the card's default (unbounded) flex-wrap
+already reflows into a usable 2-line shape on its own (Ordenar por
+tags along on the first line with Buscar/Jugadores/Estructura/Genero,
+Minutos/Modo/the toggle sharing the second) - nothing here was actually
+broken. This reorders it into the layout asked for instead: Ordenar por
+and the toggle pushed past Minutos and Modo (both left at their default
+order: 0) to land together as the last line, flush against the card's
+right edge - same order-based technique as the ≤480px and ≤768px tiers,
+so wider layouts (where this media query doesn't apply) keep the plain
+DOM order Ordenar por already had. */
+@media (min-width: 821px) and (max-width: 981px) {
+  .filters > .sort-field {
+    order: 1;
+  }
+
+  .filters > .density-toggle-slot {
+    order: 2;
+    margin-left: auto;
+  }
+
+  /* Same fix as the ≤480px/≤768px tiers: .sort-row (which
+  .sort-toggle's own padding makes taller than a plain select) is
+  taller than the density toggle button, so without this it sits flush
+  with the row's top instead of centered against it. */
+  .filters > .density-toggle-slot :deep(.density-toggle) {
+    margin-top: 5px;
+  }
+}
+
+/* 973-981px: right at the top of the 821-981px tier above, Minutos and
+Modo are just wide enough to still fit side by side on their own row.
+Forcing that apart with width: 100% on Minutos (the same trick the
+≤480px tier uses on .mode-fieldset) stretched Minutos itself to fill
+the whole line instead of sitting at its own natural width - fine for
+Modo there since it's meant to spread its radios across the row anyway,
+but wrong here since Minutos' radios stay left-packed regardless,
+leaving the stretched portion visibly empty. A zero-height ::before/
+::after pair instead forces the same two line breaks (one before
+Minutos, one after) without touching Minutos' own width at all - each
+is a real flex item once it has content: '', so flex-basis: 100% on it
+forces whatever comes next onto a fresh line the same way a genuinely
+full-width item would, but the break itself renders as nothing between
+the visible rows it separates. Modo, Ordenar por and the toggle each
+need an explicit order now too (rather than just Modo's) - Ordenar
+por's order: 1/the toggle's order: 2 from the parent 821-981px rule
+above would otherwise still outrank Modo's default order: 0 and land
+before it. */
+@media (min-width: 973px) and (max-width: 981px) {
+  /* Each break is its own zero-height flex line, and .filters' own
+  row-gap applies between every pair of lines regardless of what's on
+  them - two extra break lines otherwise add two extra gaps' worth of
+  vertical space that the ≤972px layout (which doesn't need any breaks)
+  never has. row-gap itself is turned off further down (see the comment
+  by .filters there for why it has to live after .filters' own
+  unconditional gap: shorthand rather than here) and added back by hand
+  as margin-bottom, only on each row's own trailing item(s) - that
+  reproduces the normal single gap between the three real rows without
+  the breaks contributing any of their own, since margin on an item
+  genuinely collapses away when nothing follows it on that line, unlike
+  row-gap which can't tell a real line from a spacer one. */
+  .filters > .search-field,
+  .filters > .search-field + div,
+  .filters > .structure-field,
+  .filters > .genre-field {
+    margin-bottom: var(--space-4);
+  }
+
+  .filters::before {
+    content: '';
+    order: 1;
+    flex-basis: 100%;
+    height: 0;
+  }
+
+  .filters > .duration-field {
+    order: 2;
+    margin-bottom: var(--space-4);
+  }
+
+  .filters::after {
+    content: '';
+    order: 3;
+    flex-basis: 100%;
+    height: 0;
+  }
+
+  .filters > .mode-fieldset {
+    order: 4;
+  }
+
+  .filters > .sort-field {
+    order: 5;
+  }
+
+  .filters > .density-toggle-slot {
+    order: 6;
   }
 }
 
@@ -598,6 +695,17 @@ default would. */
 @media (max-width: 480px) {
   .filters {
     column-gap: var(--space-2);
+  }
+}
+
+/* Same cascade-order reasoning as the column-gap override above - has
+to live after .filters' own unconditional gap: shorthand to win the
+tie. Paired with the margin-bottom rules in the 973-981px block further
+up, which restore a normal-looking single gap by hand between the
+three real rows there instead. */
+@media (min-width: 973px) and (max-width: 981px) {
+  .filters {
+    row-gap: 0;
   }
 }
 
