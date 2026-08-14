@@ -45,7 +45,7 @@ onMounted(() => {
       <template v-if="auth.isAuthenticated">
         <RouterLink v-if="auth.user" :to="{ name: 'profile' }" class="user-name">
           <UserAvatar :name="auth.user.name" :avatar-url="auth.user.avatar_url" :size="24" />
-          {{ auth.user.name }}
+          <span class="user-name-text">{{ auth.user.name }}</span>
         </RouterLink>
         <button type="button" class="btn" @click="onLogout">{{ $t('nav.logout') }}</button>
       </template>
@@ -133,6 +133,25 @@ line to distribute space against. */
   gap: var(--space-2);
   color: var(--color-text-muted);
   font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+/* .session itself doesn't wrap (see its own comment above) - without
+this, once it stopped fitting on one line even on its own row, the name
+and "Cerrar sesión" wrapped mid-word inside their own boxes instead of
+the row growing or something giving way, reading as broken rather than
+just tight. Dropping the name text first frees up enough room that
+nothing needs to wrap; the avatar (still a link to the profile) and the
+name itself sitting in Mi perfil are enough to identify the account
+without repeating it here. */
+@media (max-width: 400px) {
+  .user-name-text {
+    display: none;
+  }
+
+  .session .btn {
+    white-space: nowrap;
+  }
 }
 
 footer {
