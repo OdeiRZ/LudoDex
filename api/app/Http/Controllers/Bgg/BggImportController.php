@@ -15,10 +15,26 @@ class BggImportController extends Controller
 
     public function store(StoreBggImportRequest $request): BggImportResource
     {
-        $import = $request->user()->bggImports()->create([
-            'bgg_username' => $request->validated('bgg_username'),
-            'status' => 'pending',
-        ]);
+        $username = $request->validated('bgg_username');
+
+        // A client that isn't sure whether an earlier request for the same
+        // username actually reached the server (a dropped connection, a
+        // backgrounded tab) retries this endpoint rather than giving up -
+        // reusing a still-pending import instead of always creating a new
+        // one keeps that retry idempotent, so it doesn't leave several
+        // orphaned rows silently competing to import the same collection.
+        $import = $request->user()->bggImports()
+            ->where('status', 'pending')
+            ->where('bgg_username', $username)
+            ->latest()
+            ->first();
+
+        if ($import === null) {
+            $import = $request->user()->bggImports()->create([
+                'bgg_username' => $username,
+                'status' => 'pending',
+            ]);
+        }
 
         $this->importService->attempt($import);
 

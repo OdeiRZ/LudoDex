@@ -113,6 +113,57 @@ it('starts an import and leaves it pending while BGG queues the export', functio
     $response->assertCreated()->assertJsonPath('data.status', 'pending');
 });
 
+it('reuses a still-pending import for the same username instead of starting a duplicate', function () {
+    $user = actingAsUser();
+
+    Http::fake(fn () => Http::response('', 202));
+
+    $first = $this->postJson('/api/bgg-imports', ['bgg_username' => 'someuser'])
+        ->assertCreated()
+        ->assertJsonPath('data.status', 'pending');
+
+    // Simulates a client retrying the start request because it never saw
+    // the first response (e.g. a dropped connection) - it must not know
+    // whether the first one actually landed. 200 rather than 201, since
+    // nothing new was actually created the second time around (Laravel's
+    // own JsonResource -> 201-on-POST inference is tied to the model's
+    // wasRecentlyCreated flag).
+    $second = $this->postJson('/api/bgg-imports', ['bgg_username' => 'someuser'])
+        ->assertOk()
+        ->assertJsonPath('data.status', 'pending');
+
+    expect($second->json('data.id'))->toBe($first->json('data.id'));
+    expect($user->bggImports()->count())->toBe(1);
+});
+
+it('starts a new import instead of reusing a pending one for a different username', function () {
+    $user = actingAsUser();
+
+    Http::fake(fn () => Http::response('', 202));
+
+    $first = $this->postJson('/api/bgg-imports', ['bgg_username' => 'someuser'])->assertCreated();
+    $second = $this->postJson('/api/bgg-imports', ['bgg_username' => 'someoneelse'])->assertCreated();
+
+    expect($second->json('data.id'))->not->toBe($first->json('data.id'));
+    expect($user->bggImports()->count())->toBe(2);
+});
+
+it('does not reuse an already-completed import, even for the same username', function () {
+    $user = actingAsUser();
+    $completed = BggImport::factory()->for($user)->create([
+        'bgg_username' => 'someuser',
+        'status' => 'completed',
+        'imported_count' => 5,
+    ]);
+
+    Http::fake(fn () => Http::response('', 202));
+
+    $response = $this->postJson('/api/bgg-imports', ['bgg_username' => 'someuser'])->assertCreated();
+
+    expect($response->json('data.id'))->not->toBe($completed->id);
+    expect($response->json('data.status'))->toBe('pending');
+});
+
 it('fails the import when the BGG username does not exist', function () {
     actingAsUser();
 
