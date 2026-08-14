@@ -104,10 +104,17 @@ header {
   color: var(--color-primary-hover);
 }
 
+/* margin-left: auto (rather than relying on the header's own
+justify-content: space-between alone) is what keeps this flush to the
+right edge once it no longer fits next to brand/primary-nav and wraps
+onto its own line - space-between alone left a lone wrapped item at the
+row's start (the left edge) instead, since there's nothing else on that
+line to distribute space against. */
 .session {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  margin-left: auto;
 }
 
 .user-name {

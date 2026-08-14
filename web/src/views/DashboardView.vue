@@ -439,14 +439,13 @@ running wider than "+ Añadir juego" underneath it. */
   flex-shrink: 0;
 }
 
-/* Below this, .search-controls no longer fits everything on one line
-(per its own input's min-width above) and wraps to its own second line -
-at that point "clear"/"add" no longer read as a top-row/bottom-row pair
-each aligned with something else, so they group into one row of their
-own instead, Vaciar biblioteca on the left and Añadir juego right next
-to it (not spread to opposite edges - that stranded "+ Añadir juego"
-alone with nothing beside it, same problem this is replacing). */
-@media (max-width: 1005px) {
+/* Below this, "clear"/"add" no longer read as a top-row/bottom-row pair
+each aligned with something else (the title above one, the search
+controls above the other), so they group into one row of their own
+instead, Vaciar biblioteca on the left and Añadir juego right next to it
+(not spread to opposite edges - that stranded "+ Añadir juego" alone
+with nothing beside it, same problem this is replacing). */
+@media (max-width: 890px) {
   .dashboard-toolbar {
     grid-template-columns: 1fr;
     grid-template-areas:
