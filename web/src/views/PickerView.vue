@@ -187,10 +187,13 @@ const filtered = computed(() => {
       <span v-if="games.loaded && playable.length" class="count">{{
         $t('common.gamesCount', { count: filtered.length })
       }}</span>
+      <div v-if="games.loaded && playable.length" class="title-density-toggle">
+        <DensityToggle :density="density" @toggle="toggleDensity" />
+      </div>
     </div>
 
     <form class="filters card" @submit.prevent>
-      <div>
+      <div class="search-field">
         <label for="search">{{ $t('picker.searchLabel') }}</label>
         <input
           id="search"
@@ -230,7 +233,7 @@ const filtered = computed(() => {
         </label>
       </fieldset>
 
-      <div v-if="availableCategories.length">
+      <div v-if="availableCategories.length" class="genre-field">
         <label for="category">{{ $t('picker.genre') }}</label>
         <select id="category" v-model="categoryFilter">
           <option value="">{{ $t('picker.any') }}</option>
@@ -370,6 +373,48 @@ h1 {
 .count {
   color: var(--color-text-muted);
   font-size: 0.9rem;
+}
+
+/* Hidden by default - only the .density-toggle-slot copy further down
+(next to the filters, not the title) shows above the breakpoint below.
+Mirrors the same "two renditions, toggle via CSS" pattern used for the
+collection's own toolbar buttons, since this one also needs to live in
+two different flex contexts (this row vs. the filters form) that a
+single shared element can't straddle. */
+.title-density-toggle {
+  display: none;
+  align-self: center;
+  margin-left: auto;
+}
+
+@media (max-width: 480px) {
+  .title-density-toggle {
+    display: block;
+  }
+
+  /* .filters > div (unconditional, no media query) sets display: flex on
+  this same element with higher specificity (class + element vs. just a
+  class) than a plain .density-toggle-slot selector here would have -
+  the same mismatch already hit once before for .sort-field. Matching
+  its ".filters > " prefix is what actually outweighs it. */
+  .filters > .density-toggle-slot {
+    display: none;
+  }
+
+  /* Narrower than the usual 180px cap, just enough that Buscar still
+  fits next to Jugadores, and Genero next to Estructura, at the
+  narrowest phone widths this card has to support (iPhone SE's 375px)
+  instead of each wrapping onto its own line - same ".filters > "
+  specificity fix as .density-toggle-slot above. Two different values
+  since Jugadores (143px) and Estructura (152px) aren't the same width
+  themselves. */
+  .filters > .search-field {
+    max-width: 148px;
+  }
+
+  .filters > .genre-field {
+    max-width: 140px;
+  }
 }
 
 .filters {
