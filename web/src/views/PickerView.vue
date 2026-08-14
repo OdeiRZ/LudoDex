@@ -222,7 +222,7 @@ const filtered = computed(() => {
         </div>
       </div>
 
-      <fieldset>
+      <fieldset class="structure-field">
         <legend>{{ $t('picker.structureLegend') }}</legend>
         <label class="checkbox-label">
           <input v-model="onlyCampaign" type="checkbox" />
@@ -374,19 +374,29 @@ h1 {
 
 @media (max-width: 480px) {
   /* Narrower than the usual 180px cap, just enough that Buscar still
-  fits next to Jugadores, and Genero next to Estructura, at the
-  narrowest phone widths this card has to support (iPhone SE's 375px)
-  instead of each wrapping onto its own line - a plain class selector
-  wouldn't beat .filters > div's own specificity (class + element),
-  hence matching its ".filters > " prefix here too. Two different values
-  since Jugadores (143px) and Estructura (152px) aren't the same width
-  themselves. */
+  fits next to Jugadores at the narrowest phone widths this card has to
+  support (iPhone SE's 375px) instead of wrapping onto its own line - a
+  plain class selector wouldn't beat .filters > div's own specificity
+  (class + element), hence matching its ".filters > " prefix here too.
+  160px rather than a tighter fit is deliberate: wide enough that the
+  "Nombre del juego…" placeholder reads almost in full instead of
+  truncating hard. */
   .filters > .search-field {
-    max-width: 148px;
+    max-width: 160px;
   }
 
   .filters > .genre-field {
     max-width: 140px;
+  }
+
+  /* Fieldset, so .filters > div's max-width: 180px never applied here
+  to begin with - it was sizing to its own content (legend + checkbox
+  label) instead, which happened not to line up with .search-field's
+  column above it once that grew to 160px. A fixed width (rather than
+  max-width) forces the match instead of just capping it, since content
+  alone wouldn't stretch it that wide. */
+  .filters > .structure-field {
+    width: 160px;
   }
 
   /* Pushed to the end via order, past Minutos and Modo (both still
@@ -458,6 +468,24 @@ needed. */
   .mode-fieldset label {
     gap: 2px;
   }
+
+  /* .search-field/.structure-field's 160px above (kept as-is for
+  380-480px, where it already fits) leaves Buscar+Jugadores and
+  Estructura+Genero too wide to share a row at 375px even at
+  column-gap's lowest reasonable value - 160+142.8 (Jugadores) or
+  160+140 (Genero) already exceeds this card's real content width on
+  its own, before any gap is even added. Dropping back to 148px here -
+  the exact width both used before growing to 160px, already proven to
+  fit next to Jugadores/Genero at this width - undoes just enough of
+  that growth to restore the pairing, while 380-480px keeps the wider,
+  more legible 160px. */
+  .filters > .search-field {
+    max-width: 148px;
+  }
+
+  .filters > .structure-field {
+    width: 148px;
+  }
 }
 
 .filters {
@@ -469,6 +497,23 @@ needed. */
   flex-wrap: wrap;
   align-items: flex-start;
   margin-bottom: var(--space-6);
+}
+
+/* Placed after .filters itself (not inside the ≤480px block above) so
+its column-gap wins the cascade tie against .filters' own unconditional
+gap: shorthand above - same specificity either way (both just
+".filters"), so source order is what decides it, and a media query
+alone doesn't add any. Tighter than the row gap (still space-4,
+untouched - only column-gap is overridden) - search-field growing to
+160px at 380-480px leaves Buscar tight against Jugadores without it. At
+379px and below, .search-field/.structure-field drop back to 148px
+(see the media block further up) instead, but the tighter gap here
+still helps them clear Jugadores/Genero with more slack than the 16px
+default would. */
+@media (max-width: 480px) {
+  .filters {
+    column-gap: var(--space-2);
+  }
 }
 
 .filters > div {
