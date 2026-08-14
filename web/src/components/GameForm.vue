@@ -378,8 +378,15 @@ async function onLookupBgg() {
 }
 
 .game-image-preview {
-  width: 96px;
-  height: 96px;
+  width: 120px;
+  height: 120px;
+  /* .name-and-image's align-items: center centers this against the whole
+  row, but the row's actual content is the name input sitting above the
+  image URL input (with its own label to account for) - centering purely
+  by height alone. This nudges it down to sit centered against those two
+  inputs specifically instead, which reads better against their combined
+  label-plus-input weight. */
+  margin-top: 29px;
   object-fit: cover;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border-strong);
@@ -426,9 +433,22 @@ also wraps to a second line on a narrow screen. */
   color: var(--color-text-muted);
 }
 
+/* .range-field's align-items: flex-start (needed to keep the Min./Max.
+captions from pulling the whole row down) also top-aligns this against
+the row - and align-self: center previously used here centers against
+the row's full height (input + caption below it), which lands below the
+input's own vertical center rather than on it. Fixed offset instead,
+measured against just the input's own height. */
 .range-sep {
-  align-self: center;
-  margin-top: 0.4rem;
+  margin-top: 9px;
   color: var(--color-text-muted);
+}
+
+/* Same top-alignment issue as .range-sep above, and the same fix - a
+plain .input-suffix (no override) is fine elsewhere, since that's only
+ever paired with a single input in a row that's already align-items:
+center (see "años" next to min_age). */
+.range-field .input-suffix {
+  margin-top: 10px;
 }
 </style>
