@@ -567,12 +567,19 @@ reads cleaner there too, not just once it's a genuine fit problem. */
 }
 
 /* Same reasoning as .search-group input's own min-width just above -
-.sort-group's row was landing a similar few pixels past the cards'
-right edge on the narrowest real phones, and .sort-criterion (unlike
-.type-filter, which isn't the one that grew) is the one asked to give
-up the difference. */
+.sort-group's row was landing a few pixels past the cards' right edge
+on the narrowest real phones. 126px cleared it at 375px, but not at an
+even narrower real 366px phone (9px less, reported directly) - 118px
+is what actually clears both. */
 .sort-criterion {
-  max-width: 126px;
+  max-width: 118px;
+}
+
+/* Same alignment problem as .sort-criterion above, on .search-group's
+own row instead - .type-filter is the one asked to give up the
+difference there, same as .search-group input already does. */
+.type-filter {
+  max-width: 151px;
 }
 
 .sort-toggle {
