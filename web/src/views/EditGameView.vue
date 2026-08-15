@@ -201,7 +201,11 @@ async function onDelete() {
           <line x1="10" y1="11" x2="10" y2="17" stroke-linecap="round" />
           <line x1="14" y1="11" x2="14" y2="17" stroke-linecap="round" />
         </svg>
-        {{ confirmingDelete ? $t('editGame.deleteConfirm') : $t('editGame.delete') }}
+        <template v-if="confirmingDelete">
+          {{ $t('editGame.deleteConfirmShort') }}
+          <span class="delete-confirm-detail">{{ $t('editGame.deleteConfirmDetail') }}</span>
+        </template>
+        <template v-else>{{ $t('editGame.delete') }}</template>
       </button>
 
       <p v-if="deleting" class="loading-state">
@@ -265,5 +269,16 @@ h1 {
   width: 16px;
   height: 16px;
   margin-right: var(--space-1);
+}
+
+/* "¿Seguro? Toca de nuevo para eliminar" is the clearer label, but on
+a real 366px phone (and narrower) it's the longest text on the page's
+narrowest button - the icon plus the short "¿Seguro?" already carries
+the same meaning the icon-only "Eliminar juego" state doesn't need
+spelling out further at this width. */
+@media (max-width: 366px) {
+  .delete-confirm-detail {
+    display: none;
+  }
 }
 </style>
