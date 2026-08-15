@@ -629,6 +629,29 @@ needed. */
   }
 }
 
+/* At a real 366px phone specifically (9px tighter than 375px), even
+Estructura/Genero stop fitting together - 160+8+140 needs 308px against
+this card's real ~300px budget there, so Genero was dropping to its
+own third line instead of sharing Estructura's. 144px (matching
+Buscar's own width above, so the two columns still line up) is what
+actually clears it. min-width: 0 is needed too - fieldset gets an
+automatic minimum size from its own content (legend + checkbox label),
+which a plain width smaller than that content can't shrink past on its
+own, same issue hit before at an even narrower width. Wrapping "Modo
+campaña" onto two lines (overriding its nowrap) is what lets it
+actually fit in the narrower box instead of just overflowing it. */
+@media (max-width: 366px) {
+  .filters > .structure-field {
+    width: 144px;
+    min-width: 0;
+  }
+
+  .checkbox-label {
+    white-space: normal;
+    min-width: 0;
+  }
+}
+
 .filters {
   display: flex;
   /* Tighter than the space-6 this used before - freeing up a few pixels
