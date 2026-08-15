@@ -2,9 +2,11 @@
 
 namespace App\Services\Bgg;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use SimpleXMLElement;
 
 class BggClient
@@ -52,11 +54,17 @@ class BggClient
      */
     private function fetchCollectionBySubtype(string $username, string $subtype): array
     {
-        $response = $this->httpClient()->get(self::BASE_URL.'/collection', [
-            'username' => $username,
-            'subtype' => $subtype,
-            'stats' => 1,
-        ]);
+        try {
+            $response = $this->httpClient()->get(self::BASE_URL.'/collection', [
+                'username' => $username,
+                'subtype' => $subtype,
+                'stats' => 1,
+            ]);
+        } catch (ConnectionException $e) {
+            Log::warning('BGG collection request failed to connect', ['subtype' => $subtype, 'exception' => $e->getMessage()]);
+
+            return ['status' => 'error', 'message' => __('bgg.unreachable'), 'transient' => true];
+        }
 
         if ($response->status() === 202) {
             return ['status' => 'pending'];
@@ -143,18 +151,32 @@ class BggClient
         $toCache = [];
 
         foreach (array_chunk($idsToFetch, 20) as $chunk) {
-            $response = $this->httpClient()->get(self::BASE_URL.'/thing', [
-                'id' => implode(',', $chunk),
-                'stats' => 1,
-            ]);
+            try {
+                $response = $this->httpClient()->get(self::BASE_URL.'/thing', [
+                    'id' => implode(',', $chunk),
+                    'stats' => 1,
+                ]);
+            } catch (ConnectionException $e) {
+                Log::warning('BGG /thing request failed to connect, skipping chunk', ['ids' => $chunk, 'exception' => $e->getMessage()]);
 
+                continue;
+            }
+
+            // A failed chunk (up to 20 games) is silently missing from the
+            // result below - callers still treat the import as complete, so
+            // this is the only record that some games didn't get their
+            // weight/rating/mechanics/categories this time around.
             if (! $response->successful()) {
+                Log::warning('BGG /thing request failed, skipping chunk', ['ids' => $chunk, 'status' => $response->status()]);
+
                 continue;
             }
 
             $xml = @simplexml_load_string($response->body());
 
             if ($xml === false) {
+                Log::warning('BGG /thing returned an unparsable response, skipping chunk', ['ids' => $chunk]);
+
                 continue;
             }
 
@@ -348,10 +370,16 @@ class BggClient
             return ['status' => 'ready', 'game' => $this->buildLookupResult($bggId, $cached)];
         }
 
-        $response = $this->httpClient()->get(self::BASE_URL.'/thing', [
-            'id' => $bggId,
-            'stats' => 1,
-        ]);
+        try {
+            $response = $this->httpClient()->get(self::BASE_URL.'/thing', [
+                'id' => $bggId,
+                'stats' => 1,
+            ]);
+        } catch (ConnectionException $e) {
+            Log::warning('BGG /thing lookup failed to connect', ['bgg_id' => $bggId, 'exception' => $e->getMessage()]);
+
+            return ['status' => 'error', 'message' => __('bgg.unreachable')];
+        }
 
         if (! $response->successful()) {
             return ['status' => 'error', 'message' => __('bgg.unreachable')];
@@ -408,7 +436,11 @@ class BggClient
             return null;
         }
 
-        $response = $this->httpClient()->get(self::BASE_URL.'/user', ['name' => $username]);
+        try {
+            $response = $this->httpClient()->get(self::BASE_URL.'/user', ['name' => $username]);
+        } catch (ConnectionException) {
+            return null;
+        }
 
         if (! $response->successful()) {
             return null;
@@ -449,6 +481,8 @@ class BggClient
 
     private function httpClient(): PendingRequest
     {
-        return Http::withToken((string) config('bgg.application_token'));
+        return Http::withToken((string) config('bgg.application_token'))
+            ->timeout((int) config('bgg.timeout'))
+            ->connectTimeout((int) config('bgg.connect_timeout'));
     }
 }

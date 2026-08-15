@@ -16,4 +16,10 @@ return [
     // itself (that one reflects a specific user's current owned/wishlist
     // status, which caching would make stale on purpose).
     'cache_ttl' => (int) env('BGG_CACHE_TTL', 60 * 60 * 24),
+
+    // Without an explicit timeout, a hung BGG connection ties up the PHP
+    // worker handling the request indefinitely - imports and lookups both
+    // run synchronously in-request, there's no queue in front of them.
+    'timeout' => (int) env('BGG_TIMEOUT', 15),
+    'connect_timeout' => (int) env('BGG_CONNECT_TIMEOUT', 5),
 ];
