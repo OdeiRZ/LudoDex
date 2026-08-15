@@ -192,7 +192,7 @@ const filtered = computed(() => {
       </div>
     </div>
 
-    <form class="filters card" @submit.prevent>
+    <form v-if="games.loaded && playable.length" class="filters card" @submit.prevent>
       <div class="search-field">
         <label for="search">{{ $t('picker.searchLabel') }}</label>
         <input
