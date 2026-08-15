@@ -179,6 +179,13 @@ class BggCsvImportService
                 $importedCount++;
             }
 
+            // Only the candidate base games of expansions that turn out
+            // unlinked (below) actually need a name lookup - collected here
+            // instead of looking one up per expansion inline, so the whole
+            // file costs one Cache::many() call for this instead of one
+            // getCachedGameName() round-trip per unlinked expansion.
+            $unlinkedExpansions = [];
+
             foreach ($importedExpansionBggIds as $bggId) {
                 // An expansion can list more than one base game (e.g. a deck
                 // sold for both a game and a bundled reimplementation of it)
@@ -202,16 +209,23 @@ class BggCsvImportService
                     continue;
                 }
 
-                // None of its candidate base games are in this file, but one
-                // might already be cached from an earlier /thing call
-                // (anyone's import or lookup) - if so, name it in the
-                // warning instead of the generic message.
+                $unlinkedExpansions[$bggId] = $baseBggIds;
+            }
+
+            // None of these candidate base games are in this file, but one
+            // might already be cached from an earlier /thing call (anyone's
+            // import or lookup) - if so, name it in the warning instead of
+            // the generic message.
+            $candidateBaseBggIds = collect($unlinkedExpansions)->flatten()->unique()->values()->all();
+            $cachedNamesByBggId = $this->client->getCachedGameNames($candidateBaseBggIds);
+
+            foreach ($unlinkedExpansions as $bggId => $baseBggIds) {
                 $baseName = null;
 
                 foreach ($baseBggIds as $baseBggId) {
-                    $baseName = $this->client->getCachedGameName($baseBggId);
+                    if (isset($cachedNamesByBggId[$baseBggId])) {
+                        $baseName = $cachedNamesByBggId[$baseBggId];
 
-                    if ($baseName !== null) {
                         break;
                     }
                 }

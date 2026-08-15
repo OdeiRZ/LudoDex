@@ -250,18 +250,26 @@ it('caches a /thing lookup so a second fetchGameByBggId for the same id does not
         ->and($second['game']['name'])->toBe('Catan');
 });
 
-it('returns a cached game name without making a BGG call', function () {
+it('returns cached game names without making a BGG call', function () {
     Cache::put('bgg:thing:13', ['name' => 'Catan'], now()->addDay());
     Http::fake(fn () => Http::response('should not be called', 500));
 
-    expect((new BggClient)->getCachedGameName(13))->toBe('Catan');
+    expect((new BggClient)->getCachedGameNames([13]))->toBe([13 => 'Catan']);
     Http::assertNothingSent();
 });
 
-it('returns null for a game name that is not cached, without making a BGG call either', function () {
+it('omits ids that are not cached, without making a BGG call either', function () {
+    Cache::put('bgg:thing:13', ['name' => 'Catan'], now()->addDay());
     Http::fake(fn () => Http::response('should not be called', 500));
 
-    expect((new BggClient)->getCachedGameName(999))->toBeNull();
+    expect((new BggClient)->getCachedGameNames([13, 999]))->toBe([13 => 'Catan']);
+    Http::assertNothingSent();
+});
+
+it('returns an empty array for an empty id list, without making a BGG call', function () {
+    Http::fake(fn () => Http::response('should not be called', 500));
+
+    expect((new BggClient)->getCachedGameNames([]))->toBe([]);
     Http::assertNothingSent();
 });
 
