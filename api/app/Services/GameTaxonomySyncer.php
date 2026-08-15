@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Category;
 use App\Models\Game;
 use App\Models\Mechanic;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class GameTaxonomySyncer
@@ -51,12 +52,38 @@ class GameTaxonomySyncer
     }
 
     /**
+     * One SELECT for names that already exist, one batched INSERT (with
+     * duplicates left to ON CONFLICT DO NOTHING) for whatever's new, and a
+     * second SELECT to pick up the ids that insert just created - instead
+     * of a firstOrCreate() per name, which was up to two individual
+     * queries per mechanic/category on every single game in an import.
+     *
      * @param  class-string<Mechanic>|class-string<Category>  $modelClass
      * @param  array<int, string>  $names
      * @return Collection<int, int>
      */
     private function resolveIds(string $modelClass, array $names): Collection
     {
-        return collect($names)->map(fn (string $name) => $modelClass::firstOrCreate(['name' => $name])->id);
+        if ($names === []) {
+            return collect();
+        }
+
+        $names = collect($names)->unique()->values();
+
+        $idsByName = $modelClass::query()->whereIn('name', $names)->pluck('id', 'name');
+
+        $missing = $names->diff($idsByName->keys());
+
+        if ($missing->isNotEmpty()) {
+            $now = Carbon::now();
+
+            $modelClass::query()->insertOrIgnore(
+                $missing->map(fn (string $name) => ['name' => $name, 'created_at' => $now, 'updated_at' => $now])->all()
+            );
+
+            $idsByName = $modelClass::query()->whereIn('name', $names)->pluck('id', 'name');
+        }
+
+        return $names->map(fn (string $name) => $idsByName[$name]);
     }
 }
