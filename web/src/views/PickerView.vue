@@ -671,13 +671,26 @@ actually fit in the narrower box instead of just overflowing it. */
   /* Same real-measurement correction as Minutos disponibles above:
   Cualquiera/Cooperativo/Competitivo need 270.3px against this card's
   measured 265px content width even with the icon-to-text gap already
-  at 2px (see the ≤379px rule below) - short by only ~5px, but enough
-  to strand Competitivo on its own line. The between-labels gap here is
-  mostly redundant once all three fit anyway: justify-content:
-  space-between (set at ≤480px) spreads whatever room is left between
-  them regardless of this value, so dropping it to 0 costs nothing
-  visually and clears the ~5px deficit with room to spare. */
+  at 2px (see the ≤379px rule below) - short by only ~5px on paper,
+  which dropping the (mostly redundant once all three fit anyway -
+  justify-content: space-between, set at ≤480px, spreads whatever
+  room is left between them regardless of this value) between-labels
+  gap to 0 should have cleared with a couple px to spare. It didn't on
+  a real phone (reported directly, with a screenshot) - a ~2-3px
+  margin measured against a desktop browser's own text rendering
+  isn't real margin, evidently, so this now shaves off real width
+  from two places at once instead of leaving it that close again:
+  Modo's own horizontal padding (8px each side, set at ≤480px) drops
+  to 4px, and the icon-to-text gap tightened to 2px above goes to 0
+  here specifically. Comfortably over 15px of slack either way now,
+  not a couple. */
   .mode-fieldset {
+    gap: 0;
+    padding-left: var(--space-1);
+    padding-right: var(--space-1);
+  }
+
+  .mode-fieldset label {
     gap: 0;
   }
 }
