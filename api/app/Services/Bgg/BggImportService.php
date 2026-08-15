@@ -43,7 +43,7 @@ class BggImportService
         // the DB writes) it actually is.
         $collectionStartedAt = microtime(true);
         $collection = $this->client->fetchCollection($import->bgg_username);
-        Log::info('BGG import: fetched collection', [
+        Log::warning('BGG import: fetched collection', [
             'import_id' => $import->id,
             'status' => $collection['status'],
             'items' => isset($collection['items']) ? count($collection['items']) : null,
@@ -76,7 +76,7 @@ class BggImportService
 
         $detailsStartedAt = microtime(true);
         $details = $this->client->fetchGameDetails(array_column($items, 'bgg_id'));
-        Log::info('BGG import: fetched game details', [
+        Log::warning('BGG import: fetched game details', [
             'import_id' => $import->id,
             'games' => count($items),
             'seconds' => round(microtime(true) - $detailsStartedAt, 2),
@@ -92,7 +92,7 @@ class BggImportService
             $import->update(['status' => 'completed', 'imported_count' => count($items)]);
         });
 
-        Log::info('BGG import: wrote games/taxonomy/collection to the database', [
+        Log::warning('BGG import: wrote games/taxonomy/collection to the database', [
             'import_id' => $import->id,
             'games' => count($items),
             'seconds' => round(microtime(true) - $dbStartedAt, 2),
