@@ -1,5 +1,8 @@
 import axios from 'axios'
-import { getLocale } from '@/i18n'
+import { getLocale, i18n } from '@/i18n'
+import router from '@/router'
+import { useAuthStore } from '@/stores/auth'
+import { useToastStore } from '@/stores/toast'
 
 // Token lives in localStorage (not an httpOnly cookie): the SPA and the API
 // are on different domains with free-tier hosting, so cookie-based Sanctum
@@ -39,3 +42,22 @@ apiClient.interceptors.request.use((config) => {
 
   return config
 })
+
+// A 401 on an authenticated request means the token Sanctum issued has
+// expired or been revoked server-side - without this, the stored token
+// stayed in place and every subsequent request kept 401ing silently, with
+// no indication the user needed to log in again. Only reacts when a token
+// was actually attached (guards login/register's own failures, which are
+// 422s anyway, from ever going through this path).
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (axios.isAxiosError(error) && error.response?.status === 401 && getStoredToken() !== null) {
+      useAuthStore().clearSession()
+      useToastStore().show(i18n.global.t('auth.sessionExpired'))
+      router.push({ name: 'login' })
+    }
+
+    return Promise.reject(error)
+  },
+)

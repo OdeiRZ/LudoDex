@@ -26,6 +26,7 @@ export default {
     toDark: 'Cambiar a modo oscuro',
   },
   auth: {
+    sessionExpired: 'Tu sesión ha caducado. Inicia sesión de nuevo.',
     login: {
       title: 'Iniciar sesión',
       email: 'Email',

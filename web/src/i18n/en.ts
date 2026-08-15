@@ -26,6 +26,7 @@ export default {
     toDark: 'Switch to dark mode',
   },
   auth: {
+    sessionExpired: 'Your session has expired. Please log in again.',
     login: {
       title: 'Log in',
       email: 'Email',
