@@ -121,6 +121,12 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   compartir fila, y las etiquetas de Ranking en BGG/Valoración/
   Complejidad se partían en dos líneas por un margen demasiado
   ajustado sobre su propio ancho de columna.
+- En "¿A qué jugamos?", el bloque de filtros se mostraba de
+  inmediato al cargar la página mientras la colección aún se estaba
+  descargando, con el filtro de Género apareciendo de golpe (y el
+  resto de tarjetas junto a él) justo cuando terminaba la carga. Los
+  filtros ahora se ocultan hasta que la colección está lista, igual
+  que ya hacía "Tu colección" con su propia barra de herramientas.
 
 ## [0.4.0] - 2026-08-14
 
