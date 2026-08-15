@@ -109,7 +109,7 @@ export default {
     toastCleared: 'Collection cleared.',
   },
   gameForm: {
-    bggImportLegend: 'Import from BoardGameGeek (optional)',
+    bggImportLegend: 'Import from BGG (optional)',
     bggIdPlaceholder: 'BGG game ID',
     bggFillButton: 'Fill from BGG',
     bggFillLoading: 'Looking up…',
