@@ -7,8 +7,59 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-15
+
+### Añadido
+
+- Ordenación por nombre o ranking BGG en "¿A qué jugamos?", igual que
+  ya tenía "Tu colección" — de paso se reagrupan sus filtros
+  (Estructura y Género suben junto a Buscar/Jugadores) para dejar
+  hueco al nuevo control.
+
+### Cambiado
+
+- Repaso a fondo del diseño responsive de "Tu colección" y "¿A qué
+  jugamos?", contrastado contra móviles reales (hasta 360px) en vez
+  de solo simulaciones de ancho — filtros, buscador y tarjetas quedan
+  alineados en tablet y en los teléfonos más estrechos en vez de
+  desbordar o partirse de forma inconsistente.
+- Cabecera: el logo se oculta en pantallas muy estrechas, el nombre de
+  usuario se abrevia si hace falta, y el bloque de navegación central
+  (Colección / ¿A qué jugamos? / Importar BGG) queda centrado entre el
+  logo y los controles de sesión en vez de pegado al logo.
+- El enlace "← Volver" en Añadir/Editar juego pasa a estar junto al
+  título, a la derecha, en vez de en su propia línea encima — en todas
+  las resoluciones.
+- Miniatura de portada más grande en el formulario de juego, y mejor
+  centrada frente al bloque de nombre + URL de imagen.
+- "Importar de BoardGameGeek (opcional)" se acorta a "Importar de BGG
+  (opcional)", y la confirmación de "Vaciar biblioteca" pierde la
+  aclaración de qué sobrevive al vaciado, dejando solo el aviso que
+  importa.
+- El texto de confirmación de borrado de un juego ("¿Seguro? Toca de
+  nuevo para eliminar") se acorta a solo "¿Seguro?" en pantallas de
+  366px o menos, donde era el texto más largo del botón más estrecho
+  de la página.
+- Se elimina el campo `notes` por juego: estaba completamente montado
+  en el backend (columna, modelo, validación) pero nunca llegó a tener
+  un campo en el formulario, así que era inalcanzable desde la propia
+  app. El objetivo actual sigue siendo importar y organizar la
+  colección, no llevar notas — se puede retomar más adelante si hace
+  falta de verdad.
+
 ### Corregido
 
+- Una expansión con más de un juego base candidato en BGG (p. ej. una
+  reimplementación empaquetada junto al original) podía quedar sin
+  vincular si el candidato válido no era el último que BGG reportaba,
+  mostrándose como juego base en vez de como expansión.
+- Iniciar una importación de BGG que fallara por un corte de red — el
+  móvil se bloquea justo al pulsar "Importar", por ejemplo — obligaba
+  a empezar de cero aunque la petición hubiera llegado al servidor; el
+  arranque ahora se reintenta de forma segura (reutilizando la
+  importación ya en marcha), no solo el sondeo posterior como antes.
+- El nombre y avatar del usuario en la cabecera se quedaban en blanco
+  al recargar en cualquier página que no fuera la colección.
 - Importar desde BGG podía tardar minutos en vez de segundos para una
   colección ya importada antes. La caché de respuestas de `/thing`
   (añadida en la 0.4.0) consultaba la base de datos una vez por cada
@@ -17,6 +68,28 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   ~100 juegos suponía otras tantas idas y vueltas a la base de datos
   solo para esa comprobación. Ahora se consulta y se guarda en bloque
   (`Cache::many()`/`Cache::putMany()`), no una vez por juego.
+- El mismo problema reaparecía un paso más abajo: resolver las
+  mecánicas/categorías de cada juego durante la importación hacía una
+  consulta individual por nombre. Ahora se resuelven y crean en
+  bloque.
+- Las llamadas a BoardGameGeek no tenían límite de tiempo ni dejaban
+  ningún registro cuando fallaban — un fallo de conexión real daba un
+  error genérico del servidor en vez del mensaje ya preparado para
+  ello, y podía dejar colgada la petición indefinidamente. Ahora
+  tienen timeout y quedan registradas.
+- La sesión caducada solo se detectaba una vez, al cargar la app —
+  si el token expiraba a mitad de sesión, cada acción posterior fallaba
+  con un error genérico sin indicar que había que volver a iniciar
+  sesión. Ahora cualquier petición con sesión caducada cierra la
+  sesión y redirige a inicio de sesión con un aviso.
+- Quitar un juego o vaciar la biblioteca fallaba en silencio si la
+  petición fallaba, sin ningún aviso visible.
+- El temporizador de "confirmar borrado" (tanto en la colección como
+  en la ficha de edición) no se limpiaba al salir de la página antes
+  de que cumpliera sus 4 segundos.
+- Cerrar la pestaña o recargarla con cambios sin guardar en el
+  formulario de añadir/editar juego no avisaba de nada, a diferencia
+  de la importación de BGG, que sí lo hacía.
 
 ## [0.4.0] - 2026-08-14
 
