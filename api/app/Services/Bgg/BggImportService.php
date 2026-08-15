@@ -4,8 +4,11 @@ namespace App\Services\Bgg;
 
 use App\Models\BggImport;
 use App\Models\Game;
+use App\Models\UserGame;
 use App\Services\GameTaxonomySyncer;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class BggImportService
 {
@@ -110,13 +113,24 @@ class BggImportService
     }
 
     /**
+     * One bulk upsert for every game in the import instead of an
+     * updateOrCreate() per game - a ~500-game import previously meant ~500
+     * individual SELECT+INSERT/UPDATE round-trips just for this part.
+     * Eloquent's own id/timestamp handling is bypassed by a raw upsert, so
+     * both are filled in by hand here; an existing game's id survives
+     * because it's excluded from the ON CONFLICT update column list, and
+     * the freshly-generated id on a row that turns out to conflict is
+     * simply never used.
+     *
      * @param  list<array<string, mixed>>  $items
      * @param  array<int, array{mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_ids: list<int>, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float}>  $details
      * @return array<int, Game>
      */
     private function upsertGames(array $items, array $details): array
     {
-        $gamesByBggId = [];
+        $now = Carbon::now();
+        $rows = [];
+        $tagsByBggId = [];
 
         foreach ($items as $item) {
             $detail = $details[$item['bgg_id']] ?? null;
@@ -136,31 +150,46 @@ class BggImportService
             $isCooperative = $this->anyContains($tags, 'cooperative');
             $isSolo = $this->anyContains($tags, 'solo');
 
-            $game = Game::updateOrCreate(
-                ['bgg_id' => $item['bgg_id']],
-                [
-                    'name' => $item['name'],
-                    'image_url' => $item['image_url'],
-                    'min_players' => $item['min_players'],
-                    'max_players' => $item['max_players'],
-                    'min_playtime_minutes' => $item['min_playtime_minutes'],
-                    'max_playtime_minutes' => $item['max_playtime_minutes'],
-                    'weight' => $detail['weight'] ?? null,
-                    'year_published' => $detail['year_published'] ?? null,
-                    'min_age' => $detail['min_age'] ?? null,
-                    'bgg_rank' => $detail['bgg_rank'] ?? null,
-                    'rating' => $detail['rating'] ?? null,
-                    'is_cooperative' => $isCooperative,
-                    'is_competitive' => ! $isSolo,
-                    'has_campaign' => $this->anyContains($tags, 'campaign')
-                        || $this->anyContains($tags, 'legacy'),
-                ]
-            );
+            $rows[] = [
+                'id' => (string) Str::ulid(),
+                'bgg_id' => $item['bgg_id'],
+                'name' => $item['name'],
+                'image_url' => $item['image_url'],
+                'min_players' => $item['min_players'],
+                'max_players' => $item['max_players'],
+                'min_playtime_minutes' => $item['min_playtime_minutes'],
+                'max_playtime_minutes' => $item['max_playtime_minutes'],
+                'weight' => $detail['weight'] ?? null,
+                'year_published' => $detail['year_published'] ?? null,
+                'min_age' => $detail['min_age'] ?? null,
+                'bgg_rank' => $detail['bgg_rank'] ?? null,
+                'rating' => $detail['rating'] ?? null,
+                'is_cooperative' => $isCooperative,
+                'is_competitive' => ! $isSolo,
+                'has_campaign' => $this->anyContains($tags, 'campaign')
+                    || $this->anyContains($tags, 'legacy'),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
 
-            $this->taxonomySyncer->syncFromBgg($game, $mechanics, $categories);
-
-            $gamesByBggId[$item['bgg_id']] = $game;
+            $tagsByBggId[$item['bgg_id']] = ['mechanics' => $mechanics, 'categories' => $categories];
         }
+
+        Game::upsert($rows, uniqueBy: ['bgg_id'], update: [
+            'name', 'image_url', 'min_players', 'max_players', 'min_playtime_minutes',
+            'max_playtime_minutes', 'weight', 'year_published', 'min_age', 'bgg_rank',
+            'rating', 'is_cooperative', 'is_competitive', 'has_campaign', 'updated_at',
+        ]);
+
+        $gamesByBggId = Game::whereIn('bgg_id', array_column($items, 'bgg_id'))->get()->keyBy('bgg_id')->all();
+
+        $tagsByGameId = [];
+
+        foreach ($tagsByBggId as $bggId => $tags) {
+            $tagsByGameId[$gamesByBggId[$bggId]->id] = $tags;
+        }
+
+        $this->taxonomySyncer->syncManyFromBgg($tagsByGameId);
 
         return $gamesByBggId;
     }
@@ -191,19 +220,26 @@ class BggImportService
     }
 
     /**
+     * Same bulk-upsert reasoning as upsertGames() above, for the user's
+     * own owned/wishlist status per game.
+     *
      * @param  list<array<string, mixed>>  $items
      * @param  array<int, Game>  $gamesByBggId
      */
     private function syncUserCollection(BggImport $import, array $items, array $gamesByBggId): void
     {
-        foreach ($items as $item) {
-            $game = $gamesByBggId[$item['bgg_id']];
+        $now = Carbon::now();
 
-            $import->user->games()->updateOrCreate(
-                ['game_id' => $game->id],
-                ['status' => $item['collection_status']]
-            );
-        }
+        $rows = array_map(fn (array $item) => [
+            'id' => (string) Str::ulid(),
+            'user_id' => $import->user_id,
+            'game_id' => $gamesByBggId[$item['bgg_id']]->id,
+            'status' => $item['collection_status'],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], $items);
+
+        UserGame::upsert($rows, uniqueBy: ['user_id', 'game_id'], update: ['status', 'updated_at']);
     }
 
     /** @param  list<string>  $values */

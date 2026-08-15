@@ -7,6 +7,7 @@ use App\Models\Game;
 use App\Models\Mechanic;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class GameTaxonomySyncer
 {
@@ -52,6 +53,77 @@ class GameTaxonomySyncer
     }
 
     /**
+     * Batched equivalent of syncFromBgg() for every game in a BGG import at
+     * once, instead of the same handful of round-trips repeated per game -
+     * a ~500-game import previously meant ~500 separate resolveIds() calls
+     * plus ~500 pairs of pivot syncWithoutDetaching() calls, each of which
+     * is its own query. Resolving mechanics/categories still costs one
+     * SELECT (+ one insertOrIgnore for whatever's new) each, but across the
+     * whole import's combined name list rather than per game, and the
+     * pivot rows for every game go into one insertOrIgnore per pivot table.
+     * insertOrIgnore already skips a (game_id, tag_id) pair that's
+     * attached, so - same as syncFromBgg() - this never needs to check
+     * what's already there first to stay additive-only.
+     *
+     * @param  array<string, array{mechanics: list<string>, categories: list<string>}>  $tagsByGameId
+     */
+    public function syncManyFromBgg(array $tagsByGameId): void
+    {
+        $this->syncManyPivot(
+            Mechanic::class,
+            'game_mechanic',
+            'mechanic_id',
+            array_map(fn (array $tags) => $tags['mechanics'], $tagsByGameId),
+        );
+
+        $this->syncManyPivot(
+            Category::class,
+            'category_game',
+            'category_id',
+            array_map(fn (array $tags) => $tags['categories'], $tagsByGameId),
+        );
+    }
+
+    /**
+     * @param  class-string<Mechanic>|class-string<Category>  $modelClass
+     * @param  array<string, list<string>>  $namesByGameId
+     */
+    private function syncManyPivot(string $modelClass, string $pivotTable, string $foreignKey, array $namesByGameId): void
+    {
+        $allNames = collect($namesByGameId)->flatten()->all();
+        $idsByName = $this->resolveIdsByName($modelClass, $allNames);
+
+        $pivotRows = [];
+
+        foreach ($namesByGameId as $gameId => $names) {
+            foreach (array_unique($names) as $name) {
+                $pivotRows[] = ['game_id' => $gameId, $foreignKey => $idsByName[$name]];
+            }
+        }
+
+        if ($pivotRows !== []) {
+            DB::table($pivotTable)->insertOrIgnore($pivotRows);
+        }
+    }
+
+    /**
+     * @param  class-string<Mechanic>|class-string<Category>  $modelClass
+     * @param  array<int, string>  $names
+     * @return Collection<int, int>
+     */
+    private function resolveIds(string $modelClass, array $names): Collection
+    {
+        if ($names === []) {
+            return collect();
+        }
+
+        $names = collect($names)->unique()->values();
+        $idsByName = $this->resolveIdsByName($modelClass, $names->all());
+
+        return $names->map(fn (string $name) => $idsByName[$name]);
+    }
+
+    /**
      * One SELECT for names that already exist, one batched INSERT (with
      * duplicates left to ON CONFLICT DO NOTHING) for whatever's new, and a
      * second SELECT to pick up the ids that insert just created - instead
@@ -60,9 +132,9 @@ class GameTaxonomySyncer
      *
      * @param  class-string<Mechanic>|class-string<Category>  $modelClass
      * @param  array<int, string>  $names
-     * @return Collection<int, int>
+     * @return Collection<string, int> name => id
      */
-    private function resolveIds(string $modelClass, array $names): Collection
+    private function resolveIdsByName(string $modelClass, array $names): Collection
     {
         if ($names === []) {
             return collect();
@@ -84,6 +156,6 @@ class GameTaxonomySyncer
             $idsByName = $modelClass::query()->whereIn('name', $names)->pluck('id', 'name');
         }
 
-        return $names->map(fn (string $name) => $idsByName[$name]);
+        return $idsByName;
     }
 }
