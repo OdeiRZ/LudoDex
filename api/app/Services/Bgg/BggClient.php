@@ -122,15 +122,25 @@ class BggClient
         $details = [];
         $idsToFetch = [];
 
-        foreach ($bggIds as $bggId) {
-            $cached = Cache::get($this->cacheKey($bggId));
+        // One query for the whole batch instead of one per id - with
+        // CACHE_STORE=database (Neon in production), a ~100-game collection
+        // otherwise meant ~100 individual round trips just to find out
+        // what's already cached, each paying the connection's own network
+        // latency - the actual cause of imports going from seconds to
+        // minutes once caching was added, not BGG itself being slower.
+        $cached = Cache::many(array_map($this->cacheKey(...), $bggIds));
 
-            if ($cached !== null) {
-                $details[$bggId] = $cached;
+        foreach ($bggIds as $bggId) {
+            $value = $cached[$this->cacheKey($bggId)] ?? null;
+
+            if ($value !== null) {
+                $details[$bggId] = $value;
             } else {
                 $idsToFetch[] = $bggId;
             }
         }
+
+        $toCache = [];
 
         foreach (array_chunk($idsToFetch, 20) as $chunk) {
             $response = $this->httpClient()->get(self::BASE_URL.'/thing', [
@@ -152,9 +162,16 @@ class BggClient
                 $id = (int) $item['id'];
                 $detail = $this->parseGameDetail($item);
 
-                Cache::put($this->cacheKey($id), $detail, $this->cacheTtl());
+                $toCache[$this->cacheKey($id)] = $detail;
                 $details[$id] = $detail;
             }
+        }
+
+        // Same batching reasoning as the read above, for the write side -
+        // one query to store every newly-fetched detail instead of one per
+        // game.
+        if ($toCache !== []) {
+            Cache::putMany($toCache, $this->cacheTtl());
         }
 
         return $details;

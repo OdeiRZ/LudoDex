@@ -7,6 +7,17 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Corregido
+
+- Importar desde BGG podía tardar minutos en vez de segundos para una
+  colección ya importada antes. La caché de respuestas de `/thing`
+  (añadida en la 0.4.0) consultaba la base de datos una vez por cada
+  juego para saber qué estaba ya cacheado, en vez de una sola vez para
+  todos — con `CACHE_STORE=database` en producción, una colección de
+  ~100 juegos suponía otras tantas idas y vueltas a la base de datos
+  solo para esa comprobación. Ahora se consulta y se guarda en bloque
+  (`Cache::many()`/`Cache::putMany()`), no una vez por juego.
+
 ## [0.4.0] - 2026-08-14
 
 ### Añadido
