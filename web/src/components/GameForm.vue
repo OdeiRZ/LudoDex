@@ -226,14 +226,14 @@ async function onLookupBgg() {
     checkbox) sat in its own mostly-empty fieldset right below it - pairing
     them uses both blocks' spare room instead of wasting two. -->
     <div class="field-row">
-      <div>
+      <div class="min-age-field">
         <label for="min_age">{{ $t('gameForm.minAge') }}</label>
         <div class="input-with-suffix">
           <input id="min_age" v-model="form.min_age" type="text" :placeholder="$t('gameForm.minAgePlaceholder')" />
           <span class="input-suffix">{{ $t('gameForm.years') }}</span>
         </div>
       </div>
-      <fieldset>
+      <fieldset class="structure-field">
         <legend>{{ $t('gameForm.structureLegend') }}</legend>
         <label><input v-model="form.has_campaign" type="checkbox" /> {{ $t('gameForm.hasCampaign') }}</label>
       </fieldset>
@@ -450,5 +450,45 @@ ever paired with a single input in a row that's already align-items:
 center (see "años" next to min_age). */
 .range-field .input-suffix {
   margin-top: 10px;
+}
+
+/* At a real 360-366px phone, Edad recomendada and Estructura were
+stacking onto their own separate lines instead of sharing the row:
+.field-row's shared min-width: 140px per child needs 296px for the
+two of them together, more than this card's real ~283px content
+width. Edad recomendada's own label ("Edad recomendada", 122px) and
+Estructura's checkbox label ("Modo campaña", 116px plus the
+fieldset's own padding) both fit comfortably once that floor is
+dropped and flex: 1 (already the default for .field-row's children)
+is left to split the row's real width between them - min-width: 0 is
+needed on both, not just the fieldset, since the shared rule's 140px
+is an explicit floor an unadorned div would otherwise keep too.
+Estructura's own padding is trimmed a bit further, the same fix
+already used for the picker's own Estructura field, since a
+fieldset's padding counts against its automatic minimum content size
+the same way its legend/label content does. */
+@media (max-width: 366px) {
+  .min-age-field,
+  .structure-field {
+    min-width: 0;
+  }
+
+  .structure-field {
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+  }
+
+  /* Año de juego/Ranking en BGG/Valoración/Complejidad share this
+  card's own ~283px content width two at a time (four never fit on
+  one line even at their normal 108px, so this only ever affects
+  which two share a line) - 108px left "Ranking en BGG" and
+  "Valoración (0-10)" only 1-2px of real margin over their own
+  measured single-line width, thin enough that a real phone's font
+  rendering (not just this simulated width) tips them onto a second
+  line. Widened enough to leave real breathing room instead of a
+  margin that only works in theory. */
+  .field-compact {
+    flex-basis: 118px;
+  }
 }
 </style>
