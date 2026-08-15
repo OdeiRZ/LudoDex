@@ -6,7 +6,6 @@ use App\Models\BggImport;
 use App\Models\Game;
 use App\Services\GameTaxonomySyncer;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class BggImportService
 {
@@ -34,23 +33,27 @@ class BggImportService
             return;
         }
 
-        // Timed and logged per phase (not just overall) because a real
-        // import reported taking minutes both with and without a warm
-        // /thing cache - identical duration either way means the actual
-        // bottleneck likely isn't the detail-fetch cache this narrows down,
-        // and only per-phase numbers from a real run can tell which of the
-        // three (BGG's own /collection response time, the /thing fetch, or
-        // the DB writes) it actually is.
+        // Timed per phase (not just overall) and persisted straight to the
+        // row - temporary, see the migration that added this column - since
+        // a real import reported taking minutes both with and without a
+        // warm /thing cache. Identical duration either way means the
+        // bottleneck likely isn't the detail-fetch cache this narrows
+        // down, and only per-phase numbers from a real run can tell which
+        // of the three (BGG's own /collection response time, the /thing
+        // fetch, or the DB writes) it actually is.
+        $timing = [];
+
         $collectionStartedAt = microtime(true);
         $collection = $this->client->fetchCollection($import->bgg_username);
-        Log::warning('BGG import: fetched collection', [
-            'import_id' => $import->id,
+        $timing['collection'] = [
             'status' => $collection['status'],
             'items' => isset($collection['items']) ? count($collection['items']) : null,
             'seconds' => round(microtime(true) - $collectionStartedAt, 2),
-        ]);
+        ];
 
         if ($collection['status'] === 'pending') {
+            $import->update(['debug_timing' => json_encode($timing)]);
+
             return;
         }
 
@@ -58,12 +61,19 @@ class BggImportService
             $isTransient = $collection['transient'] ?? false;
 
             if ($isTransient && $import->failed_attempts + 1 < self::MAX_CONSECUTIVE_FAILURES) {
-                $import->increment('failed_attempts');
+                $import->update([
+                    'failed_attempts' => $import->failed_attempts + 1,
+                    'debug_timing' => json_encode($timing),
+                ]);
 
                 return;
             }
 
-            $import->update(['status' => 'failed', 'error_message' => $collection['message']]);
+            $import->update([
+                'status' => 'failed',
+                'error_message' => $collection['message'],
+                'debug_timing' => json_encode($timing),
+            ]);
 
             return;
         }
@@ -76,11 +86,10 @@ class BggImportService
 
         $detailsStartedAt = microtime(true);
         $details = $this->client->fetchGameDetails(array_column($items, 'bgg_id'));
-        Log::warning('BGG import: fetched game details', [
-            'import_id' => $import->id,
+        $timing['details'] = [
             'games' => count($items),
             'seconds' => round(microtime(true) - $detailsStartedAt, 2),
-        ]);
+        ];
 
         $dbStartedAt = microtime(true);
 
@@ -92,11 +101,12 @@ class BggImportService
             $import->update(['status' => 'completed', 'imported_count' => count($items)]);
         });
 
-        Log::warning('BGG import: wrote games/taxonomy/collection to the database', [
-            'import_id' => $import->id,
+        $timing['db'] = [
             'games' => count($items),
             'seconds' => round(microtime(true) - $dbStartedAt, 2),
-        ]);
+        ];
+
+        $import->update(['debug_timing' => json_encode($timing)]);
     }
 
     /**
