@@ -650,6 +650,17 @@ actually fit in the narrower box instead of just overflowing it. */
     white-space: normal;
     min-width: 0;
   }
+
+  /* Minutos disponibles' 5 radios wrap into 3 lines at this card's
+  real ~268px content width with the fieldset's usual space-4 gap -
+  Hasta 1h/Hasta 1h30 alone leave only ~37px spare on their own line,
+  not enough for Hasta 2h (75px) to join them. Tightening the gap to
+  space-2 frees enough (Hasta 1h + Hasta 1h30 + Hasta 2h comes to 256px
+  with it, against the same 268px) for all three to share that second
+  line instead, leaving Hasta 2h stranded alone on a third. */
+  .duration-field {
+    gap: var(--space-2);
+  }
 }
 
 .filters {
