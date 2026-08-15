@@ -72,8 +72,10 @@ async function onSubmit() {
 
 <template>
   <div class="add-game">
-    <RouterLink :to="{ name: 'dashboard' }" class="back-link">{{ $t('backLink') }}</RouterLink>
-    <h1>{{ $t('addGame.title') }}</h1>
+    <div class="page-header">
+      <h1>{{ $t('addGame.title') }}</h1>
+      <RouterLink :to="{ name: 'dashboard' }" class="back-link">{{ $t('backLink') }}</RouterLink>
+    </div>
 
     <form @submit.prevent="onSubmit">
       <GameForm
@@ -97,14 +99,28 @@ async function onSubmit() {
   margin: 0 auto;
 }
 
+/* Volver used to sit on its own line above the title - baseline
+alignment (rather than center) is what keeps it reading level with h1
+despite the large size difference between them, matching how the
+title row elsewhere in the app (e.g. the picker's own h1 + count)
+already aligns text of very different sizes. */
+.page-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
 .back-link {
   display: inline-block;
-  margin-bottom: var(--space-2);
+  padding-right: 10px;
   color: var(--color-text-muted);
   font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 h1 {
-  margin-bottom: var(--space-4);
+  margin-bottom: 0;
 }
 </style>
