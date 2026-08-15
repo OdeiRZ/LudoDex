@@ -127,6 +127,12 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   resto de tarjetas junto a él) justo cuando terminaba la carga. Los
   filtros ahora se ocultan hasta que la colección está lista, igual
   que ya hacía "Tu colección" con su propia barra de herramientas.
+- El mismo problema de consulta individual a caché reaparecía, a
+  menor escala, en la importación por CSV: buscar el nombre del
+  juego base para el aviso de una expansión sin vincular (cuando ese
+  juego base no está en el propio CSV) se hacía una vez por
+  expansión. Ahora se hace en una sola consulta en bloque para todo
+  el archivo.
 
 ## [0.4.0] - 2026-08-14
 
