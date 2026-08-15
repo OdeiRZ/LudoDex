@@ -85,7 +85,15 @@ class BggImportService
             $import->update(['failed_attempts' => 0]);
         }
 
-        $items = $collection['items'];
+        // A real BGG collection can list the same objectid more than once
+        // (observed live: a ~500-game collection with one duplicate) - the
+        // old per-item updateOrCreate() loop tolerated that silently (just
+        // wrote the same row twice), but a single batched upsert() can't:
+        // Postgres rejects "ON CONFLICT DO UPDATE" affecting the same row
+        // twice within one command. Collapsed here, before anything else
+        // reads $items, so every later step only ever sees one row per
+        // bgg_id.
+        $items = $this->dedupeByBggId($collection['items']);
 
         $detailsStartedAt = microtime(true);
         $details = $this->client->fetchGameDetails(array_column($items, 'bgg_id'));
@@ -240,6 +248,30 @@ class BggImportService
         ], $items);
 
         UserGame::upsert($rows, uniqueBy: ['user_id', 'game_id'], update: ['status', 'updated_at']);
+    }
+
+    /**
+     * Prefers 'owned' over 'wishlist' when two duplicate rows for the same
+     * bgg_id disagree - owning something is the stronger signal - and
+     * regardless of order: an owned row is never overwritten by a
+     * later-seen wishlist duplicate of the same game.
+     *
+     * @param  list<array<string, mixed>>  $items
+     * @return list<array<string, mixed>>
+     */
+    private function dedupeByBggId(array $items): array
+    {
+        $byBggId = [];
+
+        foreach ($items as $item) {
+            $bggId = $item['bgg_id'];
+
+            if (! isset($byBggId[$bggId]) || $item['collection_status'] === 'owned') {
+                $byBggId[$bggId] = $item;
+            }
+        }
+
+        return array_values($byBggId);
     }
 
     /** @param  list<string>  $values */

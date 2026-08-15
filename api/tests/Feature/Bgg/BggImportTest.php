@@ -263,6 +263,60 @@ it('links an expansion to whichever of its several base games is actually owned'
     expect($corbarius->base_game_id)->toBe($agricola->id);
 });
 
+it('collapses a duplicate bgg_id in the same collection instead of erroring', function () {
+    // Reproduces a real production failure: a live ~500-game collection
+    // listed the same objectid twice (once owned, once wishlisted) - the
+    // batched upsert() this now goes through can't affect the same
+    // conflict-target row twice in one command (Postgres: "ON CONFLICT DO
+    // UPDATE command cannot affect row a second time"), so duplicates must
+    // be collapsed before the write phase, not just left for the DB to
+    // reject.
+    $user = actingAsUser();
+
+    Http::fake(function (ClientRequest $request) {
+        $url = $request->url();
+
+        if (str_contains($url, '/collection') && str_contains($url, 'subtype=boardgame&')) {
+            return Http::response(<<<'XML'
+            <?xml version="1.0" encoding="utf-8"?>
+            <items totalitems="2">
+                <item objecttype="thing" objectid="13" subtype="boardgame" collid="1">
+                    <name sortindex="1">Catan</name>
+                    <image>https://example.com/catan.jpg</image>
+                    <status own="0" wishlist="1" prevowned="0" fortrade="0" want="0" wanttoplay="0" wanttobuy="0" wishlistpriority="0" preordered="0" lastmodified="2020-01-01 00:00:00"/>
+                    <numplays>0</numplays>
+                    <stats minplayers="3" maxplayers="4" minplaytime="60" maxplaytime="120" playingtime="120" numowned="1"/>
+                </item>
+                <item objecttype="thing" objectid="13" subtype="boardgame" collid="2">
+                    <name sortindex="1">Catan</name>
+                    <image>https://example.com/catan.jpg</image>
+                    <status own="1" wishlist="0" prevowned="0" fortrade="0" want="0" wanttoplay="0" wanttobuy="0" wishlistpriority="0" preordered="0" lastmodified="2020-01-01 00:00:00"/>
+                    <numplays>0</numplays>
+                    <stats minplayers="3" maxplayers="4" minplaytime="60" maxplaytime="120" playingtime="120" numowned="1"/>
+                </item>
+            </items>
+            XML);
+        }
+
+        if (str_contains($url, '/collection') && str_contains($url, 'subtype=boardgameexpansion')) {
+            return Http::response(collectionXml('boardgameexpansion', null));
+        }
+
+        return Http::response(thingXml());
+    });
+
+    $response = $this->postJson('/api/bgg-imports', ['bgg_username' => 'odei']);
+
+    $response->assertCreated()
+        ->assertJsonPath('data.status', 'completed')
+        ->assertJsonPath('data.imported_count', 1);
+
+    expect(Game::where('bgg_id', 13)->count())->toBe(1);
+    expect($user->games()->count())->toBe(1);
+    // Owned wins over wishlist when the two duplicate rows disagree.
+    expect($user->games()->first()->status)->toBe('owned');
+});
+
 it('keeps a manually-added mechanic/category after re-importing from BGG, instead of wiping it', function () {
     $user = actingAsUser();
     $catan = Game::factory()->create(['bgg_id' => 13, 'name' => 'Catan']);
