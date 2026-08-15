@@ -104,7 +104,7 @@ export default {
       "This will remove all {count} games from your collection (the shared catalog isn't affected). This can't be undone.",
     clearConfirmInstructions: 'Type {count} to confirm.',
     clearConfirmPlaceholder: 'Type {count}',
-    clearConfirmButton: 'Clear library',
+    clearConfirmButton: 'Clear',
     cancel: 'Cancel',
     toastCleared: 'Collection cleared.',
   },

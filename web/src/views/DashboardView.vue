@@ -559,6 +559,18 @@ reads cleaner there too, not just once it's a genuine fit problem. */
   min-width: 160px;
 }
 
+/* 160px's floor left no room for Cancelar/Vaciar to share the row with
+it at a real 366px phone (the input alone plus both buttons needs
+~300px total, all this row has) - they wrapped Vaciar onto its own
+second line instead. 115px is short enough to leave the ~179px both
+buttons plus their gaps need. */
+@media (max-width: 366px) {
+  .clear-confirm-row input {
+    min-width: 0;
+    max-width: 115px;
+  }
+}
+
 .sort-criterion,
 .type-filter {
   flex-shrink: 0;

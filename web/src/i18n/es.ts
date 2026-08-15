@@ -104,7 +104,7 @@ export default {
       'Esto quitará los {count} juegos de tu colección (el catálogo compartido no se ve afectado). No se puede deshacer.',
     clearConfirmInstructions: 'Escribe {count} para confirmar.',
     clearConfirmPlaceholder: 'Escribe {count}',
-    clearConfirmButton: 'Vaciar biblioteca',
+    clearConfirmButton: 'Vaciar',
     cancel: 'Cancelar',
     toastCleared: 'Colección vaciada.',
   },
