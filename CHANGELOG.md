@@ -7,6 +7,27 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Corregido
+
+- La importación de BGG seguía tardando minutos en vez de segundos
+  incluso con la caché de la 0.4.0 funcionando bien (confirmado con
+  datos reales: `/collection` 2,44s, detalles de `/thing` 0,38s). El
+  cuello de botella real era la escritura en base de datos — un
+  `updateOrCreate` por juego (más las consultas de mecánicas/
+  categorías y de la colección del usuario) suponía miles de idas y
+  vueltas individuales a Neon para una colección de ~500 juegos, 133
+  de los ~137 segundos totales. Ahora se hace en bloque (un upsert
+  para los juegos, uno para las mecánicas/categorías de todos los
+  juegos a la vez, uno para el estado tengo/quiero de toda la
+  colección) — de ~2 minutos a 4-5 segundos en una importación real
+  de 493 juegos.
+- Una colección real de BGG puede listar el mismo juego dos veces
+  (una fila tuyo, otra en deseados, por ejemplo) — el nuevo upsert en
+  bloque de arriba no lo toleraba (Postgres: "ON CONFLICT DO UPDATE
+  command cannot affect row a second time") y la importación fallaba
+  al iniciarse. Ahora se elimina el duplicado antes de escribir nada,
+  quedándose con "lo tengo" si las dos filas no coinciden.
+
 ## [0.5.0] - 2026-08-15
 
 ### Añadido

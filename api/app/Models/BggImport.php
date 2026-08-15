@@ -18,7 +18,6 @@ class BggImport extends Model
         'imported_count',
         'error_message',
         'failed_attempts',
-        'debug_timing',
     ];
 
     /**
