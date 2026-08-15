@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { isAxiosError } from 'axios'
@@ -40,10 +40,30 @@ const form = reactive<GameFormData>({
 const errors = ref<Record<string, string[]>>({})
 const submitting = ref(false)
 
+// Filling out a whole form just to lose it all to an accidental tab close
+// or reload is the actual risk here - in-app navigation (Cancelar, the
+// browser's own Back button) doesn't trigger beforeunload at all, so this
+// never gets in the way of leaving the page normally.
+const pristineSnapshot = JSON.stringify(form)
+const isDirty = computed(() => JSON.stringify(form) !== pristineSnapshot)
+
+function warnBeforeUnload(event: BeforeUnloadEvent) {
+  if (isDirty.value) {
+    event.preventDefault()
+    event.returnValue = ''
+  }
+}
+
 onMounted(() => {
   if (!games.loaded) {
     games.fetchAll()
   }
+
+  window.addEventListener('beforeunload', warnBeforeUnload)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', warnBeforeUnload)
 })
 
 async function onSubmit() {

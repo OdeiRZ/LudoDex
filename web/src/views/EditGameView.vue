@@ -78,6 +78,20 @@ onUnmounted(() => clearTimeout(confirmingDeleteTimeout))
 
 const entry = computed(() => games.collection.find((item) => item.id === props.id))
 
+// Snapshotted at the end of fillFormFromEntry (below) rather than once up
+// front - the form starts at its empty defaults before the entry has even
+// loaded, so "dirty" only means anything once there's real data to compare
+// against.
+let pristineSnapshot = JSON.stringify(form)
+const isDirty = computed(() => JSON.stringify(form) !== pristineSnapshot)
+
+function warnBeforeUnload(event: BeforeUnloadEvent) {
+  if (isDirty.value) {
+    event.preventDefault()
+    event.returnValue = ''
+  }
+}
+
 function fillFormFromEntry() {
   if (!entry.value) {
     return
@@ -104,6 +118,8 @@ function fillFormFromEntry() {
   form.mechanics = [...game.mechanics]
   form.categories = [...game.categories]
   form.status = status
+
+  pristineSnapshot = JSON.stringify(form)
 }
 
 onMounted(async () => {
@@ -112,6 +128,11 @@ onMounted(async () => {
   }
 
   fillFormFromEntry()
+  window.addEventListener('beforeunload', warnBeforeUnload)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', warnBeforeUnload)
 })
 
 // Covers navigating here directly (already loaded collection, entry ready

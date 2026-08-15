@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import AddGameView from '@/views/AddGameView.vue'
@@ -19,6 +19,17 @@ function makeRouter() {
   return router
 }
 
+// AddGameView registers a 'beforeunload' listener on the shared `window`
+// for as long as it's mounted - without unmounting each wrapper, an
+// instance left dirty by one test (e.g. after setting #name) keeps
+// answering that check for every later test in this file.
+let wrappers: VueWrapper[] = []
+
+afterEach(() => {
+  wrappers.forEach((wrapper) => wrapper.unmount())
+  wrappers = []
+})
+
 async function mountAddGame() {
   setActivePinia(createPinia())
   const store = useGamesStore()
@@ -28,6 +39,7 @@ async function mountAddGame() {
   await router.isReady()
 
   const wrapper = mount(AddGameView, { global: { plugins: [router, i18n] } })
+  wrappers.push(wrapper)
 
   return { wrapper, store, router }
 }
@@ -74,5 +86,19 @@ describe('AddGameView', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('No se ha podido guardar el juego. Revisa los datos.')
+  })
+
+  it('warns before closing/reloading the tab once the form has unsaved changes, not before', async () => {
+    const { wrapper } = await mountAddGame()
+
+    const pristineEvent = new Event('beforeunload', { cancelable: true })
+    window.dispatchEvent(pristineEvent)
+    expect(pristineEvent.defaultPrevented).toBe(false)
+
+    await wrapper.find('#name').setValue('Ark Nova')
+
+    const dirtyEvent = new Event('beforeunload', { cancelable: true })
+    window.dispatchEvent(dirtyEvent)
+    expect(dirtyEvent.defaultPrevented).toBe(true)
   })
 })

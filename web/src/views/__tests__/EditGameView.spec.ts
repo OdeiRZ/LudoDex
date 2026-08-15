@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import EditGameView from '@/views/EditGameView.vue'
@@ -19,6 +19,17 @@ function makeRouter() {
   })
 }
 
+// EditGameView registers a 'beforeunload' listener on the shared `window`
+// for as long as it's mounted - without unmounting each wrapper, an
+// instance left dirty by one test (e.g. after editing #name) keeps
+// answering that check for every later test in this file.
+let wrappers: VueWrapper[] = []
+
+afterEach(() => {
+  wrappers.forEach((wrapper) => wrapper.unmount())
+  wrappers = []
+})
+
 // EditGameView reads `route.query.from` via useRoute(), which works from a
 // directly-mounted component as long as a real router is injected and
 // already navigated to the target URL - no <RouterView> needed.
@@ -36,6 +47,7 @@ async function mountEdit(path: string, id: string) {
     global: { plugins: [router, i18n] },
     props: { id },
   })
+  wrappers.push(wrapper)
   await flushPromises()
 
   return { wrapper, store, router }
@@ -143,6 +155,22 @@ describe('EditGameView delete', () => {
     expect(wrapper.text()).toContain('No se ha podido eliminar el juego.')
     expect(router.currentRoute.value.name).toBe('edit-game')
     expect(wrapper.find('.danger-zone button').text()).not.toContain('¿Seguro?')
+  })
+})
+
+describe('EditGameView unsaved changes', () => {
+  it('warns before closing/reloading the tab once a loaded field is edited, not before', async () => {
+    const { wrapper } = await mountEdit('/games/g1/edit', 'g1')
+
+    const pristineEvent = new Event('beforeunload', { cancelable: true })
+    window.dispatchEvent(pristineEvent)
+    expect(pristineEvent.defaultPrevented).toBe(false)
+
+    await wrapper.find('#name').setValue('Root: Marauders')
+
+    const dirtyEvent = new Event('beforeunload', { cancelable: true })
+    window.dispatchEvent(dirtyEvent)
+    expect(dirtyEvent.defaultPrevented).toBe(true)
   })
 })
 
