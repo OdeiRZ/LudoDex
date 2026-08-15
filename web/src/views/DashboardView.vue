@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGamesStore } from '@/stores/games'
 import { useToastStore } from '@/stores/toast'
@@ -127,6 +127,8 @@ function onDeleteClick(userGameId: string) {
   confirmingDeleteId.value = null
   onDelete(userGameId)
 }
+
+onUnmounted(() => clearTimeout(confirmingDeleteTimeout))
 
 // Clearing the whole collection is permanent (no soft-delete/undo on the
 // backend), so a plain "are you sure?" isn't enough friction - typing the

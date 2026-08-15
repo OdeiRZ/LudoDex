@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { isAxiosError } from 'axios'
@@ -73,6 +73,8 @@ function onDeleteClick() {
   clearTimeout(confirmingDeleteTimeout)
   onDelete()
 }
+
+onUnmounted(() => clearTimeout(confirmingDeleteTimeout))
 
 const entry = computed(() => games.collection.find((item) => item.id === props.id))
 
