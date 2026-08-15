@@ -28,5 +28,5 @@ export function makeGame(overrides: Partial<Game> = {}): Game {
 
 export function makeEntry(game: Partial<Game> = {}, status: UserGame['status'] = 'owned'): UserGame {
   const builtGame = makeGame(game)
-  return { id: builtGame.id, status, notes: null, game: builtGame }
+  return { id: builtGame.id, status, game: builtGame }
 }

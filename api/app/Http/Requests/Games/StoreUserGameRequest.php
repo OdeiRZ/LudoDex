@@ -41,7 +41,6 @@ class StoreUserGameRequest extends FormRequest
             'categories.*' => ['string', 'max:255'],
 
             'status' => ['required', Rule::in(['owned', 'wishlist'])],
-            'notes' => ['nullable', 'string', 'max:2000'],
         ];
     }
 }

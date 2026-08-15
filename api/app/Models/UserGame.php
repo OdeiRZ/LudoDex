@@ -15,7 +15,6 @@ class UserGame extends Model
         'user_id',
         'game_id',
         'status',
-        'notes',
     ];
 
     /**

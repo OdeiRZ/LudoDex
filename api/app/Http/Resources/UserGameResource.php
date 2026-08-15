@@ -19,7 +19,6 @@ class UserGameResource extends JsonResource
         return [
             'id' => $this->id,
             'status' => $this->status,
-            'notes' => $this->notes,
             'game' => new GameResource($this->whenLoaded('game')),
         ];
     }

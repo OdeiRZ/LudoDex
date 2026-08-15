@@ -89,16 +89,14 @@ it('lists only the current user collection', function () {
     $response->assertOk()->assertJsonCount(1, 'data');
 });
 
-it('updates the status and notes of an owned game', function () {
+it('updates the status of an owned game', function () {
     $user = actingAsUser();
     $userGame = UserGame::factory()->for($user)->create(['status' => 'wishlist']);
 
     $this->putJson("/api/games/{$userGame->id}", [
         'status' => 'owned',
-        'notes' => 'Regalo de cumpleaños',
     ])->assertOk()
-        ->assertJsonPath('data.status', 'owned')
-        ->assertJsonPath('data.notes', 'Regalo de cumpleaños');
+        ->assertJsonPath('data.status', 'owned');
 });
 
 it('updates the underlying game fields and taxonomies', function () {

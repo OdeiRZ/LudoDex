@@ -73,7 +73,7 @@ describe('useGamesStore', () => {
   it('replaces the matching entry in place when updating a game', async () => {
     const entry = makeEntry({ name: 'Root' })
     const other = makeEntry({ name: 'Ark Nova' })
-    const updated = { ...entry, notes: 'Genial' }
+    const updated = { ...entry, status: 'wishlist' as const }
     const store = useGamesStore()
     store.collection = [entry, other]
     vi.mocked(apiClient.put).mockResolvedValue({ data: { data: updated } })

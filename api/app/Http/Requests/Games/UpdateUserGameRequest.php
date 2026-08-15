@@ -49,7 +49,6 @@ class UpdateUserGameRequest extends FormRequest
             'categories.*' => ['string', 'max:255'],
 
             'status' => ['sometimes', Rule::in(['owned', 'wishlist'])],
-            'notes' => ['sometimes', 'nullable', 'string', 'max:2000'],
         ];
     }
 }

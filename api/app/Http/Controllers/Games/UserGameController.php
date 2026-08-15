@@ -36,14 +36,13 @@ class UserGameController extends Controller
             // dedupe against yet - that arrives with BGG import). Two users
             // adding "the same" obscure game by hand independently ending up
             // as two separate rows is an accepted MVP simplification.
-            $game = Game::create($request->safe()->except(['mechanics', 'categories', 'status', 'notes']));
+            $game = Game::create($request->safe()->except(['mechanics', 'categories', 'status']));
 
             $this->taxonomySyncer->sync($game, $request->validated('mechanics', []), $request->validated('categories', []));
 
             return $request->user()->games()->create([
                 'game_id' => $game->id,
                 'status' => $request->validated('status'),
-                'notes' => $request->validated('notes'),
             ]);
         });
 
@@ -55,7 +54,7 @@ class UserGameController extends Controller
         $this->authorize('update', $userGame);
 
         DB::transaction(function () use ($request, $userGame) {
-            $gameAttributes = $request->safe()->except(['mechanics', 'categories', 'status', 'notes']);
+            $gameAttributes = $request->safe()->except(['mechanics', 'categories', 'status']);
 
             if ($gameAttributes !== []) {
                 $userGame->game->update($gameAttributes);
@@ -69,7 +68,7 @@ class UserGameController extends Controller
                 );
             }
 
-            $userGame->update($request->safe()->only(['status', 'notes']));
+            $userGame->update($request->safe()->only(['status']));
         });
 
         return new UserGameResource($userGame->load(['game.mechanics', 'game.categories', 'game.baseGame']));
@@ -88,7 +87,7 @@ class UserGameController extends Controller
      * Wipes the current user's entire collection in one go - a reset for
      * whoever wants to start over (e.g. before a clean re-import) rather
      * than removing each entry by hand. Only deletes the user_games rows
-     * that link this user to a game and its status/notes; the underlying
+     * that link this user to a game and its status; the underlying
      * Game rows are a catalog shared across every user, so other people's
      * collections and the game data itself (mechanics, categories, BGG
      * metadata...) are untouched.

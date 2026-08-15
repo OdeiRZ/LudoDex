@@ -27,7 +27,6 @@ export interface Game {
 export interface UserGame {
   id: string
   status: 'owned' | 'wishlist'
-  notes: string | null
   game: Game
 }
 
@@ -51,7 +50,6 @@ export interface UserGamePayload {
   mechanics: string[]
   categories: string[]
   status: 'owned' | 'wishlist'
-  notes?: string | null
 }
 
 interface Catalog {
@@ -147,7 +145,7 @@ export const useGamesStore = defineStore('games', {
       this.collection = this.collection.filter((entry) => entry.id !== userGameId)
     },
 
-    /** Only removes this user's collection entries (status/notes) - the
+    /** Only removes this user's collection entries (status) - the
      * underlying games are a catalog shared with everyone else, so they
      * and other users' collections are untouched. */
     async clearCollection() {
