@@ -663,6 +663,18 @@ actually fit in the narrower box instead of just overflowing it. */
   }
 }
 
+/* At a real 360px phone (6px tighter than 366px), Buscar/Jugadores
+stop clearing this card's own budget at Buscar's 144px (144+8+142.8
+comes to 294.8px against a ~294px budget there) - Estructura/Genero
+still fit fine as-is (144+8+140 = 292px), so only Buscar needs to give
+up a bit more. 140px (matching Genero's own width too) is what
+actually clears it. */
+@media (max-width: 360px) {
+  .filters > .search-field {
+    max-width: 140px;
+  }
+}
+
 .filters {
   display: flex;
   /* Tighter than the space-6 this used before - freeing up a few pixels
