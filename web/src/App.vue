@@ -99,6 +99,16 @@ freeing up a bit more room for primary-nav next to it. */
   }
 }
 
+/* At a real 366px phone (the narrowest reported so far) even just the
+dice by itself is one more thing competing for room in an already tight
+header - the nav links matter more here, and still link back to the
+collection the same as the dice would have. */
+@media (max-width: 366px) {
+  .brand {
+    display: none;
+  }
+}
+
 .primary-nav {
   display: flex;
   gap: var(--space-4);
