@@ -71,10 +71,12 @@ Repo único con dos aplicaciones independientes, cada una con su propio
   **Estado**: solicitud de aplicación ("LudoDex") enviada a BGG el
   2026-08-08 y **aprobada el 2026-08-12**. Con el token ya configurado, la
   importación por usuario quedó verificada de punta a punta contra una
-  colección real (493 juegos). La pestaña "Desde CSV" de Importar BGG
-  sigue disponible como alternativa sin token (ese fichero viene de la
-  sesión del propio usuario, no de la API) — verificada de punta a punta
-  contra una colección real de 281 juegos.
+  colección real de 304 juegos (BGG puede listar el mismo juego más de
+  una vez en la exportación en crudo — la 0.5.0 depura esos duplicados
+  antes de escribir nada, ver CHANGELOG). La pestaña "Desde CSV" de
+  Importar BGG sigue disponible como alternativa sin token (ese fichero
+  viene de la sesión del propio usuario, no de la API) — verificada de
+  punta a punta contra una colección real de 281 juegos.
 - **Envío real de email (recuperación de contraseña)**: la API usa
   [Resend](https://resend.com) como mailer (soportado de forma nativa en
   Laravel 12). Sin verificar un dominio propio, Resend solo permite enviar
@@ -94,7 +96,7 @@ Repo único con dos aplicaciones independientes, cada una con su propio
    compartido (reutilizado por nombre, no duplicado) y expansiones ligadas a
    su juego base.
 3. ✅ Importación desde BGG: por usuario, verificada de punta a punta contra
-   una colección real (493 juegos) con el token de aplicación ya aprobado;
+   una colección real (304 juegos) con el token de aplicación ya aprobado;
    desde CSV, alternativa sin token también verificada contra una colección
    real (ver "Requisitos externos" más arriba).
 4. ✅ Selector de "a qué jugar": filtros de jugadores, duración disponible y
