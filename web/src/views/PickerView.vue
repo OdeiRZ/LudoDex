@@ -651,15 +651,34 @@ actually fit in the narrower box instead of just overflowing it. */
     min-width: 0;
   }
 
-  /* Minutos disponibles' 5 radios wrap into 3 lines at this card's
-  real ~268px content width with the fieldset's usual space-4 gap -
-  Hasta 1h/Hasta 1h30 alone leave only ~37px spare on their own line,
-  not enough for Hasta 2h (75px) to join them. Tightening the gap to
-  space-2 frees enough (Hasta 1h + Hasta 1h30 + Hasta 2h comes to 256px
-  with it, against the same 268px) for all three to share that second
-  line instead, leaving Hasta 2h stranded alone on a third. */
+  /* Minutos disponibles' 5 radios wrap into 3 lines at this card's real
+  249px content width (measured directly - the ~268px this used to
+  assume was never actually right) with the fieldset's usual space-4
+  gap between labels and each label's own default space-2 icon-to-text
+  gap: Hasta 1h + Hasta 1h30 + Hasta 2h needs 271px that way, well past
+  budget. Tightening the between-labels gap to space-2 alone (256.66px)
+  still doesn't clear it - the icon-to-text gap needs shrinking too
+  (same fix .mode-fieldset label already used below), which gets the
+  three down to 238.66px, comfortably inside the real budget. */
   .duration-field {
     gap: var(--space-2);
+  }
+
+  .duration-field label {
+    gap: 2px;
+  }
+
+  /* Same real-measurement correction as Minutos disponibles above:
+  Cualquiera/Cooperativo/Competitivo need 270.3px against this card's
+  measured 265px content width even with the icon-to-text gap already
+  at 2px (see the ≤379px rule below) - short by only ~5px, but enough
+  to strand Competitivo on its own line. The between-labels gap here is
+  mostly redundant once all three fit anyway: justify-content:
+  space-between (set at ≤480px) spreads whatever room is left between
+  them regardless of this value, so dropping it to 0 costs nothing
+  visually and clears the ~5px deficit with room to spare. */
+  .mode-fieldset {
+    gap: 0;
   }
 }
 
