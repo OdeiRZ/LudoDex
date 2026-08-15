@@ -6,6 +6,7 @@ use App\Models\BggImport;
 use App\Models\Game;
 use App\Services\GameTaxonomySyncer;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class BggImportService
 {
@@ -33,7 +34,21 @@ class BggImportService
             return;
         }
 
+        // Timed and logged per phase (not just overall) because a real
+        // import reported taking minutes both with and without a warm
+        // /thing cache - identical duration either way means the actual
+        // bottleneck likely isn't the detail-fetch cache this narrows down,
+        // and only per-phase numbers from a real run can tell which of the
+        // three (BGG's own /collection response time, the /thing fetch, or
+        // the DB writes) it actually is.
+        $collectionStartedAt = microtime(true);
         $collection = $this->client->fetchCollection($import->bgg_username);
+        Log::info('BGG import: fetched collection', [
+            'import_id' => $import->id,
+            'status' => $collection['status'],
+            'items' => isset($collection['items']) ? count($collection['items']) : null,
+            'seconds' => round(microtime(true) - $collectionStartedAt, 2),
+        ]);
 
         if ($collection['status'] === 'pending') {
             return;
@@ -58,7 +73,16 @@ class BggImportService
         }
 
         $items = $collection['items'];
+
+        $detailsStartedAt = microtime(true);
         $details = $this->client->fetchGameDetails(array_column($items, 'bgg_id'));
+        Log::info('BGG import: fetched game details', [
+            'import_id' => $import->id,
+            'games' => count($items),
+            'seconds' => round(microtime(true) - $detailsStartedAt, 2),
+        ]);
+
+        $dbStartedAt = microtime(true);
 
         DB::transaction(function () use ($import, $items, $details) {
             $gamesByBggId = $this->upsertGames($items, $details);
@@ -67,6 +91,12 @@ class BggImportService
 
             $import->update(['status' => 'completed', 'imported_count' => count($items)]);
         });
+
+        Log::info('BGG import: wrote games/taxonomy/collection to the database', [
+            'import_id' => $import->id,
+            'games' => count($items),
+            'seconds' => round(microtime(true) - $dbStartedAt, 2),
+        ]);
     }
 
     /**
