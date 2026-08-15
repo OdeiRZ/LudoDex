@@ -100,6 +100,7 @@ export default {
     remove: 'Remove',
     removeConfirm: 'Sure?',
     toastRemoved: 'Game removed from your collection.',
+    removeError: "Couldn't remove the game.",
     clearLibrary: 'Clear library',
     clearConfirmWarning:
       "This will remove all {count} games from your collection (the shared catalog isn't affected). This can't be undone.",
@@ -108,6 +109,7 @@ export default {
     clearConfirmButton: 'Clear',
     cancel: 'Cancel',
     toastCleared: 'Collection cleared.',
+    clearError: "Couldn't clear your collection.",
   },
   gameForm: {
     bggImportLegend: 'Import from BGG (optional)',

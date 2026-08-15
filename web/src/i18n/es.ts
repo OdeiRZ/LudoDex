@@ -100,6 +100,7 @@ export default {
     remove: 'Quitar',
     removeConfirm: '¿Seguro?',
     toastRemoved: 'Juego quitado de tu colección.',
+    removeError: 'No se ha podido quitar el juego.',
     clearLibrary: 'Vaciar biblioteca',
     clearConfirmWarning:
       'Esto quitará los {count} juegos de tu colección (el catálogo compartido no se ve afectado). No se puede deshacer.',
@@ -108,6 +109,7 @@ export default {
     clearConfirmButton: 'Vaciar',
     cancel: 'Cancelar',
     toastCleared: 'Colección vaciada.',
+    clearError: 'No se ha podido vaciar la colección.',
   },
   gameForm: {
     bggImportLegend: 'Importar de BGG (opcional)',

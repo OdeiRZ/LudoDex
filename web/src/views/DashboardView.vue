@@ -99,8 +99,12 @@ const { density, toggle: toggleDensity } = useCollectionDensity()
 const expansionCounts = useExpansionCounts(computed(() => games.collection))
 
 async function onDelete(userGameId: string) {
-  await games.deleteGame(userGameId)
-  toast.show(t('dashboard.toastRemoved'))
+  try {
+    await games.deleteGame(userGameId)
+    toast.show(t('dashboard.toastRemoved'))
+  } catch {
+    toast.show(t('dashboard.removeError'))
+  }
 }
 
 // Same lightweight "click again to confirm" pattern as the edit page's own
@@ -161,6 +165,8 @@ async function onClearCollection() {
     await games.clearCollection()
     toast.show(t('dashboard.toastCleared'))
     clearConfirmOpen.value = false
+  } catch {
+    toast.show(t('dashboard.clearError'))
   } finally {
     clearing.value = false
   }
