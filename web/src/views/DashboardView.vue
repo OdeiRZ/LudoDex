@@ -443,10 +443,13 @@ selects are flex-shrink: 0, the buttons have their own min-width) - this
 one didn't, so as the row ran out of room it silently crushed the search
 box down to an unusably narrow sliver instead of doing what flex-wrap is
 there for. A firm floor makes the row wrap onto two clean lines instead,
-once it truly doesn't fit. */
+once it truly doesn't fit. 171px rather than 180px - at the narrowest
+real phones (366px wide, reported directly), that extra 9px pushed
+.search-group's own row past the game cards' right edge below it,
+noticeably out of alignment. */
 .search-group input {
   max-width: 320px;
-  min-width: 180px;
+  min-width: 171px;
 }
 
 /* display: contents on a wide screen keeps these two as independent grid
@@ -561,6 +564,15 @@ reads cleaner there too, not just once it's a genuine fit problem. */
   flex-shrink: 0;
   width: auto;
   max-width: 160px;
+}
+
+/* Same reasoning as .search-group input's own min-width just above -
+.sort-group's row was landing a similar few pixels past the cards'
+right edge on the narrowest real phones, and .sort-criterion (unlike
+.type-filter, which isn't the one that grew) is the one asked to give
+up the difference. */
+.sort-criterion {
+  max-width: 126px;
 }
 
 .sort-toggle {

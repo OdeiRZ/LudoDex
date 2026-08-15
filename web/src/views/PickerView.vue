@@ -619,22 +619,13 @@ needed. */
     gap: 2px;
   }
 
-  /* .search-field/.structure-field's 160px above (kept as-is for
-  380-480px, where it already fits) leaves Buscar+Jugadores and
-  Estructura+Genero too wide to share a row at 375px even at
-  column-gap's lowest reasonable value - 160+142.8 (Jugadores) or
-  160+140 (Genero) already exceeds this card's real content width on
-  its own, before any gap is even added. Dropping back to 148px here -
-  the exact width both used before growing to 160px, already proven to
-  fit next to Jugadores/Genero at this width - undoes just enough of
-  that growth to restore the pairing, while 380-480px keeps the wider,
-  more legible 160px. */
+  /* Buscar/Jugadores don't clear a real 375px window's own measured
+  309px budget at Estructura's 160px (160+8+142.8 comes to 311px) -
+  144px keeps real margin at both that and a real 366px phone's own
+  tighter budget, without touching Estructura/Genero, which already
+  pair correctly as-is at this width. */
   .filters > .search-field {
-    max-width: 148px;
-  }
-
-  .filters > .structure-field {
-    width: 148px;
+    max-width: 144px;
   }
 }
 
@@ -764,10 +755,11 @@ gap: shorthand above - same specificity either way (both just
 alone doesn't add any. Tighter than the row gap (still space-4,
 untouched - only column-gap is overridden) - search-field growing to
 160px at 380-480px leaves Buscar tight against Jugadores without it. At
-379px and below, .search-field/.structure-field drop back to 148px
-(see the media block further up) instead, but the tighter gap here
-still helps them clear Jugadores/Genero with more slack than the 16px
-default would. */
+379px and below, .search-field alone drops back to 144px (see the
+media block further up) instead - Estructura/Genero already pair fine
+at their own 160px/140px without needing a narrower gap - but the
+tighter gap here still gives Buscar/Jugadores a bit more slack on top
+of that than the 16px default would. */
 @media (max-width: 480px) {
   .filters {
     column-gap: var(--space-2);
