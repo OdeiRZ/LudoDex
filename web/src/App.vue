@@ -109,8 +109,15 @@ collection the same as the dice would have. */
   }
 }
 
+/* flex: 1 lets primary-nav claim whatever space is left between brand
+and session on its row (whichever row that ends up being, given
+header's own wrapping) - justify-content: center then centers the
+links within that space instead of leaving them flush against
+brand's edge, without touching how/when the row wraps. */
 .primary-nav {
   display: flex;
+  flex: 1;
+  justify-content: center;
   gap: var(--space-4);
   font-size: 0.9rem;
 }
