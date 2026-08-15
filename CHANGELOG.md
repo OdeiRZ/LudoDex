@@ -7,27 +7,6 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
-### Corregido
-
-- La importación de BGG seguía tardando minutos en vez de segundos
-  incluso con la caché de la 0.4.0 funcionando bien (confirmado con
-  datos reales: `/collection` 2,44s, detalles de `/thing` 0,38s). El
-  cuello de botella real era la escritura en base de datos — un
-  `updateOrCreate` por juego (más las consultas de mecánicas/
-  categorías y de la colección del usuario) suponía miles de idas y
-  vueltas individuales a Neon para una colección de ~500 juegos, 133
-  de los ~137 segundos totales. Ahora se hace en bloque (un upsert
-  para los juegos, uno para las mecánicas/categorías de todos los
-  juegos a la vez, uno para el estado tengo/quiero de toda la
-  colección) — de ~2 minutos a 4-5 segundos en una importación real
-  de 493 juegos.
-- Una colección real de BGG puede listar el mismo juego dos veces
-  (una fila tuyo, otra en deseados, por ejemplo) — el nuevo upsert en
-  bloque de arriba no lo toleraba (Postgres: "ON CONFLICT DO UPDATE
-  command cannot affect row a second time") y la importación fallaba
-  al iniciarse. Ahora se elimina el duplicado antes de escribir nada,
-  quedándose con "lo tengo" si las dos filas no coinciden.
-
 ## [0.5.0] - 2026-08-15
 
 ### Añadido
@@ -111,6 +90,37 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 - Cerrar la pestaña o recargarla con cambios sin guardar en el
   formulario de añadir/editar juego no avisaba de nada, a diferencia
   de la importación de BGG, que sí lo hacía.
+- La importación de BGG seguía tardando minutos en vez de segundos
+  incluso con la caché de arriba funcionando bien (confirmado con
+  datos reales: `/collection` 2,44s, detalles de `/thing` 0,38s). El
+  cuello de botella real era la escritura en base de datos — un
+  `updateOrCreate` por juego (más las consultas de mecánicas/
+  categorías y de la colección del usuario) suponía miles de idas y
+  vueltas individuales a Neon para una colección de ~500 juegos, 133
+  de los ~137 segundos totales. Ahora se hace en bloque (un upsert
+  para los juegos, uno para las mecánicas/categorías de todos los
+  juegos a la vez, uno para el estado tengo/quiero de toda la
+  colección) — de ~2 minutos a 4-5 segundos en una importación real
+  de 493 juegos.
+- Una colección real de BGG puede listar el mismo juego dos veces
+  (una fila tuyo, otra en deseados, por ejemplo) — el nuevo upsert en
+  bloque de arriba no lo toleraba (Postgres: "ON CONFLICT DO UPDATE
+  command cannot affect row a second time") y la importación fallaba
+  al iniciarse. Ahora se elimina el duplicado antes de escribir nada,
+  quedándose con "lo tengo" si las dos filas no coinciden.
+- En "¿A qué jugamos?", a 360-366px reales, "Hasta 2h" se quedaba
+  solo en una tercera línea en vez de compartir la segunda con "Hasta
+  1h"/"Hasta 1h30", y las opciones de Modo (Cualquiera/Cooperativo/
+  Competitivo) partían a dos líneas en vez de caber en una — ambos
+  casos por márgenes calculados sobre un ancho de tarjeta que nunca
+  fue el real. El de Modo necesitó un segundo ajuste tras confirmarse
+  en un móvil real que el primer margen (un par de píxeles) seguía
+  sin ser suficiente.
+- En el formulario de añadir/editar juego, a 360-366px reales, Edad
+  recomendada y Estructura se apilaban en líneas separadas en vez de
+  compartir fila, y las etiquetas de Ranking en BGG/Valoración/
+  Complejidad se partían en dos líneas por un margen demasiado
+  ajustado sobre su propio ancho de columna.
 
 ## [0.4.0] - 2026-08-14
 
