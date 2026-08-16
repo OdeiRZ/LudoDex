@@ -56,6 +56,24 @@ describe('DashboardView', () => {
     expect(arkNovaCard?.find('.meta').exists()).toBe(false)
   })
 
+  it('uses a different icon path for the owned vs wishlist status badge', () => {
+    const owned = makeEntry({ name: 'Root' }, 'owned')
+    const wishlisted = makeEntry({ name: 'Ark Nova' }, 'wishlist')
+
+    const { wrapper } = mountDashboard([owned, wishlisted])
+
+    const cards = wrapper.findAll('.game-card')
+    const rootCard = cards.find((card) => card.text().includes('Root'))
+    const arkNovaCard = cards.find((card) => card.text().includes('Ark Nova'))
+
+    const rootIconPath = rootCard?.find('.badge-primary .badge-icon path').attributes('d')
+    const arkNovaIconPath = arkNovaCard?.find('.badge-accent .badge-icon path').attributes('d')
+
+    expect(rootIconPath).toBeTruthy()
+    expect(arkNovaIconPath).toBeTruthy()
+    expect(rootIconPath).not.toBe(arkNovaIconPath)
+  })
+
   it('lists every entry in the collection, owned or wishlisted', () => {
     const owned = makeEntry({ name: 'Root' }, 'owned')
     const wishlisted = makeEntry({ name: 'Ark Nova' }, 'wishlist')

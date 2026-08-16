@@ -379,6 +379,32 @@ async function onClearCollection() {
           <h2>{{ entry.game.name }}</h2>
           <div class="badge-row">
             <span class="badge" :class="entry.status === 'owned' ? 'badge-primary' : 'badge-accent'">
+              <svg
+                v-if="entry.status === 'owned'"
+                class="badge-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5" />
+              </svg>
+              <svg
+                v-else
+                class="badge-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                />
+              </svg>
               {{ entry.status === 'owned' ? $t('dashboard.owned') : $t('dashboard.wishlist') }}
             </span>
             <span
@@ -718,6 +744,13 @@ light patch of the image, so it needs a solid fill here instead. */
 .games :deep(.badge-accent) {
   background: var(--color-accent);
   color: #fff;
+}
+
+.games :deep(.badge-icon) {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  margin-right: 2px;
 }
 
 .games :deep(.badge-rank),
