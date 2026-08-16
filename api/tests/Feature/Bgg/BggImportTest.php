@@ -263,6 +263,107 @@ it('links an expansion to whichever of its several base games is actually owned'
     expect($corbarius->base_game_id)->toBe($agricola->id);
 });
 
+it('prefers the better-ranked base game when several candidates are all owned', function () {
+    // Reproduces a real case: a scenario pack for "Arkham Horror: The Card
+    // Game" lists BGG inbound boardgameexpansion links to both the well-
+    // established revised edition (rank 106) and a freshly-listed future
+    // edition (rank 1961, barely any ratings yet) - both owned here. BGG's
+    // own response happens to list the freshly-listed one first, which the
+    // old first-match logic would've picked; the actual content ships for
+    // the established edition, so that's the one that should win.
+    $user = actingAsUser();
+
+    Http::fake(function (ClientRequest $request) {
+        $url = $request->url();
+
+        if (str_contains($url, '/collection') && str_contains($url, 'subtype=boardgame&')) {
+            return Http::response(<<<'XML'
+            <?xml version="1.0" encoding="utf-8"?>
+            <items totalitems="2">
+                <item objecttype="thing" objectid="463126" subtype="boardgame" collid="1">
+                    <name sortindex="1">Arkham Horror: The Card Game</name>
+                    <status own="1" wishlist="0" prevowned="0" fortrade="0" want="0" wanttoplay="0" wanttobuy="0" wishlistpriority="0" preordered="0" lastmodified="2020-01-01 00:00:00"/>
+                    <numplays>0</numplays>
+                </item>
+                <item objecttype="thing" objectid="359609" subtype="boardgame" collid="2">
+                    <name sortindex="1">Arkham Horror: The Card Game (Revised Edition)</name>
+                    <status own="1" wishlist="0" prevowned="0" fortrade="0" want="0" wanttoplay="0" wanttobuy="0" wishlistpriority="0" preordered="0" lastmodified="2020-01-01 00:00:00"/>
+                    <numplays>0</numplays>
+                </item>
+            </items>
+            XML);
+        }
+
+        if (str_contains($url, '/collection') && str_contains($url, 'subtype=boardgameexpansion')) {
+            return Http::response(collectionXml('boardgameexpansion', [
+                'id' => 284354, 'name' => 'Arkham Horror: The Card Game – Murder at the Excelsior Hotel', 'image' => 'https://example.com/excelsior.jpg',
+                'own' => 1, 'wishlist' => 0,
+            ]));
+        }
+
+        return Http::response(<<<'XML'
+        <?xml version="1.0" encoding="utf-8"?>
+        <items>
+            <item type="boardgame" id="463126">
+                <name type="primary" sortindex="1" value="Arkham Horror: The Card Game"/>
+                <statistics page="1">
+                    <ratings>
+                        <ranks>
+                            <rank type="subtype" id="1" name="boardgame" friendlyname="Board Game Rank" value="1961"/>
+                        </ranks>
+                    </ratings>
+                </statistics>
+            </item>
+            <item type="boardgame" id="359609">
+                <name type="primary" sortindex="1" value="Arkham Horror: The Card Game (Revised Edition)"/>
+                <statistics page="1">
+                    <ratings>
+                        <ranks>
+                            <rank type="subtype" id="1" name="boardgame" friendlyname="Board Game Rank" value="106"/>
+                        </ranks>
+                    </ratings>
+                </statistics>
+            </item>
+            <item type="boardgameexpansion" id="284354">
+                <name type="primary" sortindex="1" value="Arkham Horror: The Card Game – Murder at the Excelsior Hotel"/>
+                <link type="boardgameexpansion" id="463126" value="Arkham Horror: The Card Game" inbound="true"/>
+                <link type="boardgameexpansion" id="359609" value="Arkham Horror: The Card Game (Revised Edition)" inbound="true"/>
+            </item>
+        </items>
+        XML);
+    });
+
+    $this->postJson('/api/bgg-imports', ['bgg_username' => 'odei'])->assertCreated();
+
+    $revised = Game::where('bgg_id', 359609)->first();
+    $future = Game::where('bgg_id', 463126)->first();
+    $excelsior = Game::where('bgg_id', 284354)->first();
+
+    expect($revised->bgg_rank)->toBe(106)
+        ->and($future->bgg_rank)->toBe(1961)
+        ->and($excelsior->base_game_id)->toBe($revised->id);
+});
+
+it('does not re-link an expansion that already has a base game on a later import', function () {
+    // BGG sometimes lists more than one plausible base game for the same
+    // expansion (see the test above) - the pick made isn't always the one
+    // the user actually wants, and they can correct it by hand via the
+    // edit form. A later import re-running the same collection must not
+    // silently undo that correction.
+    actingAsUser();
+    fakeSuccessfulBggImport();
+
+    $this->postJson('/api/bgg-imports', ['bgg_username' => 'odei'])->assertCreated();
+
+    $seafarers = Game::where('bgg_id', 9209)->first();
+    $manualBase = Game::factory()->create(['name' => 'Some other base game']);
+    $seafarers->update(['base_game_id' => $manualBase->id]);
+
+    $this->postJson('/api/bgg-imports', ['bgg_username' => 'odei'])->assertCreated();
+
+    expect($seafarers->fresh()->base_game_id)->toBe($manualBase->id);
+});
+
 it('collapses a duplicate bgg_id in the same collection instead of erroring', function () {
     // Reproduces a real production failure: a live ~500-game collection
     // listed the same objectid twice (once owned, once wishlisted) - the

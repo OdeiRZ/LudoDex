@@ -170,6 +170,15 @@ class BggImportService
     private function linkExpansions(array $items, array $details, array $gamesByBggId): void
     {
         foreach ($items as $item) {
+            // Already linked - either by a previous import, or by the user
+            // correcting it by hand afterwards (BGG sometimes lists more
+            // than one plausible base game for the same expansion, and the
+            // pick below isn't always the one the user actually wants).
+            // Re-running this on every import must not silently undo that.
+            if ($gamesByBggId[$item['bgg_id']]->base_game_id !== null) {
+                continue;
+            }
+
             $baseBggIds = $details[$item['bgg_id']]['base_game_bgg_ids'] ?? [];
 
             // An expansion can list more than one base game (e.g. a deck
@@ -177,13 +186,31 @@ class BggImportService
             // link to whichever candidate is actually part of this
             // collection, instead of always the first/last one BGG reports,
             // which may not be owned at all.
-            foreach ($baseBggIds as $baseBggId) {
-                if (isset($gamesByBggId[$baseBggId])) {
-                    $gamesByBggId[$item['bgg_id']]->update(['base_game_id' => $gamesByBggId[$baseBggId]->id]);
+            $ownedBaseBggIds = array_values(array_filter(
+                $baseBggIds,
+                fn (int $baseBggId): bool => isset($gamesByBggId[$baseBggId])
+            ));
 
-                    break;
-                }
+            if ($ownedBaseBggIds === []) {
+                continue;
             }
+
+            // More than one owned candidate happens too (e.g. an original
+            // edition, a revised edition, and a freshly-announced future
+            // one, all sharing the same expansion lineup on BGG) - prefer
+            // the most established one (the better/lower BGG rank) instead
+            // of whichever order BGG happens to report them in, which is
+            // essentially arbitrary. Content keeps shipping for whichever
+            // edition the community is actually playing, not for a
+            // just-listed edition with barely any ratings yet - a missing
+            // rank sorts last, same as a very high (bad) one would.
+            usort(
+                $ownedBaseBggIds,
+                fn (int $a, int $b): int => ($gamesByBggId[$a]->bgg_rank ?? PHP_INT_MAX)
+                    <=> ($gamesByBggId[$b]->bgg_rank ?? PHP_INT_MAX)
+            );
+
+            $gamesByBggId[$item['bgg_id']]->update(['base_game_id' => $gamesByBggId[$ownedBaseBggIds[0]]->id]);
         }
     }
 

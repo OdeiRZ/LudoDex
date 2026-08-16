@@ -199,6 +199,39 @@ it('imports and links an expansion to its base game when a BGG token is availabl
     Http::assertSent(fn ($request) => str_contains($request->url(), 'id=9209') && ! str_contains($request->url(), '13'));
 });
 
+it('does not re-link an expansion that already has a base game on a later import', function () {
+    // Same reasoning as the equivalent username-import test: a base game
+    // link the user corrected by hand must survive a later re-import of
+    // the same file, not get silently recalculated back.
+    $user = actingAsUser();
+
+    Http::fake(fn () => Http::response(<<<'XML'
+    <?xml version="1.0" encoding="utf-8"?>
+    <items>
+        <item type="boardgameexpansion" id="9209">
+            <name type="primary" sortindex="1" value="Catan: Seafarers"/>
+            <link type="boardgameexpansion" id="13" value="Catan" inbound="true"/>
+        </item>
+    </items>
+    XML));
+
+    $file = csvUpload(CSV_HEADER, [
+        ['"Catan"', '13', 'standalone', '1', '0', '""', '0', ...CSV_EXTRA, '3', '4'],
+        ['"Catan: Seafarers"', '9209', 'expansion', '1', '0', '""', '0', ...CSV_EXTRA, '3', '4'],
+    ]);
+
+    postCsv($file)->assertOk();
+
+    $seafarers = Game::where('bgg_id', 9209)->first();
+    $manualBase = Game::factory()->create(['name' => 'Some other base game']);
+    $seafarers->update(['base_game_id' => $manualBase->id]);
+
+    postCsv($file)->assertOk();
+
+    expect($seafarers->fresh()->base_game_id)->toBe($manualBase->id);
+    expect($user->games()->count())->toBe(2);
+});
+
 it('links an expansion to whichever of its several base games is in the same file', function () {
     $user = actingAsUser();
 
@@ -231,6 +264,46 @@ it('links an expansion to whichever of its several base games is in the same fil
 
     expect($corbarius->base_game_id)->toBe($agricola->id);
     expect($user->games()->count())->toBe(2);
+});
+
+it('prefers the better-ranked base game when several candidates are in the same file', function () {
+    // Same real case as the username-import test: a scenario pack lists
+    // inbound links to both a freshly-listed future edition (worse rank,
+    // and listed first by BGG) and the well-established revised edition
+    // (better rank) - both present in this file. The established edition
+    // is where the content actually ships, so it should win regardless of
+    // which link BGG happens to report first.
+    $user = actingAsUser();
+
+    Http::fake(fn () => Http::response(<<<'XML'
+    <?xml version="1.0" encoding="utf-8"?>
+    <items>
+        <item type="boardgameexpansion" id="284354">
+            <name type="primary" sortindex="1" value="Arkham Horror: The Card Game - Murder at the Excelsior Hotel"/>
+            <link type="boardgameexpansion" id="463126" value="Arkham Horror: The Card Game" inbound="true"/>
+            <link type="boardgameexpansion" id="359609" value="Arkham Horror: The Card Game (Revised Edition)" inbound="true"/>
+        </item>
+    </items>
+    XML));
+
+    $file = csvUpload(CSV_HEADER, [
+        ['"Arkham Horror: The Card Game"', '463126', 'standalone', '1', '0', '""', '0', '30', '60', '2026', '1961', '7.5', '10+', '1', '4'],
+        ['"Arkham Horror: The Card Game (Revised Edition)"', '359609', 'standalone', '1', '0', '""', '0', '30', '60', '2021', '106', '7.5', '10+', '1', '4'],
+        ['"Arkham Horror: The Card Game - Murder at the Excelsior Hotel"', '284354', 'expansion', '1', '0', '""', '0', '30', '60', '2020', '0', '7.5', '10+', '1', '4'],
+    ]);
+
+    $response = postCsv($file)->assertOk();
+
+    $response->assertJsonPath('data.warnings', []);
+
+    $revised = Game::where('bgg_id', 359609)->first();
+    $future = Game::where('bgg_id', 463126)->first();
+    $excelsior = Game::where('bgg_id', 284354)->first();
+
+    expect($revised->bgg_rank)->toBe(106)
+        ->and($future->bgg_rank)->toBe(1961)
+        ->and($excelsior->base_game_id)->toBe($revised->id);
+    expect($user->games()->count())->toBe(3);
 });
 
 it('imports an expansion without linking it, and warns about it, when its base game is not in the same file', function () {
