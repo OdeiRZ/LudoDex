@@ -86,8 +86,6 @@ export default {
     sortRankDesc: 'Ordenar peor ranking primero',
     sortYearAsc: 'Ordenar más antiguo primero',
     sortYearDesc: 'Ordenar más reciente primero',
-    sortYearRangeAsc: 'Antiguo → Reciente',
-    sortYearRangeDesc: 'Reciente → Antiguo',
     typeFilterLabel: 'Tipo',
     typeAll: 'Todos',
     typeBase: 'Solo juegos base',

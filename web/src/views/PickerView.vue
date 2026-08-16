@@ -54,11 +54,11 @@ function toggleSort() {
 
 const sortToggleLabel = computed(() => {
   if (sortCriterion.value === 'rank') {
-    return sortOrder.value === 'asc' ? '#1 → #N' : '#N → #1'
+    return sortOrder.value === 'asc' ? '1 → N' : 'N → 1'
   }
 
   if (sortCriterion.value === 'year') {
-    return sortOrder.value === 'asc' ? t('dashboard.sortYearRangeAsc') : t('dashboard.sortYearRangeDesc')
+    return sortOrder.value === 'asc' ? '▲' : '▼'
   }
 
   return sortOrder.value === 'asc' ? 'A → Z' : 'Z → A'

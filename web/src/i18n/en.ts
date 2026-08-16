@@ -86,8 +86,6 @@ export default {
     sortRankDesc: 'Sort worst rank first',
     sortYearAsc: 'Sort oldest first',
     sortYearDesc: 'Sort newest first',
-    sortYearRangeAsc: 'Oldest → Newest',
-    sortYearRangeDesc: 'Newest → Oldest',
     typeFilterLabel: 'Type',
     typeAll: 'All',
     typeBase: 'Base games only',
