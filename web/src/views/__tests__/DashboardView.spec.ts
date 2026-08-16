@@ -204,6 +204,45 @@ describe('DashboardView', () => {
 
       expect(names(wrapper)).toEqual(['Root'])
     })
+
+    it('never shows a BGG rank badge on an expansion, even if one has a bgg_id/rank of its own', () => {
+      const { wrapper } = mountDashboard([
+        makeEntry({ id: 'root', name: 'Root', bgg_id: 1 }),
+        makeEntry({ name: 'Root: Riverfolk', base_game_id: 'root', bgg_id: 2, bgg_rank: 500 }),
+      ])
+
+      const cards = wrapper.findAll('.game-card')
+      expect(cards[0].text()).toContain('en BGG')
+      expect(cards[1].text()).not.toContain('en BGG')
+    })
+
+    it('hides the "sort by rank" option while only expansions are shown, and restores it otherwise', async () => {
+      const { wrapper } = mountDashboard([
+        makeEntry({ id: 'root', name: 'Root', bgg_id: 1 }),
+        makeEntry({ name: 'Root: Riverfolk', base_game_id: 'root' }),
+      ])
+
+      const sortOptions = () => wrapper.find('.sort-criterion').findAll('option').map((o) => o.element.value)
+      expect(sortOptions()).toContain('rank')
+
+      await wrapper.find('.type-filter').setValue('expansion')
+      expect(sortOptions()).not.toContain('rank')
+
+      await wrapper.find('.type-filter').setValue('all')
+      expect(sortOptions()).toContain('rank')
+    })
+
+    it('falls back to sorting by name if rank was selected and the filter switches to expansions only', async () => {
+      const { wrapper } = mountDashboard([
+        makeEntry({ id: 'root', name: 'Root', bgg_id: 1 }),
+        makeEntry({ name: 'Root: Riverfolk', base_game_id: 'root' }),
+      ])
+
+      await wrapper.find('.sort-criterion').setValue('rank')
+      await wrapper.find('.type-filter').setValue('expansion')
+
+      expect((wrapper.find('.sort-criterion').element as HTMLSelectElement).value).toBe('name')
+    })
   })
 
   it('defaults to comfortable density and switches to compact on toggle, persisting the choice', async () => {
