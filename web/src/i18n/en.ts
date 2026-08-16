@@ -81,7 +81,7 @@ export default {
     sortByLabel: 'Sort by',
     sortByName: 'Name',
     sortByRank: 'BGG rank',
-    sortByYear: 'Year',
+    sortByYear: 'Game year',
     sortRankAsc: 'Sort best rank first',
     sortRankDesc: 'Sort worst rank first',
     sortYearAsc: 'Sort oldest first',
