@@ -926,12 +926,24 @@ option) to read in full. A <select> otherwise sizes itself to its widest
 option regardless of which one is picked (so "Ranking BGG" was pushing
 this past the same 180px cap every other filter column keeps to, and
 overflowing the card entirely once that cap was removed to compensate).
-"Ranking BGG" clipping when picked is an accepted trade-off above the
-480px breakpoint, where .filters > .sort-field select below widens it
-enough to show in full instead. */
+"Ranking BGG" clipping when picked is an accepted trade-off between the
+480px breakpoint below and the desktop-only override further down,
+where .filters > .sort-field select above widens it enough to show in
+full instead. */
 .sort-row select {
   width: 6.5rem;
   flex-shrink: 0;
+}
+
+/* None of the existing breakpoints reach past 1023px (the highest upper
+bound among them), so this can't shrink anything they already cover -
+picks back up right where they leave off. Same 9rem the ≤480px fix
+above already uses, wide enough for "Ranking BGG" (135px measured) to
+read in full at max desktop width instead of clipping. */
+@media (min-width: 1024px) {
+  .sort-row select {
+    width: 9rem;
+  }
 }
 
 .sort-toggle {

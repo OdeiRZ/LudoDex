@@ -649,6 +649,18 @@ is what actually clears both. */
   max-width: 118px;
 }
 
+/* 118px above is tuned for the narrowest real phones and clips "Ranking
+BGG" when picked - never an issue below this, since none of the existing
+breakpoints (890/768/366px, all max-width) reach this far, so this can't
+shrink anything they already cover. Back to the same 160px the shared
+.sort-criterion, .type-filter rule already uses, which is roomy enough
+for "Ranking BGG" to read in full. */
+@media (min-width: 891px) {
+  .sort-criterion {
+    max-width: 160px;
+  }
+}
+
 /* Same alignment problem as .sort-criterion above, on .search-group's
 own row instead - .type-filter is the one asked to give up the
 difference there, same as .search-group input already does. */
