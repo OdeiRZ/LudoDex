@@ -128,6 +128,48 @@ describe('DashboardView', () => {
     expect(names()).toEqual(['Mid', 'Best', 'Unranked'])
   })
 
+  it('sorts by publication year when that criterion is selected, oldest first', async () => {
+    const { wrapper } = mountDashboard([
+      makeEntry({ name: 'Mid', year_published: 2010 }),
+      makeEntry({ name: 'Oldest', year_published: 1995 }),
+      makeEntry({ name: 'Newest', year_published: 2022 }),
+    ])
+
+    await wrapper.find('.sort-criterion').setValue('year')
+
+    const names = wrapper.findAll('.game-card h2').map((h2) => h2.text())
+    expect(names).toEqual(['Oldest', 'Mid', 'Newest'])
+  })
+
+  it('reverses the year order (newest first) when the sort button is clicked', async () => {
+    const { wrapper } = mountDashboard([
+      makeEntry({ name: 'Mid', year_published: 2010 }),
+      makeEntry({ name: 'Oldest', year_published: 1995 }),
+      makeEntry({ name: 'Newest', year_published: 2022 }),
+    ])
+
+    await wrapper.find('.sort-criterion').setValue('year')
+    await wrapper.find('.sort-toggle').trigger('click')
+
+    const names = wrapper.findAll('.game-card h2').map((h2) => h2.text())
+    expect(names).toEqual(['Newest', 'Mid', 'Oldest'])
+  })
+
+  it('always sinks games with no known publication year to the bottom, in either direction', async () => {
+    const { wrapper } = mountDashboard([
+      makeEntry({ name: 'Unknown', year_published: null }),
+      makeEntry({ name: 'Oldest', year_published: 1995 }),
+      makeEntry({ name: 'Mid', year_published: 2010 }),
+    ])
+
+    await wrapper.find('.sort-criterion').setValue('year')
+    const names = () => wrapper.findAll('.game-card h2').map((h2) => h2.text())
+    expect(names()).toEqual(['Oldest', 'Mid', 'Unknown'])
+
+    await wrapper.find('.sort-toggle').trigger('click')
+    expect(names()).toEqual(['Mid', 'Oldest', 'Unknown'])
+  })
+
   it('keeps sorting applied on top of the active search filter', async () => {
     const { wrapper } = mountDashboard([
       makeEntry({ name: 'Catan' }),

@@ -31,7 +31,7 @@ const search = ref('')
 type TypeFilter = 'all' | 'base' | 'expansion'
 const typeFilter = ref<TypeFilter>('all')
 
-type SortCriterion = 'name' | 'rank'
+type SortCriterion = 'name' | 'rank' | 'year'
 
 const sortCriterion = ref<SortCriterion>('name')
 const sortOrder = ref<'asc' | 'desc'>('asc')
@@ -58,12 +58,20 @@ const sortToggleLabel = computed(() => {
     return sortOrder.value === 'asc' ? '#1 → #N' : '#N → #1'
   }
 
+  if (sortCriterion.value === 'year') {
+    return sortOrder.value === 'asc' ? t('dashboard.sortYearRangeAsc') : t('dashboard.sortYearRangeDesc')
+  }
+
   return sortOrder.value === 'asc' ? 'A → Z' : 'Z → A'
 })
 
 const sortToggleActionLabel = computed(() => {
   if (sortCriterion.value === 'rank') {
     return sortOrder.value === 'asc' ? t('dashboard.sortRankDesc') : t('dashboard.sortRankAsc')
+  }
+
+  if (sortCriterion.value === 'year') {
+    return sortOrder.value === 'asc' ? t('dashboard.sortYearDesc') : t('dashboard.sortYearAsc')
   }
 
   return sortOrder.value === 'asc' ? t('dashboard.sortDesc') : t('dashboard.sortAsc')
@@ -95,6 +103,24 @@ const filtered = computed(() => {
       if (rankB === null) return -1
 
       const cmp = rankA - rankB
+      return sortOrder.value === 'asc' ? cmp : -cmp
+    })
+  }
+
+  if (sortCriterion.value === 'year') {
+    return base.sort((a, b) => {
+      const yearA = a.game.year_published
+      const yearB = b.game.year_published
+
+      // Same reasoning as the rank sort above: a game with no known
+      // publication year (never linked to BGG, or missing that field) has
+      // no meaningful position on a timeline, so it always sinks to the
+      // bottom regardless of direction.
+      if (yearA === null && yearB === null) return 0
+      if (yearA === null) return 1
+      if (yearB === null) return -1
+
+      const cmp = yearA - yearB
       return sortOrder.value === 'asc' ? cmp : -cmp
     })
   }
@@ -214,6 +240,7 @@ async function onClearCollection() {
             <select v-model="sortCriterion" :aria-label="$t('dashboard.sortByLabel')" class="sort-criterion">
               <option value="name">{{ $t('dashboard.sortByName') }}</option>
               <option value="rank" :disabled="typeFilter === 'expansion'">{{ $t('dashboard.sortByRank') }}</option>
+              <option value="year">{{ $t('dashboard.sortByYear') }}</option>
             </select>
             <button
               type="button"

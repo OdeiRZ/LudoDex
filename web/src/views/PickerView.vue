@@ -43,7 +43,7 @@ const search = ref('')
 // collection can come back from the API in an order that has nothing to do
 // with the name (BGG import order, insertion order...), so without this the
 // results here could just as easily land reverse-alphabetical as not.
-type SortCriterion = 'name' | 'rank'
+type SortCriterion = 'name' | 'rank' | 'year'
 
 const sortCriterion = ref<SortCriterion>('name')
 const sortOrder = ref<'asc' | 'desc'>('asc')
@@ -57,12 +57,20 @@ const sortToggleLabel = computed(() => {
     return sortOrder.value === 'asc' ? '#1 → #N' : '#N → #1'
   }
 
+  if (sortCriterion.value === 'year') {
+    return sortOrder.value === 'asc' ? t('dashboard.sortYearRangeAsc') : t('dashboard.sortYearRangeDesc')
+  }
+
   return sortOrder.value === 'asc' ? 'A → Z' : 'Z → A'
 })
 
 const sortToggleActionLabel = computed(() => {
   if (sortCriterion.value === 'rank') {
     return sortOrder.value === 'asc' ? t('dashboard.sortRankDesc') : t('dashboard.sortRankAsc')
+  }
+
+  if (sortCriterion.value === 'year') {
+    return sortOrder.value === 'asc' ? t('dashboard.sortYearDesc') : t('dashboard.sortYearAsc')
   }
 
   return sortOrder.value === 'asc' ? t('dashboard.sortDesc') : t('dashboard.sortAsc')
@@ -173,6 +181,23 @@ const filtered = computed(() => {
     })
   }
 
+  if (sortCriterion.value === 'year') {
+    return base.sort((a, b) => {
+      const yearA = a.game.year_published
+      const yearB = b.game.year_published
+
+      // Same reasoning as the rank sort above: a game with no known
+      // publication year has no meaningful position on a timeline, so it
+      // always sinks to the bottom regardless of direction.
+      if (yearA === null && yearB === null) return 0
+      if (yearA === null) return 1
+      if (yearB === null) return -1
+
+      const cmp = yearA - yearB
+      return sortOrder.value === 'asc' ? cmp : -cmp
+    })
+  }
+
   return base.sort((a, b) => {
     const cmp = a.game.name.localeCompare(b.game.name)
     return sortOrder.value === 'asc' ? cmp : -cmp
@@ -249,6 +274,7 @@ const filtered = computed(() => {
           <select id="sort-criterion" v-model="sortCriterion">
             <option value="name">{{ $t('dashboard.sortByName') }}</option>
             <option value="rank">{{ $t('dashboard.sortByRank') }}</option>
+            <option value="year">{{ $t('dashboard.sortByYear') }}</option>
           </select>
           <button
             type="button"

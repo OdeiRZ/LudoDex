@@ -286,6 +286,34 @@ describe('PickerView', () => {
       expect(gameNames(wrapper)).toEqual(['Mid', 'Best', 'Unranked'])
     })
 
+    it('sorts by publication year when that criterion is selected, oldest first', async () => {
+      const wrapper = mountPicker([
+        makeEntry({ name: 'Mid', year_published: 2010 }),
+        makeEntry({ name: 'Oldest', year_published: 1995 }),
+        makeEntry({ name: 'Newest', year_published: 2022 }),
+      ])
+      await wrapper.find('#players').setValue('')
+
+      await wrapper.find('#sort-criterion').setValue('year')
+
+      expect(gameNames(wrapper)).toEqual(['Oldest', 'Mid', 'Newest'])
+    })
+
+    it('always sinks games with no known publication year to the bottom, in either direction', async () => {
+      const wrapper = mountPicker([
+        makeEntry({ name: 'Unknown', year_published: null }),
+        makeEntry({ name: 'Oldest', year_published: 1995 }),
+        makeEntry({ name: 'Mid', year_published: 2010 }),
+      ])
+      await wrapper.find('#players').setValue('')
+
+      await wrapper.find('#sort-criterion').setValue('year')
+      expect(gameNames(wrapper)).toEqual(['Oldest', 'Mid', 'Unknown'])
+
+      await wrapper.find('.sort-toggle').trigger('click')
+      expect(gameNames(wrapper)).toEqual(['Mid', 'Oldest', 'Unknown'])
+    })
+
     it('keeps sorting applied on top of the active search filter', async () => {
       const wrapper = mountPicker([makeEntry({ name: 'Catan' }), makeEntry({ name: 'Ark Nova' })])
       await wrapper.find('#players').setValue('')
