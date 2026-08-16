@@ -363,7 +363,11 @@ async function onClearCollection() {
             <span v-if="expansionCounts[entry.game.id]" class="badge badge-expansion">
               {{ $t('dashboard.expansionsCount', { count: expansionCounts[entry.game.id] }) }}
             </span>
-            <span v-if="entry.game.base_game_id !== null" class="badge badge-expansion">
+            <span
+              v-if="entry.game.base_game_id !== null"
+              class="badge badge-expansion"
+              :title="$t('dashboard.expansionOf', { name: entry.game.base_game_name })"
+            >
               {{ $t('dashboard.expansionOf', { name: entry.game.base_game_name }) }}
             </span>
           </div>
@@ -645,6 +649,7 @@ own row flex wrapper (.tags) instead of directly in the scrim. */
 .games :deep(.badge-row) {
   display: flex;
   align-self: flex-start;
+  max-width: 100%;
   gap: var(--space-2);
   flex-wrap: wrap;
 }
@@ -666,6 +671,23 @@ light patch of the image, so it needs a solid fill here instead. */
 .games :deep(.badge-expansion) {
   background: rgba(255, 255, 255, 0.2);
   color: #fff;
+}
+
+/* "Expansión de <nombre>" carries the base game's own name, which can run
+long enough to push past the card's edge - the card clips it with
+overflow: hidden, which without this cut the text off abruptly mid-word
+instead of showing it's truncated. min-width: 0 overrides the flex item's
+default content-based floor so it can actually shrink to make room for the
+ellipsis instead of just ignoring max-width. text-overflow has no effect on
+a flex container (the base .badge is display: inline-flex) - it only
+applies to a block/inline-block box - hence the display override here. */
+.games :deep(.badge-expansion) {
+  display: inline-block;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* The scrim is always dark regardless of theme (it sits over a photo, not
