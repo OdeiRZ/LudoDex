@@ -37,9 +37,9 @@ const sortCriterion = ref<SortCriterion>('name')
 const sortOrder = ref<'asc' | 'desc'>('asc')
 
 // BGG ranking doesn't exist for expansions - they're never ranked
-// individually on BGG - so the option itself is hidden while this filter is
-// active (see the select above). A criterion the select no longer offers
-// can't stay selected underneath it, so it falls back to name here too.
+// individually on BGG - so the option is disabled while this filter is
+// active (see the select above). A criterion the select no longer allows
+// picking can't stay selected underneath it, so it falls back to name here.
 watch(typeFilter, (value) => {
   if (value === 'expansion' && sortCriterion.value === 'rank') {
     sortCriterion.value = 'name'
@@ -213,7 +213,7 @@ async function onClearCollection() {
           <div class="sort-group">
             <select v-model="sortCriterion" :aria-label="$t('dashboard.sortByLabel')" class="sort-criterion">
               <option value="name">{{ $t('dashboard.sortByName') }}</option>
-              <option v-if="typeFilter !== 'expansion'" value="rank">{{ $t('dashboard.sortByRank') }}</option>
+              <option value="rank" :disabled="typeFilter === 'expansion'">{{ $t('dashboard.sortByRank') }}</option>
             </select>
             <button
               type="button"

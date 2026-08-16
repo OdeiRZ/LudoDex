@@ -216,20 +216,21 @@ describe('DashboardView', () => {
       expect(cards[1].text()).not.toContain('en BGG')
     })
 
-    it('hides the "sort by rank" option while only expansions are shown, and restores it otherwise', async () => {
+    it('disables the "sort by rank" option while only expansions are shown, and re-enables it otherwise', async () => {
       const { wrapper } = mountDashboard([
         makeEntry({ id: 'root', name: 'Root', bgg_id: 1 }),
         makeEntry({ name: 'Root: Riverfolk', base_game_id: 'root' }),
       ])
 
-      const sortOptions = () => wrapper.find('.sort-criterion').findAll('option').map((o) => o.element.value)
-      expect(sortOptions()).toContain('rank')
+      const rankOption = () =>
+        wrapper.find('.sort-criterion').findAll('option').find((o) => o.element.value === 'rank')
+      expect(rankOption()?.element.disabled).toBe(false)
 
       await wrapper.find('.type-filter').setValue('expansion')
-      expect(sortOptions()).not.toContain('rank')
+      expect(rankOption()?.element.disabled).toBe(true)
 
       await wrapper.find('.type-filter').setValue('all')
-      expect(sortOptions()).toContain('rank')
+      expect(rankOption()?.element.disabled).toBe(false)
     })
 
     it('falls back to sorting by name if rank was selected and the filter switches to expansions only', async () => {
