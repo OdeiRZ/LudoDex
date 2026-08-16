@@ -5,8 +5,9 @@ const props = withDefaults(
   defineProps<{
     imageUrl?: string | null
     compact?: boolean
+    isExpansion?: boolean
   }>(),
-  { imageUrl: null, compact: false },
+  { imageUrl: null, compact: false, isExpansion: false },
 )
 
 // Same broken-image fallback the old small thumbnail had: a missing or
@@ -24,7 +25,7 @@ watch(
 </script>
 
 <template>
-  <div class="game-cover" :class="{ compact }">
+  <div class="game-cover" :class="{ compact, expansion: isExpansion }">
     <img
       v-if="imageUrl && !showFallback"
       :src="imageUrl"
@@ -54,6 +55,17 @@ watch(
   overflow: hidden;
   background: var(--color-surface-hover);
   box-shadow: var(--shadow-card);
+}
+
+/* Left border rather than a corner ribbon or full outline - reads at a
+glance without needing a new icon/image asset, and a straight border
+naturally follows .game-cover's own border-radius instead of needing its
+own separate positioning to fit every card size/breakpoint here. Violet
+because every other color already means something else on this card
+(teal is the owned status, amber is wishlist/cooperative, red is the
+remove button). */
+.game-cover.expansion {
+  border-left: 4px solid var(--color-expansion);
 }
 
 .game-cover.compact {

@@ -272,6 +272,17 @@ describe('DashboardView', () => {
       expect(cards[1].text()).not.toContain('en BGG')
     })
 
+    it('marks only expansion cards with the visual expansion border', () => {
+      const { wrapper } = mountDashboard([
+        makeEntry({ id: 'root', name: 'Root' }),
+        makeEntry({ name: 'Root: Riverfolk', base_game_id: 'root' }),
+      ])
+
+      const cards = wrapper.findAll('.game-card')
+      expect(cards[0].find('.game-cover').classes()).not.toContain('expansion')
+      expect(cards[1].find('.game-cover').classes()).toContain('expansion')
+    })
+
     it('disables the "sort by rank" option while only expansions are shown, and re-enables it otherwise', async () => {
       const { wrapper } = mountDashboard([
         makeEntry({ id: 'root', name: 'Root', bgg_id: 1 }),

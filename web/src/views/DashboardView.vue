@@ -371,7 +371,11 @@ async function onClearCollection() {
 
     <ul class="games" :class="{ compact: density === 'compact' }">
       <li v-for="entry in filtered" :key="entry.id" class="game-card">
-        <GameCard :image-url="entry.game.image_url" :compact="density === 'compact'">
+        <GameCard
+          :image-url="entry.game.image_url"
+          :compact="density === 'compact'"
+          :is-expansion="entry.game.base_game_id !== null"
+        >
           <h2>{{ entry.game.name }}</h2>
           <div class="badge-row">
             <span class="badge" :class="entry.status === 'owned' ? 'badge-primary' : 'badge-accent'">

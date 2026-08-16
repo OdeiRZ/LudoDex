@@ -41,4 +41,12 @@ describe('GameCard', () => {
 
     expect(wrapper.find('.game-cover').classes()).toContain('compact')
   })
+
+  it('applies the expansion class only when isExpansion is set, not by default', () => {
+    const base = mount(GameCard, { props: { imageUrl: null } })
+    const expansion = mount(GameCard, { props: { imageUrl: null, isExpansion: true } })
+
+    expect(base.find('.game-cover').classes()).not.toContain('expansion')
+    expect(expansion.find('.game-cover').classes()).toContain('expansion')
+  })
 })
