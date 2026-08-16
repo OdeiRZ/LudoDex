@@ -42,6 +42,20 @@ describe('DashboardView', () => {
     expect(wrapper.text()).not.toContain('Control de área')
   })
 
+  it('shows the publication year alongside players/duration, and omits the row entirely when there is nothing to show', () => {
+    const { wrapper } = mountDashboard([
+      makeEntry({ name: 'Root', year_published: 2018 }),
+      makeEntry({ name: 'Ark Nova', year_published: null }),
+    ])
+
+    const cards = wrapper.findAll('.game-card')
+    const rootCard = cards.find((card) => card.text().includes('Root'))
+    const arkNovaCard = cards.find((card) => card.text().includes('Ark Nova'))
+
+    expect(rootCard?.find('.meta').text()).toContain('2018')
+    expect(arkNovaCard?.find('.meta').exists()).toBe(false)
+  })
+
   it('lists every entry in the collection, owned or wishlisted', () => {
     const owned = makeEntry({ name: 'Root' }, 'owned')
     const wishlisted = makeEntry({ name: 'Ark Nova' }, 'wishlist')

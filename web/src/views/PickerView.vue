@@ -316,7 +316,17 @@ const filtered = computed(() => {
               </svg>
             </RouterLink>
           </div>
-          <p v-if="entry.game.min_players || entry.game.max_players || entry.game.min_playtime_minutes || entry.game.max_playtime_minutes" class="meta">
+          <p
+            v-if="
+              entry.game.year_published ||
+              entry.game.min_players ||
+              entry.game.max_players ||
+              entry.game.min_playtime_minutes ||
+              entry.game.max_playtime_minutes
+            "
+            class="meta"
+          >
+            <span v-if="entry.game.year_published">{{ entry.game.year_published }}</span>
             <span v-if="entry.game.min_players || entry.game.max_players">
               {{ $t('dashboard.players', { min: entry.game.min_players, max: entry.game.max_players }) }}
             </span>

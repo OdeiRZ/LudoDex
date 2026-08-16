@@ -44,6 +44,20 @@ describe('PickerView', () => {
     expect(wrapper.text()).toContain('No tienes juegos marcados como "Lo tengo" todavía.')
   })
 
+  it('shows the publication year alongside players/duration, and omits the row entirely when there is nothing to show', () => {
+    const wrapper = mountPicker([
+      makeEntry({ name: 'Root', year_published: 2018 }, 'owned'),
+      makeEntry({ name: 'Ark Nova', year_published: null }, 'owned'),
+    ])
+
+    const cards = wrapper.findAll('.game-card')
+    const rootCard = cards.find((card) => card.text().includes('Root'))
+    const arkNovaCard = cards.find((card) => card.text().includes('Ark Nova'))
+
+    expect(rootCard?.find('.meta').text()).toContain('2018')
+    expect(arkNovaCard?.find('.meta').exists()).toBe(false)
+  })
+
   describe('with a mixed collection', () => {
     let wrapper: ReturnType<typeof mountPicker>
 
