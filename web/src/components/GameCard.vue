@@ -48,6 +48,7 @@ watch(
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  height: 100%;
   min-height: 190px;
   border-radius: var(--radius);
   overflow: hidden;
