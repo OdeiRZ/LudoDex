@@ -110,10 +110,10 @@ class BggClient
                 'name' => (string) $item->name,
                 'image_url' => isset($item->image) && (string) $item->image !== '' ? (string) $item->image : null,
                 'is_expansion' => (string) $item['subtype'] === 'boardgameexpansion',
-                'min_players' => $this->intOrNull($stats['minplayers'] ?? null),
-                'max_players' => $this->intOrNull($stats['maxplayers'] ?? null),
-                'min_playtime_minutes' => $this->intOrNull($stats['minplaytime'] ?? null),
-                'max_playtime_minutes' => $this->intOrNull($stats['maxplaytime'] ?? null),
+                'min_players' => $this->positiveIntOrNull($stats['minplayers'] ?? null),
+                'max_players' => $this->positiveIntOrNull($stats['maxplayers'] ?? null),
+                'min_playtime_minutes' => $this->positiveIntOrNull($stats['minplaytime'] ?? null),
+                'max_playtime_minutes' => $this->positiveIntOrNull($stats['maxplaytime'] ?? null),
                 'collection_status' => $isOwned ? 'owned' : 'wishlist',
             ];
         }
@@ -315,7 +315,7 @@ class BggClient
             'categories' => $categories,
             'weight' => $weight,
             'base_game_bgg_ids' => $baseGameBggIds,
-            'year_published' => $this->intOrNull($item->yearpublished['value'] ?? null),
+            'year_published' => $this->positiveIntOrNull($item->yearpublished['value'] ?? null),
             // BGG's own site shows this value with a trailing "+" (e.g.
             // "Ages: 8+"), not as a plain number - kept as a string here
             // (like the CSV importer's bggrecagerange) rather than a plain
@@ -323,10 +323,10 @@ class BggClient
             'min_age' => $this->minAgeOrNull($item->minage['value'] ?? null),
             'bgg_rank' => $this->extractBoardGameRank($item),
             'rating' => $rating,
-            'min_players' => $this->intOrNull($item->minplayers['value'] ?? null),
-            'max_players' => $this->intOrNull($item->maxplayers['value'] ?? null),
-            'min_playtime_minutes' => $this->intOrNull($item->minplaytime['value'] ?? null),
-            'max_playtime_minutes' => $this->intOrNull($item->maxplaytime['value'] ?? null),
+            'min_players' => $this->positiveIntOrNull($item->minplayers['value'] ?? null),
+            'max_players' => $this->positiveIntOrNull($item->maxplayers['value'] ?? null),
+            'min_playtime_minutes' => $this->positiveIntOrNull($item->minplaytime['value'] ?? null),
+            'max_playtime_minutes' => $this->positiveIntOrNull($item->maxplaytime['value'] ?? null),
         ];
     }
 
@@ -472,13 +472,24 @@ class BggClient
         return ($avatar !== '' && $avatar !== 'N/A') ? $avatar : null;
     }
 
-    private function intOrNull(mixed $value): ?int
+    /**
+     * Every caller of this (year published, min/max players, min/max
+     * playtime) treats 0 the same way the CSV importer's own
+     * parsePositiveInt() does: "BGG has no data for this", not a literal
+     * zero - a game can't have a 0 minimum player count or be published in
+     * year zero, and BGG reports an unset max as 0 rather than omitting it.
+     * A real /thing response for a game with no year data confirmed this:
+     * BGG returned yearpublished value="0" instead of leaving it out.
+     */
+    private function positiveIntOrNull(mixed $value): ?int
     {
         if ($value === null || (string) $value === '') {
             return null;
         }
 
-        return (int) $value;
+        $int = (int) $value;
+
+        return $int > 0 ? $int : null;
     }
 
     /**

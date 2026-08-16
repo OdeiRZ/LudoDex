@@ -165,6 +165,35 @@ it('treats a reported rating/weight of 0 as no data yet, not a real zero', funct
         ->and($result['game']['weight'])->toBeNull();
 });
 
+it('treats a reported year/player-count/playtime of 0 as no data, not a real zero', function () {
+    // Reproduces a real case: BGG's /thing response for "Poker Dice"
+    // reports yearpublished value="0" instead of omitting the field, and
+    // it sorted first in the collection's "oldest first" year sort as a
+    // result - year 0 sorting before every real year, exactly the games-
+    // with-no-year-data case that sort is supposed to sink to the bottom.
+    Http::fake(fn () => Http::response(<<<'XML'
+    <?xml version="1.0" encoding="utf-8"?>
+    <items>
+        <item type="boardgame" id="13">
+            <name type="primary" sortindex="1" value="Poker Dice"/>
+            <yearpublished value="0"/>
+            <minplayers value="0"/>
+            <maxplayers value="0"/>
+            <minplaytime value="0"/>
+            <maxplaytime value="0"/>
+        </item>
+    </items>
+    XML));
+
+    $result = (new BggClient)->fetchGameByBggId(13);
+
+    expect($result['game']['year_published'])->toBeNull()
+        ->and($result['game']['min_players'])->toBeNull()
+        ->and($result['game']['max_players'])->toBeNull()
+        ->and($result['game']['min_playtime_minutes'])->toBeNull()
+        ->and($result['game']['max_playtime_minutes'])->toBeNull();
+});
+
 it('treats a "Not Ranked" board game rank as no rank, not a cast-to-zero crash', function () {
     Http::fake(fn () => Http::response(<<<'XML'
     <?xml version="1.0" encoding="utf-8"?>
