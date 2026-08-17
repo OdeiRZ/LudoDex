@@ -608,6 +608,11 @@ can't straddle both. */
   display: none;
   align-self: center;
   margin-left: auto;
+  /* Nudges it a touch further left than flush-right so it sits centered
+  over whatever it's floating above it whenever this copy is flush against
+  the title row's own right edge (32px vs. a 28px floating button below
+  makes a flush-right pairing look very slightly off). */
+  margin-right: 2px;
 }
 
 /* The filters form (and its own density-toggle-slot copy) doesn't render
@@ -617,16 +622,6 @@ show this copy. Density affects the results grid, not the filters, so
 hiding filters shouldn't hide it too. */
 .title-row.filters-collapsed .title-density-toggle {
   display: block;
-}
-
-/* Wide desktop only, while collapsed: nudges this a touch further left so
-it sits centered over .filters-toggle-floating in .filters-summary below
-rather than just sharing its right edge (32px vs. the other button's 28px
-makes a flush-right pairing look very slightly off). */
-@media (min-width: 1024px) {
-  .title-row.filters-collapsed .title-density-toggle {
-    margin-right: 5px;
-  }
 }
 
 /* position: relative anchors .filters-toggle-floating, same as .filters
