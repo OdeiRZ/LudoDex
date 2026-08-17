@@ -1034,9 +1034,17 @@ contrast over a light patch of an arbitrary photo without a solid fill. */
   color: #fff;
 }
 
-.results :deep(.badge-rank),
-.results :deep(.badge-expansion) {
+.results :deep(.badge-rank) {
   background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* Same violet as an expansion card's own left border (.game-cover.expansion,
+in the collection - this view never lists an expansion itself, only a base
+game's own "+N expansiones" badge), so the badge reads as the same color
+language wherever it shows up. */
+.results :deep(.badge-expansion) {
+  background: var(--color-expansion);
   color: #fff;
 }
 

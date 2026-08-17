@@ -753,9 +753,16 @@ light patch of the image, so it needs a solid fill here instead. */
   margin-right: 2px;
 }
 
-.games :deep(.badge-rank),
-.games :deep(.badge-expansion) {
+.games :deep(.badge-rank) {
   background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* Same violet as the card's own left border (.game-cover.expansion), so
+the badge reads as the text version of that same marker instead of an
+unrelated color. */
+.games :deep(.badge-expansion) {
+  background: var(--color-expansion);
   color: #fff;
 }
 
