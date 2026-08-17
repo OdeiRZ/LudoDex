@@ -31,6 +31,7 @@ watch(
       :src="imageUrl"
       alt=""
       class="cover-image"
+      loading="lazy"
       @error="showFallback = true"
     />
     <div v-else class="cover-fallback">
