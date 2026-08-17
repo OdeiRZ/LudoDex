@@ -318,8 +318,16 @@ const filtered = computed(() => {
         :title="$t('picker.showFilters')"
         @click="filtersCollapsed = false"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M22 3H2l8 9.46V19l4 2v-8.54L22 3Z" />
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <line x1="21" x2="14" y1="4" y2="4" />
+          <line x1="10" x2="3" y1="4" y2="4" />
+          <line x1="21" x2="12" y1="12" y2="12" />
+          <line x1="8" x2="3" y1="12" y2="12" />
+          <line x1="21" x2="16" y1="20" y2="20" />
+          <line x1="12" x2="3" y1="20" y2="20" />
+          <line x1="14" x2="14" y1="2" y2="6" />
+          <line x1="8" x2="8" y1="10" y2="14" />
+          <line x1="16" x2="16" y1="18" y2="22" />
         </svg>
         <svg class="filters-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" />
@@ -336,8 +344,16 @@ const filtered = computed(() => {
         :title="$t('picker.hideFilters')"
         @click="filtersCollapsed = true"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M22 3H2l8 9.46V19l4 2v-8.54L22 3Z" />
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <line x1="21" x2="14" y1="4" y2="4" />
+          <line x1="10" x2="3" y1="4" y2="4" />
+          <line x1="21" x2="12" y1="12" y2="12" />
+          <line x1="8" x2="3" y1="12" y2="12" />
+          <line x1="21" x2="16" y1="20" y2="20" />
+          <line x1="12" x2="3" y1="20" y2="20" />
+          <line x1="14" x2="14" y1="2" y2="6" />
+          <line x1="8" x2="8" y1="10" y2="14" />
+          <line x1="16" x2="16" y1="18" y2="22" />
         </svg>
         <svg class="filters-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" />
@@ -564,8 +580,8 @@ the filters form itself while expanded (.filters-toggle-floating below)
 }
 
 .filters-toggle svg {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   flex-shrink: 0;
 }
 
@@ -609,10 +625,9 @@ can't straddle both. */
   align-self: center;
   margin-left: auto;
   /* Nudges it a touch further left than flush-right so it sits centered
-  over whatever it's floating above it whenever this copy is flush against
-  the title row's own right edge (32px vs. a 28px floating button below
-  makes a flush-right pairing look very slightly off). */
-  margin-right: 2px;
+  over whatever it's floating below it, whenever this copy is flush
+  against the title row's own right edge. */
+  margin-right: 5px;
 }
 
 /* The filters form (and its own density-toggle-slot copy) doesn't render

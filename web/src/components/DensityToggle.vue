@@ -36,8 +36,8 @@ const { t } = useI18n()
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   flex-shrink: 0;
   border: 1px solid var(--color-border-strong);
