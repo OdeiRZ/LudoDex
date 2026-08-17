@@ -698,6 +698,17 @@ difference there, same as .search-group input already does. */
   max-width: 151px;
 }
 
+/* Same reasoning as .sort-criterion's own min-width: 891px block above:
+151px is tuned for the narrowest real phones and clips "Solo expansiones"
+when picked - never an issue below this, since none of the existing
+breakpoints (890/768/366px, all max-width) reach this far. 190px is
+roomy enough for "Solo expansiones" (the widest option) to read in full. */
+@media (min-width: 891px) {
+  .type-filter {
+    max-width: 190px;
+  }
+}
+
 .sort-toggle {
   flex-shrink: 0;
   white-space: nowrap;
