@@ -303,38 +303,29 @@ const filtered = computed(() => {
       <span v-if="games.loaded && playable.length" class="count">{{
         $t('common.gamesCount', { count: filtered.length })
       }}</span>
-      <button
-        v-if="games.loaded && playable.length"
-        type="button"
-        class="btn filters-toggle"
-        :class="{ 'filters-toggle-open': !filtersCollapsed }"
-        :aria-expanded="!filtersCollapsed"
-        :aria-label="filtersCollapsed ? $t('picker.showFilters') : $t('picker.hideFilters')"
-        :title="filtersCollapsed ? $t('picker.showFilters') : $t('picker.hideFilters')"
-        @click="filtersCollapsed = !filtersCollapsed"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M22 3H2l8 9.46V19l4 2v-8.54L22 3Z" />
-        </svg>
-        <svg
-          class="filters-toggle-chevron"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          aria-hidden="true"
-        >
-          <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" />
-        </svg>
-      </button>
       <div v-if="games.loaded && playable.length" class="title-density-toggle">
         <DensityToggle :density="density" @toggle="toggleDensity" />
       </div>
     </div>
 
-    <p v-if="games.loaded && playable.length && filtersCollapsed" class="filters-summary card">
-      {{ filterSummary }}
-    </p>
+    <div v-if="games.loaded && playable.length && filtersCollapsed" class="filters-summary card">
+      <p>{{ filterSummary }}</p>
+      <button
+        type="button"
+        class="btn filters-toggle"
+        :aria-expanded="false"
+        :aria-label="$t('picker.showFilters')"
+        :title="$t('picker.showFilters')"
+        @click="filtersCollapsed = false"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M22 3H2l8 9.46V19l4 2v-8.54L22 3Z" />
+        </svg>
+        <svg class="filters-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+    </div>
 
     <form v-if="games.loaded && playable.length && !filtersCollapsed" class="filters card" @submit.prevent>
       <div class="search-field">
@@ -425,7 +416,24 @@ const filtered = computed(() => {
 
       <div v-if="games.loaded && playable.length" class="density-toggle-slot">
         <span class="filter-label-spacer" aria-hidden="true">&nbsp;</span>
-        <DensityToggle :density="density" @toggle="toggleDensity" />
+        <div class="toggle-row">
+          <button
+            type="button"
+            class="btn filters-toggle filters-toggle-open"
+            aria-expanded="true"
+            :aria-label="$t('picker.hideFilters')"
+            :title="$t('picker.hideFilters')"
+            @click="filtersCollapsed = true"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M22 3H2l8 9.46V19l4 2v-8.54L22 3Z" />
+            </svg>
+            <svg class="filters-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
+          <DensityToggle :density="density" @toggle="toggleDensity" />
+        </div>
       </div>
     </form>
 
@@ -540,25 +548,31 @@ h1 {
   font-size: 0.9rem;
 }
 
+/* Lives in two spots - standalone in .filters-summary while collapsed
+(the only way back in once the form itself is gone), and paired with
+DensityToggle inside .toggle-row while expanded (see the form's own
+.density-toggle-slot) - same small size in both so it reads as the
+same control either way. */
 .filters-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 1px;
-  height: 32px;
-  padding: 0 var(--space-2);
-  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  flex-shrink: 0;
 }
 
 .filters-toggle svg {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
 }
 
 .filters-toggle-chevron {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   transition: transform 0.15s ease;
 }
 
@@ -571,29 +585,43 @@ a section, not switching between two equally-valid states. */
   transform: rotate(180deg);
 }
 
-/* Hidden by default - only the .density-toggle-slot copy down in the
-filters form shows outside the narrow band below. Same "two renditions,
-toggle via CSS" pattern used everywhere else on this page: the two
-spots sit in entirely different flex containers, so a single shared
-element can't straddle both. */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Hidden by default - only the .toggle-row copy inside the filters form
+shows outside the narrow band below. Same "two renditions, toggle via
+CSS" pattern used everywhere else on this page: the two spots sit in
+entirely different flex containers, so a single shared element can't
+straddle both. */
 .title-density-toggle {
   display: none;
   align-self: center;
   margin-left: auto;
 }
 
-/* The filters form (and its own .density-toggle-slot copy) doesn't
-render at all while collapsed, regardless of width - without this the
-density toggle would vanish along with it outside the narrow bands
-below that already show this copy. Density affects the results grid,
-not the filters, so hiding filters shouldn't hide it too. */
+/* The filters form (and its own toggle-row copy) doesn't render at all
+while collapsed, regardless of width - without this the density toggle
+would vanish along with it outside the narrow bands below that already
+show this copy. Density affects the results grid, not the filters, so
+hiding filters shouldn't hide it too. */
 .title-row.filters-collapsed .title-density-toggle {
   display: block;
 }
 
 .filters-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
   color: var(--color-text-muted);
   font-size: 0.9rem;
+}
+
+.filters-summary p {
+  margin: 0;
 }
 
 /* 982-1023px: confirmed with real (not simulated) windows at 987px and
