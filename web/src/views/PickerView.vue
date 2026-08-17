@@ -619,6 +619,16 @@ hiding filters shouldn't hide it too. */
   display: block;
 }
 
+/* Wide desktop only, while collapsed: nudges this a touch further left so
+it sits centered over .filters-toggle-floating in .filters-summary below
+rather than just sharing its right edge (32px vs. the other button's 28px
+makes a flush-right pairing look very slightly off). */
+@media (min-width: 1024px) {
+  .title-row.filters-collapsed .title-density-toggle {
+    margin-right: 5px;
+  }
+}
+
 /* position: relative anchors .filters-toggle-floating, same as .filters
 itself - the button isn't a flex participant here either, so this no
 longer needs justify-content: space-between to push it to the far side. */
