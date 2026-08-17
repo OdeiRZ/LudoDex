@@ -15,6 +15,14 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   ya tenía "Tu colección" — de paso se reagrupan sus filtros
   (Estructura y Género suben junto a Buscar/Jugadores) para dejar
   hueco al nuevo control.
+- Ordenación por año de publicación, en "Tu colección" y "¿A qué
+  jugamos?", junto a nombre y ranking. A diferencia del ranking, el
+  año no depende de si el juego es una expansión (BGG sí publica año
+  para packs y expansiones), así que la opción no se deshabilita según
+  el filtro de tipo.
+- Icono (un check para "Lo tengo", un corazón para "Lo quiero") junto
+  al texto de la insignia de estado en "Tu colección", para
+  diferenciarlas más rápido de un vistazo sin depender solo del color.
 
 ### Cambiado
 
@@ -46,6 +54,35 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   app. El objetivo actual sigue siendo importar y organizar la
   colección, no llevar notas — se puede retomar más adelante si hace
   falta de verdad.
+- El año de publicación se muestra en la línea de jugadores/duración
+  de cada tarjeta, tanto en "Tu colección" como en "¿A qué jugamos?".
+- Las expansiones llevan un borde lateral morado en la tarjeta,
+  además de la etiqueta de texto "Expansión de..." ya existente — un
+  color que no usa ningún otro estado de la app (tener/querer/
+  eliminar), para diferenciarlas de un vistazo en colecciones largas.
+  Los juegos base se quedan sin marcar a propósito: con solo dos
+  estados posibles, marcar la excepción ya basta, y marcar ambos solo
+  añadiría ruido visual sin aportar información nueva.
+- La etiqueta "Sin ranking en BGG"/"#N en BGG" deja de mostrarse en
+  las expansiones: ninguna tiene ranking propio en BGG (el ranking es
+  un dato del juego base), así que siempre decía lo mismo sin aportar
+  nada. El criterio de ordenación por ranking se deshabilita (sin
+  desaparecer del selector) mientras el filtro de tipo está en "Solo
+  expansiones", y vuelve a "Nombre" si estaba seleccionado justo
+  cuando se cambia a ese filtro.
+- Las etiquetas "Expansión de [nombre]" muy largas se truncan con
+  puntos suspensivos en vez de cortarse a mitad de palabra contra el
+  borde de la tarjeta; el nombre completo queda disponible al pasar
+  el ratón por encima.
+- Las etiquetas del botón que invierte el criterio de ordenación se
+  acortan ("1 → N"/"N → 1" para ranking, ▲/▼ para año) para no romper
+  el ancho ya ajustado de los controles de "Tu colección" y "¿A qué
+  jugamos?"; el selector de criterio se ensancha en resoluciones de
+  escritorio para que "Ranking BGG" se lea completo en vez de
+  cortado, sin tocar ninguno de los ajustes ya hechos para móvil/
+  tablet.
+- Las imágenes de portada de cada tarjeta se cargan de forma diferida
+  (`loading="lazy"`) en vez de todas de golpe al abrir la colección.
 
 ### Corregido
 
@@ -133,6 +170,31 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   juego base no está en el propio CSV) se hacía una vez por
   expansión. Ahora se hace en una sola consulta en bloque para todo
   el archivo.
+- Tarjetas con distinto número de etiquetas o líneas de texto dejaban
+  una franja en blanco por debajo de las más cortas dentro de la
+  misma fila de la rejilla — la caja de la portada no heredaba la
+  altura que la rejilla ya estira a la fila más alta. Ahora ocupa el
+  100% de esa altura, recortando algo más la imagen en vez de dejar
+  hueco vacío.
+- Cuando una expansión lista en BGG más de un juego base que el
+  usuario tiene en su colección a la vez (por ejemplo dos ediciones
+  distintas del mismo juego), se enlazaba con el primero que BGG
+  reportara en su respuesta en vez de con el más relevante — caso
+  real: los packs de escenario de "Arkham Horror: El Juego de
+  Cartas" quedaban enlazados a una edición recién anunciada (sin
+  apenas valoraciones en BGG todavía) en vez de a la Edición
+  Revisada, donde de verdad sigue publicándose contenido. Ahora se
+  prioriza el candidato poseído con mejor ranking en BGG. De paso,
+  una expansión que ya tiene un juego base asignado (por una
+  importación anterior o por una corrección manual desde el
+  formulario de edición) ya no se recalcula en importaciones
+  posteriores, para no deshacer sin avisar una corrección ya hecha.
+- Un año de publicación (o número de jugadores/duración) que BGG
+  reporta como `0` en vez de omitir el dato se guardaba como un cero
+  real en vez de "sin dato" — visible en juegos como "Poker Dice",
+  que aparecía como el más antiguo de toda la colección al ordenar
+  por año. Se trata igual que ya se hacía con el ranking a `0` del
+  CSV.
 
 ## [0.4.0] - 2026-08-14
 
