@@ -224,6 +224,7 @@ export default {
     tabUsername: 'Por usuario',
     tabCsv: 'Desde CSV',
     username: 'Usuario de BGG',
+    readOnlyNotice: 'Solo se lee tu colección de BGG; nada de lo que edites aquí se envía de vuelta a BGG.',
     submit: 'Importar',
     genericStartError: 'No se ha podido iniciar la importación.',
     genericFailedError: 'No se ha podido importar la colección.',

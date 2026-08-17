@@ -77,6 +77,16 @@ Repo único con dos aplicaciones independientes, cada una con su propio
   Importar BGG sigue disponible como alternativa sin token (ese fichero
   viene de la sesión del propio usuario, no de la API) — verificada de
   punta a punta contra una colección real de 281 juegos.
+- **La relación con BGG es de solo lectura**: tanto la importación por
+  usuario como por CSV y "Rellenar desde BGG" únicamente leen datos de
+  BGG hacia LudoDex — la app nunca escribe ni sincroniza nada de vuelta,
+  ni la colección ni ninguna edición manual. Ojo, esto no significa que
+  una corrección manual sea intocable: una reimportación vuelve a traer
+  y sobrescribir la mayoría de campos de un juego con lo que diga BGG en
+  ese momento (nombre, año, ranking, valoración, jugadores…); solo las
+  mecánicas/categorías (aditivas, nunca se quitan una ya puesta a mano) y
+  el juego base de una expansión (si ya tiene uno asignado, no se
+  recalcula) quedan protegidas frente a reimportaciones futuras.
 - **Envío real de email (recuperación de contraseña)**: la API usa
   [Resend](https://resend.com) como mailer (soportado de forma nativa en
   Laravel 12). Sin verificar un dominio propio, Resend solo permite enviar

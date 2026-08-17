@@ -203,6 +203,8 @@ onMounted(() => {
 
       <template v-if="method === 'username'">
         <form v-if="phase === 'idle' || phase === 'failed'" class="form" @submit.prevent="onSubmit">
+          <p class="hint">{{ $t('importBgg.readOnlyNotice') }}</p>
+
           <div>
             <label for="bgg_username">{{ $t('importBgg.username') }}</label>
             <input id="bgg_username" v-model="username" type="text" required :disabled="submitting" />
@@ -236,6 +238,7 @@ onMounted(() => {
       <template v-else>
         <form v-if="!csvResult" class="form" @submit.prevent="onCsvSubmit">
           <p class="hint">{{ $t('importBgg.csvHint') }}</p>
+          <p class="hint">{{ $t('importBgg.readOnlyNotice') }}</p>
 
           <div>
             <label for="csv_file">{{ $t('importBgg.csvFile') }}</label>

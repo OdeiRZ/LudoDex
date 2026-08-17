@@ -224,6 +224,7 @@ export default {
     tabUsername: 'By username',
     tabCsv: 'From CSV',
     username: 'BGG username',
+    readOnlyNotice: "Your BGG collection is only ever read, never written back to - nothing you edit here is sent to BGG.",
     submit: 'Import',
     genericStartError: "Couldn't start the import.",
     genericFailedError: "Couldn't import the collection.",
