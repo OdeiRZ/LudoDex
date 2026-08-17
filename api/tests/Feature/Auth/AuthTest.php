@@ -27,6 +27,28 @@ it('registers a new user and returns a usable token', function () {
         ->assertJsonPath('email', 'odei@example.com');
 });
 
+it('accepts a 6-character password but rejects a 5-character one', function () {
+    $short = $this->postJson('/api/register', [
+        'name' => 'Odei',
+        'email' => 'odei@example.com',
+        'password' => 'abcde',
+        'password_confirmation' => 'abcde',
+        'device_name' => 'test-suite',
+    ]);
+
+    $short->assertUnprocessable()->assertJsonValidationErrors('password');
+
+    $minimum = $this->postJson('/api/register', [
+        'name' => 'Odei',
+        'email' => 'odei@example.com',
+        'password' => 'abcdef',
+        'password_confirmation' => 'abcdef',
+        'device_name' => 'test-suite',
+    ]);
+
+    $minimum->assertCreated();
+});
+
 it('rejects registration with a mismatched password confirmation', function () {
     $response = $this->postJson('/api/register', [
         'name' => 'Odei',

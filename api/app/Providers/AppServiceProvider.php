@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,6 +22,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Laravel's own out-of-the-box default is min(8) - every Password::defaults()
+        // call across the app (registration, password reset, changing it from the
+        // profile page) reads from this one place.
+        Password::defaults(fn () => Password::min(6));
+
         // Laravel's default reset link points at a server-rendered
         // "password.reset" web route, which doesn't exist here - this is an
         // API-only backend with a separate SPA. Point it at the frontend's
