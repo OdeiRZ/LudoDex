@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "axios": "^1.19.0",
-    "pinia": "^4.0.2",
+    "pinia": "^4.0.3",
     "vue": "^3.5.13",
     "vue-i18n": "^11.4.8",
     "vue-router": "^4.5.0"
@@ -25,11 +25,11 @@
     "@types/jsdom": "^30.0.0",
     "@types/node": "^26.2.0",
     "@vitejs/plugin-vue": "^6.0.8",
-    "@vitest/eslint-plugin": "1.1.31",
+    "@vitest/eslint-plugin": "1.6.27",
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/eslint-config-typescript": "^14.4.0",
     "@vue/test-utils": "^2.4.6",
-    "@vue/tsconfig": "^0.7.0",
+    "@vue/tsconfig": "^0.9.1",
     "eslint": "^10.8.1",
     "eslint-plugin-vue": "^10.10.0",
     "jiti": "^2.4.2",
