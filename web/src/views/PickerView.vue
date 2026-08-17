@@ -107,6 +107,50 @@ const playable = computed(() =>
   games.collection.filter((entry) => entry.status === 'owned' && entry.game.base_game_id === null),
 )
 
+// An owned expansion can extend the player count or add a campaign mode
+// the base game doesn't have on its own - Root's "Ribereños"/
+// "Subterráneos" expansions go from 4 to 6 players, Spirit Island's
+// "Nature Incarnate" adds a campaign mode, and so on. BGG reports these on
+// the expansion's own listing as the new combined range, not as a delta
+// on top of the base game's, so this takes the wider of the two instead of
+// just the base game's own printed numbers. Only expansions actually
+// owned (not wishlisted) count, matching the same "your real shelf" rule
+// the rest of this page already applies - and only fills in whichever
+// value the base game itself has, so a game not in this collection at all
+// (an expansion's own base_game_id pointing outside it) is never touched.
+const effectiveStatsByGameId = computed(() => {
+  const stats: Record<string, { minPlayers: number | null; maxPlayers: number | null; hasCampaign: boolean }> = {}
+
+  for (const { game } of playable.value) {
+    stats[game.id] = { minPlayers: game.min_players, maxPlayers: game.max_players, hasCampaign: game.has_campaign }
+  }
+
+  for (const entry of games.collection) {
+    const baseId = entry.game.base_game_id
+    const current = baseId !== null ? stats[baseId] : undefined
+
+    if (entry.status !== 'owned' || !current) {
+      continue
+    }
+
+    const expansion = entry.game
+
+    if (expansion.min_players !== null && (current.minPlayers === null || expansion.min_players < current.minPlayers)) {
+      current.minPlayers = expansion.min_players
+    }
+
+    if (expansion.max_players !== null && (current.maxPlayers === null || expansion.max_players > current.maxPlayers)) {
+      current.maxPlayers = expansion.max_players
+    }
+
+    if (expansion.has_campaign) {
+      current.hasCampaign = true
+    }
+  }
+
+  return stats
+})
+
 // Built from the playable collection itself, not the full catalog
 // (games.categoryOptions): a category only some wishlist/unowned game has
 // would otherwise show up as a choice that can never return a result here.
@@ -132,9 +176,11 @@ const filtered = computed(() => {
   const base = playable.value.filter(({ game }) => {
     if (query !== '' && !game.name.toLowerCase().includes(query)) return false
 
+    const stats = effectiveStatsByGameId.value[game.id]
+
     if (minPlayersFilter !== null) {
-      if (game.min_players !== null && minPlayersFilter < game.min_players) return false
-      if (game.max_players !== null && minPlayersFilter > game.max_players) return false
+      if (stats.minPlayers !== null && minPlayersFilter < stats.minPlayers) return false
+      if (stats.maxPlayers !== null && minPlayersFilter > stats.maxPlayers) return false
     }
 
     if (maxDurationFilter !== null) {
@@ -155,7 +201,7 @@ const filtered = computed(() => {
       if (modeFilter.value === 'competitive' && !game.is_competitive) return false
     }
 
-    if (onlyCampaign.value && !game.has_campaign) return false
+    if (onlyCampaign.value && !stats.hasCampaign) return false
 
     if (categoryFilter.value !== '' && !game.categories.includes(categoryFilter.value)) {
       return false
@@ -345,16 +391,23 @@ const filtered = computed(() => {
           <p
             v-if="
               entry.game.year_published ||
-              entry.game.min_players ||
-              entry.game.max_players ||
+              effectiveStatsByGameId[entry.game.id]?.minPlayers ||
+              effectiveStatsByGameId[entry.game.id]?.maxPlayers ||
               entry.game.min_playtime_minutes ||
               entry.game.max_playtime_minutes
             "
             class="meta"
           >
             <span v-if="entry.game.year_published">{{ entry.game.year_published }}</span>
-            <span v-if="entry.game.min_players || entry.game.max_players">
-              {{ $t('dashboard.players', { min: entry.game.min_players, max: entry.game.max_players }) }}
+            <span
+              v-if="effectiveStatsByGameId[entry.game.id]?.minPlayers || effectiveStatsByGameId[entry.game.id]?.maxPlayers"
+            >
+              {{
+                $t('dashboard.players', {
+                  min: effectiveStatsByGameId[entry.game.id]?.minPlayers,
+                  max: effectiveStatsByGameId[entry.game.id]?.maxPlayers,
+                })
+              }}
             </span>
             <span v-if="entry.game.min_playtime_minutes || entry.game.max_playtime_minutes">
               {{
@@ -369,7 +422,7 @@ const filtered = computed(() => {
             v-if="
               entry.game.is_cooperative ||
               entry.game.is_competitive ||
-              entry.game.has_campaign ||
+              effectiveStatsByGameId[entry.game.id]?.hasCampaign ||
               entry.game.bgg_id !== null ||
               expansionCounts[entry.game.id]
             "
@@ -377,7 +430,9 @@ const filtered = computed(() => {
           >
             <span v-if="entry.game.is_cooperative" class="badge badge-primary">{{ $t('picker.cooperative') }}</span>
             <span v-if="entry.game.is_competitive" class="badge badge-primary">{{ $t('picker.competitive') }}</span>
-            <span v-if="entry.game.has_campaign" class="badge badge-accent">{{ $t('picker.campaign') }}</span>
+            <span v-if="effectiveStatsByGameId[entry.game.id]?.hasCampaign" class="badge badge-accent">{{
+              $t('picker.campaign')
+            }}</span>
             <span v-if="entry.game.bgg_id !== null" class="badge badge-rank">
               {{
                 entry.game.bgg_rank !== null

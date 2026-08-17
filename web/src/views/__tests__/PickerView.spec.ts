@@ -38,6 +38,54 @@ describe('PickerView', () => {
     expect(names).toEqual(['Root'])
   })
 
+  it('extends the shown/filtered player count with an owned expansion that supports more players', async () => {
+    const root = makeEntry({ id: 'root', name: 'Root', min_players: 2, max_players: 4 }, 'owned')
+    const riverfolk = makeEntry(
+      { name: 'Root: Riverfolk', base_game_id: 'root', min_players: 2, max_players: 6 },
+      'owned',
+    )
+
+    const wrapper = mountPicker([root, riverfolk])
+
+    expect(wrapper.find('.game-card .meta').text()).toContain('2–6 jugadores')
+
+    await wrapper.find('#players').setValue('6')
+    expect(wrapper.findAll('.game-card h2').map((h2) => h2.text())).toEqual(['Root'])
+
+    await wrapper.find('#players').setValue('5')
+    expect(wrapper.findAll('.game-card h2').map((h2) => h2.text())).toEqual(['Root'])
+  })
+
+  it('does not extend the player count from an expansion that is only wishlisted, not owned', async () => {
+    const root = makeEntry({ id: 'root', name: 'Root', min_players: 2, max_players: 4 }, 'owned')
+    const riverfolk = makeEntry(
+      { name: 'Root: Riverfolk', base_game_id: 'root', min_players: 2, max_players: 6 },
+      'wishlist',
+    )
+
+    const wrapper = mountPicker([root, riverfolk])
+
+    expect(wrapper.find('.game-card .meta').text()).toContain('2–4 jugadores')
+
+    await wrapper.find('#players').setValue('6')
+    expect(wrapper.findAll('.game-card h2')).toHaveLength(0)
+  })
+
+  it('shows the campaign badge, and matches the campaign-only filter, from an owned expansion even when the base game has no campaign mode of its own', async () => {
+    const spiritIsland = makeEntry({ id: 'si', name: 'Spirit Island', has_campaign: false }, 'owned')
+    const natureIncarnate = makeEntry(
+      { name: 'Spirit Island: Nature Incarnate', base_game_id: 'si', has_campaign: true },
+      'owned',
+    )
+
+    const wrapper = mountPicker([spiritIsland, natureIncarnate])
+
+    expect(wrapper.find('.game-card .tags').text()).toContain('Campaña')
+
+    await wrapper.find('input[type="checkbox"]').setValue(true)
+    expect(wrapper.findAll('.game-card h2').map((h2) => h2.text())).toEqual(['Spirit Island'])
+  })
+
   it('shows the empty state when nothing is owned yet', () => {
     const wrapper = mountPicker([makeEntry({ name: 'Ark Nova' }, 'wishlist')])
 
