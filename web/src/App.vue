@@ -7,6 +7,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
 import LanguageToggle from '@/components/LanguageToggle.vue'
 import ToastNotification from '@/components/ToastNotification.vue'
 import PoweredByBgg from '@/components/PoweredByBgg.vue'
+import ScrollToTopButton from '@/components/ScrollToTopButton.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -65,6 +66,7 @@ onMounted(() => {
   </footer>
 
   <ToastNotification />
+  <ScrollToTopButton />
 </template>
 
 <style scoped>

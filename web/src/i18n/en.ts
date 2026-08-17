@@ -12,6 +12,7 @@ export default {
     gamesCount: '{count} games',
     densityToCompact: 'Compact view',
     densityToComfortable: 'Comfortable view',
+    scrollToTop: 'Back to top',
   },
   nav: {
     collection: 'Collection',
