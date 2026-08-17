@@ -652,25 +652,19 @@ longer needs justify-content: space-between to push it to the far side. */
   margin: 0;
 }
 
-/* 982-1023px: confirmed with real (not simulated) windows at 987px and
-1020px, unlike an earlier attempt at this same gap that turned out to
-be measured while the browser's real width had silently drifted
-somewhere else entirely. Right in between the 821-981px tier above
-(where Ordenar por joining the first row still leaves enough room for
-Minutos/Modo/the toggle to share the second) and wide desktop (#app's
-own max-width: 1024px caps the card's content width from here on, and
-the toggle fits flush after Minutos/Modo once it does) - in this band
-it's neither: Minutos and Modo together already fill the second row
-that far, so the toggle drops to a lone third line, left-aligned and
-stranded. Moving it up next to the title instead avoids that orphaned
-line entirely, same technique as the two title/form pairs already used
-elsewhere on this page.
-
-626-673px gets the same treatment for a different reason - asked for
-directly, to pair with the 674-765px tier's own row split just below
-it (Estructura/Genero moving down to their own second row leaves even
-less headroom for the toggle at the end here too). */
-@media (min-width: 982px) and (max-width: 1023px), (min-width: 626px) and (max-width: 673px) {
+/* 481-1023px: whenever the form is expanded at anything narrower than
+wide desktop but wider than phone width, the toggle lives next to the
+title instead of embedded in the form - used to be three separate tiers
+(481-806px, 807-981px, 982-1023px) each reordering the form's fields to
+tuck the toggle in wherever it happened to fit (sharing a line with
+Ordenar por, or with Minutos, depending on the tier), until it was
+asked to just live at the title consistently across all of them instead
+- confirmed with real (not simulated) windows at 768px, 820px, 987px
+and 1020px. Below 481px the form's own layout gets tight enough (see
+the ≤480px tier further down) that embedding it back in the form was
+kept as-is there rather than also verifying a title-row version at
+those narrower widths. */
+@media (min-width: 481px) and (max-width: 1023px) {
   .title-density-toggle {
     display: block;
   }
@@ -685,41 +679,40 @@ less headroom for the toggle at the end here too). */
   }
 }
 
-/* 807-981px: at this width the card's default (unbounded) flex-wrap
-already reflows into a usable 2-line shape on its own (Ordenar por
-tags along on the first line with Buscar/Jugadores/Estructura/Genero,
-Minutos/Modo/the toggle sharing the second) - nothing here was actually
-broken. This reorders it into the layout asked for instead: Ordenar por
-and the toggle pushed past Minutos and Modo (both left at their default
-order: 0) to land together as the last line, flush against the card's
-right edge - same order-based technique as the ≤480px and ≤768px tiers,
-so wider layouts (where this media query doesn't apply) keep the plain
-DOM order Ordenar por already had. 807px (rather than a rounder number)
-is deliberate - confirmed with a real window right at that edge that
-Modo, Ordenar por and the toggle still fit together on their own line
-that far down without needing the 973-981px tier's line-break trick
-further up. */
-@media (min-width: 807px) and (max-width: 981px) {
-  .filters > .sort-field {
+/* 807-972px: asked for directly, to group Minutos disponibles and Modo
+onto their own shared row with Ordenar por pushed after them to a lone
+row of its own, rather than the plain default order (Ordenar por first,
+then Minutos/Modo) this range had before. Capped at 972px rather than
+carrying through to 981px so this doesn't fight the 973-981px tier
+below, which already has its own tested reason to keep Minutos and Modo
+apart instead.
+
+Minutos disponibles' 5 radios don't fit next to Modo's own ~346px on
+one line at this range's real content width (measured directly at
+820px: 528px unconstrained, against only ~770px total to share with
+Modo) - max-width: 350px forces its own radios to wrap onto two lines
+instead (Cualquiera/Hasta 30 min/Hasta 1h, then Hasta 1h30/Hasta 2h),
+confirmed stable across the 310-420px range so 350px isn't shaving
+against an edge. */
+@media (min-width: 807px) and (max-width: 972px) {
+  .filters > .duration-field {
     order: 1;
+    max-width: 350px;
   }
 
-  .filters > .density-toggle-slot {
+  .filters > .mode-fieldset {
     order: 2;
-    margin-left: auto;
   }
 
-  /* Same fix as the ≤480px/≤768px tiers: .sort-row (which
-  .sort-toggle's own padding makes taller than a plain select) is
-  taller than the density toggle button, so without this it sits flush
-  with the row's top instead of centered against it. */
-  .filters > .density-toggle-slot :deep(.density-toggle) {
-    margin-top: 5px;
+  .filters > .sort-field {
+    order: 3;
   }
 }
 
-/* 973-981px: right at the top of the 821-981px tier above, Minutos and
-Modo are just wide enough to still fit side by side on their own row.
+/* 973-981px: right at the top of the 807-972px tier above (which this
+range deliberately sits just outside of), Minutos and Modo are just
+wide enough to still fit side by side on their own row without needing
+Minutos' own radios to wrap the way the tier below forces.
 Forcing that apart with width: 100% on Minutos (the same trick the
 ≤480px tier uses on .mode-fieldset) stretched Minutos itself to fill
 the whole line instead of sitting at its own natural width - fine for
@@ -731,11 +724,10 @@ Minutos, one after) without touching Minutos' own width at all - each
 is a real flex item once it has content: '', so flex-basis: 100% on it
 forces whatever comes next onto a fresh line the same way a genuinely
 full-width item would, but the break itself renders as nothing between
-the visible rows it separates. Modo, Ordenar por and the toggle each
-need an explicit order now too (rather than just Modo's) - Ordenar
-por's order: 1/the toggle's order: 2 from the parent 821-981px rule
-above would otherwise still outrank Modo's default order: 0 and land
-before it. */
+the visible rows it separates. Modo, Ordenar por and the toggle (the
+last one hidden in this range - see the 807-1023px rule above, which
+this range sits inside of) each need an explicit order of their own
+too, past the two breaks. */
 @media (min-width: 973px) and (max-width: 981px) {
   /* Each break is its own zero-height flex line, and .filters' own
   row-gap applies between every pair of lines regardless of what's on
@@ -996,19 +988,23 @@ against or get cascaded over by that block's own order/width rules;
 the two ranges never overlap, so which one comes first in the file
 doesn't matter either way. At this width there's room for Buscar,
 Jugadores, Estructura and Genero to all share the first row instead of
-Genero wrapping alone. Ordenar por and the density toggle move to
-order 1/2 for the same reason as the ≤480px tier: pushed past Minutos
-and Modo (both still default order: 0) to land right after Modo
-instead of its own natural spot ahead of Minutos - margin-left: auto on
-the toggle below matches the ≤480px tier too, flush against the card's
-right edge instead of sitting wherever it lands right after
-.sort-field. Upper bound is 806px, not 768px - 769-806px used to fall
-through to the plain unbounded default (Ordenar por landing next to
-Minutos instead of Modo), which this tier's own reordering also fixes
-just as well, so it's simplest to just extend this same tier over that
-gap rather than add a third near-identical block. 807px is where the
-next tier up (821px originally, later extended down) takes over
-instead. */
+Genero wrapping alone. Upper bound is 806px, not 768px - 769-806px used
+to fall through to the plain unbounded default, which this tier's own
+160px cap also happens to suit just as well, so it's simplest to just
+extend this same tier over that gap rather than add a third
+near-identical block. 807px is where the next tier up takes over
+instead.
+
+Used to also reorder Ordenar por (and, before it moved to the title
+row, the density toggle) past Minutos and Modo here - dropped when the
+toggle moved out, then asked back for Ordenar por alone: without an
+order override, its natural DOM position sits ahead of Minutos and
+Modo (confirmed at a real 768px window: each of the three lands on its
+own separate line at this range's narrower widths, in that order), so
+order: 1 below moves it after both instead, same technique as the
+807-972px tier above though without that tier's own width cap on
+Minutos - this range's narrower widths don't leave room to force
+Minutos and Modo sharing a line the way that tier does. */
 @media (min-width: 481px) and (max-width: 806px) {
   /* 160px rather than the 179px this row technically had left after
   Buscar/Jugadores/Estructura (measured via content-width simulation) -
@@ -1022,19 +1018,6 @@ instead. */
   .filters > .sort-field {
     order: 1;
   }
-
-  .filters > .density-toggle-slot {
-    order: 2;
-    margin-left: auto;
-  }
-
-  /* Same fix as the ≤480px tier: .sort-row (which .sort-toggle's own
-  padding makes taller than a plain select) is taller than the density
-  toggle button, so without this it sits flush with the row's top
-  instead of centered against it. */
-  .filters > .density-toggle-slot :deep(.density-toggle) {
-    margin-top: 5px;
-  }
 }
 
 /* 674-765px: right in the middle of the 481-806px tier above, Buscar/
@@ -1043,14 +1026,15 @@ them squeezed there rather than split. Estructura and Genero move down
 to their own second row instead - a single ::before break forces that
 split; unlike the 973-981px tier's two-break case, Minutos (wide enough
 on its own to always force its own line regardless of what precedes it)
-and Modo/Ordenar por/the toggle (already reordered to follow it by the
-parent tier above) don't need breaks of their own, they just naturally
-fall in after. row-gap is turned off the same way and cascade-order
-reason as the 973-981px tier's own version further down, and restored
-by hand as margin-bottom on each row's own trailing item(s) instead -
-except here every row needs it, not just the one next to the break,
-since row-gap being off applies to every line in the card, not only
-the split one.
+doesn't need a break of its own, it just naturally falls in after -
+Modo and Ordenar por get their own explicit order below instead, since
+this range needs its own line breaks regardless of whatever the parent
+tier above does or doesn't reorder. row-gap is turned off the same way
+and cascade-order reason as the 973-981px tier's own version further
+down, and restored by hand as margin-bottom on each row's own trailing
+item(s) instead - except here every row needs it, not just the one
+next to the break, since row-gap being off applies to every line in
+the card, not only the split one.
 
 626-673px reuses the exact same split, asked for directly alongside
 moving the toggle up to the title row (see that rule above) - giving
