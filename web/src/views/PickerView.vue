@@ -902,19 +902,9 @@ actually fit in the narrower box instead of just overflowing it. */
     min-width: 0;
   }
 
-  /* Minutos disponibles' 5 radios wrap into 3 lines at this card's real
-  249px content width (measured directly - the ~268px this used to
-  assume was never actually right) with the fieldset's usual space-4
-  gap between labels and each label's own default space-2 icon-to-text
-  gap: Hasta 1h + Hasta 1h30 + Hasta 2h needs 271px that way, well past
-  budget. Tightening the between-labels gap to space-2 alone (256.66px)
-  still doesn't clear it - the icon-to-text gap needs shrinking too
-  (same fix .mode-fieldset label already used below), which gets the
-  three down to 238.66px, comfortably inside the real budget. */
-  .duration-field {
-    gap: var(--space-2);
-  }
-
+  /* Tightens Minutos disponibles' own icon-to-text gap so its 5 radios
+  keep fitting this card's real ~249px content width at a real 366px
+  phone. */
   .duration-field label {
     gap: 2px;
   }
