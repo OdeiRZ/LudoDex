@@ -155,15 +155,23 @@ line to distribute space against. */
   white-space: nowrap;
 }
 
-/* .session itself doesn't wrap (see its own comment above) - without
-this, once it stopped fitting on one line even on its own row, the name
-and "Cerrar sesión" wrapped mid-word inside their own boxes instead of
-the row growing or something giving way, reading as broken rather than
-just tight. Dropping the name text first frees up enough room that
-nothing needs to wrap; the avatar (still a link to the profile) and the
-name itself sitting in Mi perfil are enough to identify the account
-without repeating it here. */
-@media (max-width: 400px) {
+/* Below 400px, .session itself doesn't wrap (see its own comment
+above) - without this, once it stopped fitting on one line even on its
+own row, the name and "Cerrar sesión" wrapped mid-word inside their own
+boxes instead of the row growing or something giving way, reading as
+broken rather than just tight.
+
+Up to 800px, a different problem needs the same fix: primary-nav's own
+flex: 1 lets it shrink rather than forcing the whole header to wrap
+onto two rows, so at a real 768px tablet window "¿A qué jugamos?" and
+"Importar BGG" wrap mid-phrase instead - dropping the name here frees
+up enough of the row that primary-nav has room to lay its links out on
+one line each again.
+
+Either way, the avatar (still a link to the profile) and the name
+itself sitting in Mi perfil are enough to identify the account without
+repeating it here. */
+@media (max-width: 800px) {
   .user-name-text {
     display: none;
   }
