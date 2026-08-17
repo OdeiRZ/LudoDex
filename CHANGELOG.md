@@ -7,10 +7,23 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
-## [0.5.0] - 2026-08-15
+## [0.5.0] - 2026-08-17
 
 ### Añadido
 
+- Botón flotante para volver arriba rápidamente sin hacer scroll,
+  en la esquina inferior derecha, visible a partir de cierto
+  desplazamiento.
+- En "¿A qué jugamos?", el número de jugadores y el modo campaña
+  tienen en cuenta ahora las expansiones marcadas como "Lo tengo" del
+  juego base (no las que solo están en la lista de deseados), ya que
+  BGG publica el rango combinado en la ficha de la propia expansión.
+- El panel de filtros de "¿A qué jugamos?" se puede plegar con un
+  botón (icono de sliders), dejando solo un resumen de los filtros
+  activos — útil para centrarse en los resultados sin desplazarse
+  tanto. El botón de cambio de vista (compacta/cómoda) se relocaliza
+  junto al título de la sección de forma consistente, en vez de vivir
+  embebido en el formulario según el ancho de pantalla.
 - Ordenación por nombre o ranking BGG en "¿A qué jugamos?", igual que
   ya tenía "Tu colección" — de paso se reagrupan sus filtros
   (Estructura y Género suben junto a Buscar/Jugadores) para dejar
@@ -83,6 +96,21 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   tablet.
 - Las imágenes de portada de cada tarjeta se cargan de forma diferida
   (`loading="lazy"`) en vez de todas de golpe al abrir la colección.
+- La contraseña mínima baja de 8 a 6 caracteres, tanto al crear cuenta
+  como al cambiarla.
+- El borde lateral de las expansiones usa el mismo morado que su
+  etiqueta de texto "Expansión de...", en vez de un tono distinto.
+- El selector de tipo (Todos/Solo juegos base/Solo expansiones) se
+  ensancha en resoluciones de escritorio, igual que ya se hizo con el
+  de ordenar.
+- Repaso del ancho de tablet (768-1023px) en "¿A qué jugamos?":
+  Minutos disponibles y Modo comparten fila con Ordenar por al final
+  en vez de ir cada uno por su lado, y el nombre de usuario se oculta
+  en la cabecera hasta 800px de ancho (no solo en móvil) para que los
+  enlaces de navegación centrales no partan su texto por falta de
+  espacio.
+- El README aclara que la relación con BGG es de solo lectura: nada
+  de lo que se edita en la app se envía de vuelta a BGG.
 
 ### Corregido
 
@@ -195,6 +223,8 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   que aparecía como el más antiguo de toda la colección al ordenar
   por año. Se trata igual que ya se hacía con el ranking a `0` del
   CSV.
+- El fondo del aviso de éxito (verde) apenas se distinguía por ser
+  semitransparente; ahora es un verde sólido.
 
 ## [0.4.0] - 2026-08-14
 
