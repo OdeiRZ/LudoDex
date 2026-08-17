@@ -679,25 +679,18 @@ those narrower widths. */
   }
 }
 
-/* 807-972px: asked for directly, to group Minutos disponibles and Modo
-onto their own shared row with Ordenar por pushed after them to a lone
-row of its own, rather than the plain default order (Ordenar por first,
-then Minutos/Modo) this range had before. Capped at 972px rather than
-carrying through to 981px so this doesn't fight the 973-981px tier
-below, which already has its own tested reason to keep Minutos and Modo
-apart instead.
-
-Minutos disponibles' 5 radios don't fit next to Modo's own ~346px on
-one line at this range's real content width (measured directly at
-820px: 528px unconstrained, against only ~770px total to share with
-Modo) - max-width: 350px forces its own radios to wrap onto two lines
-instead (Cualquiera/Hasta 30 min/Hasta 1h, then Hasta 1h30/Hasta 2h),
-confirmed stable across the 310-420px range so 350px isn't shaving
-against an edge. */
+/* 807-972px: asked for directly, to push Ordenar por after Minutos
+disponibles and Modo instead of the plain default order (Ordenar por
+first, then Minutos/Modo) this range had before - Minutos disponibles
+and Modo keep their own natural DOM order (both still order: 0)
+otherwise, so whether they end up sharing a row is left to however
+they naturally fit at a given width rather than forced. Capped at
+972px rather than carrying through to 981px so this doesn't fight the
+973-981px tier below, which already has its own tested reason to keep
+Minutos and Modo apart instead. */
 @media (min-width: 807px) and (max-width: 972px) {
   .filters > .duration-field {
     order: 1;
-    max-width: 350px;
   }
 
   .filters > .mode-fieldset {
@@ -1017,6 +1010,13 @@ Minutos and Modo sharing a line the way that tier does. */
 
   .filters > .sort-field {
     order: 1;
+  }
+
+  /* Asked for directly, to tighten Minutos disponibles' own 5 radios
+  at a real 768px tablet window - default var(--space-4) between them
+  (fieldset's own global gap) read as slightly loose at this width. */
+  .filters > .duration-field {
+    gap: var(--space-2);
   }
 }
 
