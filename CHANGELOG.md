@@ -7,7 +7,7 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
-## [0.5.0] - 2026-08-17
+## [0.5.0] - 2026-08-18
 
 ### Añadido
 
@@ -111,6 +111,7 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   espacio.
 - El README aclara que la relación con BGG es de solo lectura: nada
   de lo que se edita en la app se envía de vuelta a BGG.
+- El tamaño de los títulos `h1` baja ligeramente, de 1.75rem a 1.7rem.
 
 ### Corregido
 
