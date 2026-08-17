@@ -312,7 +312,7 @@ const filtered = computed(() => {
       <p>{{ filterSummary }}</p>
       <button
         type="button"
-        class="btn filters-toggle"
+        class="btn filters-toggle filters-toggle-floating"
         :aria-expanded="false"
         :aria-label="$t('picker.showFilters')"
         :title="$t('picker.showFilters')"
@@ -560,6 +560,7 @@ the filters form itself while expanded (.filters-toggle-floating below)
   height: 28px;
   padding: 0;
   flex-shrink: 0;
+  border: none;
 }
 
 .filters-toggle svg {
@@ -618,11 +619,11 @@ hiding filters shouldn't hide it too. */
   display: block;
 }
 
+/* position: relative anchors .filters-toggle-floating, same as .filters
+itself - the button isn't a flex participant here either, so this no
+longer needs justify-content: space-between to push it to the far side. */
 .filters-summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
+  position: relative;
   color: var(--color-text-muted);
   font-size: 0.9rem;
 }
