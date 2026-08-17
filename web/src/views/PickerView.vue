@@ -547,7 +547,7 @@ h1 {
   gap: 1px;
   height: 32px;
   padding: 0 var(--space-2);
-  margin-left: var(--space-2);
+  margin-left: auto;
 }
 
 .filters-toggle svg {
