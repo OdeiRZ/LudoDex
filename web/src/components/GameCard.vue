@@ -16,6 +16,13 @@ const props = withDefaults(
 // empty card.
 const showFallback = ref(false)
 
+// A JS-expression binding rather than a literal template src="..." -
+// the latter goes through the SFC compiler's asset-url transform, which
+// (as of @vitejs/plugin-vue 6) resolves this against a file:// module
+// URL instead of leaving a root-relative public path untouched, and
+// Node's stricter file URL parsing throws on the result outright.
+const fallbackIconUrl = '/icons/icon-192.png'
+
 watch(
   () => props.imageUrl,
   () => {
@@ -35,7 +42,7 @@ watch(
       @error="showFallback = true"
     />
     <div v-else class="cover-fallback">
-      <img src="/icons/icon-192.png" alt="" class="cover-fallback-icon" />
+      <img :src="fallbackIconUrl" alt="" class="cover-fallback-icon" />
     </div>
 
     <div class="cover-scrim">
