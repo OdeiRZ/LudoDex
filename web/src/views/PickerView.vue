@@ -38,6 +38,12 @@ const onlyCampaign = ref(false)
 const categoryFilter = ref('')
 const search = ref('')
 
+// Trying this collapsed - starts expanded (same as always), a manual
+// toggle only for now, not persisted - see whether it's worth keeping
+// before wiring it up properly (localStorage, etc.) like density already
+// is.
+const filtersCollapsed = ref(false)
+
 // Same criterion/order pair as the collection's own sort controls (and the
 // same reasoning for a toggle button over a second radio group) - the
 // collection can come back from the API in an order that has nothing to do
@@ -168,6 +174,45 @@ function asFilterNumber(value: number | null): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
 
+// What shows in place of the full filter form while it's collapsed - only
+// the parts that actually narrow the results, so a still-default duration/
+// mode/category doesn't clutter it with "Cualquiera" three times over.
+const filterSummary = computed(() => {
+  const parts: string[] = []
+
+  if (search.value.trim() !== '') {
+    parts.push(`"${search.value.trim()}"`)
+  }
+
+  parts.push(isSoloPlayer.value ? t('picker.solo') : t('picker.playersCount', { count: players.value }))
+
+  if (durationBucket.value !== 'any') {
+    const durationLabel =
+      durationBucket.value === '30'
+        ? t('picker.upTo30')
+        : durationBucket.value === '60'
+          ? t('picker.upTo1h')
+          : durationBucket.value === '90'
+            ? t('picker.upTo1h30')
+            : t('picker.upTo2h')
+    parts.push(durationLabel)
+  }
+
+  if (!isSoloPlayer.value && modeFilter.value !== 'any') {
+    parts.push(modeFilter.value === 'cooperative' ? t('picker.cooperative') : t('picker.competitive'))
+  }
+
+  if (onlyCampaign.value) {
+    parts.push(t('picker.onlyCampaign'))
+  }
+
+  if (categoryFilter.value !== '') {
+    parts.push(translateCategory(categoryFilter.value, locale.value))
+  }
+
+  return parts.join(' · ')
+})
+
 const filtered = computed(() => {
   const minPlayersFilter = asFilterNumber(players.value)
   const maxDurationFilter = durationBucket.value === 'any' ? null : Number(durationBucket.value)
@@ -253,17 +298,45 @@ const filtered = computed(() => {
 
 <template>
   <div>
-    <div class="title-row">
+    <div class="title-row" :class="{ 'filters-collapsed': filtersCollapsed }">
       <h1>{{ $t('picker.title') }}</h1>
       <span v-if="games.loaded && playable.length" class="count">{{
         $t('common.gamesCount', { count: filtered.length })
       }}</span>
+      <button
+        v-if="games.loaded && playable.length"
+        type="button"
+        class="btn filters-toggle"
+        :class="{ 'filters-toggle-open': !filtersCollapsed }"
+        :aria-expanded="!filtersCollapsed"
+        :aria-label="filtersCollapsed ? $t('picker.showFilters') : $t('picker.hideFilters')"
+        :title="filtersCollapsed ? $t('picker.showFilters') : $t('picker.hideFilters')"
+        @click="filtersCollapsed = !filtersCollapsed"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M22 3H2l8 9.46V19l4 2v-8.54L22 3Z" />
+        </svg>
+        <svg
+          class="filters-toggle-chevron"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
       <div v-if="games.loaded && playable.length" class="title-density-toggle">
         <DensityToggle :density="density" @toggle="toggleDensity" />
       </div>
     </div>
 
-    <form v-if="games.loaded && playable.length" class="filters card" @submit.prevent>
+    <p v-if="games.loaded && playable.length && filtersCollapsed" class="filters-summary card">
+      {{ filterSummary }}
+    </p>
+
+    <form v-if="games.loaded && playable.length && !filtersCollapsed" class="filters card" @submit.prevent>
       <div class="search-field">
         <label for="search">{{ $t('picker.searchLabel') }}</label>
         <input
@@ -459,11 +532,43 @@ h1 {
   display: flex;
   align-items: baseline;
   gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
 .count {
   color: var(--color-text-muted);
   font-size: 0.9rem;
+}
+
+.filters-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  height: 32px;
+  padding: 0 var(--space-2);
+  margin-left: var(--space-2);
+}
+
+.filters-toggle svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.filters-toggle-chevron {
+  width: 12px;
+  height: 12px;
+  transition: transform 0.15s ease;
+}
+
+/* Standard expand/collapse chevron convention (points down toward the
+hidden content while collapsed, flips to point back up once it's
+open) - the opposite of DensityToggle/ThemeToggle's "icon shows what
+clicking leads to" on this same page, but this one is about revealing
+a section, not switching between two equally-valid states. */
+.filters-toggle-open .filters-toggle-chevron {
+  transform: rotate(180deg);
 }
 
 /* Hidden by default - only the .density-toggle-slot copy down in the
@@ -475,6 +580,20 @@ element can't straddle both. */
   display: none;
   align-self: center;
   margin-left: auto;
+}
+
+/* The filters form (and its own .density-toggle-slot copy) doesn't
+render at all while collapsed, regardless of width - without this the
+density toggle would vanish along with it outside the narrow bands
+below that already show this copy. Density affects the results grid,
+not the filters, so hiding filters shouldn't hide it too. */
+.title-row.filters-collapsed .title-density-toggle {
+  display: block;
+}
+
+.filters-summary {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
 }
 
 /* 982-1023px: confirmed with real (not simulated) windows at 987px and
