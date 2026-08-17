@@ -594,8 +594,8 @@ spacing it already had rather than pushing the whole card taller to
 carve out clear space for this. */
 .filters-toggle-floating {
   position: absolute;
-  top: var(--space-3);
-  right: var(--space-3);
+  top: 0;
+  right: 0;
 }
 
 /* Hidden by default - only the .density-toggle-slot copy inside the
