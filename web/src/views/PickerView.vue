@@ -1221,8 +1221,8 @@ read in full at max desktop width instead of clipping. */
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-pill);

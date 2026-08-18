@@ -775,8 +775,8 @@ are unrelated primary actions, not a style this needs to follow). */
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-pill);
