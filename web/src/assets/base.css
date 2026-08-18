@@ -157,7 +157,17 @@ h3 {
 }
 
 h1 {
-  font-size: 1.7rem;
+  font-size: 1.75rem;
+}
+
+/* Same narrow-phone tier already used elsewhere in the app (iPhone SE
+and similar, confirmed on real devices) - titles are the single biggest
+text on every page, so they're the first thing that starts feeling
+oversized once the viewport gets this tight. */
+@media (max-width: 379px) {
+  h1 {
+    font-size: 1.6rem;
+  }
 }
 
 h2 {
