@@ -99,24 +99,32 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 .modal-cover {
   margin: calc(var(--space-4) * -1) calc(var(--space-4) * -1) var(--space-4);
-  height: 180px;
   border-radius: var(--radius) var(--radius) 0 0;
   overflow: hidden;
   background: var(--color-surface-hover);
 }
 
+/* No fixed height/object-fit: cover here on purpose - unlike the grid
+cards (which all need to line up at the same size), this is the one
+place showing the cover at its own real proportions instead of cropped
+to fit a box. max-height is just a safety net for an unusually tall
+cover so it can't push the rest of the modal off-screen; object-fit:
+contain only actually does anything once that cap kicks in (letterboxes
+instead of cropping), since width: 100%/height: auto alone already
+renders at the image's natural ratio with no mismatch to resolve. */
 .modal-cover img {
+  display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 20%;
+  height: auto;
+  max-height: 60vh;
+  object-fit: contain;
 }
 
 .modal-cover-fallback {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  height: 180px;
 }
 
 .modal-cover-fallback img {
