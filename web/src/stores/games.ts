@@ -182,5 +182,25 @@ export const useGamesStore = defineStore('games', {
       })
       return data.data
     },
+
+    /** Idempotent on the backend (an already-translated game just echoes
+     * description_es back without calling DeepL again), and games is a
+     * catalog shared across every user - patches every collection entry
+     * for this game (not just the one that happened to trigger it),
+     * since a shared game only ever needs translating once. Returns the
+     * value rather than relying only on the store mutation, so a caller
+     * with its own local copy of the game (like the details modal) can
+     * update without waiting on the collection array to re-render it. */
+    async translateDescription(gameId: string): Promise<string | null> {
+      const { data } = await apiClient.post(`/games/${gameId}/translate-description`)
+
+      this.collection
+        .filter((entry) => entry.game.id === gameId)
+        .forEach((entry) => {
+          entry.game.description_es = data.description_es
+        })
+
+      return data.description_es
+    },
   },
 })

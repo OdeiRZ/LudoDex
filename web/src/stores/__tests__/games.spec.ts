@@ -113,4 +113,19 @@ describe('useGamesStore', () => {
     expect(apiClient.delete).toHaveBeenCalledWith('/games')
     expect(store.collection).toEqual([])
   })
+
+  it('patches description_es onto every collection entry for the translated game', async () => {
+    const root = makeEntry({ id: 'g1', description: 'A game about woodland factions.' })
+    const otherGame = makeEntry({ id: 'g2', description: 'Something else.' })
+    const store = useGamesStore()
+    store.collection = [root, otherGame]
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { description_es: 'Un juego sobre facciones del bosque.' } })
+
+    const result = await store.translateDescription('g1')
+
+    expect(apiClient.post).toHaveBeenCalledWith('/games/g1/translate-description')
+    expect(result).toBe('Un juego sobre facciones del bosque.')
+    expect(store.collection[0].game.description_es).toBe('Un juego sobre facciones del bosque.')
+    expect(store.collection[1].game.description_es).toBeNull()
+  })
 })

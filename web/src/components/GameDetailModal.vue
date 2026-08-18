@@ -1,17 +1,40 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue'
-import type { Game } from '@/stores/games'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useGamesStore, type Game } from '@/stores/games'
 import { FALLBACK_ICON_URL } from '@/lib/assets'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const props = defineProps<{ game: Game }>()
 const emit = defineEmits<{ close: [] }>()
+const games = useGamesStore()
 
 // Prefer the Spanish translation once it exists - until the translation
-// step (DeepL, triggered separately) actually runs for this game,
-// description_es stays null and this silently falls back to the original
-// English text instead of showing nothing.
+// step (DeepL, triggered by the button below) actually runs for this
+// game, description_es stays null and this silently falls back to the
+// original English text instead of showing nothing.
 const displayDescription = computed(() => props.game.description_es || props.game.description)
 const isUntranslated = computed(() => !props.game.description_es && !!props.game.description)
+
+const translating = ref(false)
+const translateFailed = ref(false)
+
+// Mutates the same reactive Game object this component's own `game` prop
+// points to (games.collection isn't cloned when PickerView builds the
+// list this modal's caller picks entries from) - displayDescription
+// above updates on its own once that happens, no local state to sync by
+// hand here.
+async function onTranslateClick() {
+  translating.value = true
+  translateFailed.value = false
+
+  try {
+    await games.translateDescription(props.game.id)
+  } catch {
+    translateFailed.value = true
+  } finally {
+    translating.value = false
+  }
+}
 
 function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
@@ -54,6 +77,20 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         {{ displayDescription }}
       </p>
       <p v-else class="modal-description-empty">{{ $t('picker.noDescription') }}</p>
+
+      <button
+        v-if="isUntranslated"
+        type="button"
+        class="btn modal-translate"
+        :disabled="translating"
+        @click="onTranslateClick"
+      >
+        <LoadingSpinner v-if="translating" :size="14" />
+        {{ translating ? $t('picker.translating') : $t('picker.translateButton') }}
+      </button>
+      <p v-if="translateFailed" role="alert" class="alert alert-error modal-translate-error">
+        {{ $t('picker.translateError') }}
+      </p>
     </div>
   </div>
 </template>
@@ -164,5 +201,13 @@ suggest a connection to owned/wishlist/expansion. */
   font-size: 0.75rem;
   font-weight: 600;
   vertical-align: text-top;
+}
+
+.modal-translate {
+  margin-top: var(--space-4);
+}
+
+.modal-translate-error {
+  margin-top: var(--space-2);
 }
 </style>
