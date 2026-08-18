@@ -161,10 +161,14 @@ instead of cropping), since width: 100%/height: auto alone already
 renders at the image's natural ratio with no mismatch to resolve. */
 .modal-cover img {
   display: block;
+  box-sizing: border-box;
   width: 100%;
   height: auto;
   max-height: 60vh;
   object-fit: contain;
+  border-style: solid;
+  border-color: transparent;
+  border-width: 5px 5px 0 5px;
 }
 
 .modal-cover-fallback {
