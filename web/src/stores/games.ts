@@ -8,6 +8,8 @@ export interface Game {
   base_game_name: string | null
   name: string
   image_url: string | null
+  description: string | null
+  description_es: string | null
   year_published: number | null
   min_age: string | null
   bgg_rank: number | null
@@ -76,6 +78,7 @@ export interface BggGameLookup {
   bgg_id: number
   name: string
   image_url: string | null
+  description: string | null
   year_published: number | null
   min_age: string | null
   bgg_rank: number | null

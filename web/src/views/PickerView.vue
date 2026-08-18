@@ -1,17 +1,22 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useGamesStore } from '@/stores/games'
+import { useGamesStore, type UserGame } from '@/stores/games'
 import { useCollectionDensity } from '@/composables/useCollectionDensity'
 import { useExpansionCounts } from '@/composables/useExpansionCounts'
 import { getLocale } from '@/i18n'
 import { translateCategory } from '@/i18n/bggCategories'
 import DensityToggle from '@/components/DensityToggle.vue'
 import GameCard from '@/components/GameCard.vue'
+import GameDetailModal from '@/components/GameDetailModal.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const games = useGamesStore()
 const { t } = useI18n()
+
+// Which card's details modal (image/description) is open, if any - only
+// one at a time, so a single ref rather than per-card state is enough.
+const detailEntry = ref<UserGame | null>(null)
 const { density, toggle: toggleDensity } = useCollectionDensity()
 const locale = computed(() => getLocale())
 const expansionCounts = useExpansionCounts(computed(() => games.collection))
@@ -469,20 +474,22 @@ const filtered = computed(() => {
         <GameCard :image-url="entry.game.image_url" :compact="density === 'compact'">
           <div class="game-card-header">
             <h2>{{ entry.game.name }}</h2>
-            <RouterLink
-              :to="{ name: 'edit-game', params: { id: entry.id }, query: { from: 'picker' } }"
-              class="edit-icon-button"
-              :aria-label="$t('picker.editGame')"
-              :title="$t('picker.editGame')"
+            <button
+              type="button"
+              class="details-icon-button"
+              :aria-label="$t('picker.viewDetails')"
+              :title="$t('picker.viewDetails')"
+              @click="detailEntry = entry"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
-                  d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"
+                  d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"
                 />
+                <circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
-            </RouterLink>
+            </button>
           </div>
           <p
             v-if="
@@ -543,6 +550,8 @@ const filtered = computed(() => {
         </GameCard>
       </li>
     </ul>
+
+    <GameDetailModal v-if="detailEntry" :game="detailEntry.game" @close="detailEntry = null" />
   </div>
 </template>
 
@@ -1208,7 +1217,7 @@ read in full at max desktop width instead of clipping. */
   min-width: 0;
 }
 
-.results :deep(.edit-icon-button) {
+.results :deep(.details-icon-button) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1221,12 +1230,12 @@ read in full at max desktop width instead of clipping. */
   color: var(--color-text-muted);
 }
 
-.results :deep(.edit-icon-button:hover) {
+.results :deep(.details-icon-button:hover) {
   background: var(--color-surface-hover);
   color: var(--color-text);
 }
 
-.results :deep(.edit-icon-button svg) {
+.results :deep(.details-icon-button svg) {
   width: 16px;
   height: 16px;
 }

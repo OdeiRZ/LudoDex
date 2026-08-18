@@ -159,15 +159,21 @@ describe('PickerView', () => {
       expect(wrapper.find('.count').text()).toBe('3 juegos')
     })
 
-    it('gives each result an edit button so games can be fixed without leaving the page', async () => {
+    it('gives each result a details button that opens its description in a modal', async () => {
       await wrapper.find('#players').setValue('')
 
-      const editButtons = wrapper.findAll('.edit-icon-button')
+      const detailButtons = wrapper.findAll('.details-icon-button')
 
-      expect(editButtons).toHaveLength(3)
-      expect(editButtons.every((btn) => btn.attributes('aria-label') === 'Editar juego')).toBe(
-        true,
-      )
+      expect(detailButtons).toHaveLength(3)
+      expect(
+        detailButtons.every((btn) => btn.attributes('aria-label') === 'Ver detalles'),
+      ).toBe(true)
+
+      expect(wrapper.findComponent({ name: 'GameDetailModal' }).exists()).toBe(false)
+
+      await detailButtons[0].trigger('click')
+
+      expect(wrapper.findComponent({ name: 'GameDetailModal' }).exists()).toBe(true)
     })
 
     it('shows every owned game once the player filter is cleared', async () => {

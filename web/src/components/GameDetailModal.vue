@@ -1,0 +1,160 @@
+<script setup lang="ts">
+import { computed, onMounted, onUnmounted } from 'vue'
+import type { Game } from '@/stores/games'
+import { FALLBACK_ICON_URL } from '@/lib/assets'
+
+const props = defineProps<{ game: Game }>()
+const emit = defineEmits<{ close: [] }>()
+
+// Prefer the Spanish translation once it exists - until the translation
+// step (DeepL, triggered separately) actually runs for this game,
+// description_es stays null and this silently falls back to the original
+// English text instead of showing nothing.
+const displayDescription = computed(() => props.game.description_es || props.game.description)
+const isUntranslated = computed(() => !props.game.description_es && !!props.game.description)
+
+function onKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    emit('close')
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+</script>
+
+<template>
+  <div class="modal-backdrop" @click.self="$emit('close')">
+    <div class="modal-panel card" role="dialog" aria-modal="true" :aria-label="game.name">
+      <button
+        type="button"
+        class="btn modal-close"
+        :aria-label="$t('common.close')"
+        :title="$t('common.close')"
+        @click="$emit('close')"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M18 6 6 18M6 6l12 12" />
+        </svg>
+      </button>
+
+      <div class="modal-cover">
+        <img v-if="game.image_url" :src="game.image_url" alt="" />
+        <div v-else class="modal-cover-fallback">
+          <img :src="FALLBACK_ICON_URL" alt="" />
+        </div>
+      </div>
+
+      <h2>{{ game.name }}</h2>
+
+      <p v-if="displayDescription" class="modal-description">
+        <span v-if="isUntranslated" class="badge badge-en" :title="$t('picker.descriptionUntranslated')">{{
+          $t('picker.descriptionUntranslatedShort')
+        }}</span>
+        {{ displayDescription }}
+      </p>
+      <p v-else class="modal-description-empty">{{ $t('picker.noDescription') }}</p>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.modal-panel {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-close {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+}
+
+.modal-close svg {
+  width: 16px;
+  height: 16px;
+}
+
+.modal-cover {
+  margin: calc(var(--space-4) * -1) calc(var(--space-4) * -1) var(--space-4);
+  height: 180px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  overflow: hidden;
+  background: var(--color-surface-hover);
+}
+
+.modal-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 20%;
+}
+
+.modal-cover-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.modal-cover-fallback img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  opacity: 0.4;
+}
+
+h2 {
+  padding-right: var(--space-6);
+  margin-bottom: var(--space-3);
+}
+
+.modal-description {
+  white-space: pre-line;
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+.modal-description-empty {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Same small-badge sizing as the picker's expansion/status badges, but
+its own color - "EN" isn't a status the rest of the app already has a
+color for, and reusing one of those (teal/amber/violet) would wrongly
+suggest a connection to owned/wishlist/expansion. */
+.badge-en {
+  display: inline-block;
+  margin-right: var(--space-2);
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-border-strong);
+  color: var(--color-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: text-top;
+}
+</style>

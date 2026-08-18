@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { isAxiosError } from 'axios'
 import { useGamesStore } from '@/stores/games'
@@ -11,21 +11,16 @@ import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
 
 const props = defineProps<{ id: string }>()
 
-const route = useRoute()
 const router = useRouter()
 const games = useGamesStore()
 const toast = useToastStore()
 const { t } = useI18n()
 const { isSlow, wrap } = useSlowRequestHint()
 
-// This view is reachable from both the collection and the picker's own
-// edit shortcut - `from` says which, so "cancel" and "save" both return
-// to wherever the user actually came from instead of always landing on
-// the collection. Falls back to the collection when absent (e.g. the
-// link was opened directly rather than navigated to in-app).
-const returnTo = computed(() =>
-  route.query.from === 'picker' ? { name: 'picker' } : { name: 'dashboard' },
-)
+// Editing is only reachable from the collection now (the picker's own
+// edit shortcut was replaced by a read-only details view), so both
+// "cancel" and "save" always return there.
+const returnTo = { name: 'dashboard' }
 
 const form = reactive<GameFormData>({
   name: '',
@@ -146,7 +141,7 @@ async function onSubmit() {
   try {
     await wrap(games.updateGame(props.id, form))
     toast.show(t('editGame.toastSaved'))
-    router.push(returnTo.value)
+    router.push(returnTo)
   } catch (err) {
     if (isAxiosError(err) && err.response?.status === 422) {
       const fieldErrors: Record<string, string[]> = err.response.data.errors
@@ -166,7 +161,7 @@ async function onDelete() {
   try {
     await games.deleteGame(props.id)
     toast.show(t('dashboard.toastRemoved'))
-    router.push(returnTo.value)
+    router.push(returnTo)
   } catch {
     errors.value = { general: [t('editGame.deleteError')] }
     confirmingDelete.value = false

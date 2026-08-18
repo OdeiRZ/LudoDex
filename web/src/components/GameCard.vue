@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { FALLBACK_ICON_URL } from '@/lib/assets'
 
 const props = withDefaults(
   defineProps<{
@@ -15,13 +16,6 @@ const props = withDefaults(
 // centered on a plain background instead of a broken-image glyph or an
 // empty card.
 const showFallback = ref(false)
-
-// A JS-expression binding rather than a literal template src="..." -
-// the latter goes through the SFC compiler's asset-url transform, which
-// (as of @vitejs/plugin-vue 6) resolves this against a file:// module
-// URL instead of leaving a root-relative public path untouched, and
-// Node's stricter file URL parsing throws on the result outright.
-const fallbackIconUrl = '/icons/icon-192.png'
 
 watch(
   () => props.imageUrl,
@@ -42,7 +36,7 @@ watch(
       @error="showFallback = true"
     />
     <div v-else class="cover-fallback">
-      <img :src="fallbackIconUrl" alt="" class="cover-fallback-icon" />
+      <img :src="FALLBACK_ICON_URL" alt="" class="cover-fallback-icon" />
     </div>
 
     <div class="cover-scrim">

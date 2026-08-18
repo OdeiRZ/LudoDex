@@ -8,6 +8,8 @@ export function makeGame(overrides: Partial<Game> = {}): Game {
     base_game_name: null,
     name: 'Juego',
     image_url: null,
+    description: null,
+    description_es: null,
     year_published: null,
     min_age: null,
     bgg_rank: null,
