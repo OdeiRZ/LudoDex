@@ -217,6 +217,60 @@ it('treats a "Not Ranked" board game rank as no rank, not a cast-to-zero crash',
     expect($result['game']['bgg_rank'])->toBeNull();
 });
 
+it('decodes a doubly HTML-entity-encoded description into plain text', function () {
+    // Real shape of BGG's own description field: the text itself is
+    // entity-encoded (e.g. a literal "&amp;quot;" for a quote), on top of
+    // XML's own encoding of that same ampersand as "&amp;amp;" - so the
+    // raw XML body below has to double-escape to reproduce what BGG
+    // actually sends. A single html_entity_decode() would still leave a
+    // literal "&quot;" in the result; this needs two passes.
+    Http::fake(fn () => Http::response(<<<'XML'
+    <?xml version="1.0" encoding="utf-8"?>
+    <items>
+        <item type="boardgame" id="13">
+            <name type="primary" sortindex="1" value="Catan"/>
+            <description>Trade, build &amp;amp; settle in this &amp;quot;classic&amp;quot; game.</description>
+        </item>
+    </items>
+    XML));
+
+    $result = (new BggClient)->fetchGameByBggId(13);
+
+    expect($result['game']['description'])->toBe('Trade, build & settle in this "classic" game.');
+});
+
+it('treats a missing or blank description as null', function () {
+    Http::fake(fn () => Http::response(<<<'XML'
+    <?xml version="1.0" encoding="utf-8"?>
+    <items>
+        <item type="boardgame" id="13">
+            <name type="primary" sortindex="1" value="Catan"/>
+            <description>   </description>
+        </item>
+    </items>
+    XML));
+
+    $result = (new BggClient)->fetchGameByBggId(13);
+
+    expect($result['game']['description'])->toBeNull();
+});
+
+it('collapses runs of 3+ blank lines in a description down to one', function () {
+    Http::fake(fn () => Http::response(<<<'XML'
+    <?xml version="1.0" encoding="utf-8"?>
+    <items>
+        <item type="boardgame" id="13">
+            <name type="primary" sortindex="1" value="Catan"/>
+            <description>First paragraph.&amp;#10;&amp;#10;&amp;#10;&amp;#10;Second paragraph.</description>
+        </item>
+    </items>
+    XML));
+
+    $result = (new BggClient)->fetchGameByBggId(13);
+
+    expect($result['game']['description'])->toBe("First paragraph.\n\nSecond paragraph.");
+});
+
 it('treats missing yearpublished/minage/statistics on /thing as null instead of crashing', function () {
     Http::fake(fn () => Http::response(<<<'XML'
     <?xml version="1.0" encoding="utf-8"?>

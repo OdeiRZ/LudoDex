@@ -91,7 +91,7 @@ class BggImportService
      * simply never used.
      *
      * @param  list<array<string, mixed>>  $items
-     * @param  array<int, array{mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_ids: list<int>, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float}>  $details
+     * @param  array<int, array{mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_ids: list<int>, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, description: ?string}>  $details
      * @return array<int, Game>
      */
     private function upsertGames(array $items, array $details): array
@@ -123,6 +123,7 @@ class BggImportService
                 'bgg_id' => $item['bgg_id'],
                 'name' => $item['name'],
                 'image_url' => $item['image_url'],
+                'description' => $detail['description'] ?? null,
                 'min_players' => $item['min_players'],
                 'max_players' => $item['max_players'],
                 'min_playtime_minutes' => $item['min_playtime_minutes'],
@@ -144,7 +145,7 @@ class BggImportService
         }
 
         Game::upsert($rows, uniqueBy: ['bgg_id'], update: [
-            'name', 'image_url', 'min_players', 'max_players', 'min_playtime_minutes',
+            'name', 'image_url', 'description', 'min_players', 'max_players', 'min_playtime_minutes',
             'max_playtime_minutes', 'weight', 'year_published', 'min_age', 'bgg_rank',
             'rating', 'is_cooperative', 'is_competitive', 'has_campaign', 'updated_at',
         ]);
@@ -164,7 +165,7 @@ class BggImportService
 
     /**
      * @param  list<array<string, mixed>>  $items
-     * @param  array<int, array{mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_ids: list<int>, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float}>  $details
+     * @param  array<int, array{mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_ids: list<int>, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, description: ?string}>  $details
      * @param  array<int, Game>  $gamesByBggId
      */
     private function linkExpansions(array $items, array $details, array $gamesByBggId): void

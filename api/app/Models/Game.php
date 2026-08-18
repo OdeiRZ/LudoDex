@@ -17,6 +17,8 @@ class Game extends Model
         'bgg_id',
         'name',
         'image_url',
+        'description',
+        'description_es',
         'year_published',
         'min_age',
         'bgg_rank',

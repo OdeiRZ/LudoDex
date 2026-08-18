@@ -123,7 +123,7 @@ class BggClient
 
     /**
      * @param  list<int>  $bggIds
-     * @return array<int, array{name: string, image_url: ?string, mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_ids: list<int>, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int}>
+     * @return array<int, array{name: string, image_url: ?string, description: ?string, mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_ids: list<int>, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int}>
      */
     public function fetchGameDetails(array $bggIds): array
     {
@@ -254,7 +254,7 @@ class BggClient
      * path - keeping one shape here instead of two nearly-identical parsers
      * is what makes caching a single entry per id possible.
      *
-     * @return array{name: string, image_url: ?string, mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_ids: list<int>, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int}
+     * @return array{name: string, image_url: ?string, description: ?string, mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_ids: list<int>, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int}
      */
     private function parseGameDetail(SimpleXMLElement $item): array
     {
@@ -311,6 +311,7 @@ class BggClient
         return [
             'name' => $name,
             'image_url' => isset($item->image) && (string) $item->image !== '' ? (string) $item->image : null,
+            'description' => $this->cleanDescription(isset($item->description) ? (string) $item->description : null),
             'mechanics' => $mechanics,
             'categories' => $categories,
             'weight' => $weight,
@@ -364,11 +365,37 @@ class BggClient
     }
 
     /**
+     * BGG's description field is itself HTML, but entity-encoded on top of
+     * XML's own encoding - SimpleXML only unwinds the outer (XML) layer, so
+     * a raw cast still contains literal entities like "&amp;quot;" and
+     * "&amp;#10;" instead of real characters. Decoding twice unwinds both.
+     */
+    private function cleanDescription(?string $raw): ?string
+    {
+        if ($raw === null || trim($raw) === '') {
+            return null;
+        }
+
+        $decoded = html_entity_decode(
+            html_entity_decode($raw, ENT_QUOTES | ENT_HTML5),
+            ENT_QUOTES | ENT_HTML5
+        );
+
+        // BGG's own line breaks arrive as literal "\n" pairs (there's no
+        // real HTML markup to speak of) - collapsing 3+ in a row down to a
+        // single blank line keeps paragraph breaks without the runs of
+        // empty lines BGG's raw text tends to have between them.
+        $normalized = trim((string) preg_replace('/\n{3,}/', "\n\n", $decoded));
+
+        return $normalized === '' ? null : $normalized;
+    }
+
+    /**
      * Looks up a single game by its BGG id for the manual add/edit form's
      * "import from BGG" button - unlike fetchCollection, /thing answers
      * synchronously (no 202-while-queued state to poll).
      *
-     * @return array{status: 'ready'|'error', message?: string, game?: array{bgg_id: int, name: string, image_url: ?string, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int, weight: ?float, mechanics: list<string>, categories: list<string>}}
+     * @return array{status: 'ready'|'error', message?: string, game?: array{bgg_id: int, name: string, image_url: ?string, description: ?string, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int, weight: ?float, mechanics: list<string>, categories: list<string>}}
      */
     public function fetchGameByBggId(int $bggId): array
     {
@@ -413,8 +440,8 @@ class BggClient
     }
 
     /**
-     * @param  array{name: string, image_url: ?string, mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_ids: list<int>, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int}  $detail
-     * @return array{bgg_id: int, name: string, image_url: ?string, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int, weight: ?float, mechanics: list<string>, categories: list<string>}
+     * @param  array{name: string, image_url: ?string, description: ?string, mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_ids: list<int>, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int}  $detail
+     * @return array{bgg_id: int, name: string, image_url: ?string, description: ?string, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int, weight: ?float, mechanics: list<string>, categories: list<string>}
      */
     private function buildLookupResult(int $bggId, array $detail): array
     {
@@ -422,6 +449,7 @@ class BggClient
             'bgg_id' => $bggId,
             'name' => $detail['name'],
             'image_url' => $detail['image_url'],
+            'description' => $detail['description'],
             'year_published' => $detail['year_published'],
             'min_age' => $detail['min_age'],
             'bgg_rank' => $detail['bgg_rank'],

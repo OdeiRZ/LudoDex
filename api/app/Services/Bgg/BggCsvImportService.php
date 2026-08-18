@@ -166,6 +166,15 @@ class BggCsvImportService
                     $attributes = [...$attributes, ...$mode];
                 }
 
+                // The CSV itself has no description column at all (see the
+                // class docblock) - only reachable here for an expansion,
+                // and only because $expansionDetails already had to fetch
+                // its /thing data anyway to resolve base_game_id below.
+                $description = $expansionDetails[$bggId]['description'] ?? null;
+                if ($description !== null) {
+                    $attributes['description'] = $description;
+                }
+
                 $game = Game::updateOrCreate(['bgg_id' => $bggId], $attributes);
 
                 $user->games()->updateOrCreate(['game_id' => $game->id], ['status' => $status]);
