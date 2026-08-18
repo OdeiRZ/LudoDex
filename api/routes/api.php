@@ -8,6 +8,7 @@ use App\Http\Controllers\Bgg\BggImportController;
 use App\Http\Controllers\Bgg\BggLookupController;
 use App\Http\Controllers\Games\CategoryController;
 use App\Http\Controllers\Games\GameDescriptionController;
+use App\Http\Controllers\Games\GameTranslationBackfillController;
 use App\Http\Controllers\Games\MechanicController;
 use App\Http\Controllers\Games\UserGameController;
 use Illuminate\Http\Request;
@@ -30,6 +31,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/games/{userGame}', [UserGameController::class, 'destroy']);
     Route::delete('/games', [UserGameController::class, 'clear']);
     Route::post('/games/{game}/translate-description', [GameDescriptionController::class, 'translate'])->middleware('throttle:20,1');
+    // Temporary, remove after use - see GameTranslationBackfillController docblock.
+    Route::post('/games/backfill-translations', GameTranslationBackfillController::class)->middleware('throttle:2,1');
 
     Route::get('/mechanics', [MechanicController::class, 'index']);
     Route::get('/categories', [CategoryController::class, 'index']);
