@@ -513,4 +513,19 @@ describe('DashboardView', () => {
       expect(wrapper.find('.clear-confirm').exists()).toBe(false)
     })
   })
+
+  it('gives each card a details button, alongside (not instead of) Editar/Quitar', async () => {
+    const { wrapper } = mountDashboard([makeEntry({ name: 'Root' })])
+
+    const detailsButton = wrapper.find('.details-icon-button')
+    expect(detailsButton.exists()).toBe(true)
+    expect(detailsButton.attributes('aria-label')).toBe('Ver detalles')
+    expect(wrapper.findAll('.card-actions .btn')).toHaveLength(2)
+
+    expect(wrapper.findComponent({ name: 'GameDetailModal' }).exists()).toBe(false)
+
+    await detailsButton.trigger('click')
+
+    expect(wrapper.findComponent({ name: 'GameDetailModal' }).exists()).toBe(true)
+  })
 })

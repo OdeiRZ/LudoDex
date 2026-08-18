@@ -1,17 +1,24 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useGamesStore } from '@/stores/games'
+import { useGamesStore, type UserGame } from '@/stores/games'
 import { useToastStore } from '@/stores/toast'
 import { useCollectionDensity } from '@/composables/useCollectionDensity'
 import { useExpansionCounts } from '@/composables/useExpansionCounts'
 import DensityToggle from '@/components/DensityToggle.vue'
 import GameCard from '@/components/GameCard.vue'
+import GameDetailModal from '@/components/GameDetailModal.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const games = useGamesStore()
 const toast = useToastStore()
 const { t } = useI18n()
+
+// Which card's details modal (image/description) is open, if any - same
+// component and trigger as the picker's own, kept independent of
+// Editar/Quitar below rather than replacing either of them, since both
+// stay the primary actions on this page.
+const detailEntry = ref<UserGame | null>(null)
 
 // Restoring the logged-in user from a stored token (e.g. after a reload)
 // is App.vue's job now, not this view's - it needs to happen regardless
@@ -376,7 +383,25 @@ async function onClearCollection() {
           :compact="density === 'compact'"
           :is-expansion="entry.game.base_game_id !== null"
         >
-          <h2>{{ entry.game.name }}</h2>
+          <div class="game-card-header">
+            <h2>{{ entry.game.name }}</h2>
+            <button
+              type="button"
+              class="details-icon-button"
+              :aria-label="$t('picker.viewDetails')"
+              :title="$t('picker.viewDetails')"
+              @click="detailEntry = entry"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"
+                />
+                <circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+          </div>
           <div class="badge-row">
             <span class="badge" :class="entry.status === 'owned' ? 'badge-primary' : 'badge-accent'">
               <svg
@@ -470,6 +495,8 @@ async function onClearCollection() {
         </GameCard>
       </li>
     </ul>
+
+    <GameDetailModal v-if="detailEntry" :game="detailEntry.game" @close="detailEntry = null" />
   </div>
 </template>
 
@@ -727,9 +754,44 @@ roomy enough for "Solo expansiones" (the widest option) to read in full. */
   gap: var(--space-2);
 }
 
+.games :deep(.game-card-header) {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .games :deep(h2) {
   font-size: 1.05rem;
   overflow-wrap: anywhere;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Same size/style as the picker's own details button - same component,
+same trigger, kept visually identical between the two pages rather than
+matching whatever else happens to be on this card (Editar/Quitar below
+are unrelated primary actions, not a style this needs to follow). */
+.games :deep(.details-icon-button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+.games :deep(.details-icon-button:hover) {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.games :deep(.details-icon-button svg) {
+  width: 16px;
+  height: 16px;
 }
 
 /* Without this the badge row stretches to the scrim's full width, since
