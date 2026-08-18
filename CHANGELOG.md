@@ -7,7 +7,7 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
-## [0.5.0] - 2026-08-18
+## [0.6.0] - 2026-08-18
 
 ### Añadido
 
@@ -27,6 +27,11 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   biblioteca. Si todavía no hay traducción, si la traducción falla o
   si la app está configurada en inglés, se muestra el texto original
   con una etiqueta "EN" — nunca un error visible.
+
+## [0.5.0] - 2026-08-18
+
+### Añadido
+
 - Botón flotante para volver arriba rápidamente sin hacer scroll,
   en la esquina inferior derecha, visible a partir de cierto
   desplazamiento.
