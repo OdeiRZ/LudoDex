@@ -98,8 +98,8 @@ Repo único con dos aplicaciones independientes, cada una con su propio
   biblioteca — la importación nunca toca ese campo. Sin clave configurada
   (o si DeepL falla), la app sigue funcionando con normalidad: se muestra
   el texto original en inglés con una etiqueta "EN", sin ningún error
-  visible. Probado de punta a punta con una clave real en local; pendiente
-  de configurar `DEEPL_API_KEY` también en Render para producción.
+  visible. Probado de punta a punta con una clave real, tanto en local
+  como en producción (Render).
 - **Envío real de email (recuperación de contraseña)**: la API usa
   [Resend](https://resend.com) como mailer (soportado de forma nativa en
   Laravel 12). Sin verificar un dominio propio, Resend solo permite enviar

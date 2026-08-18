@@ -62,9 +62,8 @@ real — ver CHANGELOG. `SESSION_DRIVER`/`CACHE_STORE`/`QUEUE_CONNECTION` van a
 `RESEND_API_KEY` no están configuradas todavía en producción (pendiente de
 un dominio propio que verificar en Resend — ver "Instalación" más arriba),
 así que ahí el mailer cae en `log` y `/api/forgot-password` no envía ningún
-email real por ahora. `DEEPL_API_KEY` tampoco está configurada todavía en
-Render — el botón de traducir sigue ahí, simplemente no traduce nada hasta
-que se añada.
+email real por ahora. `DEEPL_API_KEY` sí está configurada en Render, así
+que el botón de traducir funciona igual en producción que en local.
 
 ## Testing
 
