@@ -9,11 +9,13 @@ const props = defineProps<{ game: Game }>()
 const emit = defineEmits<{ close: [] }>()
 const games = useGamesStore()
 
-// Prefer the Spanish translation once it exists - until the translation
-// step (DeepL, triggered by the button below) actually runs for this
-// game, description_es stays null and this silently falls back to the
-// original English text instead of showing nothing.
-const displayDescription = computed(() => props.game.description_es || props.game.description)
+// Only prefers the Spanish translation when the app itself is in
+// Spanish - description_es existing doesn't mean someone reading the
+// app in English wants the Spanish text instead of the original, and
+// falls back to English if a translation isn't there yet either way.
+const displayDescription = computed(() =>
+  getLocale() === 'es' ? props.game.description_es || props.game.description : props.game.description,
+)
 
 // Neither the "still in English" badge nor the button to fix that mean
 // anything to someone who's already set the app to English themselves -

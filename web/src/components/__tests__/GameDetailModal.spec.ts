@@ -48,6 +48,16 @@ describe('GameDetailModal', () => {
     expect(wrapper.find('.modal-translate').exists()).toBe(false)
   })
 
+  it('shows the English original, not the Spanish translation, when the app is set to English', () => {
+    setLocale('en')
+
+    const wrapper = mountModal(
+      makeGame({ description: 'A game about trade.', description_es: 'Un juego de comercio.' }),
+    )
+
+    expect(wrapper.find('.modal-description').text()).toBe('A game about trade.')
+  })
+
   it('prefers the Spanish text and hides the badge/button once translated', () => {
     const wrapper = mountModal(
       makeGame({ description: 'A game about trade.', description_es: 'Un juego de comercio.' }),
