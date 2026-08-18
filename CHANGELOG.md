@@ -11,6 +11,22 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Añadido
 
+- Botón "ver detalles" (icono de ojo) en cada tarjeta, tanto en "Tu
+  colección" como en "¿A qué jugamos?", que abre un modal con la
+  portada, el título y la descripción del juego (importada de BGG).
+  En Colección convive con "Editar"/"Quitar" sin sustituir a ninguno;
+  en "¿A qué jugamos?" sustituye al antiguo atajo de edición, que
+  encajaba mal en una página pensada para decidir a qué jugar, no
+  para gestionar la colección — editar y eliminar quedan así
+  centralizados en Colección.
+- Traducción al español de la descripción bajo demanda, desde un
+  botón "Traducir al español" en ese mismo modal, vía la API gratuita
+  de DeepL. Se traduce y se guarda una sola vez por juego (no por
+  usuario ni por consulta, ya que el catálogo de juegos es compartido
+  entre toda la colección) y sobrevive a vaciar y reimportar la
+  biblioteca. Si todavía no hay traducción, si la traducción falla o
+  si la app está configurada en inglés, se muestra el texto original
+  con una etiqueta "EN" — nunca un error visible.
 - Botón flotante para volver arriba rápidamente sin hacer scroll,
   en la esquina inferior derecha, visible a partir de cierto
   desplazamiento.

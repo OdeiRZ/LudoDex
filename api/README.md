@@ -22,6 +22,17 @@ Se registra en <https://boardgamegeek.com/using_the_xml_api>. Sin ese token,
 cualquier importación falla inmediatamente con un mensaje explicando por qué
 (no con un 401 en crudo).
 
+Para traducir al español la descripción de un juego (botón "Traducir al
+español" en el modal de detalles, tanto en Colección como en "¿A qué
+jugamos?") hace falta `DEEPL_API_KEY`: una clave del plan gratuito de
+[DeepL](https://www.deepl.com/en/signup?product=api_free) (identificable por
+el sufijo `:fx`, que usa el endpoint `api-free.deepl.com`, no el de pago).
+Sin esa clave configurada la app sigue funcionando con normalidad: la
+traducción simplemente no se intenta y se muestra el texto original en
+inglés con una etiqueta "EN". La traducción se guarda en `description_es`
+una sola vez por juego (no por usuario ni por consulta), ya que `games` es
+un catálogo compartido entre toda la colección.
+
 Para que el email de recuperación de contraseña (`/api/forgot-password`) se
 envíe de verdad hace falta configurar un mailer real. Por defecto
 `MAIL_MAILER=log` escribe el email completo en `storage/logs/laravel.log` en
@@ -51,7 +62,9 @@ real — ver CHANGELOG. `SESSION_DRIVER`/`CACHE_STORE`/`QUEUE_CONNECTION` van a
 `RESEND_API_KEY` no están configuradas todavía en producción (pendiente de
 un dominio propio que verificar en Resend — ver "Instalación" más arriba),
 así que ahí el mailer cae en `log` y `/api/forgot-password` no envía ningún
-email real por ahora.
+email real por ahora. `DEEPL_API_KEY` tampoco está configurada todavía en
+Render — el botón de traducir sigue ahí, simplemente no traduce nada hasta
+que se añada.
 
 ## Testing
 
@@ -97,6 +110,18 @@ del guardado.
 si el nombre ya existe en el catálogo se reutiliza, si no se crea sobre la
 marcha (`firstOrCreate`). Actualizar o borrar la entrada de otro usuario
 devuelve 403 (`App\Policies\UserGamePolicy`).
+
+| Método | Ruta                                      | Auth | Descripción                       |
+|--------|-------------------------------------------|------|------------------------------------|
+| POST   | `/api/games/{game}/translate-description` | Sí   | Traduce la descripción del juego al español (limitado a 20/minuto) |
+
+Idempotente: si el juego ya tiene `description_es`, la devuelve tal cual sin
+volver a llamar a DeepL (`games` es un catálogo compartido, así que un mismo
+juego solo hace falta traducirlo una vez en total, no una vez por usuario).
+Si no hay `description` que traducir, si `DEEPL_API_KEY` no está configurada,
+o si DeepL falla por cualquier motivo (caído, sin cuota, timeout), responde
+`200` igualmente con `description_es: null` en vez de un error — el frontend
+ya sabe mostrar el texto original en inglés en ese caso.
 
 | Método | Ruta                        | Auth | Descripción                              |
 |--------|-----------------------------|------|-------------------------------------------|

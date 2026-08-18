@@ -87,6 +87,19 @@ Repo único con dos aplicaciones independientes, cada una con su propio
   mecánicas/categorías (aditivas, nunca se quitan una ya puesta a mano) y
   el juego base de una expansión (si ya tiene uno asignado, no se
   recalcula) quedan protegidas frente a reimportaciones futuras.
+- **Traducción de descripciones (DeepL, opcional)**: la descripción de
+  cada juego (importada de BGG, solo en inglés) se puede traducir al
+  español bajo demanda desde el modal de detalles ("ver descripción"),
+  tanto en Colección como en "¿A qué jugamos?", vía la API gratuita de
+  [DeepL](https://www.deepl.com/en/signup?product=api_free)
+  (`DEEPL_API_KEY`, ver [`api/README.md`](api/README.md)). Se guarda una
+  sola vez por juego (`games` es un catálogo compartido entre toda la
+  colección, no por usuario), y sobrevive a vaciar y reimportar la
+  biblioteca — la importación nunca toca ese campo. Sin clave configurada
+  (o si DeepL falla), la app sigue funcionando con normalidad: se muestra
+  el texto original en inglés con una etiqueta "EN", sin ningún error
+  visible. Probado de punta a punta con una clave real en local; pendiente
+  de configurar `DEEPL_API_KEY` también en Render para producción.
 - **Envío real de email (recuperación de contraseña)**: la API usa
   [Resend](https://resend.com) como mailer (soportado de forma nativa en
   Laravel 12). Sin verificar un dominio propio, Resend solo permite enviar
