@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import GameDetailModal from '@/components/GameDetailModal.vue'
 import { useGamesStore } from '@/stores/games'
 import { makeGame, makeEntry } from '@/stores/__tests__/gameFixtures'
-import { i18n } from '@/i18n'
+import { i18n, setLocale } from '@/i18n'
 
 function mountModal(game: ReturnType<typeof makeGame>) {
   return mount(GameDetailModal, {
@@ -16,6 +16,10 @@ function mountModal(game: ReturnType<typeof makeGame>) {
 describe('GameDetailModal', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+  })
+
+  afterEach(() => {
+    setLocale('es')
   })
 
   it('shows the empty state when the game has no description at all', () => {
@@ -32,6 +36,16 @@ describe('GameDetailModal', () => {
     expect(wrapper.find('.modal-description').text()).toContain('A game about trade.')
     expect(wrapper.find('.badge-en').exists()).toBe(true)
     expect(wrapper.find('.modal-translate').exists()).toBe(true)
+  })
+
+  it('hides the "EN" badge and translate button when the app itself is set to English', () => {
+    setLocale('en')
+
+    const wrapper = mountModal(makeGame({ description: 'A game about trade.', description_es: null }))
+
+    expect(wrapper.find('.modal-description').text()).toContain('A game about trade.')
+    expect(wrapper.find('.badge-en').exists()).toBe(false)
+    expect(wrapper.find('.modal-translate').exists()).toBe(false)
   })
 
   it('prefers the Spanish text and hides the badge/button once translated', () => {

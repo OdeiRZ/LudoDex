@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useGamesStore, type Game } from '@/stores/games'
 import { FALLBACK_ICON_URL } from '@/lib/assets'
+import { getLocale } from '@/i18n'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const props = defineProps<{ game: Game }>()
@@ -13,7 +14,14 @@ const games = useGamesStore()
 // game, description_es stays null and this silently falls back to the
 // original English text instead of showing nothing.
 const displayDescription = computed(() => props.game.description_es || props.game.description)
-const isUntranslated = computed(() => !props.game.description_es && !!props.game.description)
+
+// Neither the "still in English" badge nor the button to fix that mean
+// anything to someone who's already set the app to English themselves -
+// they can read the original just fine, and offering to translate it
+// into Spanish for them specifically would be backwards.
+const isUntranslated = computed(
+  () => getLocale() === 'es' && !props.game.description_es && !!props.game.description,
+)
 
 const translating = ref(false)
 const translateFailed = ref(false)
