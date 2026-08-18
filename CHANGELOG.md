@@ -28,6 +28,18 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   si la app está configurada en inglés, se muestra el texto original
   con una etiqueta "EN" — nunca un error visible.
 
+### Corregido
+
+- La caché de detalles de BGG (24h, por bgg_id) seguía sirviendo, tras
+  el despliegue de esta misma versión, respuestas cacheadas de antes
+  de que existiera el campo `description` — una reimportación dentro
+  de esa ventana de 24h reutilizaba esos datos viejos en vez de
+  volver a consultar BGG, así que ningún juego ya cacheado llegaba a
+  tener descripción pese a que la funcionalidad estaba desplegada y
+  funcionando para cualquier juego nuevo. Clave de caché versionada
+  (`bgg:thing:v2:{id}`) para invalidar de golpe lo cacheado con la
+  forma antigua.
+
 ## [0.5.0] - 2026-08-18
 
 ### Añadido

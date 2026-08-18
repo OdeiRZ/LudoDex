@@ -199,9 +199,17 @@ class BggClient
         return $details;
     }
 
+    // Versioned so a change to what parseGameDetail() puts in the cached
+    // array (like adding 'description' in 0.6.0) can't silently keep
+    // serving an older shape missing the new key until the 24h TTL happens
+    // to expire on its own - bump this suffix whenever that shape changes
+    // again. Discovered live: a reimport within the TTL window reused
+    // pre-0.6.0 cached entries with no 'description' key at all, so every
+    // already-cached game kept showing no description despite the feature
+    // being deployed and working for anything not yet cached.
     private function cacheKey(int $bggId): string
     {
-        return "bgg:thing:{$bggId}";
+        return "bgg:thing:v2:{$bggId}";
     }
 
     /**

@@ -338,7 +338,7 @@ it('imports an expansion without linking it, and warns about it, when its base g
 
 it('names the base game in the warning when it is already cached from an earlier BGG call', function () {
     actingAsUser();
-    Cache::put('bgg:thing:13', ['name' => 'Catan'], now()->addDay());
+    Cache::put('bgg:thing:v2:13', ['name' => 'Catan'], now()->addDay());
 
     Http::fake(fn () => Http::response(<<<'XML'
     <?xml version="1.0" encoding="utf-8"?>
