@@ -14,6 +14,7 @@ function makeRouter(startPath: string) {
     routes: [
       { path: '/', name: 'dashboard', component: { template: '<div>Dashboard</div>' } },
       { path: '/picker', name: 'picker', component: { template: '<div>Picker</div>' } },
+      { path: '/plays', name: 'plays', component: { template: '<div>Plays</div>' } },
       { path: '/import', name: 'import-bgg', component: { template: '<div>Import</div>' } },
       { path: '/profile', name: 'profile', component: { template: '<div>Profile</div>' } },
       { path: '/login', name: 'login', component: { template: '<div>Login</div>' } },

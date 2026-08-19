@@ -6,10 +6,12 @@ use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\Bgg\BggCsvImportController;
 use App\Http\Controllers\Bgg\BggImportController;
 use App\Http\Controllers\Bgg\BggLookupController;
+use App\Http\Controllers\Bgg\BggPlaysImportController;
 use App\Http\Controllers\Games\CategoryController;
 use App\Http\Controllers\Games\GameDescriptionController;
 use App\Http\Controllers\Games\GameTranslationBackfillController;
 use App\Http\Controllers\Games\MechanicController;
+use App\Http\Controllers\Games\PlayController;
 use App\Http\Controllers\Games\UserGameController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -42,4 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/bgg-imports/csv', [BggCsvImportController::class, 'store'])->middleware('throttle:6,1');
 
     Route::get('/bgg-lookup/games/{bggId}', [BggLookupController::class, 'show'])->middleware('throttle:12,1');
+
+    Route::get('/plays', [PlayController::class, 'index']);
+    Route::post('/bgg-plays-imports', [BggPlaysImportController::class, 'store'])->middleware('throttle:6,1');
 });

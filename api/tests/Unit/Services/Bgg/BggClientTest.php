@@ -384,3 +384,104 @@ it('only requests the ids not already cached in a mixed batch, keeping the cache
         ->and($result[13]['name'])->toBe('Game 13')
         ->and($result[9209]['name'])->toBe('Game 9209');
 });
+
+function playXml(int $id, int $bggId, string $name, string $date, ?string $quantity = null, ?string $length = null): string
+{
+    $quantityAttr = $quantity !== null ? " quantity=\"{$quantity}\"" : '';
+    $lengthAttr = $length !== null ? " length=\"{$length}\"" : '';
+
+    return <<<XML
+    <play id="{$id}" date="{$date}"{$quantityAttr}{$lengthAttr}>
+        <item name="{$name}" objectid="{$bggId}" objecttype="thing"/>
+    </play>
+    XML;
+}
+
+it('fetches a single page of plays and stops once fewer than 100 are returned', function () {
+    Http::fake(fn () => Http::response(
+        '<?xml version="1.0" encoding="utf-8"?><plays username="odei" total="1" page="1">'
+        .playXml(1001, 13, 'Catan', '2026-01-01', quantity: '2', length: '60')
+        .'</plays>'
+    ));
+
+    $result = (new BggClient)->fetchPlays('odei');
+
+    Http::assertSentCount(1);
+    expect($result['status'])->toBe('ready')
+        ->and($result['plays'])->toHaveCount(1)
+        ->and($result['plays'][0])->toBe([
+            'bgg_play_id' => 1001,
+            'bgg_id' => 13,
+            'name' => 'Catan',
+            'played_at' => '2026-01-01',
+            'quantity' => 2,
+            'duration_minutes' => 60,
+        ]);
+});
+
+it('defaults quantity to 1 and duration to null when BGG omits them', function () {
+    Http::fake(fn () => Http::response(
+        '<?xml version="1.0" encoding="utf-8"?><plays username="odei" total="1" page="1">'
+        .playXml(1002, 13, 'Catan', '2026-01-02')
+        .'</plays>'
+    ));
+
+    $result = (new BggClient)->fetchPlays('odei');
+
+    expect($result['plays'][0]['quantity'])->toBe(1)
+        ->and($result['plays'][0]['duration_minutes'])->toBeNull();
+});
+
+it('keeps requesting pages until one comes back with fewer than 100 plays', function () {
+    Http::fake(function (ClientRequest $request) {
+        $query = [];
+        parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+        $page = (int) $query['page'];
+
+        $count = $page === 1 ? 100 : 1;
+        $plays = '';
+
+        for ($i = 0; $i < $count; $i++) {
+            $plays .= playXml(($page * 1000) + $i, 13, 'Catan', '2026-01-01');
+        }
+
+        return Http::response('<?xml version="1.0" encoding="utf-8"?><plays username="odei" total="101" page="'.$page.'">'.$plays.'</plays>');
+    });
+
+    $result = (new BggClient)->fetchPlays('odei');
+
+    Http::assertSentCount(2);
+    expect($result['plays'])->toHaveCount(101);
+});
+
+it('skips a play with no nested item instead of crashing', function () {
+    Http::fake(fn () => Http::response(
+        '<?xml version="1.0" encoding="utf-8"?><plays username="odei" total="1" page="1"><play id="1" date="2026-01-01"/></plays>'
+    ));
+
+    $result = (new BggClient)->fetchPlays('odei');
+
+    expect($result['status'])->toBe('ready')->and($result['plays'])->toBe([]);
+});
+
+it('reports an error for /plays without crashing when the username does not exist', function () {
+    Http::fake(fn () => Http::response(
+        '<?xml version="1.0" encoding="utf-8"?><errors><error><message>Invalid username specified</message></error></errors>'
+    ));
+
+    $result = (new BggClient)->fetchPlays('nobody');
+
+    expect($result['status'])->toBe('error')
+        ->and($result['message'])->toBe('Invalid username specified')
+        ->and($result['transient'])->toBeFalse();
+});
+
+it('does not call BGG for plays when no application token is configured', function () {
+    config(['bgg.application_token' => null]);
+    Http::fake(fn () => Http::response('should not be called', 500));
+
+    $result = (new BggClient)->fetchPlays('odei');
+
+    expect($result['status'])->toBe('error');
+    Http::assertNothingSent();
+});

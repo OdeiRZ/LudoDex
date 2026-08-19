@@ -61,6 +61,14 @@ class User extends Authenticatable
     }
 
     /**
+     * @return HasMany<Play, $this>
+     */
+    public function plays(): HasMany
+    {
+        return $this->hasMany(Play::class);
+    }
+
+    /**
      * @return HasMany<BggImport, $this>
      */
     public function bggImports(): HasMany

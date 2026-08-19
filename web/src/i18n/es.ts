@@ -18,6 +18,7 @@ export default {
   nav: {
     collection: 'Colección',
     picker: '¿A qué jugamos?',
+    plays: 'Partidas',
     importBgg: 'Importar BGG',
     login: 'Entrar',
     register: 'Crear cuenta',
@@ -252,5 +253,18 @@ export default {
     csvWarningsTitle: 'Avisos:',
     dontCloseTab: 'No cierres ni recargues esta pestaña mientras se importa.',
     viewCollection: 'Ver tu colección',
+  },
+  plays: {
+    title: 'Importar partidas',
+    importHint:
+      'Trae tu historial de partidas desde BoardGameGeek. Solo se lee de BGG; nada de lo que veas aquí se envía de vuelta.',
+    username: 'Usuario de BGG',
+    importButton: 'Importar partidas',
+    importing: 'Importando…',
+    importSuccess: '{count} partidas importadas.',
+    importError: 'No se han podido importar las partidas.',
+    empty: 'Todavía no hay partidas importadas.',
+    loadMore: 'Cargar más',
+    duration: '{minutes} min',
   },
 }

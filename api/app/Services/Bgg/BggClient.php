@@ -122,6 +122,89 @@ class BggClient
     }
 
     /**
+     * A user's entire play history, paginated internally - BGG caps /plays
+     * at 100 <play> elements per page. Unlike /collection, this answers
+     * synchronously (no 202-while-queued state to poll), same as /thing.
+     * Never cached: unlike game metadata, a user's plays change constantly
+     * (new ones logged, old ones edited), so caching would just mean
+     * serving stale history.
+     *
+     * @return array{status: 'ready'|'error', message?: string, transient?: bool, plays?: list<array{bgg_play_id: int, bgg_id: int, name: string, played_at: string, quantity: int, duration_minutes: ?int}>}
+     */
+    public function fetchPlays(string $username): array
+    {
+        if (blank(config('bgg.application_token'))) {
+            return [
+                'status' => 'error',
+                'message' => __('bgg.token_missing'),
+                'transient' => false,
+            ];
+        }
+
+        $plays = [];
+
+        // Defensive cap, not an expected limit - a real account's history
+        // paginates out well before 500 pages (50,000 plays). Guards
+        // against looping forever on a malformed response that never
+        // reports fewer than 100 plays.
+        for ($page = 1; $page <= 500; $page++) {
+            try {
+                $response = $this->httpClient()->get(self::BASE_URL.'/plays', [
+                    'username' => $username,
+                    'page' => $page,
+                ]);
+            } catch (ConnectionException $e) {
+                Log::warning('BGG /plays request failed to connect', ['page' => $page, 'exception' => $e->getMessage()]);
+
+                return ['status' => 'error', 'message' => __('bgg.unreachable'), 'transient' => true];
+            }
+
+            if (! $response->successful()) {
+                return ['status' => 'error', 'message' => __('bgg.unreachable'), 'transient' => true];
+            }
+
+            $xml = @simplexml_load_string($response->body());
+
+            if ($xml === false) {
+                return ['status' => 'error', 'message' => __('bgg.unexpected_response'), 'transient' => true];
+            }
+
+            if ($xml->getName() === 'errors') {
+                $message = isset($xml->error->message)
+                    ? (string) $xml->error->message
+                    : __('bgg.user_not_found');
+
+                return ['status' => 'error', 'message' => $message, 'transient' => false];
+            }
+
+            $pagePlayCount = 0;
+
+            foreach ($xml->play as $play) {
+                $pagePlayCount++;
+
+                if (! isset($play->item)) {
+                    continue;
+                }
+
+                $plays[] = [
+                    'bgg_play_id' => (int) $play['id'],
+                    'bgg_id' => (int) $play->item['objectid'],
+                    'name' => (string) $play->item['name'],
+                    'played_at' => (string) $play['date'],
+                    'quantity' => $this->positiveIntOrNull($play['quantity'] ?? null) ?? 1,
+                    'duration_minutes' => $this->positiveIntOrNull($play['length'] ?? null),
+                ];
+            }
+
+            if ($pagePlayCount < 100) {
+                break;
+            }
+        }
+
+        return ['status' => 'ready', 'plays' => $plays];
+    }
+
+    /**
      * @param  list<int>  $bggIds
      * @return array<int, array{name: string, image_url: ?string, description: ?string, mechanics: list<string>, categories: list<string>, weight: ?float, base_game_bgg_ids: list<int>, year_published: ?int, min_age: ?string, bgg_rank: ?int, rating: ?float, min_players: ?int, max_players: ?int, min_playtime_minutes: ?int, max_playtime_minutes: ?int}>
      */

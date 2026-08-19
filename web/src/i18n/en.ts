@@ -18,6 +18,7 @@ export default {
   nav: {
     collection: 'Collection',
     picker: 'What should we play?',
+    plays: 'Plays',
     importBgg: 'Import BGG',
     login: 'Log in',
     register: 'Sign up',
@@ -252,5 +253,18 @@ export default {
     csvWarningsTitle: 'Warnings:',
     dontCloseTab: "Don't close or reload this tab while it's importing.",
     viewCollection: 'View your collection',
+  },
+  plays: {
+    title: 'Import plays',
+    importHint:
+      "Bring in your play history from BoardGameGeek. This only reads from BGG - nothing you see here is ever sent back.",
+    username: 'BGG username',
+    importButton: 'Import plays',
+    importing: 'Importing…',
+    importSuccess: '{count} plays imported.',
+    importError: "Couldn't import your plays.",
+    empty: 'No plays imported yet.',
+    loadMore: 'Load more',
+    duration: '{minutes} min',
   },
 }

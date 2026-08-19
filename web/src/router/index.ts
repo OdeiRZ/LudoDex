@@ -37,6 +37,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/plays',
+      name: 'plays',
+      component: () => import('@/views/PlaysView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/import',
       name: 'import-bgg',
       component: () => import('@/views/ImportBggView.vue'),

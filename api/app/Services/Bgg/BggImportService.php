@@ -104,19 +104,7 @@ class BggImportService
             $detail = $details[$item['bgg_id']] ?? null;
             $mechanics = $detail['mechanics'] ?? [];
             $categories = $detail['categories'] ?? [];
-            $tags = [...$mechanics, ...$categories];
-
-            // Independent signals, not a strict either/or (see the games
-            // migration): a team-based game can be both cooperative (within
-            // a team) and competitive (between teams), and BGG has no direct
-            // "is competitive" flag, so it's inferred as "not solo" instead
-            // of as the negation of cooperative - that negation previously
-            // forced every cooperative game to is_competitive = false,
-            // mislabeling semi-cooperative/team games and, on a failed BGG
-            // detail fetch (empty $tags), forcing is_competitive = true with
-            // no real signal either way.
-            $isCooperative = $this->anyContains($tags, 'cooperative');
-            $isSolo = $this->anyContains($tags, 'solo');
+            $mode = Game::inferModeFromTags($mechanics, $categories);
 
             $rows[] = [
                 'id' => (string) Str::ulid(),
@@ -133,10 +121,9 @@ class BggImportService
                 'min_age' => $detail['min_age'] ?? null,
                 'bgg_rank' => $detail['bgg_rank'] ?? null,
                 'rating' => $detail['rating'] ?? null,
-                'is_cooperative' => $isCooperative,
-                'is_competitive' => ! $isSolo,
-                'has_campaign' => $this->anyContains($tags, 'campaign')
-                    || $this->anyContains($tags, 'legacy'),
+                'is_cooperative' => $mode['is_cooperative'],
+                'is_competitive' => $mode['is_competitive'],
+                'has_campaign' => $mode['has_campaign'],
                 'created_at' => $now,
                 'updated_at' => $now,
             ];
@@ -260,17 +247,5 @@ class BggImportService
         }
 
         return array_values($byBggId);
-    }
-
-    /** @param  list<string>  $values */
-    private function anyContains(array $values, string $needle): bool
-    {
-        foreach ($values as $value) {
-            if (str_contains(strtolower($value), $needle)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }
