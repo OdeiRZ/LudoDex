@@ -678,16 +678,167 @@ really the same threshold. */
 }
 
 /* Below this, .search-group and .sort-group no longer fit on one line
-even with the narrowed selects above - back to wrapping .sort-group
-(with the density toggle/clear/add cluster it carries) onto its own
-second line instead of the 880px tier's forced nowrap. */
+even with the narrowed selects above - back to two lines, but instead
+of wrapping inside .search-controls as a single flex item pair, each
+one becomes its own grid row so clear/add can each line up with one
+specific filter row (clear with the search row, add with the sort
+row) rather than being stranded together off to one side. */
 @media (max-width: 740px) {
+  /* 5 columns: the two selects (type filter, sort criterion) are the
+  flexible ones, splitting whatever's left over between them once
+  sort-toggle/density/add's own natural widths are subtracted - 'search'
+  spans the first 4 to reach all the way across to 'clear', which lines
+  up with 'add' in the same last column. */
+  .dashboard-toolbar {
+    grid-template-columns: 1fr 1fr auto auto auto;
+    grid-template-areas:
+      'title     title      title   title    title'
+      'search    search     search  search   clear'
+      'type      criterion  toggle  density  add';
+  }
+
+  /* Exposes .search-group/.sort-group's own children as
+  .dashboard-toolbar's direct grid items instead of being boxed inside
+  one shared cell each - every one below needs its own grid-area to
+  land in the right spot. */
   .search-controls {
-    flex-wrap: wrap;
+    display: contents;
+  }
+
+  .search-group {
+    display: contents;
   }
 
   .sort-group {
-    flex: 1 1 100%;
+    display: contents;
+  }
+
+  /* Fills the grid cell's full width instead of capping out at the base
+  rule's 320px - that cap existed to keep the input from stretching
+  needlessly wide next to .type-filter on the same row, which no
+  longer applies now that .type-filter has moved to the row below. */
+  .search-group input {
+    grid-area: search;
+    max-width: none;
+  }
+
+  /* Same reasoning as the search input above - both selects stretch to
+  fill their own (flexible) column instead of stopping at the 118px/
+  151px caps tuned for the narrowest phones further up, which assumed
+  a cramped shared row rather than each getting its own grid column.
+  width: 100% is spelled out explicitly rather than relying on grid's
+  own default item-stretch behaviour, which the shared base rule's own
+  width: auto doesn't reliably trigger for a <select> the way it does
+  for the search <input> above. */
+  .type-filter {
+    grid-area: type;
+    width: 100%;
+    max-width: none;
+  }
+
+  .sort-criterion {
+    grid-area: criterion;
+    width: 100%;
+    max-width: none;
+  }
+
+  .sort-toggle {
+    grid-area: toggle;
+  }
+
+  /* Its own column now, naturally adjacent to 'add' - no longer needs
+  margin-left: auto to reach it. Child component's own root element,
+  hence :deep(). */
+  :deep(.density-toggle) {
+    grid-area: density;
+  }
+
+  /* Back to the full labelled buttons instead of the icon-only pair,
+  now that each filter row has its own matching button row alongside
+  it - the icon-only swap further up was only ever about the labels
+  not fitting next to the sort controls on a shared row, which doesn't
+  apply to this layout. display: contents exposes clear/add as
+  .dashboard-toolbar's own grid items too, landing in the 'clear'/'add'
+  areas above via the base rule's grid-area assignment. */
+  .action-buttons {
+    display: contents;
+  }
+
+  .inline-actions {
+    display: none;
+  }
+
+  /* Undoes the icon-only sizing from the 880px tier - back to full size
+  with its label, same as before any of these breakpoints. padding is
+  spelled out explicitly (matching .btn's own value) rather than
+  revert, which falls through to the user-agent default instead of an
+  earlier same-origin rule. */
+  .clear-library-btn,
+  .add-game-btn {
+    min-width: 11rem;
+    padding: 0.55rem 1rem;
+  }
+}
+
+/* Below this, the labelled buttons from the 740px tier above no longer
+fit their own column comfortably next to the two flexible selects -
+back to icon-only, same as the 880px tier, landing in the same
+'clear'/'add' grid cells the labelled ones use. The compound selectors
+(.inline-actions .clear-library-btn, not just .clear-library-btn) are
+what let this coexist with the 740px block's own rule for the same
+classes - shared class names between the labelled and icon-only button
+instances, so specificity (not source order) has to be what decides
+which one's size/grid-area wins here. */
+@media (max-width: 671px) {
+  /* Clear moves down next to add instead of sitting alone on the search
+  row - a 6th column (clear's own, right before add's) instead of the
+  5 used further up. 'search' now spans the full row since there's no
+  button left at its end to stop short of. */
+  .dashboard-toolbar {
+    grid-template-columns: 1fr 1fr auto auto auto auto;
+    grid-template-areas:
+      'title     title      title   title    title  title'
+      'search    search     search  search   search search'
+      'type      criterion  toggle  density  clear  add';
+  }
+
+  .action-buttons {
+    display: none;
+  }
+
+  .inline-actions {
+    display: contents;
+  }
+
+  /* min-width: 0 (not a fixed floor) is what the 880px tier's flexbox
+  version needs to shrink past its own content, but here clear/add are
+  grid items instead - 0 strips the track's normal content-based
+  minimum protection entirely, letting the two flexible (1fr) columns
+  next to it compress it arbitrarily small under space pressure rather
+  than the size its own padding+icon actually need. 36px (padding
+  0.5rem each side + the 16px icon, plus a hair of slack) keeps it a
+  genuinely fixed size regardless of how tight the row gets. */
+  .inline-actions .clear-library-btn,
+  .inline-actions .add-game-btn {
+    min-width: 36px;
+    padding: 0.5rem;
+  }
+
+  .inline-actions .clear-library-btn {
+    grid-area: clear;
+  }
+
+  .inline-actions .add-game-btn {
+    grid-area: add;
+  }
+
+  /* Same reasoning as clear/add above - explicit floor instead of
+  relying on the grid track's own automatic content-based minimum,
+  which the density toggle's own width: 28px should already provide
+  but isn't worth leaving implicit for a control meant to stay a fixed
+  size. Child component's own root element, hence :deep(). */
+  :deep(.density-toggle) {
+    min-width: 28px;
   }
 }
 
