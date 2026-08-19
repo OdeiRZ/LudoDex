@@ -244,20 +244,27 @@ async function onClearCollection() {
             </select>
           </div>
           <div class="sort-group">
-            <select v-model="sortCriterion" :aria-label="$t('dashboard.sortByLabel')" class="sort-criterion">
-              <option value="name">{{ $t('dashboard.sortByName') }}</option>
-              <option value="rank" :disabled="typeFilter === 'expansion'">{{ $t('dashboard.sortByRank') }}</option>
-              <option value="year">{{ $t('dashboard.sortByYear') }}</option>
-            </select>
-            <button
-              type="button"
-              class="btn sort-toggle"
-              :aria-label="sortToggleActionLabel"
-              :title="sortToggleActionLabel"
-              @click="toggleSort"
-            >
-              {{ sortToggleLabel }}
-            </button>
+            <!-- Transparent to the layout above 583px (each child its own
+            grid item) - only becomes a real flex pairing below that,
+            where .sort-criterion and .sort-toggle need to sit snug next
+            to each other instead of each stretching/spacing independently
+            across whatever column they happen to land in. -->
+            <div class="sort-criterion-group">
+              <select v-model="sortCriterion" :aria-label="$t('dashboard.sortByLabel')" class="sort-criterion">
+                <option value="name">{{ $t('dashboard.sortByName') }}</option>
+                <option value="rank" :disabled="typeFilter === 'expansion'">{{ $t('dashboard.sortByRank') }}</option>
+                <option value="year">{{ $t('dashboard.sortByYear') }}</option>
+              </select>
+              <button
+                type="button"
+                class="btn sort-toggle"
+                :aria-label="sortToggleActionLabel"
+                :title="sortToggleActionLabel"
+                @click="toggleSort"
+              >
+                {{ sortToggleLabel }}
+              </button>
+            </div>
             <DensityToggle :density="density" @toggle="toggleDensity" />
 
             <!-- Same two buttons as .action-buttons below, shown instead of
@@ -551,6 +558,15 @@ moving them to the next line together. */
   gap: var(--space-3);
 }
 
+/* Transparent by default - .sort-criterion and .sort-toggle behave as
+.sort-group's own direct flex children (or, from 740px down, direct
+grid items in .dashboard-toolbar) exactly as if this wrapper wasn't
+there. Only becomes a real box below 583px, where they need to move
+and behave as one paired unit instead - see that media query. */
+.sort-criterion-group {
+  display: contents;
+}
+
 /* Hidden by default - only swapped in for .action-buttons below the
 narrowest breakpoint further down, never shown alongside it. */
 .inline-actions {
@@ -824,12 +840,21 @@ which one's size/grid-area wins here. */
     padding: 0.5rem;
   }
 
+  /* The grid's own column-gap (16px, var(--space-4)) is wider than
+  these three actually use at the 880px tier, where density/clear/add
+  are flex siblings instead (gap: var(--space-3) between density and
+  clear, var(--space-2) between clear and add) - negative margin pulls
+  each one in by the difference so the spacing matches, without
+  touching column-gap itself (which the other columns still rely on
+  at its normal 16px). */
   .inline-actions .clear-library-btn {
     grid-area: clear;
+    margin-left: calc(var(--space-3) - var(--space-4));
   }
 
   .inline-actions .add-game-btn {
     grid-area: add;
+    margin-left: calc(var(--space-2) - var(--space-4));
   }
 
   /* Same reasoning as clear/add above - explicit floor instead of
@@ -839,6 +864,47 @@ which one's size/grid-area wins here. */
   size. Child component's own root element, hence :deep(). */
   :deep(.density-toggle) {
     min-width: 28px;
+  }
+}
+
+/* Below this, .sort-criterion's row is carrying too much (4 controls
+plus clear/add) alongside .type-filter for it to stay comfortable -
+.type-filter moves up to join the search row instead, docking at its
+right edge the same way clear/add already dock at the end of theirs.
+
+.sort-criterion and .sort-toggle stop being independent grid items and
+become one compact paired unit (.sort-criterion-group) instead - both
+had their own column up in the 740px tier, which worked while
+.sort-criterion was deliberately stretched wide, but reads as the
+toggle button stranded far from its own select once .sort-criterion
+goes back to a natural width. A dedicated 1fr spacer column (unnamed,
+just '.' in both rows) is what actually absorbs the leftover space
+now, instead of an oversized column dragging space between the two. */
+@media (max-width: 583px) {
+  .dashboard-toolbar {
+    grid-template-columns: auto 1fr auto auto auto auto;
+    grid-template-areas:
+      'title     title   title    title  title title'
+      'search    search  search   search search type'
+      'criterion .       density  clear  add   .';
+  }
+
+  .type-filter {
+    grid-area: type;
+    width: auto;
+    max-width: 151px;
+  }
+
+  .sort-criterion-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    grid-area: criterion;
+  }
+
+  .sort-criterion {
+    width: auto;
+    max-width: 118px;
   }
 }
 
