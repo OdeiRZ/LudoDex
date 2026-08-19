@@ -131,11 +131,16 @@ and session on its row (whichever row that ends up being, given
 header's own wrapping) - justify-content: center then centers the
 links within that space instead of leaving them flush against
 brand's edge, without touching how/when the row wraps. */
+/* flex-wrap is the safety net for whatever width isn't covered by the
+breakpoints above: if the 4 links ever don't fit in one row, they
+split into two centered rows instead of a single link's own text
+wrapping mid-phrase inside its box. */
 .primary-nav {
   display: flex;
   flex: 1;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: var(--space-4);
+  gap: var(--space-2) var(--space-4);
   font-size: 0.9rem;
 }
 
