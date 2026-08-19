@@ -7,6 +7,19 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Añadido
+
+- Página "Partidas": importa el historial de partidas jugadas desde BGG
+  (solo lectura, igual que la colección). Por ahora solo guarda juego,
+  fecha, duración y cantidad por partida — sin jugadores ni puntuaciones.
+  Si una partida es de un juego que aún no está en el catálogo local, se
+  crea automáticamente con sus datos de BGG.
+- Cuarto enlace de nav ("Partidas") junto a los ya existentes, lo que
+  obligó a revisar toda la cabecera para anchos estrechos: por debajo de
+  576px el nav se sustituye por un menú ☰ desplegable en vez de partir los
+  enlaces en dos líneas. Detalle completo de los breakpoints en
+  [`web/README.md`](web/README.md#breakpoints-del-header-appvue).
+
 ## [0.6.0] - 2026-08-18
 
 ### Añadido

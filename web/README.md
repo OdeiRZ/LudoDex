@@ -42,3 +42,22 @@ npm run test:unit      # Vitest
   CSV que exporta la propia colección de BGG (síncrona, sin *polling*).
 - `src/views/PickerView.vue` — selector "¿A qué jugamos?": filtra la
   colección propia en el cliente por jugadores, duración y modo de juego.
+
+## Breakpoints del header (`App.vue`)
+
+La cabecera (marca, nav de 4 enlaces, avatar, sesión) tiene varios ajustes
+progresivos por ancho, cada uno acumulativo con los anteriores (`max-width`,
+no rangos exclusivos por tipo de dispositivo):
+
+| `max-width` | Qué hace |
+|---|---|
+| `872px` | Oculta el nombre junto al avatar y evita que "Cerrar sesión" se parta en dos líneas |
+| `786px` | "Cerrar sesión" pasa de texto a solo icono |
+| `702px` | Oculta el texto "LudoDex" (queda solo el dado 🎲) y el avatar salta al extremo izquierdo del header, junto al dado |
+| `618px` | El dado desaparece por completo; el avatar se queda solo, anclado a la izquierda |
+| `576px` | El nav de 4 enlaces se sustituye por un botón ☰ que despliega un panel vertical |
+
+Los umbrales exactos (872/786/702/618/576) salieron de medir en el propio DOM
+los anchos reales de marca/nav/sesión al añadir un 4º enlace ("Partidas"),
+no de valores estándar de diseño — si se añade o quita algún enlace del nav,
+hay que volver a medir en vez de asumir que siguen siendo válidos.
