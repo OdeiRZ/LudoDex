@@ -17,7 +17,8 @@ mientras arranca de nuevo.
 
 **Proyecto en construcción activa** — este README se irá ampliando a medida
 que avancen los hitos. Ver [CHANGELOG.md](CHANGELOG.md) para el detalle de
-cada uno.
+cada uno, o las [releases en GitHub](https://github.com/OdeiRZ/LudoDex/releases)
+para el resumen de cada versión publicada.
 
 ## Estructura
 
