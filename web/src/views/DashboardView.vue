@@ -591,7 +591,7 @@ which is what lets them share one row together once narrow. */
 edges line up (the button up top and this one below read as one
 vertical pair) instead of "Vaciar biblioteca" (the longer label, now
 also carrying an icon) running wider than "+ Añadir juego" underneath
-it; once they're side by side instead (below 890px), kept for the same
+it; once they're side by side instead (below 880px), kept for the same
 reason in spirit - shrinking only "+ Añadir juego" down to its own
 shorter content while "Vaciar biblioteca" stayed put read as one button
 being singled out rather than both simply not needing to shrink yet. */
@@ -608,43 +608,45 @@ being singled out rather than both simply not needing to shrink yet. */
   flex-shrink: 0;
 }
 
-/* Below this, "clear"/"add" no longer read as a top-row/bottom-row pair
-each aligned with something else (the title above one, the search
-controls above the other) - trying them grouped next to the title
-instead, in the same spot "clear" alone used to sit. */
-@media (max-width: 890px) {
-  .dashboard-toolbar {
-    grid-template-areas:
-      'title buttons'
-      'search search';
-  }
-
-  .action-buttons {
-    display: flex;
-    grid-area: buttons;
-    gap: var(--space-3);
-  }
-}
-
-/* Below this, even next to the title is too tight - swap in the icon-only
-pair living inside .sort-group instead of the labelled one above (see
-the template comment by .inline-actions for why a separate grid column
-for the same job couldn't sit flush against the density toggle it's
-conceptually joining). 768px rather than the narrower width this used
-before: at tablet width, "Vaciar biblioteca"/"+ Añadir juego" next to
-the title (the 890px tier just above) already read as cramped even
-though they technically fit - icon-only merged with the view toggle
-reads cleaner there too, not just once it's a genuine fit problem. */
-@media (max-width: 768px) {
-  .dashboard-toolbar {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'title'
-      'search';
-  }
-
+/* Below this, "Vaciar biblioteca"/"+ Añadir juego" swap for the
+icon-only pair living inside .sort-group instead (see the template
+comment by .inline-actions for why a separate grid column for the same
+job couldn't sit flush against the density toggle it's conceptually
+joining). Used to be a two-stage transition (labelled buttons grouped
+next to the title first, icon-only only once that got tight too), but
+even grouped next to the title they already read as cramped at this
+width - collapsed into the one threshold instead of two. Also where
+.sort-criterion/.type-filter give up their roomy widths (see both
+further down) - same media query, not a separate rule for what's
+really the same threshold. */
+@media (max-width: 880px) {
   .action-buttons {
     display: none;
+  }
+
+  /* Temporary: keeps .search-group and .sort-group sharing one row
+  instead of .sort-group wrapping onto its own - revisit once the rest
+  of this layout is settled. */
+  .search-controls {
+    flex-wrap: nowrap;
+  }
+
+  /* flex: 1 (not width: 100%, which would force its own row even with
+  nowrap above) claims whatever's left over next to .search-group on
+  their shared row, giving margin-left: auto below room to push the
+  density toggle and clear/add to the right edge without needing the
+  whole row to itself. */
+  .sort-group {
+    flex: 1;
+  }
+
+  /* Pushed together with .inline-actions as one right-aligned cluster
+  instead of staying grouped with the sort controls on the left - the
+  density toggle reads as part of "how the cards display" alongside
+  clear/add, not as another sort/filter control. density-toggle is a
+  child component's own root element, hence :deep(). */
+  :deep(.density-toggle) {
+    margin-left: auto;
   }
 
   .inline-actions {
@@ -656,6 +658,36 @@ reads cleaner there too, not just once it's a genuine fit problem. */
   .add-game-btn {
     min-width: 0;
     padding: 0.5rem;
+  }
+
+  /* Same reasoning as .search-group input's own min-width above -
+  .sort-group's row was landing a few pixels past the cards' right edge
+  on the narrowest real phones. 126px cleared it at 375px, but not at
+  an even narrower real 366px phone (9px less, reported directly) -
+  118px is what actually clears both. */
+  .sort-criterion {
+    max-width: 118px;
+  }
+
+  /* Same alignment problem as .sort-criterion above, on .search-group's
+  own row instead - .type-filter is the one asked to give up the
+  difference there, same as .search-group input already does. */
+  .type-filter {
+    max-width: 151px;
+  }
+}
+
+/* Below this, .search-group and .sort-group no longer fit on one line
+even with the narrowed selects above - back to wrapping .sort-group
+(with the density toggle/clear/add cluster it carries) onto its own
+second line instead of the 880px tier's forced nowrap. */
+@media (max-width: 740px) {
+  .search-controls {
+    flex-wrap: wrap;
+  }
+
+  .sort-group {
+    flex: 1 1 100%;
   }
 }
 
@@ -690,6 +722,9 @@ buttons plus their gaps need. */
   }
 }
 
+/* Roomy defaults for a wide screen - narrowed to 118px/151px inside
+the max-width: 880px block above instead, once there's actually a real
+tightness problem to solve. */
 .sort-criterion,
 .type-filter {
   flex-shrink: 0;
@@ -697,43 +732,8 @@ buttons plus their gaps need. */
   max-width: 160px;
 }
 
-/* Same reasoning as .search-group input's own min-width just above -
-.sort-group's row was landing a few pixels past the cards' right edge
-on the narrowest real phones. 126px cleared it at 375px, but not at an
-even narrower real 366px phone (9px less, reported directly) - 118px
-is what actually clears both. */
-.sort-criterion {
-  max-width: 118px;
-}
-
-/* 118px above is tuned for the narrowest real phones and clips "Ranking
-BGG" when picked - never an issue below this, since none of the existing
-breakpoints (890/768/366px, all max-width) reach this far, so this can't
-shrink anything they already cover. Back to the same 160px the shared
-.sort-criterion, .type-filter rule already uses, which is roomy enough
-for "Ranking BGG" to read in full. */
-@media (min-width: 891px) {
-  .sort-criterion {
-    max-width: 160px;
-  }
-}
-
-/* Same alignment problem as .sort-criterion above, on .search-group's
-own row instead - .type-filter is the one asked to give up the
-difference there, same as .search-group input already does. */
 .type-filter {
-  max-width: 151px;
-}
-
-/* Same reasoning as .sort-criterion's own min-width: 891px block above:
-151px is tuned for the narrowest real phones and clips "Solo expansiones"
-when picked - never an issue below this, since none of the existing
-breakpoints (890/768/366px, all max-width) reach this far. 190px is
-roomy enough for "Solo expansiones" (the widest option) to read in full. */
-@media (min-width: 891px) {
-  .type-filter {
-    max-width: 190px;
-  }
+  max-width: 190px;
 }
 
 .sort-toggle {
