@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { RouterLink, RouterView, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import UserAvatar from '@/components/UserAvatar.vue'
@@ -16,6 +16,15 @@ async function onLogout() {
   await auth.logout()
   router.push({ name: 'login' })
 }
+
+// Below 576px the primary nav hides behind this button instead of
+// wrapping onto a second row - closes on navigation so it doesn't stay
+// open over the next page.
+const mobileMenuOpen = ref(false)
+
+router.afterEach(() => {
+  mobileMenuOpen.value = false
+})
 
 // A stored token survives a reload, but the user object it belongs to
 // doesn't - without this, the header's name/avatar only ever appeared if
@@ -43,6 +52,26 @@ onMounted(() => {
     </RouterLink>
 
     <nav v-if="auth.isAuthenticated" class="primary-nav">
+      <RouterLink :to="{ name: 'dashboard' }">{{ $t('nav.collection') }}</RouterLink>
+      <RouterLink :to="{ name: 'picker' }">{{ $t('nav.picker') }}</RouterLink>
+      <RouterLink :to="{ name: 'plays' }">{{ $t('nav.plays') }}</RouterLink>
+      <RouterLink :to="{ name: 'import-bgg' }">{{ $t('nav.importBgg') }}</RouterLink>
+    </nav>
+
+    <button
+      v-if="auth.isAuthenticated"
+      type="button"
+      class="hamburger-btn"
+      :aria-expanded="mobileMenuOpen"
+      :aria-label="$t('common.menu')"
+      @click="mobileMenuOpen = !mobileMenuOpen"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+
+    <nav v-if="auth.isAuthenticated && mobileMenuOpen" class="mobile-nav">
       <RouterLink :to="{ name: 'dashboard' }">{{ $t('nav.collection') }}</RouterLink>
       <RouterLink :to="{ name: 'picker' }">{{ $t('nav.picker') }}</RouterLink>
       <RouterLink :to="{ name: 'plays' }">{{ $t('nav.plays') }}</RouterLink>
@@ -173,6 +202,63 @@ line to distribute space against. */
   color: var(--color-text-muted);
   font-size: 0.9rem;
   white-space: nowrap;
+}
+
+/* Hidden by default - only shown below 576px, where it replaces
+.primary-nav entirely instead of letting the 4 links wrap onto a
+second row. */
+.hamburger-btn {
+  display: none;
+}
+
+.mobile-nav {
+  display: none;
+}
+
+@media (max-width: 576px) {
+  .primary-nav {
+    display: none;
+  }
+
+  .hamburger-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: none;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius);
+    color: var(--color-text);
+  }
+
+  .hamburger-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .mobile-nav {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    order: 10;
+    gap: var(--space-2);
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .mobile-nav a {
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-text);
+    font-weight: 500;
+  }
+
+  .mobile-nav a.router-link-exact-active {
+    color: var(--color-primary-hover);
+    background: var(--color-surface-hover);
+    border-radius: var(--radius);
+  }
 }
 
 /* The avatar moves in to sit next to the dice (dice first, then avatar)

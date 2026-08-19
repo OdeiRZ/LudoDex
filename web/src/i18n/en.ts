@@ -14,6 +14,7 @@ export default {
     densityToComfortable: 'Comfortable view',
     scrollToTop: 'Back to top',
     close: 'Close',
+    menu: 'Menu',
   },
   nav: {
     collection: 'Collection',
