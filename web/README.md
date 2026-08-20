@@ -40,7 +40,12 @@ npm run test:unit      # Vitest
 - `src/views/ImportBggView.vue` — importación desde BGG con tres pestañas:
   por usuario (*polling* cada 3s contra el estado de la importación), desde
   el CSV que exporta la propia colección de BGG, o el historial de partidas
-  (las dos últimas son síncronas, sin *polling*).
+  (las dos últimas son síncronas, sin *polling*). Los nombres de pestaña
+  ("Por usuario"/"Desde CSV"/"Partidas") mezclan a propósito método y tipo
+  de dato: las dos primeras son dos métodos distintos de importar lo mismo
+  (la colección), así que llamar a la primera "Colección" en vez de "Por
+  usuario" daría a entender que la de CSV no lo es — Partidas no tiene ese
+  problema porque solo existe un método para ella.
 - `src/views/PlaysView.vue` — página "Partidas": lista el historial de
   partidas ya importado (paginado, con "cargar más"); el propio formulario
   de importación vive en `ImportBggView.vue`, no aquí.
