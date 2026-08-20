@@ -829,19 +829,20 @@ rule used before it was asked to drop the padding/gap part of it. */
   few pixels 3-per-row needs at this tier's narrower widths - asked for
   directly after 3-per-row broke down to 2-per-row earlier than wanted
   (a real 454px window) with the full space-4 gap still in place.
-  padding-left/right: var(--space-2) (down from the fieldset's own
-  default space-4 each side) buys back a further 16px total - asked
-  for again once the gap reduction alone still broke down earlier than
-  wanted (a real 438px window this time) - a fieldset's own padding
-  counts against its automatic minimum content size same as its gap
-  does, so trimming it works the same way to buy back room for 3 per
-  line. */
+  padding-left/right: 0 (down from the fieldset's own default space-4
+  each side, by way of space-2 then space-1 first) buys back further
+  room each time 3-per-row kept breaking down earlier than wanted
+  (454px, then 438px, then 404px, then a real 398px window) - a
+  fieldset's own padding counts against its automatic minimum content
+  size same as its gap does, so trimming it works the same way to buy
+  back room for 3 per line; there's no smaller spacing token left below
+  this to try next. */
   .filters > .duration-field {
     order: 4;
     width: 100%;
     gap: var(--space-2);
-    padding-left: var(--space-2);
-    padding-right: var(--space-2);
+    padding-left: 0;
+    padding-right: 0;
     justify-content: center;
   }
 
