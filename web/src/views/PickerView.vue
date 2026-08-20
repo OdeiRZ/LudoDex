@@ -790,32 +790,68 @@ down) same as it already did before Modo joined it here. */
     max-width: none;
   }
 
-  /* flex: 1 (same reasoning as Buscar above) grows Género to fill
-  whatever Estructura's fixed 160px doesn't need, replacing a fixed
-  140px cap that left this row short of its own right edge. */
+  /* Estructura/Género share a row of their own instead of Estructura
+  staying with Buscar/Jugadores on row 1 (its plain DOM position,
+  order: 0 like them, otherwise keeps it there) - matches the 481-560px
+  tier just above this one, asked for directly so the pairing carries
+  on down instead of Estructura visibly jumping back to row 1 right at
+  this breakpoint. .filters::before forces the actual break (a plain
+  order change alone doesn't - flex-wrap decides which line an item
+  lands on using its hypothetical size before an explicit order is
+  enough to move it, same reasoning as every other break in this
+  file); order: 2 and 3 land Estructura then Género right after it. */
+  .filters::before {
+    content: '';
+    order: 1;
+    flex-basis: 100%;
+    height: 0;
+  }
+
+  .filters > .search-field,
+  .filters > .search-field + div,
+  .filters > .structure-field,
   .filters > .genre-field {
-    flex: 1;
-    max-width: none;
+    margin-bottom: var(--space-4);
   }
 
   /* Fieldset, so .filters > div's max-width: 180px never applied here
   to begin with - it was sizing to its own content (legend + checkbox
   label) instead. A fixed width (rather than max-width) forces a
   specific size instead of just capping it, since content alone
-  wouldn't stretch it that wide - kept as Género's own fixed anchor now
-  that Buscar/Estructura no longer need to line up (see Buscar's own
-  comment above). */
+  wouldn't stretch it that wide. */
   .filters > .structure-field {
+    order: 2;
     width: 160px;
   }
 
-  /* Pushed to the end via order, past Minutos and Modo (both still
-  default order: 0, so they keep their DOM position) - moves it off its
-  old spot above Minutos and lets it share the last row with the density
-  toggle instead (order: 2 below), rather than physically relocating the
-  markup and disturbing wider layouts where this media query doesn't
-  apply. flex: 1 grows it to fill whatever the density toggle's own
-  ~40px doesn't need, replacing a fixed 260px cap that was tuned to
+  /* flex: 1 (same reasoning as Buscar above) grows Género to fill
+  whatever Estructura's fixed 160px doesn't need, replacing a fixed
+  140px cap that left this row short of its own right edge. */
+  .filters > .genre-field {
+    order: 3;
+    flex: 1;
+    max-width: none;
+  }
+
+  /* order: 4 and 5 keep Minutos disponibles and Modo sequenced after
+  Estructura/Género's own row 2 (order: 2 and 3 above) instead of
+  before them - both used to rely on the default order: 0 landing
+  them after Género by plain DOM position alone, which stopped working
+  once Género needed an explicit order higher than 0 to land after the
+  break. */
+  .filters > .duration-field {
+    order: 4;
+  }
+
+  .filters > .mode-fieldset {
+    order: 5;
+  }
+
+  /* order: 6 keeps Ordenar por sequenced after Minutos/Modo, same
+  reasoning as those two above - it used to be the lowest explicit
+  order (1) in this tier, back when everything else was still order:
+  0. flex: 1 grows it to fill whatever the density toggle's own ~40px
+  doesn't need, replacing a fixed 260px cap that was tuned to
   comfortably clear "Ranking BGG" specifically at a real 343-363px
   phone budget - flex: 1 tracks each width's own real leftover space
   instead of a number guessed for the narrowest case, so it keeps
@@ -827,12 +863,12 @@ down) same as it already did before Modo joined it here. */
   else in this file - the 9rem fixed width this tier used to set for
   it is gone along with the fixed 260px cap that made it necessary. */
   .filters > .sort-field {
-    order: 1;
+    order: 6;
     flex: 1;
     max-width: none;
   }
 
-  /* Order 2, right after .sort-field's order: 1 above - together they
+  /* Order 7, right after .sort-field's order: 6 above - together they
   land on the row Modo's own width: 100% forces below it, sitting side
   by side as the last thing in the card instead of density-toggle-slot's
   original spot right after Modo in DOM order (still true above this
@@ -847,7 +883,7 @@ down) same as it already did before Modo joined it here. */
   the taller of the two), so without it the button sits flush with the
   row's top instead of centered in its height. */
   .filters > .density-toggle-slot {
-    order: 2;
+    order: 7;
     margin-left: auto;
   }
 
@@ -1088,6 +1124,14 @@ the three real rows there instead. */
 /* Same cascade-order reasoning, paired with the 481-560px block's own
 margin-bottom rule instead. */
 @media (min-width: 481px) and (max-width: 560px) {
+  .filters {
+    row-gap: 0;
+  }
+}
+
+/* Same cascade-order reasoning, paired with the ≤480px block's own
+margin-bottom rule instead. */
+@media (max-width: 480px) {
   .filters {
     row-gap: 0;
   }
