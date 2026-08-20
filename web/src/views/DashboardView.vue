@@ -245,10 +245,10 @@ async function onClearCollection() {
           </div>
           <div class="sort-group">
             <!-- Transparent to the layout above 583px (each child its own
-            grid item) - only becomes a real flex pairing below that,
-            where .sort-criterion and .sort-toggle need to sit snug next
-            to each other instead of each stretching/spacing independently
-            across whatever column they happen to land in. -->
+            grid item) - only becomes a real flex group below that, where
+            all five controls need to sit together as one left-aligned
+            block instead of each stretching/spacing independently across
+            whatever column they happen to land in. -->
             <div class="sort-criterion-group">
               <select v-model="sortCriterion" :aria-label="$t('dashboard.sortByLabel')" class="sort-criterion">
                 <option value="name">{{ $t('dashboard.sortByName') }}</option>
@@ -264,44 +264,45 @@ async function onClearCollection() {
               >
                 {{ sortToggleLabel }}
               </button>
-            </div>
-            <DensityToggle :density="density" @toggle="toggleDensity" />
 
-            <!-- Same two buttons as .action-buttons below, shown instead of
-            it (not alongside) once things get tight enough to need them
-            icon-only - see the media query. Living here, right in
-            .sort-group's own flex flow, is what lets them sit flush
-            against the density toggle instead of stranded in a separate
-            grid column that can only ever line up with .search-controls'
-            widest wrapped line (.search-group's, not this one). -->
-            <div class="inline-actions">
-              <button
-                type="button"
-                class="btn btn-danger clear-library-btn"
-                :aria-label="$t('dashboard.clearLibrary')"
-                :title="$t('dashboard.clearLibrary')"
-                @click="openClearConfirm"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"
-                  />
-                  <line x1="10" y1="11" x2="10" y2="17" stroke-linecap="round" />
-                  <line x1="14" y1="11" x2="14" y2="17" stroke-linecap="round" />
-                </svg>
-              </button>
-              <RouterLink
-                :to="{ name: 'add-game' }"
-                class="btn btn-primary add-game-btn"
-                :aria-label="$t('dashboard.addGame')"
-                :title="$t('dashboard.addGame')"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <path stroke-linecap="round" d="M12 5v14M5 12h14" />
-                </svg>
-              </RouterLink>
+              <DensityToggle :density="density" @toggle="toggleDensity" />
+
+              <!-- Same two buttons as .action-buttons below, shown instead
+              of it (not alongside) once things get tight enough to need
+              them icon-only - see the media query. Living here, right in
+              .sort-group's own flex flow, is what lets them sit flush
+              against the density toggle instead of stranded in a separate
+              grid column that can only ever line up with .search-controls'
+              widest wrapped line (.search-group's, not this one). -->
+              <div class="inline-actions">
+                <button
+                  type="button"
+                  class="btn btn-danger clear-library-btn"
+                  :aria-label="$t('dashboard.clearLibrary')"
+                  :title="$t('dashboard.clearLibrary')"
+                  @click="openClearConfirm"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"
+                    />
+                    <line x1="10" y1="11" x2="10" y2="17" stroke-linecap="round" />
+                    <line x1="14" y1="11" x2="14" y2="17" stroke-linecap="round" />
+                  </svg>
+                </button>
+                <RouterLink
+                  :to="{ name: 'add-game' }"
+                  class="btn btn-primary add-game-btn"
+                  :aria-label="$t('dashboard.addGame')"
+                  :title="$t('dashboard.addGame')"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" d="M12 5v14M5 12h14" />
+                  </svg>
+                </RouterLink>
+              </div>
             </div>
           </div>
         </div>
@@ -624,6 +625,30 @@ being singled out rather than both simply not needing to shrink yet. */
   flex-shrink: 0;
 }
 
+/* Roomy defaults for a wide screen - narrowed or stretched by the
+various media queries below instead, once there's an actual tightness
+problem to solve (or, past 740px, room to spare). Placed here, before
+every media query that touches these same properties, on purpose: a
+plain selector placed after a media query beats it in the cascade at
+equal specificity regardless of which one is "more specific" in
+intent, so this has to come first or every narrower override below
+would lose to it instead of the other way around. */
+.sort-criterion,
+.type-filter {
+  flex-shrink: 0;
+  width: auto;
+  max-width: 160px;
+}
+
+.type-filter {
+  max-width: 190px;
+}
+
+.sort-toggle {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 /* Below this, "Vaciar biblioteca"/"+ Añadir juego" swap for the
 icon-only pair living inside .sort-group instead (see the template
 comment by .inline-actions for why a separate grid column for the same
@@ -881,30 +906,65 @@ goes back to a natural width. A dedicated 1fr spacer column (unnamed,
 just '.' in both rows) is what actually absorbs the leftover space
 now, instead of an oversized column dragging space between the two. */
 @media (max-width: 583px) {
+  /* .search-group input gets its own dedicated column (not shared with
+  any row2 control) sized to its own original cap, instead of the
+  740px tier's max-width: none stretching it across the row -
+  .type-filter is what stretches now, spanning the rest (including the
+  1fr spacer column row2 uses for its own leftover space) so the two
+  together still reach the row's full width between them. */
   .dashboard-toolbar {
-    grid-template-columns: auto 1fr auto auto auto auto;
+    grid-template-columns: auto 1fr;
     grid-template-areas:
-      'title     title   title    title  title title'
-      'search    search  search   search search type'
-      'criterion .       density  clear  add   .';
+      'title     title'
+      'search    type'
+      'criterion criterion';
+  }
+
+  .search-group input {
+    grid-area: search;
+    max-width: 320px;
   }
 
   .type-filter {
     grid-area: type;
-    width: auto;
-    max-width: 151px;
+    width: 100%;
+    max-width: none;
   }
 
+  /* Density/clear/add moved into this same wrapper in the template
+  (see the comment there) instead of staying independent grid items,
+  so the whole row2 block - sort select, its toggle, density, clear,
+  add - is one left-aligned unit spanning the full row, the same
+  "together fill the row" pattern search+type use above. gap:
+  var(--space-3) matches .sort-group's own original gap (the one used
+  everywhere above 880px) now that this is a real flex row again, not
+  grid columns needing column-gap compensated via negative margins. */
   .sort-criterion-group {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
+    gap: var(--space-3);
     grid-area: criterion;
   }
 
+  /* flex: 1 grows to fill whatever the row has left after every other
+  control's own natural width, same role .type-filter's width: 100%
+  plays in its own (non-flex) row above. */
   .sort-criterion {
+    flex: 1;
     width: auto;
-    max-width: 118px;
+    max-width: none;
+  }
+
+  /* Tighter gap between just these two, same as the 880px tier - real
+  flex gap now, not the negative-margin compensation the 671px tier
+  needs for its grid-column context. */
+  .inline-actions {
+    gap: var(--space-2);
+  }
+
+  .inline-actions .clear-library-btn,
+  .inline-actions .add-game-btn {
+    margin-left: 0;
   }
 }
 
@@ -937,25 +997,6 @@ buttons plus their gaps need. */
     min-width: 0;
     max-width: 115px;
   }
-}
-
-/* Roomy defaults for a wide screen - narrowed to 118px/151px inside
-the max-width: 880px block above instead, once there's actually a real
-tightness problem to solve. */
-.sort-criterion,
-.type-filter {
-  flex-shrink: 0;
-  width: auto;
-  max-width: 160px;
-}
-
-.type-filter {
-  max-width: 190px;
-}
-
-.sort-toggle {
-  flex-shrink: 0;
-  white-space: nowrap;
 }
 
 .games {
