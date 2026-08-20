@@ -661,21 +661,22 @@ longer needs justify-content: space-between to push it to the far side. */
   margin: 0;
 }
 
-/* 481-1002px: whenever the form is expanded at anything narrower than
-wide desktop but wider than phone width, the toggle lives next to the
-title instead of embedded in the form - used to be three separate tiers
-(481-806px, 807-981px, 982-1023px) each reordering the form's fields to
-tuck the toggle in wherever it happened to fit (sharing a line with
-Ordenar por, or with Minutos, depending on the tier), until it was
-asked to just live at the title consistently across all of them instead
-- confirmed with real (not simulated) windows at 768px, 820px and
-987px. Upper bound moved from 1023px to 1002px afterwards (asked for
-directly) - the 1020px window this tier used to be confirmed against
-falls above that now and hasn't been re-verified since. Below 481px
-the form's own layout gets tight enough (see the ≤480px tier further
-down) that embedding it back in the form was kept as-is there rather
-than also verifying a title-row version at those narrower widths. */
-@media (min-width: 481px) and (max-width: 1002px) {
+/* Up to 1002px, the toggle lives next to the title instead of embedded
+in the form - used to be three separate tiers (481-806px, 807-981px,
+982-1023px) each reordering the form's fields to tuck the toggle in
+wherever it happened to fit (sharing a line with Ordenar por, or with
+Minutos, depending on the tier), until it was asked to just live at the
+title consistently across all of them instead - confirmed with real
+(not simulated) windows at 768px, 820px and 987px. Upper bound moved
+from 1023px to 1002px afterwards (asked for directly) - the 1020px
+window this tier used to be confirmed against falls above that now and
+hasn't been re-verified since. Originally bounded below at 481px too,
+keeping the ≤480px tier's own form-embedded copy as an exception - that
+exception was dropped when asked for directly (the button was moving
+position within the ≤480px tier as a side effect of unrelated changes
+there, which turned out to be unwanted: it's meant to stay put in the
+title row across every width, not just 481-1002px). */
+@media (max-width: 1002px) {
   .title-density-toggle {
     display: block;
   }
@@ -740,16 +741,10 @@ down) same as it already did before Modo joined it here. */
   shorthand rather than here) - the break below would otherwise add an
   extra gap's worth of vertical space before row 2 on top of the
   normal one, since row-gap can't tell a real line from a zero-height
-  spacer one. Restored by hand as margin-bottom on each row's own
-  items instead. */
-  .filters > .search-field,
-  .filters > .search-field + div,
-  .filters > .structure-field,
-  .filters > .genre-field,
-  .filters > .duration-field {
-    margin-bottom: var(--space-4);
-  }
-
+  spacer one; asked to drop the margin-bottom that used to restore it
+  by hand on each row's own items, to try it - rows sit flush against
+  each other with no vertical gap at all in this range now, same as
+  the 481-560px tier above. */
   .filters::before {
     content: '';
     order: 1;
@@ -790,123 +785,71 @@ down) same as it already did before Modo joined it here. */
     max-width: none;
   }
 
-  /* Estructura/Género share a row of their own instead of Estructura
-  staying with Buscar/Jugadores on row 1 (its plain DOM position,
-  order: 0 like them, otherwise keeps it there) - matches the 481-560px
-  tier just above this one, asked for directly so the pairing carries
-  on down instead of Estructura visibly jumping back to row 1 right at
-  this breakpoint. .filters::before forces the actual break (a plain
-  order change alone doesn't - flex-wrap decides which line an item
-  lands on using its hypothetical size before an explicit order is
-  enough to move it, same reasoning as every other break in this
-  file); order: 2 and 3 land Estructura then Género right after it. */
-  .filters::before {
-    content: '';
-    order: 1;
-    flex-basis: 100%;
-    height: 0;
-  }
-
-  .filters > .search-field,
-  .filters > .search-field + div,
-  .filters > .structure-field,
+  /* flex: 1 (same reasoning as Buscar above) grows Género to fill
+  whatever Estructura's fixed 160px doesn't need, replacing a fixed
+  140px cap that left this row short of its own right edge. */
   .filters > .genre-field {
-    margin-bottom: var(--space-4);
+    flex: 1;
+    max-width: none;
   }
 
   /* Fieldset, so .filters > div's max-width: 180px never applied here
   to begin with - it was sizing to its own content (legend + checkbox
   label) instead. A fixed width (rather than max-width) forces a
   specific size instead of just capping it, since content alone
-  wouldn't stretch it that wide. */
+  wouldn't stretch it that wide - kept as Género's own fixed anchor now
+  that Buscar/Estructura no longer need to line up (see Buscar's own
+  comment above). */
   .filters > .structure-field {
-    order: 2;
     width: 160px;
   }
 
-  /* flex: 1 (same reasoning as Buscar above) grows Género to fill
-  whatever Estructura's fixed 160px doesn't need, replacing a fixed
-  140px cap that left this row short of its own right edge. */
-  .filters > .genre-field {
-    order: 3;
-    flex: 1;
-    max-width: none;
-  }
-
-  /* order: 4 and 5 keep Minutos disponibles and Modo sequenced after
-  Estructura/Género's own row 2 (order: 2 and 3 above) instead of
-  before them - both used to rely on the default order: 0 landing
-  them after Género by plain DOM position alone, which stopped working
-  once Género needed an explicit order higher than 0 to land after the
-  break. */
-  .filters > .duration-field {
-    order: 4;
-  }
-
-  .filters > .mode-fieldset {
-    order: 5;
-  }
-
-  /* order: 6 keeps Ordenar por sequenced after Minutos/Modo, same
-  reasoning as those two above - it used to be the lowest explicit
-  order (1) in this tier, back when everything else was still order:
-  0. flex: 1 grows it to fill whatever the density toggle's own ~40px
-  doesn't need, replacing a fixed 260px cap that was tuned to
-  comfortably clear "Ranking BGG" specifically at a real 343-363px
-  phone budget - flex: 1 tracks each width's own real leftover space
-  instead of a number guessed for the narrowest case, so it keeps
-  filling the row properly at this tier's wider end too (450px+) where
-  260px was leaving a visibly empty gap before the density toggle.
-  .sort-row select's own always-on flex: 1 (see that rule's own
-  comment, defined once for every tier) is what actually makes the
-  select itself grow along with .sort-field now, same as everywhere
-  else in this file - the 9rem fixed width this tier used to set for
-  it is gone along with the fixed 260px cap that made it necessary. */
+  /* Pushed to the end via order, past Minutos and Modo (both still
+  default order: 0, so they keep their DOM position) - moves it off its
+  old spot above Minutos and lets it close out the form alone on its own
+  row, rather than physically relocating the markup and disturbing wider
+  layouts where this media query doesn't apply. flex: 1 grows it to fill
+  the row, replacing a fixed 260px cap that was tuned to comfortably
+  clear "Ranking BGG" specifically at a real 343-363px phone budget -
+  flex: 1 tracks each width's own real leftover space instead of a
+  number guessed for the narrowest case. .sort-row select's own
+  always-on flex: 1 (see that rule's own comment, defined once for
+  every tier) is what actually makes the select itself grow along with
+  .sort-field now, same as everywhere else in this file - the 9rem
+  fixed width this tier used to set for it is gone along with the fixed
+  260px cap that made it necessary. .density-toggle-slot doesn't need
+  its own order override here: it lives in the title row at this width
+  too now (see the ≤1002px tier above), so this form-embedded copy
+  never renders in the first place. */
   .filters > .sort-field {
-    order: 6;
+    order: 1;
     flex: 1;
     max-width: none;
   }
 
-  /* Order 7, right after .sort-field's order: 6 above - together they
-  land on the row Modo's own width: 100% forces below it, sitting side
-  by side as the last thing in the card instead of density-toggle-slot's
-  original spot right after Modo in DOM order (still true above this
-  breakpoint, where order isn't set). margin-left: auto pushes it flush
-  against the card's right edge instead of sitting wherever it lands
-  right after .sort-field, using up whatever's left of the row instead
-  of the ~40px gap that would otherwise sit unused past it. Its own
-  .filter-label-spacer (unchanged) still matches the "Ordenar por" label
-  above .sort-row, so the button already starts level with .sort-row -
-  the margin-top below only corrects the last bit: .sort-row is taller
-  than the button (42.6px vs 32px, since .sort-toggle's padding makes it
-  the taller of the two), so without it the button sits flush with the
-  row's top instead of centered in its height. */
-  .filters > .density-toggle-slot {
-    order: 7;
-    margin-left: auto;
+  /* Same 3-then-2 centered treatment as the 481-560px tier above,
+  applied here too - asked for directly, since without it this tier
+  fell back to the default fieldset gap (space-4, generous) with no
+  forced wrap point, leaving Minutos noticeably looser and wrapping
+  wherever content happened to allow rather than matching the tighter,
+  centered layout right above this range. */
+  .filters > .duration-field {
+    width: 100%;
+    justify-content: center;
   }
 
-  .filters > .density-toggle-slot :deep(.density-toggle) {
-    margin-top: 5px;
+  .filters > .duration-field label {
+    flex: 0 1 30%;
+    justify-content: center;
   }
 
-  /* Trims the fieldset's own padding, and stretches it to the row's
-  full width instead of shrink-wrapping its content - between the two,
-  the labels fit one line even on iPhone SE's 375px without needing to
-  touch each label's own icon-to-text gap (still the usual space-2,
-  same as every other fieldset). justify-content: space-between (rather
-  than a fixed gap) spreads the three across whatever width that ends
-  up being instead of leaving them bunched at the left edge with the
-  same cramped gap regardless of how much slack a wider phone actually
-  has - gap here is only the floor space-between won't shrink below,
-  not the real spacing at most widths. */
+  /* Just the full-width stretch, deliberately not the reduced
+  padding/gap/justify-content this used to also carry - that combo
+  visibly shrank the fieldset's box compared to the 481-560px tier
+  above (which only sets width: 100% too, same as here, and otherwise
+  leaves the default fieldset padding/gap alone) - asked to drop it. */
   .mode-fieldset {
     width: 100%;
-    box-sizing: border-box;
-    justify-content: space-between;
-    gap: var(--space-1);
-    padding: var(--space-1) var(--space-2);
   }
 }
 
@@ -1030,18 +973,11 @@ separate row 1 from the rest). row-gap is turned off further down
 .filters' own unconditional gap: shorthand rather than here) - the
 break would otherwise add an extra gap's worth of vertical space on
 top of the normal one, since row-gap can't tell a real line from a
-zero-height spacer one. Restored by hand as margin-bottom on row 1's
-own items and on each of the four solo rows below instead. */
+zero-height spacer one; asked to drop the margin-bottom that used to
+restore it by hand on row 1's own items and each of the four solo rows
+below, so rows now sit flush against each other with no vertical gap
+at all in this range. */
 @media (min-width: 481px) and (max-width: 560px) {
-  .filters > .search-field,
-  .filters > .search-field + div,
-  .filters > .structure-field,
-  .filters > .genre-field,
-  .filters > .duration-field,
-  .filters > .mode-fieldset {
-    margin-bottom: var(--space-4);
-  }
-
   .filters::before {
     content: '';
     order: 1;
@@ -1124,14 +1060,6 @@ the three real rows there instead. */
 /* Same cascade-order reasoning, paired with the 481-560px block's own
 margin-bottom rule instead. */
 @media (min-width: 481px) and (max-width: 560px) {
-  .filters {
-    row-gap: 0;
-  }
-}
-
-/* Same cascade-order reasoning, paired with the ≤480px block's own
-margin-bottom rule instead. */
-@media (max-width: 480px) {
   .filters {
     row-gap: 0;
   }
