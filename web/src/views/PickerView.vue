@@ -815,9 +815,17 @@ before Modo joined it here. */
     max-width: none;
   }
 
+  /* justify-content: space-between (same technique .mode-fieldset
+  already uses at the ≤480px tier for this same problem) spreads the 5
+  radios across the row's now-full width instead of leaving them
+  bunched at the left edge with a wide empty gap after "Hasta 2h" -
+  fieldset's own global gap (space-4, from main.css) becomes just the
+  floor space-between won't shrink below, not the real spacing at this
+  width. */
   .filters > .duration-field {
     order: 1;
     width: 100%;
+    justify-content: space-between;
   }
 
   .filters > .mode-fieldset {
