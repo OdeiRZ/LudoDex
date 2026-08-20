@@ -641,10 +641,14 @@ else on this page, just with only one rendition actually live now. */
 /* position: relative anchors .filters-toggle-floating, same as .filters
 itself - the button isn't a flex participant here either, so this no
 longer needs justify-content: space-between to push it to the far side. */
+/* margin-bottom: 5px (asked for directly) only applies here, while
+filters are collapsed - .filters itself (the expanded form) has its
+own separate margin-bottom, halved rather than matched to this one. */
 .filters-summary {
   position: relative;
   color: var(--color-text-muted);
   font-size: 0.9rem;
+  margin-bottom: 5px;
 }
 
 .filters-summary p {
@@ -1031,7 +1035,9 @@ holding the 3-then-2 layout down to a real 352px window. */
   row-gap: 0;
   flex-wrap: wrap;
   align-items: flex-start;
-  margin-bottom: var(--space-6);
+  /* Halved from space-6 (asked for directly) - space-3 is exactly
+  half of it (12px vs 24px). */
+  margin-bottom: var(--space-3);
   /* Anchors .filters-toggle-floating - positioned instead of a flex
   participant on purpose (see its own comment) so this doesn't need
   touching per breakpoint. No reserved padding for it: it overlays
