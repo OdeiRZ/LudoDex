@@ -61,3 +61,29 @@ Los umbrales exactos (872/786/702/618/576) salieron de medir en el propio DOM
 los anchos reales de marca/nav/sesión al añadir un 4º enlace ("Partidas"),
 no de valores estándar de diseño — si se añade o quita algún enlace del nav,
 hay que volver a medir en vez de asumir que siguen siendo válidos.
+
+## Breakpoints del toolbar de Colección (`DashboardView.vue`)
+
+`.dashboard-toolbar` es una única rejilla CSS Grid (título, buscador+tipo,
+orden+extras); varias filas comparten columnas para poder "acoplar"
+controles entre filas (p. ej. eliminar/añadir alineados con la fila de
+orden). Igual que en `App.vue`, cada ajuste es acumulativo (`max-width`):
+
+| `max-width` | Qué hace |
+|---|---|
+| `880px` | Vaciar/Añadir pasan a solo icono, agrupados con el toggle de vista a la derecha. Buscador+tipo no se parten en dos líneas. |
+| `740px` | Buscador+tipo y orden+extras ya no caben en una línea → dos filas de grid. Vaciar/Añadir recuperan su etiqueta de texto. |
+| `671px` | Vaciar/Añadir vuelven a solo icono. |
+| `583px` | Buscador+tipo ocupan el 100% de la primera línea. Orden, su toggle, vista, eliminar y añadir se agrupan a la izquierda en la segunda línea. |
+| `389px` | Vista sube a la línea del título (a la derecha). Eliminar y añadir se agrupan juntos en la línea de orden (a la derecha, eliminar primero). `.search-group` deja de ser parte de la rejilla compartida y pasa a ser una fila flex propia de ancho completo — el buscador y el select de tipo se reparten el espacio de forma proporcional entre sí (`flex: 1` ambos), sin depender de las columnas de eliminar/añadir/orden. |
+
+Dos lecciones de CSS Grid que costó descubrir y que conviene recordar si se
+retoca este bloque:
+- Una columna `auto` (o un `minmax(N, 1fr)` con `N` fijo) se dimensiona según
+  el contenido más ancho que comparta esa columna **en cualquier fila** —
+  un botón con etiqueta de texto (como el toggle "A → Z") compartiendo
+  columna con un botón de solo icono lo estira a su mismo ancho.
+- `min-width: 0` (o `minmax(0, 1fr)`) es necesario para que una columna
+  pueda encoger por debajo del contenido de sus propios controles (mismo
+  motivo por el que un `select` con una opción larga puede impedir que su
+  columna encoja) — sin él, la rejilla se desborda en vez de comprimirse.

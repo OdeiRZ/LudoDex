@@ -19,6 +19,10 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   576px el nav se sustituye por un menú ☰ desplegable en vez de partir los
   enlaces en dos líneas. Detalle completo de los breakpoints en
   [`web/README.md`](web/README.md#breakpoints-del-header-appvue).
+- Revisión completa de los breakpoints del toolbar de "Tu colección"
+  (buscador, filtro de tipo, orden, densidad, vaciar/añadir) para anchos
+  estrechos, hasta un móvil real de ~360px sin desbordamiento. Detalle en
+  [`web/README.md`](web/README.md#breakpoints-del-toolbar-de-colección-dashboardviewvue).
 
 ## [0.6.0] - 2026-08-18
 
