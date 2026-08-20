@@ -778,56 +778,42 @@ rule used before it was asked to drop the padding/gap part of it. */
 
 @media (max-width: 480px) {
   /* flex: 1 grows Buscar to fill whatever Jugadores' own fixed input+
-  button don't need, reaching this row's right edge - replaces a fixed
-  160px cap that existed to keep this column lined up with Estructura's
-  own matching 160px below (see that rule's own comment) - asked to
-  prioritize each row filling its own width over that alignment, so
-  Estructura keeps its 160px (still needed as a fixed anchor there
-  since Género is what grows on that row instead - see below) while
-  Buscar and Estructura's columns no longer necessarily line up. */
+  button don't need, reaching this row's right edge - Estructura no
+  longer shares this row at all (see the break below), so there's
+  nothing else competing for it. */
   .filters > .search-field {
     flex: 1;
     max-width: none;
   }
 
-  /* flex: 1 (same reasoning as Buscar above) grows Género to fill
-  whatever Estructura's fixed 160px doesn't need, replacing a fixed
-  140px cap that left this row short of its own right edge. */
-  .filters > .genre-field {
-    flex: 1;
-    max-width: none;
-  }
-
-  /* Fieldset, so .filters > div's max-width: 180px never applied here
-  to begin with - it was sizing to its own content (legend + checkbox
-  label) instead. A fixed width (rather than max-width) forces a
-  specific size instead of just capping it, since content alone
-  wouldn't stretch it that wide - kept as Género's own fixed anchor now
-  that Buscar/Estructura no longer need to line up (see Buscar's own
-  comment above). */
-  .filters > .structure-field {
-    width: 160px;
-  }
-
-  /* Pushed to the end via order, past Minutos and Modo (both still
-  default order: 0, so they keep their DOM position) - moves it off its
-  old spot above Minutos and lets it close out the form alone on its own
-  row, rather than physically relocating the markup and disturbing wider
-  layouts where this media query doesn't apply. flex: 1 grows it to fill
-  the row, replacing a fixed 260px cap that was tuned to comfortably
-  clear "Ranking BGG" specifically at a real 343-363px phone budget -
-  flex: 1 tracks each width's own real leftover space instead of a
-  number guessed for the narrowest case. .sort-row select's own
-  always-on flex: 1 (see that rule's own comment, defined once for
-  every tier) is what actually makes the select itself grow along with
-  .sort-field now, same as everywhere else in this file - the 9rem
-  fixed width this tier used to set for it is gone along with the fixed
-  260px cap that made it necessary. .density-toggle-slot doesn't need
-  its own order override here: it lives in the title row at this width
-  too now (see the ≤1002px tier above), so this form-embedded copy
-  never renders in the first place. */
-  .filters > .sort-field {
+  /* Copies the 426px window's own natural wrap up to the rest of this
+  tier (asked for directly) - Estructura used to only fall to row 2
+  once it no longer fit alongside Buscar/Jugadores on row 1, which
+  happened well below this tier's own 480px ceiling (Estructura's fixed
+  content width left just enough slack at 480px for all three to
+  squeeze onto row 1, unlike at 426px) - a visible seam between two
+  different row-1 counts within what's supposed to be one consistent
+  tier. Forced with the same .filters::before break technique used
+  elsewhere in this file instead of leaving it to chance. */
+  .filters::before {
+    content: '';
     order: 1;
+    flex-basis: 100%;
+    height: 0;
+  }
+
+  /* order: 2 lands it right after the break, first - no width override
+  needed any more (used to fix it at 160px so Género had something
+  stable to grow against); sizes to its own content now, same as the
+  481-560px tier's own copy of this rule. */
+  .filters > .structure-field {
+    order: 2;
+  }
+
+  /* flex: 1 grows Género to fill whatever Estructura's own content
+  width doesn't need, same technique as Buscar's own row above. */
+  .filters > .genre-field {
+    order: 3;
     flex: 1;
     max-width: none;
   }
@@ -839,6 +825,7 @@ rule used before it was asked to drop the padding/gap part of it. */
   wherever content happened to allow rather than matching the tighter,
   centered layout right above this range. */
   .filters > .duration-field {
+    order: 4;
     width: 100%;
     justify-content: center;
   }
@@ -854,13 +841,43 @@ rule used before it was asked to drop the padding/gap part of it. */
     justify-content: center;
   }
 
-  /* Just the full-width stretch, deliberately not the reduced
-  padding/gap/justify-content this used to also carry - that combo
-  visibly shrank the fieldset's box compared to the 481-560px tier
-  above (which only sets width: 100% too, same as here, and otherwise
-  leaves the default fieldset padding/gap alone) - asked to drop it. */
+  /* Pushed to the end via order (6, bumped up from 1 now that the
+  break above and Estructura/Género/Minutos take 2, 3 and 4), past
+  Minutos and Modo - moves it off its old spot above Minutos and lets
+  it close out the form alone on its own row, rather than physically
+  relocating the markup and disturbing wider layouts where this media
+  query doesn't apply. flex: 1 grows it to fill the row, replacing a
+  fixed 260px cap that was tuned to comfortably clear "Ranking BGG"
+  specifically at a real 343-363px phone budget - flex: 1 tracks each
+  width's own real leftover space instead of a number guessed for the
+  narrowest case. .sort-row select's own always-on flex: 1 (see that
+  rule's own comment, defined once for every tier) is what actually
+  makes the select itself grow along with .sort-field now, same as
+  everywhere else in this file - the 9rem fixed width this tier used to
+  set for it is gone along with the fixed 260px cap that made it
+  necessary. .density-toggle-slot doesn't need its own order override
+  here: it lives in the title row at every width now (see the comment
+  by .title-density-toggle), so this form-embedded copy never renders
+  in the first place. */
+  .filters > .sort-field {
+    order: 6;
+    flex: 1;
+    max-width: none;
+  }
+
+  /* order: 5 lands it right after Minutos, before Ordenar por's own
+  order: 6. width: 100% stretches the box, deliberately not the
+  reduced padding/gap this used to also carry - that combo visibly
+  shrank the fieldset's box compared to the 481-560px tier above
+  (which only sets width: 100% too, same as here, and otherwise leaves
+  the default fieldset padding/gap alone) - asked to drop it.
+  justify-content: center (asked for directly) centers its own 3
+  radios as a group within that now-wider box, instead of the default
+  flex-start packing them against the left edge. */
   .mode-fieldset {
+    order: 5;
     width: 100%;
+    justify-content: center;
   }
 }
 
