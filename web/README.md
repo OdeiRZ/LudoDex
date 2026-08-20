@@ -87,3 +87,38 @@ retoca este bloque:
   pueda encoger por debajo del contenido de sus propios controles (mismo
   motivo por el que un `select` con una opción larga puede impedir que su
   columna encoja) — sin él, la rejilla se desborda en vez de comprimirse.
+
+## Breakpoints del formulario de filtros de "¿A qué jugamos?" (`PickerView.vue`)
+
+`.filters` es un flex-wrap con `gap` partido en `column-gap` (espacio entre
+elementos de una misma línea, sin tocar) y `row-gap: 0` incondicional — las
+filas quedan pegadas entre sí por defecto; donde hace falta separación se
+añade a mano (`margin-top` en el elemento que abre la fila siguiente). El
+botón de cambio de vista vive siempre en la barra del título, nunca dentro
+del formulario, en cualquier ancho. Cada ajuste es acumulativo (`max-width`
+o rango), de más ancho a más estrecho:
+
+| Rango | Qué hace |
+|---|---|
+| `≥1003px` | Todo cabe en la fila 1 salvo Minutos disponibles + Modo, que quedan en fila 2 y crecen (`flex: 1 1 auto` + `justify-content: space-between`) para llenar el 100% del ancho — antes ese hueco lo ocupaba el botón de vista, embebido en el formulario en este rango. |
+| `807-1002px` | Buscar/Jugadores/Estructura en fila 1; Género + Minutos en fila 2 (Género crece para llenarla); Modo + Ordenar por en fila 3. |
+| `481-806px` | Género comparte fila 1 con Buscar/Jugadores/Estructura si cabe, si no baja a su propia fila; Ordenar por se reordena tras Minutos/Modo. |
+| `481-646px` | Género se mueve a la fila de Modo en vez de tener fila propia. |
+| `481-560px` | Género, Minutos, Modo y Ordenar por, cada uno en su propia fila; Estructura se une a Género en la segunda. `margin-top` en Ordenar por, que aquí queda solo en su fila. |
+| `≤480px` | Buscar+Jugadores en fila 1; Estructura+Género en fila 2; Minutos (3+2 centrado) en fila 3; Modo (centrado) en fila 4; Ordenar por en fila 5 (con `margin-top`). |
+| `≤388px` | `font-size: 12px` en todos los controles del formulario (labels, legends, selects, botones, radios) — a partir de aquí ya no caben con el tamaño normal (14px). |
+| `≤352px` | Recorte extra de `gap`/`min-width` en las etiquetas de Minutos disponibles, encima del `font-size: 12px` del tramo anterior, para que el 3+2 se sostenga hasta un móvil real de ~345px. |
+
+Dos técnicas que se repiten en varios de estos tramos:
+- **Forzar un salto de línea real**: un `order` por sí solo no reordena a una
+  línea distinta — `flex-wrap` decide la línea de cada elemento por su
+  tamaño *hipotético* (el de antes de crecer/encoger), no por su `order`. El
+  truco usado aquí es un `.filters::before` vacío con `flex-basis: 100%` y un
+  `order` intermedio, que actúa como salto de línea forzado.
+- **Recortar `gap`/`padding`/`min-width` antes que perder texto**: en los
+  tramos más estrechos (Minutos disponibles, Modo), antes de reducir el
+  `font-size` se recortan primero el espacio entre radios y el padding del
+  propio `fieldset` — son los mismos tokens de espaciado que en cualquier
+  otro sitio de la app (`--space-1`... `--space-4`), nunca valores sueltos
+  inventados para la ocasión, salvo cuando ya no queda ningún token por
+  debajo de la necesidad real (ahí se pasa a `font-size: 12px`).

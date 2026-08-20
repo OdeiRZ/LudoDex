@@ -23,6 +23,14 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   (buscador, filtro de tipo, orden, densidad, vaciar/añadir) para anchos
   estrechos, hasta un móvil real de ~360px sin desbordamiento. Detalle en
   [`web/README.md`](web/README.md#breakpoints-del-toolbar-de-colección-dashboardviewvue).
+- Revisión completa de los breakpoints del formulario de filtros de "¿A qué
+  jugamos?" (Buscar, Jugadores, Estructura, Género, Minutos disponibles,
+  Modo, Ordenar por): filas simplificadas y unificadas de escritorio ancho
+  hasta un móvil real de ~345px, botón de cambio de vista siempre en la
+  barra del título (antes volvía al formulario por debajo de 481px o por
+  encima de 1002px), y `row-gap` a 0 en todo el rango en vez de por tramo.
+  Detalle en
+  [`web/README.md`](web/README.md#breakpoints-del-formulario-de-filtros-de-a-qué-jugamos-pickerviewvue).
 
 ## [0.6.0] - 2026-08-18
 
