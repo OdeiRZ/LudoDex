@@ -192,7 +192,7 @@ export default {
     hideFilters: 'Ocultar filtros',
     duration: 'Minutos disponibles',
     any: 'Cualquiera',
-    upTo30: 'Hasta 30 min',
+    upTo30: 'Hasta 30m',
     upTo1h: 'Hasta 1h',
     upTo1h30: 'Hasta 1h30',
     upTo2h: 'Hasta 2h',

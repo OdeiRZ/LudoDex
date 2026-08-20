@@ -864,11 +864,13 @@ rule used before it was asked to drop the padding/gap part of it. */
   narrower widths (a real 422px window this time). Doesn't cover all
   the way down to 480px's own lower bound on its own any more - see
   the ≤388px tier further down, which layers a smaller font-size on
-  top of this for the narrowest widths this reaches. */
+  top of this for the narrowest widths this reaches. min-width: 92px
+  tracks "Hasta 1h30" (86px at this gap), the widest label now that
+  "Hasta 30 min" was shortened to "Hasta 30m". */
   .filters > .duration-field label {
     flex: 0 1 30%;
     gap: var(--space-1);
-    min-width: 102px;
+    min-width: 92px;
     justify-content: center;
   }
 
@@ -936,13 +938,14 @@ also patching that range). font-size: 12px (down from the fieldset
 label's own default 14px) shrinks each label's own natural width
 enough to close the remaining gap for both fields at once. */
 @media (max-width: 388px) {
-  /* min-width: 90px (down from the ≤480px tier's own 102px) tracks
-  "Hasta 30 min"'s own natural width at this smaller font size (90px
-  including the ≤480px tier's own space-1 gap) - left at 102px, it
+  /* min-width: 82px (down from the ≤480px tier's own 92px) tracks
+  "Hasta 1h30" (now the widest label - "Hasta 30 min" held that title
+  until it was shortened to "Hasta 30m") at 76px at this smaller font
+  size (including the ≤480px tier's own space-1 gap) - left higher, it
   would cap 3-per-row's own reachable width well above what the
   smaller text now actually needs. */
   .filters > .duration-field label {
-    min-width: 90px;
+    min-width: 82px;
     font-size: 12px;
   }
 
@@ -998,16 +1001,16 @@ enough to close the remaining gap for both fields at once. */
 
 /* ≤352px: layers a further trim onto Minutos disponibles' own copy of
 this rule in the ≤388px tier above, asked for directly once that
-tier's own font-size: 12px plus min-width: 90px still fell short of
+tier's own font-size: 12px plus min-width: 82px still fell short of
 holding the 3-then-2 layout down to a real 352px window. */
 @media (max-width: 352px) {
-  /* gap: 0 (down from the ≤480px tier's own space-1) trims "Hasta 30
-  min"'s own natural width further, from 90px to 82px at this font
-  size. min-width: 84px (down from 90px) follows that smaller natural
-  width down, with a couple of px of slack. */
+  /* gap: 0 (down from the ≤480px tier's own space-1) trims "Hasta
+  1h30" (the widest label) further, from 76px to 72px at this font
+  size. min-width: 78px follows that smaller natural width down, with
+  a couple of px of slack. */
   .filters > .duration-field label {
     gap: 0;
-    min-width: 84px;
+    min-width: 78px;
   }
 
   /* gap: var(--space-1) (down from the ≤480px tier's own space-2)
@@ -1191,13 +1194,14 @@ range. */
   under the first two columns - a grid's fixed column tracks (tried
   first) can't do this, since each item stays pinned to its own column
   regardless of how many rows are full; flex centers whatever's
-  actually on each wrapped line independently. min-width: 108px (the
-  widest label, "Hasta 30 min", measures 102px on its own single line)
-  floors that 30% for whenever it computes narrower than the label's
-  own content - without it, a narrow enough container (found while
-  reusing this same rule at ≤480px) shrinks the box below its content's
-  width and wraps the label's own text across 2-3 lines instead, which
-  a fixed-percentage basis alone can't prevent. */
+  actually on each wrapped line independently. min-width: 96px (the
+  widest label, "Hasta 1h30", measures 90px on its own single line -
+  "Hasta 30m" briefly held that title as "Hasta 30 min" until it was
+  shortened) floors that 30% for whenever it computes narrower than
+  the label's own content - without it, a narrow enough container
+  (found while reusing this same rule at ≤480px) shrinks the box below
+  its content's width and wraps the label's own text across 2-3 lines
+  instead, which a fixed-percentage basis alone can't prevent. */
   .filters > .duration-field {
     order: 4;
     width: 100%;
@@ -1206,7 +1210,7 @@ range. */
 
   .filters > .duration-field label {
     flex: 0 1 30%;
-    min-width: 108px;
+    min-width: 96px;
     justify-content: center;
   }
 
