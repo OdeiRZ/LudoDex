@@ -979,6 +979,39 @@ enough to close the remaining gap for both fields at once. */
   .filters > .sort-field > label {
     font-size: 12px;
   }
+
+  /* Trims Modo's own gap/padding further still, layered on top of the
+  ≤480px tier's own space-2/(space-2 space-3) - asked for directly,
+  once font-size: 12px above still wasn't enough on its own to hold 1
+  line down to a real 356px window. padding: var(--space-1) on every
+  side (not just left/right) closes the last few pixels once
+  space-1/space-2 alone fell 4px short of it. */
+  .filters > .mode-fieldset {
+    gap: var(--space-1);
+    padding: var(--space-1);
+  }
+}
+
+/* ≤352px: layers a further trim onto Minutos disponibles' own copy of
+this rule in the ≤388px tier above, asked for directly once that
+tier's own font-size: 12px plus min-width: 90px still fell short of
+holding the 3-then-2 layout down to a real 352px window. */
+@media (max-width: 352px) {
+  /* gap: 0 (down from the ≤480px tier's own space-1) trims "Hasta 30
+  min"'s own natural width further, from 90px to 82px at this font
+  size. min-width: 84px (down from 90px) follows that smaller natural
+  width down, with a couple of px of slack. */
+  .filters > .duration-field label {
+    gap: 0;
+    min-width: 84px;
+  }
+
+  /* gap: var(--space-1) (down from the ≤480px tier's own space-2)
+  trims the fieldset's own gap between labels further, same reasoning
+  as the label's own gap trim just above. */
+  .filters > .duration-field {
+    gap: var(--space-1);
+  }
 }
 
 .filters {
