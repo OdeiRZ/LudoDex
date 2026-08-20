@@ -624,28 +624,18 @@ carve out clear space for this. */
   right: 0;
 }
 
-/* Hidden by default - only the .density-toggle-slot copy inside the
-filters form shows outside the narrow band below. Same "two renditions,
-toggle via CSS" pattern used everywhere else on this page: the two spots
-sit in entirely different flex containers, so a single shared element
-can't straddle both. */
+/* Always shown - the .density-toggle-slot copy inside the filters form
+(unconditionally hidden further down) never renders any more, at any
+width. Same "two renditions, toggle via CSS" pattern used everywhere
+else on this page, just with only one rendition actually live now. */
 .title-density-toggle {
-  display: none;
+  display: block;
   align-self: center;
   margin-left: auto;
   /* Nudges it a touch further left than flush-right so it sits centered
   over whatever it's floating below it, whenever this copy is flush
   against the title row's own right edge. */
   margin-right: 5px;
-}
-
-/* The filters form (and its own density-toggle-slot copy) doesn't render
-at all while collapsed, regardless of width - without this the density toggle
-would vanish along with it outside the narrow bands below that already
-show this copy. Density affects the results grid, not the filters, so
-hiding filters shouldn't hide it too. */
-.title-row.filters-collapsed .title-density-toggle {
-  display: block;
 }
 
 /* position: relative anchors .filters-toggle-floating, same as .filters
@@ -661,34 +651,26 @@ longer needs justify-content: space-between to push it to the far side. */
   margin: 0;
 }
 
-/* Up to 1002px, the toggle lives next to the title instead of embedded
-in the form - used to be three separate tiers (481-806px, 807-981px,
-982-1023px) each reordering the form's fields to tuck the toggle in
-wherever it happened to fit (sharing a line with Ordenar por, or with
-Minutos, depending on the tier), until it was asked to just live at the
-title consistently across all of them instead - confirmed with real
-(not simulated) windows at 768px, 820px and 987px. Upper bound moved
-from 1023px to 1002px afterwards (asked for directly) - the 1020px
-window this tier used to be confirmed against falls above that now and
-hasn't been re-verified since. Originally bounded below at 481px too,
-keeping the ≤480px tier's own form-embedded copy as an exception - that
-exception was dropped when asked for directly (the button was moving
-position within the ≤480px tier as a side effect of unrelated changes
-there, which turned out to be unwanted: it's meant to stay put in the
-title row across every width, not just 481-1002px). */
-@media (max-width: 1002px) {
-  .title-density-toggle {
-    display: block;
-  }
-
+/* The toggle lives next to the title instead of embedded in the form,
+at every width now - used to be three separate tiers (481-806px,
+807-981px, 982-1023px) each reordering the form's fields to tuck the
+toggle in wherever it happened to fit (sharing a line with Ordenar
+por, or with Minutos, depending on the tier), until it was asked to
+just live at the title consistently across all of them instead -
+confirmed with real (not simulated) windows at 768px, 820px and 987px.
+Bounded first at 481-1023px, then 481-1002px, then dropped the lower
+481px bound too (the ≤480px tier's own form-embedded copy was kept as
+an exception until that turned out to be unwanted as well) and finally
+the upper 1002px bound (full desktop still fell back to the
+form-embedded copy, sharing Minutos/Modo's row - asked to live in the
+title row unconditionally instead, same as everywhere narrower). */
+.filters > .density-toggle-slot {
   /* .filters > div (unconditional, no media query) sets display: flex
   on this same element with higher specificity (class + element vs.
   just a class) than a plain .density-toggle-slot selector here would
   have - matching its ".filters > " prefix is what actually outweighs
   it, same fix as everywhere else this page hides that slot. */
-  .filters > .density-toggle-slot {
-    display: none;
-  }
+  display: none;
 }
 
 /* 807-1002px: picks up right where the 481-806px tier above leaves
@@ -736,15 +718,13 @@ is lower. Ordenar por keeps growing to the row's own right edge via
 its own always-on flex: 1 (see .sort-row select's own rule further
 down) same as it already did before Modo joined it here. */
 @media (min-width: 807px) and (max-width: 1002px) {
-  /* row-gap is turned off further down (see the comment by .filters
-  there for why it has to live after .filters' own unconditional gap:
-  shorthand rather than here) - the break below would otherwise add an
-  extra gap's worth of vertical space before row 2 on top of the
-  normal one, since row-gap can't tell a real line from a zero-height
-  spacer one; asked to drop the margin-bottom that used to restore it
-  by hand on each row's own items, to try it - rows sit flush against
-  each other with no vertical gap at all in this range now, same as
-  the 481-560px tier above. */
+  /* .filters' own row-gap: 0 (unconditional, see that rule's own
+  comment) already means the break below adds no extra vertical space
+  before row 2 - used to need a margin-bottom restored by hand on each
+  row's own items to compensate for a nonzero row-gap catching the
+  zero-height spacer line as if it were a real one, back when row-gap
+  still defaulted to space-4; dropped once row-gap itself dropped to 0
+  by default. */
   .filters::before {
     content: '';
     order: 1;
@@ -768,6 +748,31 @@ down) same as it already did before Modo joined it here. */
 
   .filters > .sort-field {
     order: 5;
+  }
+}
+
+/* 1003px+: picks up where the 807-1002px tier above leaves off. Wide
+enough that Buscar/Jugadores/Estructura/Género/Ordenar por all share
+row 1 without any reordering, leaving Minutos disponibles and Modo
+alone on row 2 - previously joined there by the density toggle's own
+form-embedded copy, which shared out whatever the row had left over;
+now that the toggle lives in the title row unconditionally instead
+(see the comment by .title-density-toggle), row 2 stopped well short
+of its own right edge without it. flex: 1 1 auto (grow and shrink, but
+from each fieldset's own natural content width rather than a shared
+zero basis - flex: 1 alone would instead split the row's own full
+width evenly between them regardless of how much content each
+actually has, ballooning Modo's own empty space past what
+justify-content below has to work with) grows both to close that gap,
+and justify-content: space-between spreads each one's own radios
+across the extra width instead of leaving it sit unused past them,
+same technique as the ≤480px tier's own (now-removed) copy of this
+rule used before it was asked to drop the padding/gap part of it. */
+@media (min-width: 1003px) {
+  .filters > .duration-field,
+  .filters > .mode-fieldset {
+    flex: 1 1 auto;
+    justify-content: space-between;
   }
 }
 
@@ -838,8 +843,14 @@ down) same as it already did before Modo joined it here. */
     justify-content: center;
   }
 
+  /* min-width: 108px (see the 481-560px tier's own copy of this rule
+  for the full reasoning) matters even more down here - this tier
+  reaches all the way to a real 320px phone, narrow enough that 30%
+  alone shrank the box well below "Hasta 30 min"'s own single-line
+  width and wrapped it across 2-3 lines instead. */
   .filters > .duration-field label {
     flex: 0 1 30%;
+    min-width: 108px;
     justify-content: center;
   }
 
@@ -855,10 +866,19 @@ down) same as it already did before Modo joined it here. */
 
 .filters {
   display: flex;
-  /* Tighter than the space-6 this used before - freeing up a few pixels
-  per gap is what lets Ordenar por fit on the same row as the rest of the
-  top-line filters instead of wrapping to its own line. */
-  gap: var(--space-4);
+  /* column-gap tighter than the space-6 this used before - freeing up a
+  few pixels per gap is what lets Ordenar por fit on the same row as the
+  rest of the top-line filters instead of wrapping to its own line.
+  row-gap dropped to 0 (asked for directly) - the elements within a
+  line already have their own visual weight from column-gap alone, and
+  that same space-4 repeated vertically between lines read as excess on
+  top of it. Used to be plain gap: var(--space-4) (both axes the same),
+  overridden back to 0 per tier wherever a forced line break needed it
+  (807-1002px, 481-560px) - dropped to 0 here instead so every tier
+  gets flush rows by default, without needing a per-tier override for
+  it any more. */
+  column-gap: var(--space-4);
+  row-gap: 0;
   flex-wrap: wrap;
   align-items: flex-start;
   margin-bottom: var(--space-6);
@@ -968,15 +988,14 @@ happens to leave - plain order changes alone don't force a split
 (flex-wrap decides which line an item lands on using its hypothetical
 size before flex-grow/an explicit width is applied - same reasoning
 as the .filters::before break below, needed for the same reason to
-separate row 1 from the rest). row-gap is turned off further down
-(see the comment by .filters there for why it has to live after
-.filters' own unconditional gap: shorthand rather than here) - the
-break would otherwise add an extra gap's worth of vertical space on
-top of the normal one, since row-gap can't tell a real line from a
-zero-height spacer one; asked to drop the margin-bottom that used to
-restore it by hand on row 1's own items and each of the four solo rows
-below, so rows now sit flush against each other with no vertical gap
-at all in this range. */
+separate row 1 from the rest). .filters' own row-gap: 0 (unconditional,
+see that rule's own comment) means the break below adds no extra
+vertical space of its own - used to need a margin-bottom restored by
+hand on row 1's own items and each of the four solo rows below to
+compensate for a nonzero row-gap, back when row-gap still defaulted to
+space-4; dropped once row-gap itself dropped to 0 by default, so rows
+now sit flush against each other with no vertical gap at all in this
+range. */
 @media (min-width: 481px) and (max-width: 560px) {
   .filters::before {
     content: '';
@@ -1010,7 +1029,13 @@ at all in this range. */
   under the first two columns - a grid's fixed column tracks (tried
   first) can't do this, since each item stays pinned to its own column
   regardless of how many rows are full; flex centers whatever's
-  actually on each wrapped line independently. */
+  actually on each wrapped line independently. min-width: 108px (the
+  widest label, "Hasta 30 min", measures 102px on its own single line)
+  floors that 30% for whenever it computes narrower than the label's
+  own content - without it, a narrow enough container (found while
+  reusing this same rule at ≤480px) shrinks the box below its content's
+  width and wraps the label's own text across 2-3 lines instead, which
+  a fixed-percentage basis alone can't prevent. */
   .filters > .duration-field {
     order: 4;
     width: 100%;
@@ -1019,6 +1044,7 @@ at all in this range. */
 
   .filters > .duration-field label {
     flex: 0 1 30%;
+    min-width: 108px;
     justify-content: center;
   }
 
@@ -1035,33 +1061,14 @@ at all in this range. */
 
 /* Placed after .filters itself (not inside the ≤480px block above) so
 its column-gap wins the cascade tie against .filters' own unconditional
-gap: shorthand above - same specificity either way (both just
+column-gap: shorthand above - same specificity either way (both just
 ".filters"), so source order is what decides it, and a media query
-alone doesn't add any. Tighter than the row gap (still space-4,
-untouched - only column-gap is overridden) - Buscar growing to fill
-its row at this tier leaves it tight against Jugadores without it. */
+alone doesn't add any. Tighter than the row gap (0, untouched - only
+column-gap is overridden here) - Buscar growing to fill its row at
+this tier leaves it tight against Jugadores without it. */
 @media (max-width: 480px) {
   .filters {
     column-gap: var(--space-2);
-  }
-}
-
-/* Same cascade-order reasoning as the column-gap override above - has
-to live after .filters' own unconditional gap: shorthand to win the
-tie. Paired with the margin-bottom rules in the 807-1002px block
-further up, which restore a normal-looking single gap by hand between
-the three real rows there instead. */
-@media (min-width: 807px) and (max-width: 1002px) {
-  .filters {
-    row-gap: 0;
-  }
-}
-
-/* Same cascade-order reasoning, paired with the 481-560px block's own
-margin-bottom rule instead. */
-@media (min-width: 481px) and (max-width: 560px) {
-  .filters {
-    row-gap: 0;
   }
 }
 
