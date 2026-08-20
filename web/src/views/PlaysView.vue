@@ -1,31 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { usePlaysStore, type PlaysImportResult } from '@/stores/plays'
+import { onMounted } from 'vue'
+import { usePlaysStore } from '@/stores/plays'
 import { FALLBACK_ICON_URL } from '@/lib/assets'
-import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const plays = usePlaysStore()
-const { t } = useI18n()
-
-const username = ref('')
-const submitting = ref(false)
-const importResult = ref<PlaysImportResult | null>(null)
-const errorMessage = ref<string | null>(null)
-
-async function onSubmit() {
-  submitting.value = true
-  errorMessage.value = null
-
-  try {
-    importResult.value = await plays.importPlays(username.value)
-    await plays.fetchPage(1)
-  } catch {
-    errorMessage.value = t('plays.importError')
-  } finally {
-    submitting.value = false
-  }
-}
 
 function loadMore() {
   plays.fetchPage(plays.currentPage + 1)
@@ -40,41 +18,13 @@ onMounted(() => {
 
 <template>
   <div class="plays">
-    <div class="card import-card">
-      <h1>{{ $t('plays.title') }}</h1>
-      <p class="hint">{{ $t('plays.importHint') }}</p>
-
-      <form class="form" @submit.prevent="onSubmit">
-        <div>
-          <label for="plays_bgg_username">{{ $t('plays.username') }}</label>
-          <input
-            id="plays_bgg_username"
-            v-model="username"
-            type="text"
-            required
-            :disabled="submitting"
-          />
-        </div>
-
-        <p v-if="errorMessage" role="alert" class="alert alert-error">{{ errorMessage }}</p>
-
-        <p v-if="submitting" class="alert alert-info importing">
-          <LoadingSpinner :size="20" />
-          {{ $t('plays.importing') }}
-        </p>
-
-        <p v-if="importResult" role="status" class="alert alert-info">
-          {{ $t('plays.importSuccess', { count: importResult.imported_count }) }}
-        </p>
-
-        <button type="submit" class="btn btn-primary" :disabled="submitting || !username">
-          {{ $t('plays.importButton') }}
-        </button>
-      </form>
-    </div>
+    <h1>{{ $t('plays.title') }}</h1>
 
     <p v-if="plays.loaded && plays.entries.length === 0" class="empty-state">
-      {{ $t('plays.empty') }}
+      {{ $t('plays.empty') }}<br />
+      <RouterLink :to="{ name: 'import-bgg', query: { tab: 'plays' } }">{{
+        $t('plays.importLink')
+      }}</RouterLink>.
     </p>
 
     <ul v-else class="play-list">
@@ -118,24 +68,8 @@ onMounted(() => {
   margin: 0 auto;
 }
 
-.import-card {
-  margin-bottom: var(--space-6);
-}
-
 h1 {
   margin-bottom: var(--space-4);
-}
-
-.hint {
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
-  margin-bottom: var(--space-2);
-}
-
-.importing {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
 }
 
 .play-list {

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { createRouter, createMemoryHistory } from 'vue-router'
 import PlaysView from '@/views/PlaysView.vue'
 import { usePlaysStore, type Play } from '@/stores/plays'
 import { i18n } from '@/i18n'
@@ -16,22 +17,33 @@ function makePlay(overrides: Partial<Play> = {}): Play {
   }
 }
 
-function mountPlays() {
+// A real router (rather than stubbing RouterLink out) so the empty
+// state's link to Importar BGG's own Plays tab can be checked for real
+// (resolved href), not just that a stub tag rendered.
+function makeRouter() {
+  return createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/', name: 'plays', component: PlaysView },
+      { path: '/import-bgg', name: 'import-bgg', component: { template: '<div>Import</div>' } },
+    ],
+  })
+}
+
+async function mountPlays() {
   setActivePinia(createPinia())
   const store = usePlaysStore()
   vi.spyOn(store, 'fetchPage').mockResolvedValue()
 
+  const router = makeRouter()
+  router.push('/')
+  await router.isReady()
+
   const wrapper = mount(PlaysView, {
-    global: { stubs: { RouterLink: true }, plugins: [i18n] },
+    global: { plugins: [router, i18n] },
   })
 
   return { wrapper, store }
-}
-
-async function submitUsername(wrapper: ReturnType<typeof mountPlays>['wrapper'], username = 'odei') {
-  await wrapper.find('#plays_bgg_username').setValue(username)
-  await wrapper.find('form').trigger('submit')
-  await flushPromises()
 }
 
 describe('PlaysView', () => {
@@ -39,33 +51,37 @@ describe('PlaysView', () => {
     vi.restoreAllMocks()
   })
 
-  it('fetches page 1 on mount when nothing is loaded yet', () => {
-    const { store } = mountPlays()
+  it('fetches page 1 on mount when nothing is loaded yet', async () => {
+    const { store } = await mountPlays()
 
     expect(store.fetchPage).toHaveBeenCalledWith(1)
   })
 
-  it('does not re-fetch on mount if plays are already loaded', () => {
+  it('does not re-fetch on mount if plays are already loaded', async () => {
     setActivePinia(createPinia())
     const store = usePlaysStore()
     store.loaded = true
     vi.spyOn(store, 'fetchPage').mockResolvedValue()
 
-    mount(PlaysView, { global: { stubs: { RouterLink: true }, plugins: [i18n] } })
+    const router = makeRouter()
+    router.push('/')
+    await router.isReady()
+    mount(PlaysView, { global: { plugins: [router, i18n] } })
 
     expect(store.fetchPage).not.toHaveBeenCalled()
   })
 
-  it('shows the empty state once loaded with no plays', async () => {
-    const { wrapper, store } = mountPlays()
+  it('shows the empty state with a link to the Plays import tab once loaded with no plays', async () => {
+    const { wrapper, store } = await mountPlays()
     store.loaded = true
     await wrapper.vm.$nextTick()
 
     expect(wrapper.find('.empty-state').exists()).toBe(true)
+    expect(wrapper.find('.empty-state a').attributes('href')).toBe('/import-bgg?tab=plays')
   })
 
   it('lists plays once loaded, including quantity and duration', async () => {
-    const { wrapper, store } = mountPlays()
+    const { wrapper, store } = await mountPlays()
     store.loaded = true
     store.entries = [makePlay({ quantity: 3, duration_minutes: 45 })]
     await wrapper.vm.$nextTick()
@@ -77,7 +93,7 @@ describe('PlaysView', () => {
   })
 
   it('shows a "load more" button only while there are more pages', async () => {
-    const { wrapper, store } = mountPlays()
+    const { wrapper, store } = await mountPlays()
     store.loaded = true
     store.entries = [makePlay()]
     store.currentPage = 1
@@ -94,25 +110,5 @@ describe('PlaysView', () => {
     store.lastPage = 2
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.load-more').exists()).toBe(false)
-  })
-
-  it('imports plays and shows the success count', async () => {
-    const { wrapper, store } = mountPlays()
-    vi.spyOn(store, 'importPlays').mockResolvedValue({ imported_count: 7 })
-
-    await submitUsername(wrapper)
-
-    expect(store.importPlays).toHaveBeenCalledWith('odei')
-    expect(store.fetchPage).toHaveBeenCalledWith(1)
-    expect(wrapper.text()).toContain('7 partidas importadas.')
-  })
-
-  it('shows an error message when the import fails', async () => {
-    const { wrapper, store } = mountPlays()
-    vi.spyOn(store, 'importPlays').mockRejectedValue(new Error('network error'))
-
-    await submitUsername(wrapper)
-
-    expect(wrapper.find('[role="alert"]').text()).toContain('No se han podido importar las partidas.')
   })
 })

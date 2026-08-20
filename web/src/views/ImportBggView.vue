@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { isAxiosError } from 'axios'
 import { useGamesStore, type BggImportStatus, type BggCsvImportResult } from '@/stores/games'
+import { usePlaysStore, type PlaysImportResult } from '@/stores/plays'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const games = useGamesStore()
+const plays = usePlaysStore()
 const { t } = useI18n()
+const route = useRoute()
 
-const method = ref<'username' | 'csv'>('username')
+const method = ref<'username' | 'csv' | 'plays'>(route.query.tab === 'plays' ? 'plays' : 'username')
 
 const username = ref('')
 const phase = ref<'idle' | 'pending' | 'completed' | 'failed'>('idle')
@@ -143,12 +147,34 @@ async function onCsvSubmit() {
   }
 }
 
+// Plays import is synchronous too (same reasoning as CSV above - /plays
+// has no BGG-side async export step to poll), just driven by a username
+// like the collection tab instead of a file.
+const playsUsername = ref('')
+const playsSubmitting = ref(false)
+const playsResult = ref<PlaysImportResult | null>(null)
+const playsErrorMessage = ref<string | null>(null)
+
+async function onPlaysSubmit() {
+  playsSubmitting.value = true
+  playsErrorMessage.value = null
+
+  try {
+    playsResult.value = await plays.importPlays(playsUsername.value)
+    plays.fetchPage(1)
+  } catch {
+    playsErrorMessage.value = t('importBgg.playsGenericError')
+  } finally {
+    playsSubmitting.value = false
+  }
+}
+
 // In-app navigation never actually interrupts either import (the request
 // keeps running regardless of which view is rendered, and the CSV side is
 // wrapped in one DB transaction so it's all-or-nothing anyway) - the real
 // risk is closing the tab or reloading mid-request, which genuinely aborts
 // it. Warn only for that.
-const isImporting = computed(() => phase.value === 'pending' || csvSubmitting.value)
+const isImporting = computed(() => phase.value === 'pending' || csvSubmitting.value || playsSubmitting.value)
 
 function warnBeforeUnload(event: BeforeUnloadEvent) {
   if (isImporting.value) {
@@ -199,6 +225,15 @@ onMounted(() => {
         >
           {{ $t('importBgg.tabCsv') }}
         </button>
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="method === 'plays'"
+          :class="['method-tab', { active: method === 'plays' }]"
+          @click="method = 'plays'"
+        >
+          {{ $t('importBgg.tabPlays') }}
+        </button>
       </div>
 
       <template v-if="method === 'username'">
@@ -235,7 +270,7 @@ onMounted(() => {
         </div>
       </template>
 
-      <template v-else>
+      <template v-else-if="method === 'csv'">
         <form v-if="!csvResult" class="form" @submit.prevent="onCsvSubmit">
           <p class="hint">{{ $t('importBgg.csvHint') }}</p>
           <p class="hint">{{ $t('importBgg.readOnlyNotice') }}</p>
@@ -287,6 +322,43 @@ onMounted(() => {
 
           <RouterLink :to="{ name: 'dashboard' }" class="btn btn-primary">{{
             $t('importBgg.viewCollection')
+          }}</RouterLink>
+        </div>
+      </template>
+
+      <template v-else>
+        <form v-if="!playsResult" class="form" @submit.prevent="onPlaysSubmit">
+          <p class="hint">{{ $t('importBgg.playsHint') }}</p>
+
+          <div>
+            <label for="plays_bgg_username">{{ $t('importBgg.username') }}</label>
+            <input
+              id="plays_bgg_username"
+              v-model="playsUsername"
+              type="text"
+              required
+              :disabled="playsSubmitting"
+            />
+          </div>
+
+          <p v-if="playsErrorMessage" role="alert" class="alert alert-error">
+            {{ playsErrorMessage }}
+          </p>
+
+          <p v-if="playsSubmitting" class="alert alert-info csv-submitting">
+            <LoadingSpinner :size="20" />
+            {{ $t('importBgg.dontCloseTab') }}
+          </p>
+
+          <button type="submit" class="btn btn-primary" :disabled="playsSubmitting || !playsUsername">
+            {{ playsSubmitting ? $t('importBgg.playsSubmitting') : $t('importBgg.playsSubmit') }}
+          </button>
+        </form>
+
+        <div v-else role="status" class="status-block">
+          <p>{{ $t('importBgg.playsCompleted', { count: playsResult.imported_count }) }}</p>
+          <RouterLink :to="{ name: 'plays' }" class="btn btn-primary">{{
+            $t('importBgg.viewPlays')
           }}</RouterLink>
         </div>
       </template>

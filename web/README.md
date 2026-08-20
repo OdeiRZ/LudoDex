@@ -37,9 +37,13 @@ npm run test:unit      # Vitest
   alta de nuevas sobre la marcha.
 - `src/views/DashboardView.vue` / `AddGameView.vue` — listado de la colección
   y formulario de alta manual.
-- `src/views/ImportBggView.vue` — importación desde BGG con dos pestañas: por
-  usuario (*polling* cada 3s contra el estado de la importación) o desde el
-  CSV que exporta la propia colección de BGG (síncrona, sin *polling*).
+- `src/views/ImportBggView.vue` — importación desde BGG con tres pestañas:
+  por usuario (*polling* cada 3s contra el estado de la importación), desde
+  el CSV que exporta la propia colección de BGG, o el historial de partidas
+  (las dos últimas son síncronas, sin *polling*).
+- `src/views/PlaysView.vue` — página "Partidas": lista el historial de
+  partidas ya importado (paginado, con "cargar más"); el propio formulario
+  de importación vive en `ImportBggView.vue`, no aquí.
 - `src/views/PickerView.vue` — selector "¿A qué jugamos?": filtra la
   colección propia en el cliente por jugadores, duración y modo de juego.
 

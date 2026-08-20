@@ -9,11 +9,15 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Añadido
 
-- Página "Partidas": importa el historial de partidas jugadas desde BGG
-  (solo lectura, igual que la colección). Por ahora solo guarda juego,
-  fecha, duración y cantidad por partida — sin jugadores ni puntuaciones.
-  Si una partida es de un juego que aún no está en el catálogo local, se
-  crea automáticamente con sus datos de BGG.
+- Página "Partidas": muestra el historial de partidas jugadas, importado
+  desde BGG (solo lectura, igual que la colección) — el formulario de
+  importación vive como tercera pestaña ("Partidas") dentro de "Importar
+  BGG", junto a "Por usuario" y "Desde CSV", en vez de repetirse en la
+  propia página de Partidas; su estado vacío enlaza directamente a esa
+  pestaña. Por ahora solo guarda juego, fecha, duración y cantidad por
+  partida — sin jugadores ni puntuaciones. Si una partida es de un juego
+  que aún no está en el catálogo local, se crea automáticamente con sus
+  datos de BGG.
 - Cuarto enlace de nav ("Partidas") junto a los ya existentes, lo que
   obligó a revisar toda la cabecera para anchos estrechos: por debajo de
   576px el nav se sustituye por un menú ☰ desplegable en vez de partir los

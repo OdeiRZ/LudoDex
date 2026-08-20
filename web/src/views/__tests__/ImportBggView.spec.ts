@@ -3,18 +3,29 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import ImportBggView from '@/views/ImportBggView.vue'
 import { useGamesStore, type BggCsvImportResult } from '@/stores/games'
+import { usePlaysStore } from '@/stores/plays'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import { i18n } from '@/i18n'
+
+// Only the query param matters here (used to preselect the Plays tab) -
+// a real router is overkill when every other test in this file already
+// gets by with RouterLink stubbed out.
+let routeQuery: Record<string, string> = {}
+vi.mock('vue-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue-router')>()
+  return { ...actual, useRoute: () => ({ query: routeQuery }) }
+})
 
 function mountImport() {
   setActivePinia(createPinia())
   const store = useGamesStore()
+  const playsStore = usePlaysStore()
 
   const wrapper = mount(ImportBggView, {
     global: { stubs: { RouterLink: true }, plugins: [i18n] },
   })
 
-  return { wrapper, store }
+  return { wrapper, store, playsStore }
 }
 
 async function submitUsername(wrapper: ReturnType<typeof mountImport>['wrapper'], username = 'odei') {
@@ -35,6 +46,13 @@ async function submitCsv(wrapper: ReturnType<typeof mountImport>['wrapper']) {
   await flushPromises()
 }
 
+async function submitPlaysUsername(wrapper: ReturnType<typeof mountImport>['wrapper'], username = 'odei') {
+  await wrapper.find('[role="tab"]:nth-of-type(3)').trigger('click')
+  await wrapper.find('#plays_bgg_username').setValue(username)
+  await wrapper.find('form').trigger('submit')
+  await flushPromises()
+}
+
 describe('ImportBggView', () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
@@ -44,6 +62,7 @@ describe('ImportBggView', () => {
     // reaches a terminal status (e.g. the unmount test below) - every test
     // in this file starts from a clean slate instead.
     localStorage.clear()
+    routeQuery = {}
   })
 
   afterEach(() => {
@@ -375,6 +394,36 @@ describe('ImportBggView', () => {
     expect(wrapper.find('#csv_file').exists()).toBe(true)
   })
 
+  it('imports plays and shows the success count', async () => {
+    const { wrapper, playsStore } = mountImport()
+    const importSpy = vi.spyOn(playsStore, 'importPlays').mockResolvedValue({ imported_count: 7 })
+    const fetchPageSpy = vi.spyOn(playsStore, 'fetchPage').mockResolvedValue()
+
+    await submitPlaysUsername(wrapper)
+
+    expect(importSpy).toHaveBeenCalledWith('odei')
+    expect(fetchPageSpy).toHaveBeenCalledWith(1)
+    expect(wrapper.text()).toContain('7 partidas importadas.')
+  })
+
+  it('shows a generic error when importing plays fails', async () => {
+    const { wrapper, playsStore } = mountImport()
+    vi.spyOn(playsStore, 'importPlays').mockRejectedValue(new Error('network error'))
+
+    await submitPlaysUsername(wrapper)
+
+    expect(wrapper.find('[role="alert"]').text()).toContain('No se han podido importar las partidas.')
+    expect(wrapper.find('#plays_bgg_username').exists()).toBe(true)
+  })
+
+  it('preselects the Plays tab when the route is given ?tab=plays', () => {
+    routeQuery = { tab: 'plays' }
+    const { wrapper } = mountImport()
+
+    expect(wrapper.find('#plays_bgg_username').exists()).toBe(true)
+    expect(wrapper.find('#bgg_username').exists()).toBe(false)
+  })
+
   // Neither import actually gets interrupted by in-app navigation (the
   // request keeps running regardless of which view is rendered) - the real
   // risk is closing the tab or reloading mid-request, which these guard
@@ -448,6 +497,27 @@ describe('ImportBggView', () => {
       expect(dispatchBeforeUnload().defaultPrevented).toBe(true)
 
       resolveImport({ imported_count: 1, skipped_expansions_count: 0, skipped_no_status_count: 0, warnings: [] })
+      await flushPromises()
+      wrapper.unmount()
+    })
+
+    it('warns and shows a banner while a plays import is in flight', async () => {
+      const { wrapper, playsStore } = mountImport()
+      let resolveImport: (value: { imported_count: number }) => void = () => {}
+      vi.spyOn(playsStore, 'importPlays').mockImplementation(
+        () => new Promise((resolve) => { resolveImport = resolve }),
+      )
+      vi.spyOn(playsStore, 'fetchPage').mockResolvedValue()
+
+      await wrapper.find('[role="tab"]:nth-of-type(3)').trigger('click')
+      await wrapper.find('#plays_bgg_username').setValue('odei')
+      wrapper.find('form').trigger('submit')
+      await flushPromises()
+
+      expect(wrapper.text()).toContain('No cierres ni recargues esta pestaña mientras se importa.')
+      expect(dispatchBeforeUnload().defaultPrevented).toBe(true)
+
+      resolveImport({ imported_count: 1 })
       await flushPromises()
       wrapper.unmount()
     })
