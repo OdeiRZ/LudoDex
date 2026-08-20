@@ -999,14 +999,17 @@ to land in row1/row3 at all. */
   .dashboard-toolbar {
     grid-template-columns: 1fr auto auto auto;
     grid-template-areas:
-      'title     title    .     density'
+      'title     title    title density'
       'search    search   search search'
       'criterion toggle   clear add';
   }
 
-  /* Safety net in case a translation ever makes "Tu colección" and
-  its count too wide for columns 1-2 together - wraps the count onto
-  its own line instead of the two colliding. */
+  /* Spans columns 1-3 (not just 1-2) - column 3 sits empty on this
+  row anyway (only row3 uses it, for 'clear'), so title gets the
+  benefit of that width too instead of it going to waste, giving "Tu
+  colección" and its count enough room to stay on one line down to
+  this tier's own narrowest supported width. flex-wrap stays as a
+  safety net in case a translation ever needs more than that. */
   .title-row {
     flex-wrap: wrap;
   }
@@ -1017,36 +1020,43 @@ to land in row1/row3 at all. */
     grid-area: search;
   }
 
-  /* flex: 1 grows to fill whatever .type-filter (fixed-width, see
-  below) doesn't need - the input claiming the row's own full width
-  instead of being capped by columns designed for row1/row3's
-  controls is the whole point of decoupling this row above. 120px is
-  only the point where it stops giving further and the row wraps onto
-  two lines instead (flex-wrap, set above) - well short of that at
-  this breakpoint's own width. */
+  /* Both flex: 1 (not one fixed and the other absorbing 100% of
+  whatever's left) so the two grow and shrink together as the row's
+  own width changes, in proportion to their own basis, instead of one
+  swelling while the other gets squeezed down to a fixed floor - that
+  read as broken (the type filter visibly shrinking while the search
+  input visibly grew) when only the input was flexible. 120px is only
+  the point where the input stops giving further and the row wraps
+  onto two lines instead (flex-wrap, set above) - well short of that
+  at this breakpoint's own width. */
   .search-group input {
     flex: 1 1 171px;
     min-width: 120px;
   }
 
-  /* Fixed-size flex item, not flex: 1 - .search-group input is the
-  one meant to absorb the row's leftover space (see above), not this.
-  Same ~100px .sort-toggle's own width already settled on elsewhere in
-  this tier, not tied to any particular column now that this isn't a
-  grid item anymore. */
   .type-filter {
-    flex: 0 0 auto;
+    flex: 1 1 100px;
     width: auto;
-    max-width: 100px;
+    max-width: none;
+    min-width: 80px;
   }
 
   .sort-criterion-group {
     display: contents;
   }
 
+  /* min-width: 0 overrides the automatic content-based minimum a
+  plain grid column otherwise protects (see column 1's own comment
+  above) - without it, this select's own min-content (its longest
+  option, "Ranking BGG") was what column 1 refused to shrink below,
+  overflowing the toolbar at a real 360-366px phone once row3's other
+  three columns (toggle/clear/add) are subtracted from what's left. A
+  narrow select just clips its own text like any other, same trade-off
+  already made for other controls at this tier. */
   .sort-criterion {
     grid-area: criterion;
     flex: initial;
+    min-width: 0;
   }
 
   .sort-toggle {
