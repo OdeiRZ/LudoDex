@@ -232,7 +232,7 @@ export default {
     passwordGenericError: "Couldn't change the password.",
   },
   importBgg: {
-    title: 'Import from BoardGameGeek',
+    title: 'Import from BGG',
     tabUsername: 'By username',
     tabCsv: 'From CSV',
     tabPlays: 'Plays',
