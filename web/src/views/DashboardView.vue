@@ -968,66 +968,75 @@ now, instead of an oversized column dragging space between the two. */
   }
 }
 
-/* Below this, the row2 block from 583px (select, toggle, density,
-clear, add all together) is carrying too much again - clear rejoins
-the search row and add rejoins the sort row instead, each docked
-flush against its own row's right edge (same shape as the 740px/671px
-tiers above). Only the density toggle actually moves, up to the title
-row - it's the one control that doesn't have an obvious row of its
-own to dock into once clear/add reclaim theirs.
+/* Below this, clear moves down to join add on row3 (to its left)
+instead of sharing row2 with search/type - row2 carries only one
+grid item now (.search-group itself, see below), not two or three
+separate ones competing for column width. Density moves up to the
+title row instead, docked flush against its right edge - it's the one
+control that doesn't have an obvious row of its own to dock into once
+clear joins add on row3.
 
-3 columns, not 4 or 5: column 3 is shared by density (row1), clear
-(row2) and add (row3) - safe, since all three are the same kind of
-compact icon-only control (28-36px), the same reasoning that already
-let add and density share a column safely in an earlier version of
-this tier. What actually has to stay isolated is column 2, 'toggle'
-alone (the "A→Z"/"Z→A" label) - auto columns size to the widest item
-sharing that column across every row, so a wide labelled button in
-the same column as an icon-only one stretches the icon one out to
-match, which is what pushed clear/add past the toolbar's own right
-edge in an earlier attempt at this tier. .type-filter lands in column
-2 too on row2 (it's a flexible select, not an icon button - capped
-separately below so it doesn't drag column 2 wider than 'toggle'
-needs). Column 1's own floor is 171px, not an arbitrary number - a
-plain minmax(N, 1fr) replaces the track's automatic content-based
-minimum with N outright (the same rule that made min-width: 0 strip a
-track's protection elsewhere in this file), so the floor has to be at
-least as wide as the widest thing column 1 hosts on any row, which is
-.search-group input's own min-width (set once, well above this media
-query) - .search-group can go back to display: contents here (undoing
-the previous attempt's decoupling, no longer needed) now that the
-budget actually works out. title-row keeps flex-wrap as a safety net
-in case a translation ever makes "Tu colección" and its count too
-wide for column 1 together - wraps the count onto its own line
-instead of the two colliding. */
+.search-group stops being display: contents here (undoing the 740px
+tier's own change) and gets a real flex row of its own instead,
+spanning row2 as a single grid area across every column rather than
+being broken up into the same per-column tracks as row1/row3. Row1
+and row3 need their own columns for density/clear/add and to keep
+'toggle' (the "A→Z"/"Z→A" label) from sharing a column with an icon
+button and stretching it (auto columns size to the widest item
+sharing that column across every row - a wide labelled button next to
+an icon-only one in the same column pushed clear/add past the
+toolbar's own right edge in an earlier attempt at this tier) - none
+of that has anything to do with how wide the search input needs to
+be, so rather than let row2 inherit whatever those columns add up to
+(which briefly capped the input at ~144-172px, well short of the row's
+own full width), .search-group gets the whole row to lay out
+internally on its own terms. .search-controls itself stays display:
+contents still, only .search-group changes, since .sort-group
+(search-controls' other child) still needs to tunnel .inline-actions
+and .density-toggle all the way up to this grid for clear/add/density
+to land in row1/row3 at all. */
 @media (max-width: 389px) {
   .dashboard-toolbar {
-    grid-template-columns: minmax(171px, 1fr) auto auto;
+    grid-template-columns: 1fr auto auto auto;
     grid-template-areas:
-      'title     title    density'
-      'search    type     clear'
-      'criterion toggle   add';
+      'title     title    .     density'
+      'search    search   search search'
+      'criterion toggle   clear add';
   }
 
-  /* Spans columns 1-2 (not just column 1, which column 2's own
-  emptiness on this row would otherwise limit it to) so "Tu colección"
-  and its count have room to sit on one line - column 1 alone (171px,
-  sized for the search input on row2, see the top-level comment) isn't
-  wide enough for both together. flex-wrap stays as a safety net for a
-  longer translation, but doesn't kick in at this width. */
+  /* Safety net in case a translation ever makes "Tu colección" and
+  its count too wide for columns 1-2 together - wraps the count onto
+  its own line instead of the two colliding. */
   .title-row {
     flex-wrap: wrap;
   }
 
-  /* .type-filter's own unbounded width: 100% (set well above this
-  media query, for wider tiers where it has a whole row to itself)
-  would otherwise size column 2 to its full natural content width
-  (~128px, from its longest option text) - added to column 1's own
-  171px floor (see the top-level comment) plus column 3's 36px plus
-  gaps, that overflows the toolbar's real width by ~30px. Capped back
-  down towards .sort-toggle's own natural width instead, the actual
-  floor column 2 needs regardless of what shares it. */
+  .search-group {
+    display: flex;
+    flex-wrap: wrap;
+    grid-area: search;
+  }
+
+  /* flex: 1 grows to fill whatever .type-filter (fixed-width, see
+  below) doesn't need - the input claiming the row's own full width
+  instead of being capped by columns designed for row1/row3's
+  controls is the whole point of decoupling this row above. 120px is
+  only the point where it stops giving further and the row wraps onto
+  two lines instead (flex-wrap, set above) - well short of that at
+  this breakpoint's own width. */
+  .search-group input {
+    flex: 1 1 171px;
+    min-width: 120px;
+  }
+
+  /* Fixed-size flex item, not flex: 1 - .search-group input is the
+  one meant to absorb the row's leftover space (see above), not this.
+  Same ~100px .sort-toggle's own width already settled on elsewhere in
+  this tier, not tied to any particular column now that this isn't a
+  grid item anymore. */
   .type-filter {
+    flex: 0 0 auto;
+    width: auto;
     max-width: 100px;
   }
 
@@ -1044,12 +1053,12 @@ instead of the two colliding. */
     grid-area: toggle;
   }
 
-  /* Column 3 is sized to clear/add's own 36px (row2/row3) - density
-  is only 28px, so without this it sits flush to the column's LEFT
-  edge (its default alignment) instead of centered in the same 36px
-  block clear/add fill completely below it. justify-self: center
-  splits the leftover 8px evenly instead of pushing it all to one
-  side. */
+  /* Shares column 4 with .add-game-btn below it (row3), not column 3
+  where .clear-library-btn now lives alone - density is only 28px next
+  to add's 36px, so without this it sits flush to the column's LEFT
+  edge (its default alignment) instead of centered in the same block
+  add fills completely on the row below. justify-self: center splits
+  the leftover 8px evenly instead of pushing it all to one side. */
   :deep(.density-toggle) {
     grid-area: density;
     margin-left: 0;
