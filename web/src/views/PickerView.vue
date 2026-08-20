@@ -1124,6 +1124,28 @@ block's own margin-bottom rules instead. */
   max-width: 180px;
 }
 
+/* Wrapped in its own @media (rather than left unconditional) so it
+structurally can't fight the ≤480px tier's own max-width: 260px for
+this same field on specificity/source-order grounds - the two ranges
+are mutually exclusive by width, not by which one happens to come
+later in the file.
+
+flex: 1 lets .sort-field grow past the 180px every other filter field
+caps out at, filling whatever's left on its own row instead of
+stopping short of the card's right edge - at a real 1024px window it
+was leaving ~59px unused past it. max-width: none removes the shared
+180px cap for this field specifically; .sort-row select still splits
+whatever width that grows to with .sort-toggle via its own flex: 1
+(and min-width: 0 - see that rule's own comment for why), so the
+select actually gets bigger as .sort-field does instead of leaving the
+extra width to sit as blank padding around a still-fixed-size row. */
+@media (min-width: 481px) {
+  .filters > .sort-field {
+    flex: 1;
+    max-width: none;
+  }
+}
+
 .players-row {
   display: flex;
   gap: var(--space-2);
@@ -1140,29 +1162,22 @@ block's own margin-bottom rules instead. */
   gap: var(--space-2);
 }
 
-/* Fixed and deliberately tight - just enough for "Nombre" (the default
-option) to read in full. A <select> otherwise sizes itself to its widest
-option regardless of which one is picked (so "Ranking BGG" was pushing
-this past the same 180px cap every other filter column keeps to, and
-overflowing the card entirely once that cap was removed to compensate).
-"Ranking BGG" clipping when picked is an accepted trade-off between the
-480px breakpoint below and the desktop-only override further down,
-where .filters > .sort-field select above widens it enough to show in
-full instead. */
+/* flex: 1 grows the select to fill whatever .sort-toggle (flex-shrink:
+0, its own fixed width) doesn't need, reaching the full width of
+.sort-field's own column (180px, the same cap every other filter field
+keeps to) at every width from 481px up, instead of a fixed rem value
+that left the row short of the column's own right edge. min-width: 0
+is what actually makes that possible - a <select> otherwise refuses to
+shrink below its own widest option's content ("Ranking BGG", ~135px),
+which together with .sort-toggle would overflow the 180px column
+instead of filling it. "Ranking BGG" clipping when picked is the
+trade-off, same one every narrower breakpoint here already accepts for
+other controls - below 481px, .filters > .sort-field select overrides
+this again with its own fixed 9rem, tuned separately for that tier. */
 .sort-row select {
-  width: 6.5rem;
-  flex-shrink: 0;
-}
-
-/* None of the existing breakpoints reach past 1023px (the highest upper
-bound among them), so this can't shrink anything they already cover -
-picks back up right where they leave off. Same 9rem the ≤480px fix
-above already uses, wide enough for "Ranking BGG" (135px measured) to
-read in full at max desktop width instead of clipping. */
-@media (min-width: 1024px) {
-  .sort-row select {
-    width: 9rem;
-  }
+  flex: 1;
+  width: auto;
+  min-width: 0;
 }
 
 .sort-toggle {
