@@ -661,19 +661,21 @@ longer needs justify-content: space-between to push it to the far side. */
   margin: 0;
 }
 
-/* 481-1023px: whenever the form is expanded at anything narrower than
+/* 481-1002px: whenever the form is expanded at anything narrower than
 wide desktop but wider than phone width, the toggle lives next to the
 title instead of embedded in the form - used to be three separate tiers
 (481-806px, 807-981px, 982-1023px) each reordering the form's fields to
 tuck the toggle in wherever it happened to fit (sharing a line with
 Ordenar por, or with Minutos, depending on the tier), until it was
 asked to just live at the title consistently across all of them instead
-- confirmed with real (not simulated) windows at 768px, 820px, 987px
-and 1020px. Below 481px the form's own layout gets tight enough (see
-the ≤480px tier further down) that embedding it back in the form was
-kept as-is there rather than also verifying a title-row version at
-those narrower widths. */
-@media (min-width: 481px) and (max-width: 1023px) {
+- confirmed with real (not simulated) windows at 768px, 820px and
+987px. Upper bound moved from 1023px to 1002px afterwards (asked for
+directly) - the 1020px window this tier used to be confirmed against
+falls above that now and hasn't been re-verified since. Below 481px
+the form's own layout gets tight enough (see the ≤480px tier further
+down) that embedding it back in the form was kept as-is there rather
+than also verifying a title-row version at those narrower widths. */
+@media (min-width: 481px) and (max-width: 1002px) {
   .title-density-toggle {
     display: block;
   }
@@ -727,7 +729,7 @@ is a real flex item once it has content: '', so flex-basis: 100% on it
 forces whatever comes next onto a fresh line the same way a genuinely
 full-width item would, but the break itself renders as nothing between
 the visible rows it separates. Modo, Ordenar por and the toggle (the
-last one hidden in this range - see the 807-1023px rule above, which
+last one hidden in this range - see the 481-1002px rule above, which
 this range sits inside of) each need an explicit order of their own
 too, past the two breaks. */
 @media (min-width: 973px) and (max-width: 981px) {
