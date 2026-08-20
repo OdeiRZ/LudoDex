@@ -823,21 +823,44 @@ rule used before it was asked to drop the padding/gap part of it. */
   fell back to the default fieldset gap (space-4, generous) with no
   forced wrap point, leaving Minutos noticeably looser and wrapping
   wherever content happened to allow rather than matching the tighter,
-  centered layout right above this range. */
+  centered layout right above this range. gap: var(--space-2) (tighter
+  than the fieldset's own default space-4, same reduction the
+  481-806px tier's own copy of this rule already uses) buys back the
+  few pixels 3-per-row needs at this tier's narrower widths - asked for
+  directly after 3-per-row broke down to 2-per-row earlier than wanted
+  (a real 454px window) with the full space-4 gap still in place.
+  padding-left/right: var(--space-2) (down from the fieldset's own
+  default space-4 each side) buys back a further 16px total - asked
+  for again once the gap reduction alone still broke down earlier than
+  wanted (a real 438px window this time) - a fieldset's own padding
+  counts against its automatic minimum content size same as its gap
+  does, so trimming it works the same way to buy back room for 3 per
+  line. */
   .filters > .duration-field {
     order: 4;
     width: 100%;
+    gap: var(--space-2);
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
     justify-content: center;
   }
 
-  /* min-width: 108px (see the 481-560px tier's own copy of this rule
-  for the full reasoning) matters even more down here - this tier
-  reaches all the way to a real 320px phone, narrow enough that 30%
-  alone shrank the box well below "Hasta 30 min"'s own single-line
-  width and wrapped it across 2-3 lines instead. */
+  /* min-width (see the 481-560px tier's own copy of this rule for the
+  full reasoning) matters even more down here - this tier reaches all
+  the way to a real 320px phone, narrow enough that 30% alone shrank
+  the box well below "Hasta 30 min"'s own single-line width and
+  wrapped it across 2-3 lines instead. 102px here specifically (rather
+  than that other tier's 108px) - gap: var(--space-1) (down from the
+  default space-2 between each label's own radio and text) trims
+  "Hasta 30 min"'s own natural width from 102px to 98px, so the
+  min-width floor needsn't sit as high to still clear it. Asked for
+  directly, on top of the fieldset's own gap/padding trims above, to
+  buy back a few more pixels of room for 3 per line at this tier's
+  narrower widths (a real 422px window this time). */
   .filters > .duration-field label {
     flex: 0 1 30%;
-    min-width: 108px;
+    gap: var(--space-1);
+    min-width: 102px;
     justify-content: center;
   }
 
@@ -866,17 +889,22 @@ rule used before it was asked to drop the padding/gap part of it. */
   }
 
   /* order: 5 lands it right after Minutos, before Ordenar por's own
-  order: 6. width: 100% stretches the box, deliberately not the
-  reduced padding/gap this used to also carry - that combo visibly
-  shrank the fieldset's box compared to the 481-560px tier above
-  (which only sets width: 100% too, same as here, and otherwise leaves
-  the default fieldset padding/gap alone) - asked to drop it.
-  justify-content: center (asked for directly) centers its own 3
-  radios as a group within that now-wider box, instead of the default
-  flex-start packing them against the left edge. */
+  order: 6. width: 100% stretches the box. justify-content: center
+  (asked for directly) centers its own 3 radios as a group within that
+  now-wider box, instead of the default flex-start packing them
+  against the left edge. gap: var(--space-2) and padding: var(--space-2)
+  var(--space-3) trim the fieldset's own default space-4 gap/padding a
+  little, to buy back enough width for the 3 radios to keep sharing one
+  line down to a narrower window than the unmodified default managed
+  (asked for directly, a real 412px window) - lighter than the space-1
+  gap/padding this fieldset used to carry before that was asked to be
+  dropped for visibly shrinking the box; this is a smaller trim than
+  that one, on purpose, to keep more of the original breathing room. */
   .mode-fieldset {
     order: 5;
     width: 100%;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
     justify-content: center;
   }
 }
