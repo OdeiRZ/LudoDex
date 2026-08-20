@@ -857,7 +857,10 @@ rule used before it was asked to drop the padding/gap part of it. */
   min-width floor needsn't sit as high to still clear it. Asked for
   directly, on top of the fieldset's own gap/padding trims above, to
   buy back a few more pixels of room for 3 per line at this tier's
-  narrower widths (a real 422px window this time). */
+  narrower widths (a real 422px window this time). Doesn't cover all
+  the way down to 480px's own lower bound on its own any more - see
+  the ≤388px tier further down, which layers a smaller font-size on
+  top of this for the narrowest widths this reaches. */
   .filters > .duration-field label {
     flex: 0 1 30%;
     gap: var(--space-1);
@@ -883,10 +886,18 @@ rule used before it was asked to drop the padding/gap part of it. */
   here: it lives in the title row at every width now (see the comment
   by .title-density-toggle), so this form-embedded copy never renders
   in the first place. */
+  /* margin-top: var(--space-2) (asked for directly) opens a bit of
+  space above Ordenar por, which otherwise sits flush against Modo
+  right above it - .filters' own row-gap: 0 (unconditional, see that
+  rule's own comment) leaves every row in this tier flush by default,
+  and unlike the rows above it Ordenar por's own select/button don't
+  carry enough visual weight of their own to read as a clearly
+  separate row without a little help. */
   .filters > .sort-field {
     order: 6;
     flex: 1;
     max-width: none;
+    margin-top: var(--space-2);
   }
 
   /* order: 5 lands it right after Minutos, before Ordenar por's own
@@ -907,6 +918,66 @@ rule used before it was asked to drop the padding/gap part of it. */
     gap: var(--space-2);
     padding: var(--space-2) var(--space-3);
     justify-content: center;
+  }
+}
+
+/* ≤388px: layers a smaller font-size on top of the ≤480px tier above,
+asked for directly once neither Minutos disponibles' 3-then-2 layout
+nor Modo's single line held any further down than a real 407px window
+on gap/padding trims alone (388px was asked to be covered specifically
+- everything from 389px up to 480px keeps the ≤480px tier's own
+default 14px, so there's a real gap between 389px and ~406px where
+neither field's layout holds; asked to leave it that way rather than
+also patching that range). font-size: 12px (down from the fieldset
+label's own default 14px) shrinks each label's own natural width
+enough to close the remaining gap for both fields at once. */
+@media (max-width: 388px) {
+  /* min-width: 90px (down from the ≤480px tier's own 102px) tracks
+  "Hasta 30 min"'s own natural width at this smaller font size (90px
+  including the ≤480px tier's own space-1 gap) - left at 102px, it
+  would cap 3-per-row's own reachable width well above what the
+  smaller text now actually needs. */
+  .filters > .duration-field label {
+    min-width: 90px;
+    font-size: 12px;
+  }
+
+  .filters > .mode-fieldset label {
+    font-size: 12px;
+  }
+
+  /* Same font-size: 12px, extended to Buscar's own label and input too
+  - asked for directly, for consistency with Minutos/Modo's own labels
+  at this width rather than leaving Buscar alone at the default 14px. */
+  .filters > .search-field label,
+  .filters > .search-field input {
+    font-size: 12px;
+  }
+
+  /* Extended further, asked for directly: Jugadores' own label, the
+  Solo button, every remaining fieldset's own legend (Estructura,
+  Minutos disponibles, Modo - Minutos/Modo's own radio labels are
+  already covered above, just not their legends until now), and the
+  text inside both selects (Género, Ordenar por). */
+  .filters > div label[for='players'],
+  .players-row .btn,
+  .filters > .structure-field legend,
+  .filters > .duration-field legend,
+  .filters > .mode-fieldset legend,
+  .filters > .genre-field select,
+  .filters > .sort-field select {
+    font-size: 12px;
+  }
+
+  /* Extended once more, asked for directly: Estructura's own checkbox
+  label ("Modo campaña"), the sort-order toggle button (A → Z), and
+  Género/Ordenar por's own labels (both were only covered above for
+  their select's own text, not the label above it). */
+  .filters > .structure-field .checkbox-label,
+  .filters > .sort-field .sort-toggle,
+  .filters > .genre-field label,
+  .filters > .sort-field > label {
+    font-size: 12px;
   }
 }
 
@@ -1018,8 +1089,14 @@ both instead of also trying to squeeze onto their row. */
     order: 2;
   }
 
+  /* margin-top: var(--space-2) (asked for directly, same reasoning as
+  the ≤480px tier's own copy of this rule) - Ordenar por lands alone on
+  its own row 4 here (Buscar/Jugadores/Estructura, Minutos, Modo+Género,
+  Ordenar por), flush against Modo's row above it thanks to .filters'
+  own unconditional row-gap: 0. */
   .filters > .sort-field {
     order: 3;
+    margin-top: var(--space-2);
   }
 }
 
@@ -1099,9 +1176,14 @@ range. */
     width: 100%;
   }
 
+  /* margin-top: var(--space-2) (asked for directly, same reasoning as
+  the ≤480px tier's own copy of this rule) - Ordenar por lands alone on
+  its own row 5 here, flush against Modo's row above it thanks to
+  .filters' own unconditional row-gap: 0. */
   .filters > .sort-field {
     order: 6;
     width: 100%;
+    margin-top: var(--space-2);
   }
 }
 
