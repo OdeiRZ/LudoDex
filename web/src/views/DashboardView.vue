@@ -968,6 +968,109 @@ now, instead of an oversized column dragging space between the two. */
   }
 }
 
+/* Below this, the row2 block from 583px (select, toggle, density,
+clear, add all together) is carrying too much again - clear rejoins
+the search row and add rejoins the sort row instead, each docked
+flush against its own row's right edge (same shape as the 740px/671px
+tiers above). Only the density toggle actually moves, up to the title
+row - it's the one control that doesn't have an obvious row of its
+own to dock into once clear/add reclaim theirs.
+
+3 columns, not 4 or 5: column 3 is shared by density (row1), clear
+(row2) and add (row3) - safe, since all three are the same kind of
+compact icon-only control (28-36px), the same reasoning that already
+let add and density share a column safely in an earlier version of
+this tier. What actually has to stay isolated is column 2, 'toggle'
+alone (the "A→Z"/"Z→A" label) - auto columns size to the widest item
+sharing that column across every row, so a wide labelled button in
+the same column as an icon-only one stretches the icon one out to
+match, which is what pushed clear/add past the toolbar's own right
+edge in an earlier attempt at this tier. .type-filter lands in column
+2 too on row2 (it's a flexible select, not an icon button - capped
+separately below so it doesn't drag column 2 wider than 'toggle'
+needs). Column 1's own floor is 171px, not an arbitrary number - a
+plain minmax(N, 1fr) replaces the track's automatic content-based
+minimum with N outright (the same rule that made min-width: 0 strip a
+track's protection elsewhere in this file), so the floor has to be at
+least as wide as the widest thing column 1 hosts on any row, which is
+.search-group input's own min-width (set once, well above this media
+query) - .search-group can go back to display: contents here (undoing
+the previous attempt's decoupling, no longer needed) now that the
+budget actually works out. title-row keeps flex-wrap as a safety net
+in case a translation ever makes "Tu colección" and its count too
+wide for column 1 together - wraps the count onto its own line
+instead of the two colliding. */
+@media (max-width: 389px) {
+  .dashboard-toolbar {
+    grid-template-columns: minmax(171px, 1fr) auto auto;
+    grid-template-areas:
+      'title     title    density'
+      'search    type     clear'
+      'criterion toggle   add';
+  }
+
+  /* Spans columns 1-2 (not just column 1, which column 2's own
+  emptiness on this row would otherwise limit it to) so "Tu colección"
+  and its count have room to sit on one line - column 1 alone (171px,
+  sized for the search input on row2, see the top-level comment) isn't
+  wide enough for both together. flex-wrap stays as a safety net for a
+  longer translation, but doesn't kick in at this width. */
+  .title-row {
+    flex-wrap: wrap;
+  }
+
+  /* .type-filter's own unbounded width: 100% (set well above this
+  media query, for wider tiers where it has a whole row to itself)
+  would otherwise size column 2 to its full natural content width
+  (~128px, from its longest option text) - added to column 1's own
+  171px floor (see the top-level comment) plus column 3's 36px plus
+  gaps, that overflows the toolbar's real width by ~30px. Capped back
+  down towards .sort-toggle's own natural width instead, the actual
+  floor column 2 needs regardless of what shares it. */
+  .type-filter {
+    max-width: 100px;
+  }
+
+  .sort-criterion-group {
+    display: contents;
+  }
+
+  .sort-criterion {
+    grid-area: criterion;
+    flex: initial;
+  }
+
+  .sort-toggle {
+    grid-area: toggle;
+  }
+
+  /* Column 3 is sized to clear/add's own 36px (row2/row3) - density
+  is only 28px, so without this it sits flush to the column's LEFT
+  edge (its default alignment) instead of centered in the same 36px
+  block clear/add fill completely below it. justify-self: center
+  splits the leftover 8px evenly instead of pushing it all to one
+  side. */
+  :deep(.density-toggle) {
+    grid-area: density;
+    margin-left: 0;
+    justify-self: center;
+  }
+
+  .inline-actions {
+    display: contents;
+  }
+
+  .inline-actions .clear-library-btn {
+    grid-area: clear;
+    margin-left: 0;
+  }
+
+  .inline-actions .add-game-btn {
+    grid-area: add;
+    margin-left: 0;
+  }
+}
+
 .clear-confirm {
   border-color: var(--color-danger);
   margin-bottom: var(--space-4);
