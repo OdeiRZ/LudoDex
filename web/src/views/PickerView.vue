@@ -784,6 +784,51 @@ too, past the two breaks. */
   }
 }
 
+/* 982-1002px: the gap left over between the 807-972px tier above and
+this whole file's own upper bound (1002px, see the density-toggle rule
+near the top) - neither the 481-806px tier below nor 807-972px reaches
+this far, so without its own rules this range fell back to Buscar/
+Minutos/Ordenar por's plain DOM position and natural (capped, 180px)
+widths, leaving each row short of the card's own right edge instead of
+reaching it the way the tiers on either side of this gap do.
+
+Row 1 (Buscar/Jugadores/Estructura/Género): Buscar itself grows via
+flex (same technique as Ordenar por below) to absorb whatever the
+other three don't need, instead of stopping at its own 180px cap with
+empty space past Género.
+
+Row 2 (Minutos disponibles alone): width: 100% forces it to claim the
+whole row on its own instead of leaving room for Modo to share it -
+without this, Minutos' own ~528px content width and Modo's ~350px
+still fit together on one line at this range's widths, same as this
+tier looked before this rule existed.
+
+Row 3 (Modo, then Ordenar por): order: 2 and 3 respectively - both
+land after Minutos (order: 1) once it no longer shares a row with
+either, Modo first since its order number is lower. Ordenar por keeps
+growing to the row's own right edge via its own always-on flex: 1 (see
+.sort-row select's own rule further down) same as it already did
+before Modo joined it here. */
+@media (min-width: 982px) and (max-width: 1002px) {
+  .filters > .search-field {
+    flex: 1;
+    max-width: none;
+  }
+
+  .filters > .duration-field {
+    order: 1;
+    width: 100%;
+  }
+
+  .filters > .mode-fieldset {
+    order: 2;
+  }
+
+  .filters > .sort-field {
+    order: 3;
+  }
+}
+
 @media (max-width: 480px) {
   /* Narrower than the usual 180px cap, just enough that Buscar still
   fits next to Jugadores at the narrowest phone widths this card has to
