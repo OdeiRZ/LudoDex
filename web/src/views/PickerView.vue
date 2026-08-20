@@ -874,94 +874,6 @@ down) same as it already did before Modo joined it here. */
   }
 }
 
-/* Only iPhone SE's 375px is actually this tight - everything from
-~380px up already fits with each label's usual icon-to-text gap
-(space-2, same as every other fieldset), so narrowing it much further
-down than 480px keeps that default everywhere it's not strictly
-needed. */
-@media (max-width: 379px) {
-  .mode-fieldset label {
-    gap: 2px;
-  }
-
-  /* Buscar/Jugadores don't clear a real 375px window's own measured
-  309px budget at Estructura's 160px (160+8+142.8 comes to 311px) -
-  144px keeps real margin at both that and a real 366px phone's own
-  tighter budget, without touching Estructura/Genero, which already
-  pair correctly as-is at this width. */
-  .filters > .search-field {
-    max-width: 144px;
-  }
-}
-
-/* At a real 366px phone specifically (9px tighter than 375px), even
-Estructura/Genero stop fitting together - 160+8+140 needs 308px against
-this card's real ~300px budget there, so Genero was dropping to its
-own third line instead of sharing Estructura's. 144px (matching
-Buscar's own width above, so the two columns still line up) is what
-actually clears it. min-width: 0 is needed too - fieldset gets an
-automatic minimum size from its own content (legend + checkbox label),
-which a plain width smaller than that content can't shrink past on its
-own, same issue hit before at an even narrower width. Wrapping "Modo
-campaña" onto two lines (overriding its nowrap) is what lets it
-actually fit in the narrower box instead of just overflowing it. */
-@media (max-width: 366px) {
-  .filters > .structure-field {
-    width: 144px;
-    min-width: 0;
-  }
-
-  .checkbox-label {
-    white-space: normal;
-    min-width: 0;
-  }
-
-  /* Tightens Minutos disponibles' own icon-to-text gap so its 5 radios
-  keep fitting this card's real ~249px content width at a real 366px
-  phone. */
-  .duration-field label {
-    gap: 2px;
-  }
-
-  /* Same real-measurement correction as Minutos disponibles above:
-  Cualquiera/Cooperativo/Competitivo need 270.3px against this card's
-  measured 265px content width even with the icon-to-text gap already
-  at 2px (see the ≤379px rule below) - short by only ~5px on paper,
-  which dropping the (mostly redundant once all three fit anyway -
-  justify-content: space-between, set at ≤480px, spreads whatever
-  room is left between them regardless of this value) between-labels
-  gap to 0 should have cleared with a couple px to spare. It didn't on
-  a real phone (reported directly, with a screenshot) - a ~2-3px
-  margin measured against a desktop browser's own text rendering
-  isn't real margin, evidently, so this now shaves off real width
-  from two places at once instead of leaving it that close again:
-  Modo's own horizontal padding (8px each side, set at ≤480px) drops
-  to 4px, and the icon-to-text gap tightened to 2px above goes to 0
-  here specifically. Comfortably over 15px of slack either way now,
-  not a couple. */
-  .mode-fieldset {
-    gap: 0;
-    padding-left: var(--space-1);
-    padding-right: var(--space-1);
-  }
-
-  .mode-fieldset label {
-    gap: 0;
-  }
-}
-
-/* At a real 360px phone (6px tighter than 366px), Buscar/Jugadores
-stop clearing this card's own budget at Buscar's 144px (144+8+142.8
-comes to 294.8px against a ~294px budget there) - Estructura/Genero
-still fit fine as-is (144+8+140 = 292px), so only Buscar needs to give
-up a bit more. 140px (matching Genero's own width too) is what
-actually clears it. */
-@media (max-width: 360px) {
-  .filters > .search-field {
-    max-width: 140px;
-  }
-}
-
 .filters {
   display: flex;
   /* Tighter than the space-6 this used before - freeing up a few pixels
@@ -1047,18 +959,115 @@ Minutos and Modo sharing a line the way that tier does. */
   }
 }
 
+/* 481-646px: asked for directly - Género moves off row 1 (where it
+still comfortably shares with Buscar/Jugadores/Estructura above 646px)
+to join Modo instead, landing in the empty space Modo alone otherwise
+leaves on its own row (Modo's own flex: 0 0 auto, set in the 481-806px
+tier above, means it never grows to fill that gap itself). order: 2
+puts Género after Modo (still order: 0, its own DOM position is
+earlier) so it lands to Modo's right rather than displacing it; order:
+3 keeps Ordenar por (already order: 1 in the tier above) coming after
+both instead of also trying to squeeze onto their row. */
+@media (min-width: 481px) and (max-width: 646px) {
+  .filters > .genre-field {
+    order: 2;
+  }
+
+  .filters > .sort-field {
+    order: 3;
+  }
+}
+
+/* 481-560px: asked for directly - Género, Minutos disponibles, Modo
+and Ordenar por each get a row of their own instead of any of them
+sharing one (unlike the wider 481-806px tier above, where Género
+shares row 1 or Modo's row depending on width, and Minutos/Modo/
+Ordenar por only end up alone because nothing else fits alongside
+them, not because anything forces it). width: 100% on each is what
+actually guarantees that regardless of how much room a given width
+happens to leave - plain order changes alone don't force a split
+(flex-wrap decides which line an item lands on using its hypothetical
+size before flex-grow/an explicit width is applied - same reasoning
+as the .filters::before break below, needed for the same reason to
+separate row 1 from the rest). row-gap is turned off further down
+(see the comment by .filters there for why it has to live after
+.filters' own unconditional gap: shorthand rather than here) - the
+break would otherwise add an extra gap's worth of vertical space on
+top of the normal one, since row-gap can't tell a real line from a
+zero-height spacer one. Restored by hand as margin-bottom on row 1's
+own items and on each of the four solo rows below instead. */
+@media (min-width: 481px) and (max-width: 560px) {
+  .filters > .search-field,
+  .filters > .search-field + div,
+  .filters > .structure-field,
+  .filters > .genre-field,
+  .filters > .duration-field,
+  .filters > .mode-fieldset {
+    margin-bottom: var(--space-4);
+  }
+
+  .filters::before {
+    content: '';
+    order: 1;
+    flex-basis: 100%;
+    height: 0;
+  }
+
+  /* Estructura joins Género on row 2 instead of staying on row 1 with
+  Buscar/Jugadores - order: 2 lands it right after the break, first
+  (Género's own order: 3 keeps it right after). */
+  .filters > .structure-field {
+    order: 2;
+  }
+
+  /* flex: 1 (not width: 100%, which only made sense while Género had
+  row 2 to itself) grows Género to fill whatever Estructura's fixed
+  content-width doesn't need now that it shares the row with it. */
+  .filters > .genre-field {
+    order: 3;
+    flex: 1;
+    max-width: none;
+  }
+
+  /* A fixed 30% flex-basis per label (instead of the fieldset's own
+  default flex-wrap packing as many as fit per line based on their own
+  text width - 4 then 1, at this tier's own width) is what forces
+  exactly 3 per line - 4 would need 120% of the row plus gaps, so it
+  never fits. justify-content: center is what actually centers the
+  trailing row of 2 as its own pair instead of leaving it flush left
+  under the first two columns - a grid's fixed column tracks (tried
+  first) can't do this, since each item stays pinned to its own column
+  regardless of how many rows are full; flex centers whatever's
+  actually on each wrapped line independently. */
+  .filters > .duration-field {
+    order: 4;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .filters > .duration-field label {
+    flex: 0 1 30%;
+    justify-content: center;
+  }
+
+  .filters > .mode-fieldset {
+    order: 5;
+    width: 100%;
+  }
+
+  .filters > .sort-field {
+    order: 6;
+    width: 100%;
+  }
+}
+
 /* Placed after .filters itself (not inside the ≤480px block above) so
 its column-gap wins the cascade tie against .filters' own unconditional
 gap: shorthand above - same specificity either way (both just
 ".filters"), so source order is what decides it, and a media query
 alone doesn't add any. Tighter than the row gap (still space-4,
-untouched - only column-gap is overridden) - search-field growing to
-160px at 380-480px leaves Buscar tight against Jugadores without it. At
-379px and below, .search-field alone drops back to 144px (see the
-media block further up) instead - Estructura/Genero already pair fine
-at their own 160px/140px without needing a narrower gap - but the
-tighter gap here still gives Buscar/Jugadores a bit more slack on top
-of that than the 16px default would. */
+untouched - only column-gap is overridden) - Buscar growing to fill
+its row at this tier leaves it tight against Jugadores without it. */
 @media (max-width: 480px) {
   .filters {
     column-gap: var(--space-2);
@@ -1071,6 +1080,14 @@ tie. Paired with the margin-bottom rules in the 807-1002px block
 further up, which restore a normal-looking single gap by hand between
 the three real rows there instead. */
 @media (min-width: 807px) and (max-width: 1002px) {
+  .filters {
+    row-gap: 0;
+  }
+}
+
+/* Same cascade-order reasoning, paired with the 481-560px block's own
+margin-bottom rule instead. */
+@media (min-width: 481px) and (max-width: 560px) {
   .filters {
     row-gap: 0;
   }
