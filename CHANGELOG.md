@@ -42,6 +42,15 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   reequilibrado el ancho entre el buscador (más pequeño, pedido
   directamente) y el selector (más grande), de forma que ambos textos
   quepan enteros a la vez.
+- **Reportado en real**: cerrar sesión no vaciaba la colección ni el
+  historial de partidas ya cargados en memoria — si justo después otra
+  persona se registraba o iniciaba sesión en la misma pestaña (sin
+  recargar la página), veía brevemente la colección de la cuenta
+  anterior hasta que algo forzaba una nueva petición (una recarga
+  manual, o importar su propio usuario de BGG). `logout` ahora resetea
+  también los stores de `games` y `plays` (`$reset()`), no solo el de
+  `auth` — cubre tanto el cierre de sesión manual como el automático
+  por token caducado (401), que comparten el mismo método.
 
 ## [0.7.0] - 2026-08-21
 

@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
+import { useGamesStore } from '@/stores/games'
+import { usePlaysStore } from '@/stores/plays'
 import { apiClient } from '@/lib/api'
 
 vi.mock('@/lib/api', async (importOriginal) => {
@@ -79,6 +81,29 @@ describe('useAuthStore', () => {
     expect(store.user).toBeNull()
     expect(store.token).toBeNull()
     expect(localStorage.getItem('ludodex_token')).toBeNull()
+  })
+
+  it("resets the games and plays stores on logout, so the next account never sees the previous one's data", async () => {
+    vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { user, token: 'abc123' } })
+    const auth = useAuthStore()
+    await auth.login({ email: user.email, password: 'secret' })
+
+    // Simulates what a real session leaves behind: a loaded collection
+    // and play history sitting in memory, not just the auth state.
+    const games = useGamesStore()
+    games.collection = [{ id: 'ug1' } as never]
+    games.loaded = true
+    const plays = usePlaysStore()
+    plays.entries = [{ id: 'p1' } as never]
+    plays.loaded = true
+
+    vi.mocked(apiClient.post).mockResolvedValueOnce({})
+    await auth.logout()
+
+    expect(games.collection).toEqual([])
+    expect(games.loaded).toBe(false)
+    expect(plays.entries).toEqual([])
+    expect(plays.loaded).toBe(false)
   })
 
   it('updates the profile from the API response', async () => {

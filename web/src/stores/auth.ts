@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import { apiClient, clearStoredToken, getStoredToken, storeToken } from '@/lib/api'
+import { useGamesStore } from './games'
+import { usePlaysStore } from './plays'
 
 export interface User {
   id: number
@@ -127,10 +129,23 @@ export const useAuthStore = defineStore('auth', {
       storeToken(token)
     },
 
+    /** Logging out (or a 401 auto-logout, see api.ts's own interceptor)
+     * only ever clears *this* store's own state - without also resetting
+     * games/plays here, whoever's collection/history was already loaded
+     * in memory stayed there. A next user registering or logging in on
+     * the same tab (never possible without going through this first -
+     * see the router's guestOnly guard) would briefly see the previous
+     * account's data until something forced a refetch, since both
+     * stores' own onMounted guards only fetch when not already
+     * `loaded`. $reset() (built into Pinia's Options API stores) puts
+     * each back to its own initial state() exactly as if the tab had
+     * just been opened. */
     clearSession() {
       this.user = null
       this.token = null
       clearStoredToken()
+      useGamesStore().$reset()
+      usePlaysStore().$reset()
     },
   },
 })
