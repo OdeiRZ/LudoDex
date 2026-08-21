@@ -17,7 +17,14 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   pestaña. Por ahora solo guarda juego, fecha, duración y cantidad por
   partida — sin jugadores ni puntuaciones. Si una partida es de un juego
   que aún no está en el catálogo local, se crea automáticamente con sus
-  datos de BGG.
+  datos de BGG. Pulsar la portada de una partida abre el mismo modal de
+  detalle (portada, nombre, descripción, traducción) que el icono del ojo
+  en Colección/¿A qué jugamos? — el propio modal se generalizó para
+  aceptar un juego "delgado" como el de Partidas (sin mecánicas ni
+  categorías) en vez de exigir siempre el objeto `Game` completo, y su
+  botón de traducir ya no depende de que el juego esté en la colección
+  cargada para reflejar el resultado. Portadas de la lista un poco más
+  grandes (40px → 56px).
 - Cuarto enlace de nav ("Partidas") junto a los ya existentes, lo que
   obligó a revisar toda la cabecera para anchos estrechos: por debajo de
   576px el nav se sustituye por un menú ☰ desplegable en vez de partir los

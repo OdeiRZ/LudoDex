@@ -1,20 +1,42 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { useGamesStore, type Game } from '@/stores/games'
+import { useGamesStore } from '@/stores/games'
 import { FALLBACK_ICON_URL } from '@/lib/assets'
 import { getLocale } from '@/i18n'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
-const props = defineProps<{ game: Game }>()
+// Only the fields this modal actually renders - narrower than the full
+// Game type on purpose, so callers whose own game shape doesn't carry
+// mechanics/categories/etc. (Partidas' own play.game, which is
+// intentionally a slimmer projection - see PlayResource) can reuse this
+// modal without needing to fake the rest of Game just to satisfy the
+// prop type.
+export interface DetailGame {
+  id: string
+  name: string
+  image_url: string | null
+  description: string | null
+  description_es: string | null
+}
+
+const props = defineProps<{ game: DetailGame }>()
 const emit = defineEmits<{ close: [] }>()
 const games = useGamesStore()
+
+// A local copy rather than reading props.game.description_es directly -
+// translateDescription() only mutates games.collection, which the game
+// passed in here isn't guaranteed to be part of (Partidas' own entries
+// never are), so this can't rely on that mutation reaching back into
+// this component's own prop the way the picker/dashboard callers'
+// already-in-collection game happens to.
+const descriptionEs = ref(props.game.description_es)
 
 // Only prefers the Spanish translation when the app itself is in
 // Spanish - description_es existing doesn't mean someone reading the
 // app in English wants the Spanish text instead of the original, and
 // falls back to English if a translation isn't there yet either way.
 const displayDescription = computed(() =>
-  getLocale() === 'es' ? props.game.description_es || props.game.description : props.game.description,
+  getLocale() === 'es' ? descriptionEs.value || props.game.description : props.game.description,
 )
 
 // Neither the "still in English" badge nor the button to fix that mean
@@ -22,23 +44,24 @@ const displayDescription = computed(() =>
 // they can read the original just fine, and offering to translate it
 // into Spanish for them specifically would be backwards.
 const isUntranslated = computed(
-  () => getLocale() === 'es' && !props.game.description_es && !!props.game.description,
+  () => getLocale() === 'es' && !descriptionEs.value && !!props.game.description,
 )
 
 const translating = ref(false)
 const translateFailed = ref(false)
 
-// Mutates the same reactive Game object this component's own `game` prop
-// points to (games.collection isn't cloned when PickerView builds the
-// list this modal's caller picks entries from) - displayDescription
-// above updates on its own once that happens, no local state to sync by
-// hand here.
+// The store's own translateDescription() also mutates any matching
+// games.collection entry as a side effect (harmless, and lets the
+// picker/dashboard's own list reflect the translation without a
+// separate refetch) - the returned value is what this modal actually
+// displays from, so it updates the same way regardless of whether the
+// game it was given happens to be part of that collection.
 async function onTranslateClick() {
   translating.value = true
   translateFailed.value = false
 
   try {
-    await games.translateDescription(props.game.id)
+    descriptionEs.value = await games.translateDescription(props.game.id)
   } catch {
     translateFailed.value = true
   } finally {

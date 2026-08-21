@@ -11,6 +11,8 @@ export interface Play {
     bgg_id: number | null
     name: string
     image_url: string | null
+    description: string | null
+    description_es: string | null
   }
 }
 

@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { usePlaysStore } from '@/stores/plays'
+import { onMounted, ref } from 'vue'
+import { usePlaysStore, type Play } from '@/stores/plays'
 import { FALLBACK_ICON_URL } from '@/lib/assets'
+import GameDetailModal from '@/components/GameDetailModal.vue'
 
 const plays = usePlaysStore()
+
+// Which play's own game detail is open, if any - same "one at a time"
+// pattern as the picker/dashboard's own detailEntry.
+const detailGame = ref<Play['game'] | null>(null)
 
 function loadMore() {
   plays.fetchPage(plays.currentPage + 1)
@@ -29,13 +34,21 @@ onMounted(() => {
 
     <ul v-else class="play-list">
       <li v-for="play in plays.entries" :key="play.id" class="play-row">
-        <img
-          v-if="play.game.image_url"
-          :src="play.game.image_url"
-          alt=""
-          class="play-cover"
-        />
-        <img v-else :src="FALLBACK_ICON_URL" alt="" class="play-cover play-cover-fallback" />
+        <button
+          type="button"
+          class="play-cover-button"
+          :aria-label="$t('picker.viewDetails')"
+          :title="$t('picker.viewDetails')"
+          @click="detailGame = play.game"
+        >
+          <img
+            v-if="play.game.image_url"
+            :src="play.game.image_url"
+            alt=""
+            class="play-cover"
+          />
+          <img v-else :src="FALLBACK_ICON_URL" alt="" class="play-cover play-cover-fallback" />
+        </button>
 
         <div class="play-info">
           <span class="play-name">{{ play.game.name }}</span>
@@ -59,6 +72,8 @@ onMounted(() => {
     >
       {{ $t('plays.loadMore') }}
     </button>
+
+    <GameDetailModal v-if="detailGame" :game="detailGame" @close="detailGame = null" />
   </div>
 </template>
 
@@ -90,9 +105,25 @@ h1 {
   border-radius: var(--radius);
 }
 
+/* No border/background/padding of its own beyond resetting the button
+defaults - visually this should read as just the cover image sitting in
+the row, same as before it became clickable, not as a distinct button. */
+.play-cover-button {
+  display: block;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: var(--radius);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* 56px (up from 40px, asked for directly) - same size already used for
+compact-mode covers elsewhere in the app (GameCard.vue), rather than a
+number picked just for this row. */
 .play-cover {
-  width: 40px;
-  height: 40px;
+  width: 56px;
+  height: 56px;
   object-fit: cover;
   border-radius: var(--radius);
   flex-shrink: 0;

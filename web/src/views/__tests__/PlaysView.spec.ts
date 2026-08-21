@@ -12,7 +12,14 @@ function makePlay(overrides: Partial<Play> = {}): Play {
     played_at: '2026-01-01',
     quantity: 1,
     duration_minutes: 30,
-    game: { id: 'game-1', bgg_id: 13, name: 'Catan', image_url: null },
+    game: {
+      id: 'game-1',
+      bgg_id: 13,
+      name: 'Catan',
+      image_url: null,
+      description: 'Trade and build on the island of Catan.',
+      description_es: null,
+    },
     ...overrides,
   }
 }
@@ -110,5 +117,23 @@ describe('PlaysView', () => {
     store.lastPage = 2
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.load-more').exists()).toBe(false)
+  })
+
+  it('opens the game detail modal when its cover is clicked, same as the eye icon elsewhere', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.entries = [makePlay()]
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.findComponent({ name: 'GameDetailModal' }).exists()).toBe(false)
+
+    await wrapper.find('.play-cover-button').trigger('click')
+
+    const modal = wrapper.findComponent({ name: 'GameDetailModal' })
+    expect(modal.exists()).toBe(true)
+    expect(modal.props('game').name).toBe('Catan')
+
+    await modal.find('.modal-close').trigger('click')
+    expect(wrapper.findComponent({ name: 'GameDetailModal' }).exists()).toBe(false)
   })
 })

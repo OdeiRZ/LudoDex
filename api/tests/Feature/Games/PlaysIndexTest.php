@@ -47,6 +47,21 @@ it('includes quantity and duration in the response shape', function () {
         ->assertJsonPath('data.0.duration_minutes', 45);
 });
 
+it('includes the game\'s description so the play list can open its detail modal', function () {
+    $user = actingAsUser();
+    $game = Game::factory()->create([
+        'bgg_id' => 13,
+        'description' => 'Trade and build on the island of Catan.',
+        'description_es' => 'Comercia y construye en la isla de Catan.',
+    ]);
+
+    Play::factory()->for($user)->for($game)->create();
+
+    $this->getJson('/api/plays')->assertOk()
+        ->assertJsonPath('data.0.game.description', 'Trade and build on the island of Catan.')
+        ->assertJsonPath('data.0.game.description_es', 'Comercia y construye en la isla de Catan.');
+});
+
 it('paginates at 20 per page', function () {
     $user = actingAsUser();
     $game = Game::factory()->create(['bgg_id' => 13]);
