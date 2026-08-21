@@ -50,9 +50,10 @@ npm run test:unit      # Vitest
   partidas ya importado (paginado, con "cargar más" y numeración
   correlativa que no se reinicia por página); el formulario de
   importación inicial vive en `ImportBggView.vue`, no aquí. El botón junto
-  al buscador despliega un panel para reimportar (mismo import
-  incremental, solo pide de nuevo el usuario de BGG) sin salir de la
-  página. El buscador por nombre de juego filtra en el backend (`GET
+  al título despliega un panel para reimportar (mismo import incremental,
+  solo pide de nuevo el usuario de BGG) sin salir de la página — junto al
+  título y no al buscador, ya que es una acción de página, no de
+  búsqueda. El buscador por nombre de juego filtra en el backend (`GET
   /api/plays?search=`), no en el cliente como Colección/¿A qué jugamos? —
   la lista está paginada, así que un filtro local solo vería la página ya
   cargada. Encima de la lista, un bloque de estadísticas (`GET

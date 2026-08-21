@@ -18,6 +18,11 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   historial, no solo la página ya cargada, para que el total y el ranking
   sean correctos aunque haya más de una página. Se actualiza también tras
   reimportar.
+- El botón de recarga pasa a estar junto al título "Tus partidas", no
+  junto al buscador — al añadir el bloque de estadísticas justo debajo
+  del título, quedaba demasiado lejos de la vista inicial, y como acción
+  de página (no de búsqueda) encaja mejor con el mismo patrón que
+  "Vaciar biblioteca" en Colección.
 
 ## [0.7.0] - 2026-08-21
 

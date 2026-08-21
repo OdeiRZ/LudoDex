@@ -122,7 +122,62 @@ onMounted(() => {
 
 <template>
   <div class="plays">
-    <h1>{{ $t('plays.title') }}</h1>
+    <div class="plays-header">
+      <h1>{{ $t('plays.title') }}</h1>
+      <!-- Same visibility rule as the search box below (see its own
+      comment) - reimporting only makes sense once something's already
+      been imported; before that, the empty state's own link to the
+      standalone import form is the way in. -->
+      <button
+        v-if="plays.loaded && (plays.entries.length > 0 || plays.search)"
+        type="button"
+        class="btn reimport-btn"
+        :aria-label="$t('plays.reimportButton')"
+        :title="$t('plays.reimportButton')"
+        :aria-expanded="reimportPanelOpen"
+        @click="toggleReimportPanel"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <polyline points="23 4 23 10 17 10" stroke-linecap="round" stroke-linejoin="round" />
+          <polyline points="1 20 1 14 7 14" stroke-linecap="round" stroke-linejoin="round" />
+          <path
+            d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <div v-if="reimportPanelOpen" class="reimport-panel card" role="dialog">
+      <p>{{ $t('plays.reimportWarning') }}</p>
+      <label for="reimport-username">{{ $t('importBgg.username') }}</label>
+      <div class="reimport-row">
+        <input
+          id="reimport-username"
+          v-model="reimportUsername"
+          type="text"
+          autocomplete="off"
+          :disabled="reimporting"
+        />
+        <button type="button" class="btn" :disabled="reimporting" @click="toggleReimportPanel">
+          {{ $t('dashboard.cancel') }}
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          :disabled="!reimportUsername.trim() || reimporting"
+          @click="onReimportConfirm"
+        >
+          {{ reimporting ? $t('importBgg.playsSubmitting') : $t('plays.reimportSubmit') }}
+        </button>
+      </div>
+      <p v-if="reimporting" class="alert alert-info reimport-submitting">
+        <LoadingSpinner :size="20" />
+        {{ $t('importBgg.dontCloseTab') }}
+      </p>
+      <p v-if="reimportError" role="alert" class="alert alert-error">{{ reimportError }}</p>
+    </div>
 
     <!-- Aggregated server-side over the full history (see
     plays.fetchStats' own comment), not derived from plays.entries, which
@@ -166,63 +221,13 @@ onMounted(() => {
     so it can be cleared/changed). -->
     <div v-if="plays.loaded && (plays.entries.length > 0 || plays.search)" class="search-field">
       <label for="plays-search">{{ $t('plays.searchLabel') }}</label>
-      <div class="search-row">
-        <input
-          id="plays-search"
-          v-model="searchInput"
-          type="search"
-          :placeholder="$t('plays.searchPlaceholder')"
-          @input="onSearchInput"
-        />
-        <button
-          type="button"
-          class="btn reimport-btn"
-          :aria-label="$t('plays.reimportButton')"
-          :title="$t('plays.reimportButton')"
-          :aria-expanded="reimportPanelOpen"
-          @click="toggleReimportPanel"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <polyline points="23 4 23 10 17 10" stroke-linecap="round" stroke-linejoin="round" />
-            <polyline points="1 20 1 14 7 14" stroke-linecap="round" stroke-linejoin="round" />
-            <path
-              d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </button>
-      </div>
-
-      <div v-if="reimportPanelOpen" class="reimport-panel card" role="dialog">
-        <p>{{ $t('plays.reimportWarning') }}</p>
-        <label for="reimport-username">{{ $t('importBgg.username') }}</label>
-        <div class="reimport-row">
-          <input
-            id="reimport-username"
-            v-model="reimportUsername"
-            type="text"
-            autocomplete="off"
-            :disabled="reimporting"
-          />
-          <button type="button" class="btn" :disabled="reimporting" @click="toggleReimportPanel">
-            {{ $t('dashboard.cancel') }}
-          </button>
-          <button
-            type="button"
-            class="btn btn-primary"
-            :disabled="!reimportUsername.trim() || reimporting"
-            @click="onReimportConfirm"
-          >
-            {{ reimporting ? $t('importBgg.playsSubmitting') : $t('plays.reimportSubmit') }}
-          </button>
-        </div>
-        <p v-if="reimporting" class="alert alert-info reimport-submitting">
-          <LoadingSpinner :size="20" />
-          {{ $t('importBgg.dontCloseTab') }}
-        </p>
-        <p v-if="reimportError" role="alert" class="alert alert-error">{{ reimportError }}</p>
-      </div>
+      <input
+        id="plays-search"
+        v-model="searchInput"
+        type="search"
+        :placeholder="$t('plays.searchPlaceholder')"
+        @input="onSearchInput"
+      />
     </div>
 
     <!-- Only for the very first fetch, before plays.loaded flips true -
@@ -305,6 +310,14 @@ onMounted(() => {
 }
 
 h1 {
+  margin: 0;
+}
+
+.plays-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
   margin-bottom: var(--space-4);
 }
 
@@ -390,16 +403,6 @@ h1 {
   margin-bottom: var(--space-4);
 }
 
-.search-row {
-  display: flex;
-  gap: var(--space-2);
-}
-
-.search-row input {
-  flex: 1;
-  min-width: 0;
-}
-
 .reimport-btn {
   flex-shrink: 0;
   padding: 0.55rem;
@@ -411,7 +414,7 @@ h1 {
 }
 
 .reimport-panel {
-  margin-top: var(--space-2);
+  margin-bottom: var(--space-4);
 }
 
 .reimport-panel label {
