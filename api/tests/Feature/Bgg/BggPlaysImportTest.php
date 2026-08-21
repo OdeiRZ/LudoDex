@@ -182,6 +182,47 @@ it('parses a batched multi-play entry via quantity, and a missing length as no d
     expect($play->quantity)->toBe(3)->and($play->duration_minutes)->toBeNull();
 });
 
+it('sends no mindate on a user\'s first-ever import (nothing stored yet to filter from)', function () {
+    actingAsUser();
+    Game::factory()->create(['bgg_id' => 13]);
+
+    Http::fake(function (ClientRequest $request) {
+        $query = [];
+        parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+        expect($query)->not->toHaveKey('mindate');
+
+        return Http::response(
+            '<?xml version="1.0" encoding="utf-8"?><plays total="1" page="1">'
+            .playXmlRow(1001, 13, 'Catan', '2026-01-01')
+            .'</plays>'
+        );
+    });
+
+    postPlaysImport('odei')->assertOk();
+});
+
+it('sends mindate as the latest stored play minus a week\'s overlap on a reimport', function () {
+    $user = actingAsUser();
+    $game = Game::factory()->create(['bgg_id' => 13]);
+    Play::factory()->for($user)->for($game)->create(['played_at' => '2026-02-10']);
+
+    Http::fake(function (ClientRequest $request) {
+        $query = [];
+        parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+        expect($query['mindate'] ?? null)->toBe('2026-02-03');
+
+        return Http::response(
+            '<?xml version="1.0" encoding="utf-8"?><plays total="1" page="1">'
+            .playXmlRow(1002, 13, 'Catan', '2026-02-12')
+            .'</plays>'
+        );
+    });
+
+    postPlaysImport('odei')->assertOk();
+
+    expect(Play::count())->toBe(2);
+});
+
 it('returns an error without importing anything when no BGG application token is configured', function () {
     actingAsUser();
     config(['bgg.application_token' => null]);

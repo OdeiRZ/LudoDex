@@ -419,6 +419,44 @@ it('fetches a single page of plays and stops once fewer than 100 are returned', 
         ]);
 });
 
+it('omits mindate from the request when none is given', function () {
+    Http::fake(fn () => Http::response(
+        '<?xml version="1.0" encoding="utf-8"?><plays username="odei" total="0" page="1"></plays>'
+    ));
+
+    (new BggClient)->fetchPlays('odei');
+
+    Http::assertSent(function (ClientRequest $request) {
+        $query = [];
+        parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+
+        return ! array_key_exists('mindate', $query);
+    });
+});
+
+it('passes mindate through to BGG on every page requested', function () {
+    Http::fake(function (ClientRequest $request) {
+        $query = [];
+        parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+        $page = (int) $query['page'];
+
+        expect($query['mindate'] ?? null)->toBe('2025-12-25');
+
+        $count = $page === 1 ? 100 : 1;
+        $plays = '';
+
+        for ($i = 0; $i < $count; $i++) {
+            $plays .= playXml(($page * 1000) + $i, 13, 'Catan', '2026-01-01');
+        }
+
+        return Http::response('<?xml version="1.0" encoding="utf-8"?><plays username="odei" total="101" page="'.$page.'">'.$plays.'</plays>');
+    });
+
+    (new BggClient)->fetchPlays('odei', '2025-12-25');
+
+    Http::assertSentCount(2);
+});
+
 it('defaults quantity to 1 and duration to null when BGG omits them', function () {
     Http::fake(fn () => Http::response(
         '<?xml version="1.0" encoding="utf-8"?><plays username="odei" total="1" page="1">'

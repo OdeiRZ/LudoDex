@@ -29,7 +29,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   nombre de juego (con *debounce*, filtrado en el propio backend ya que
   la lista está paginada, a diferencia del filtrado en el cliente de
   Colección/¿A qué jugamos?) para encontrar rápido cuándo se jugó a un
-  juego concreto sin recorrer todo el historial.
+  juego concreto sin recorrer todo el historial. Reimportar partidas ya
+  no vuelve a traer el historial completo desde BGG cada vez: se pide
+  solo desde la última partida ya guardada (con una semana de margen de
+  solapamiento por si se edita algo reciente en BGG); una edición más
+  antigua que ese margen sí necesitaría un reimport completo para
+  reflejarse. El primer import de un usuario sigue trayendo el
+  historial entero, al no haber nada guardado aún que filtrar.
 - Cuarto enlace de nav ("Partidas") junto a los ya existentes, lo que
   obligó a revisar toda la cabecera para anchos estrechos: por debajo de
   576px el nav se sustituye por un menú ☰ desplegable en vez de partir los

@@ -25,11 +25,22 @@ class BggPlaysImportService
     ) {}
 
     /**
+     * Overlap window for the incremental fetch below - wide enough to
+     * still pick up a play someone edited on BGG a few days after
+     * logging it (a corrected duration, a fixed date), without falling
+     * all the way back to a full reimport every time. An edit further
+     * back than this needs a full reimport to surface here - same
+     * trade-off any incremental sync makes.
+     */
+    private const INCREMENTAL_OVERLAP_DAYS = 7;
+
+    /**
      * @return array{status: 'ready'|'error', message?: string, imported_count?: int}
      */
     public function import(string $username, User $user): array
     {
-        $result = $this->client->fetchPlays($username);
+        $minDate = $this->incrementalMinDate($user);
+        $result = $this->client->fetchPlays($username, $minDate);
 
         if ($result['status'] === 'error') {
             return $result;
@@ -56,6 +67,23 @@ class BggPlaysImportService
         });
 
         return ['status' => 'ready', 'imported_count' => count($plays)];
+    }
+
+    /**
+     * Null for a user's first-ever import (nothing stored yet to filter
+     * from - BggClient::fetchPlays() then fetches the full history, same
+     * as before this was added). Otherwise the latest played_at already
+     * stored for this user, minus the overlap window above.
+     */
+    private function incrementalMinDate(User $user): ?string
+    {
+        $latestPlayedAt = $user->plays()->max('played_at');
+
+        if ($latestPlayedAt === null) {
+            return null;
+        }
+
+        return Carbon::parse($latestPlayedAt)->subDays(self::INCREMENTAL_OVERLAP_DAYS)->toDateString();
     }
 
     /**

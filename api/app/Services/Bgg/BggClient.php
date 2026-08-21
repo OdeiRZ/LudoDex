@@ -122,16 +122,27 @@ class BggClient
     }
 
     /**
-     * A user's entire play history, paginated internally - BGG caps /plays
-     * at 100 <play> elements per page. Unlike /collection, this answers
+     * A user's play history, paginated internally - BGG caps /plays at 100
+     * <play> elements per page. Unlike /collection, this answers
      * synchronously (no 202-while-queued state to poll), same as /thing.
      * Never cached: unlike game metadata, a user's plays change constantly
      * (new ones logged, old ones edited), so caching would just mean
      * serving stale history.
      *
+     * $minDate (Y-m-d) asks BGG itself to only return plays on or after
+     * that date (its own `mindate` filter) - BggPlaysImportService passes
+     * the latest played_at already stored for this user here (minus a
+     * few days' overlap), so a reimport only re-fetches recent history
+     * instead of the whole thing every time. Left null for a first-ever
+     * import (nothing stored yet to filter from). The overlap is what
+     * still catches an edit to an older play made on BGG (e.g. a
+     * corrected duration) as long as it falls within it - one further
+     * back than that would need a full reimport to pick up, same
+     * trade-off as any other incremental sync.
+     *
      * @return array{status: 'ready'|'error', message?: string, transient?: bool, plays?: list<array{bgg_play_id: int, bgg_id: int, name: string, played_at: string, quantity: int, duration_minutes: ?int}>}
      */
-    public function fetchPlays(string $username): array
+    public function fetchPlays(string $username, ?string $minDate = null): array
     {
         if (blank(config('bgg.application_token'))) {
             return [
@@ -149,10 +160,11 @@ class BggClient
         // reports fewer than 100 plays.
         for ($page = 1; $page <= 500; $page++) {
             try {
-                $response = $this->httpClient()->get(self::BASE_URL.'/plays', [
+                $response = $this->httpClient()->get(self::BASE_URL.'/plays', array_filter([
                     'username' => $username,
                     'page' => $page,
-                ]);
+                    'mindate' => $minDate,
+                ]));
             } catch (ConnectionException $e) {
                 Log::warning('BGG /plays request failed to connect', ['page' => $page, 'exception' => $e->getMessage()]);
 
