@@ -7,6 +7,8 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-08-21
+
 ### Añadido
 
 - Página "Partidas": muestra el historial de partidas jugadas, importado
