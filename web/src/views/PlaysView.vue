@@ -210,11 +210,18 @@ the row, same as before it became clickable, not as a distinct button. */
 /* 56px (up from 40px, asked for directly) - same size already used for
 compact-mode covers elsewhere in the app (GameCard.vue), rather than a
 number picked just for this row. */
+/* display: block is the fix - an <img> is inline by default, so without
+this it sits on its container's own text baseline, leaving a ~6px
+descender gap below it (the classic "mystery space under an image"
+CSS quirk) - .play-cover-button ended up 62px tall instead of the
+image's real 56px because of it, which is what read as extra padding
+specifically below the cover in each row. */
 .play-cover {
+  display: block;
   width: 56px;
   height: 56px;
   object-fit: cover;
-  border-radius: var(--radius);
+  border-radius: 5px;
   flex-shrink: 0;
 }
 
