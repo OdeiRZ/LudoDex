@@ -33,7 +33,9 @@ onMounted(() => {
     </p>
 
     <ul v-else class="play-list">
-      <li v-for="play in plays.entries" :key="play.id" class="play-row">
+      <li v-for="(play, index) in plays.entries" :key="play.id" class="play-row">
+        <span class="play-index">{{ index + 1 }}</span>
+
         <button
           type="button"
           class="play-cover-button"
@@ -103,6 +105,20 @@ h1 {
   padding: var(--space-2) var(--space-3);
   background: var(--color-surface);
   border-radius: var(--radius);
+}
+
+/* A running count across every loaded page (asked for directly), not
+per-page - "load more" appends to the same plays.entries array rather
+than replacing it, so the v-for's own index already counts continuously
+without needing separate state to track it. Fixed width (rather than
+just a gap) keeps every row's own cover/name lined up regardless of how
+many digits a given index needs (1 vs 100+). */
+.play-index {
+  width: 1.5rem;
+  flex-shrink: 0;
+  text-align: right;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
 }
 
 /* No border/background/padding of its own beyond resetting the button

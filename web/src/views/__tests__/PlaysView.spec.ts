@@ -99,6 +99,22 @@ describe('PlaysView', () => {
     expect(wrapper.text()).toContain('45 min')
   })
 
+  it('numbers plays ascending, continuing across "load more" instead of resetting per page', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.entries = [makePlay({ id: 'play-1' }), makePlay({ id: 'play-2' })]
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.findAll('.play-index').map((el) => el.text())).toEqual(['1', '2'])
+
+    // "Cargar más" appends to the same entries array rather than
+    // replacing it - the numbering should pick up from 3, not restart.
+    store.entries.push(makePlay({ id: 'play-3' }))
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.findAll('.play-index').map((el) => el.text())).toEqual(['1', '2', '3'])
+  })
+
   it('shows a "load more" button only while there are more pages', async () => {
     const { wrapper, store } = await mountPlays()
     store.loaded = true
