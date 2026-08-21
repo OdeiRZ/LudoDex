@@ -92,7 +92,7 @@ orden). Igual que en `App.vue`, cada ajuste es acumulativo (`max-width`):
 
 | `max-width` | Qué hace |
 |---|---|
-| `880px` | Vaciar/Añadir pasan a solo icono, agrupados con el toggle de vista a la derecha. Buscador+tipo no se parten en dos líneas. |
+| `880px` | Vaciar/Añadir pasan a solo icono, agrupados con el toggle de vista a la derecha. Buscador+tipo no se parten en dos líneas. La rejilla colapsa a una sola columna (antes `1fr auto`) — la segunda solo la usaban Vaciar/Añadir en su formato con etiqueta, ya ocultos aquí; dejarla reservada sin contenido dejaba el grupo vista/vaciar/añadir 16px corto del borde real (ver segunda lección más abajo). |
 | `740px` | Buscador+tipo y orden+extras ya no caben en una línea → dos filas de grid. Vaciar/Añadir recuperan su etiqueta de texto. |
 | `671px` | Vaciar/Añadir vuelven a solo icono. |
 | `583px` | Buscador+tipo ocupan el 100% de la primera línea. Orden, su toggle, vista, eliminar y añadir se agrupan a la izquierda en la segunda línea. |
@@ -108,6 +108,11 @@ retoca este bloque:
   pueda encoger por debajo del contenido de sus propios controles (mismo
   motivo por el que un `select` con una opción larga puede impedir que su
   columna encoja) — sin él, la rejilla se desborda en vez de comprimirse.
+- `column-gap` se reserva entre dos columnas aunque una de ellas esté
+  vacía (sin ningún elemento dentro) — un `margin-left: auto` pensado
+  para llegar al borde real del contenedor se queda corto exactamente
+  ese hueco si la rejilla sigue teniendo una segunda columna sin usar,
+  en vez de haberla colapsado a una sola.
 
 ## Breakpoints del formulario de filtros de "¿A qué jugamos?" (`PickerView.vue`)
 
