@@ -10,6 +10,21 @@ const plays = usePlaysStore()
 // pattern as the picker/dashboard's own detailEntry.
 const detailGame = ref<Play['game'] | null>(null)
 
+// play.game isn't part of games.collection (see PlayResource/DetailGame's
+// own comments), so the store action's own side effect of updating a
+// matching collection entry never reaches it - without this, translating
+// a game here would show the result while the modal stayed open, but
+// closing and reopening the same play's modal later would show English
+// again despite the DB already having the translation saved. Mutating
+// detailGame.value here (this component's own ref, not a prop) is what
+// makes it stick: it's the exact same object plays.entries holds, not a
+// copy, so the list itself picks it up too, not just this one open modal.
+function onDetailGameTranslated(descriptionEs: string | null) {
+  if (detailGame.value) {
+    detailGame.value.description_es = descriptionEs
+  }
+}
+
 // Local, immediate-feedback copy of the search box's own value - the
 // store's own plays.search only updates (and triggers a fetch) after the
 // debounce below, so typing itself is never blocked waiting on a
@@ -108,7 +123,12 @@ onMounted(() => {
       {{ $t('plays.loadMore') }}
     </button>
 
-    <GameDetailModal v-if="detailGame" :game="detailGame" @close="detailGame = null" />
+    <GameDetailModal
+      v-if="detailGame"
+      :game="detailGame"
+      @close="detailGame = null"
+      @translated="onDetailGameTranslated"
+    />
   </div>
 </template>
 

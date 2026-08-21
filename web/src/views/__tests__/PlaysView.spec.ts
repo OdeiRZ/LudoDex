@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import PlaysView from '@/views/PlaysView.vue'
 import { usePlaysStore, type Play } from '@/stores/plays'
+import { useGamesStore } from '@/stores/games'
 import { i18n } from '@/i18n'
 
 function makePlay(overrides: Partial<Play> = {}): Play {
@@ -186,5 +187,28 @@ describe('PlaysView', () => {
 
     await modal.find('.modal-close').trigger('click')
     expect(wrapper.findComponent({ name: 'GameDetailModal' }).exists()).toBe(false)
+  })
+
+  it('keeps a translation after closing and reopening the same play\'s modal', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.entries = [makePlay()]
+    await wrapper.vm.$nextTick()
+    const games = useGamesStore()
+    vi.spyOn(games, 'translateDescription').mockResolvedValue('Comercia y construye en la isla de Catan.')
+
+    await wrapper.find('.play-cover-button').trigger('click')
+    await wrapper.findComponent({ name: 'GameDetailModal' }).find('.modal-translate').trigger('click')
+    await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick()
+    await wrapper.findComponent({ name: 'GameDetailModal' }).find('.modal-close').trigger('click')
+
+    // Reopening the same row's modal (a fresh instance, same underlying
+    // play.game object) should show the translation already saved,
+    // not fall back to English again waiting on a translate click.
+    await wrapper.find('.play-cover-button').trigger('click')
+    const reopened = wrapper.findComponent({ name: 'GameDetailModal' })
+    expect(reopened.find('.modal-description').text()).toBe('Comercia y construye en la isla de Catan.')
+    expect(reopened.find('.modal-translate').exists()).toBe(false)
   })
 })

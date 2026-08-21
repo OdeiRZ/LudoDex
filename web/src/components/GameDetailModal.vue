@@ -20,15 +20,14 @@ export interface DetailGame {
 }
 
 const props = defineProps<{ game: DetailGame }>()
-const emit = defineEmits<{ close: [] }>()
+const emit = defineEmits<{ close: []; translated: [descriptionEs: string | null] }>()
 const games = useGamesStore()
 
-// A local copy rather than reading props.game.description_es directly -
-// translateDescription() only mutates games.collection, which the game
-// passed in here isn't guaranteed to be part of (Partidas' own entries
-// never are), so this can't rely on that mutation reaching back into
-// this component's own prop the way the picker/dashboard callers'
-// already-in-collection game happens to.
+// A local copy, seeded from the prop, rather than reading
+// props.game.description_es directly everywhere below - lets
+// displayDescription/isUntranslated update immediately off the store
+// action's own return value without waiting on a prop change to flow
+// back down.
 const descriptionEs = ref(props.game.description_es)
 
 // Only prefers the Spanish translation when the app itself is in
@@ -50,18 +49,23 @@ const isUntranslated = computed(
 const translating = ref(false)
 const translateFailed = ref(false)
 
-// The store's own translateDescription() also mutates any matching
-// games.collection entry as a side effect (harmless, and lets the
-// picker/dashboard's own list reflect the translation without a
-// separate refetch) - the returned value is what this modal actually
-// displays from, so it updates the same way regardless of whether the
-// game it was given happens to be part of that collection.
+// Also emits the result (rather than mutating props.game.description_es
+// directly - Vue/ESLint flags mutating a prop, even a nested field of
+// one) so a caller whose own list isn't already covered by the store
+// action's own games.collection side effect can still persist it -
+// Partidas' plays.entries never was covered by that (its own play.game
+// isn't part of games.collection), so before this, closing and
+// reopening this same game's modal there kept showing English again
+// despite the DB already having the translation saved. Picker/
+// Dashboard don't need to listen for this event themselves - their own
+// entry already gets the collection-side mutation regardless.
 async function onTranslateClick() {
   translating.value = true
   translateFailed.value = false
 
   try {
     descriptionEs.value = await games.translateDescription(props.game.id)
+    emit('translated', descriptionEs.value)
   } catch {
     translateFailed.value = true
   } finally {

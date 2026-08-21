@@ -91,6 +91,27 @@ describe('GameDetailModal', () => {
     expect(wrapper.find('.modal-translate').exists()).toBe(false)
   })
 
+  it('emits translated with the result, for callers whose own list isn\'t covered by the games.collection side effect', async () => {
+    // A plain object, deliberately NOT part of games.collection - this is
+    // what Partidas' own play.game looks like, since it's never added to
+    // that store. Before this was fixed, the translation only ever
+    // reached games.collection entries, so reopening this same object's
+    // modal later (e.g. PlaysView keeping it in its own plays.entries
+    // array) kept showing English despite the DB already having saved
+    // the Spanish text - PlaysView listens for this event to update its
+    // own entry instead (see its own test for that part).
+    const standaloneGame = makeGame({ id: 'g1', description: 'A game about trade.', description_es: null })
+    const wrapper = mountModal(standaloneGame)
+    const games = useGamesStore()
+    vi.spyOn(games, 'translateDescription').mockResolvedValue('Un juego de comercio.')
+
+    await wrapper.find('.modal-translate').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('.modal-description').text()).toBe('Un juego de comercio.')
+    expect(wrapper.emitted('translated')).toEqual([['Un juego de comercio.']])
+  })
+
   it('shows an error message instead of crashing when the translate request fails', async () => {
     const wrapper = mountModal(makeGame({ description: 'A game about trade.', description_es: null }))
     const games = useGamesStore()

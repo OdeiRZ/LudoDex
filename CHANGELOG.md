@@ -22,9 +22,10 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   en Colección/¿A qué jugamos? — el propio modal se generalizó para
   aceptar un juego "delgado" como el de Partidas (sin mecánicas ni
   categorías) en vez de exigir siempre el objeto `Game` completo, y su
-  botón de traducir ya no depende de que el juego esté en la colección
-  cargada para reflejar el resultado. Portadas de la lista un poco más
-  grandes (40px → 56px). Cada partida lleva delante un número correlativo
+  botón de traducir emite el resultado en vez de depender de que el
+  juego esté en la colección cargada para que la traducción persista al
+  cerrar y reabrir el modal de esa misma partida. Portadas de la lista
+  un poco más grandes (40px → 56px). Cada partida lleva delante un número correlativo
   ascendente que no se reinicia al pulsar "Cargar más". Buscador por
   nombre de juego (con *debounce*, filtrado en el propio backend ya que
   la lista está paginada, a diferencia del filtrado en el cliente de
