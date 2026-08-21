@@ -65,6 +65,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   Detalle en
   [`web/README.md`](web/README.md#breakpoints-del-formulario-de-filtros-de-a-qué-jugamos-pickerviewvue).
 
+### Corregido
+
+- El aviso de partidas importadas usaba siempre el plural en español
+  ("1 partidas importadas."), sin distinguir singular — más visible ahora
+  que el nuevo botón de recarga muestra ese mismo aviso con más
+  frecuencia que el formulario de importación original.
+
 ## [0.6.0] - 2026-08-18
 
 ### Añadido
