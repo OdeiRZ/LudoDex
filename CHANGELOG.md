@@ -36,6 +36,12 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   centraba la caja en pantalla pero no el propio texto — un mensaje que
   ocupaba dos líneas quedaba con la segunda desalineada hacia la
   izquierda en vez de seguir centrada como la primera.
+- En "Tu colección", a un ancho de móvil real (~360-389px), el selector
+  de tipo ("Todos"/"Juegos base"/"Expansiones") se quedaba sin espacio
+  suficiente y recortaba su propia opción más larga a "Expansione" —
+  reequilibrado el ancho entre el buscador (más pequeño, pedido
+  directamente) y el selector (más grande), de forma que ambos textos
+  quepan enteros a la vez.
 
 ## [0.7.0] - 2026-08-21
 

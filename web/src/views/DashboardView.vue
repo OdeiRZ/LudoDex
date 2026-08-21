@@ -1039,20 +1039,32 @@ to land in row1/row3 at all. */
   own width changes, in proportion to their own basis, instead of one
   swelling while the other gets squeezed down to a fixed floor - that
   read as broken (the type filter visibly shrinking while the search
-  input visibly grew) when only the input was flexible. 120px is only
-  the point where the input stops giving further and the row wraps
-  onto two lines instead (flex-wrap, set above) - well short of that
-  at this breakpoint's own width. */
+  input visibly grew) when only the input was flexible. min-width
+  raised from 120px to 166px (asked for a smaller input, but not this
+  small) - its own placeholder, "Buscar por nombre…", measures ~163px
+  including padding at this font size, and anything narrower clips it
+  mid-word with no ellipsis (plain input overflow, not text-overflow).
+  Basis lowered from 171px to match, still comfortably above that
+  floor. */
   .search-group input {
-    flex: 1 1 171px;
-    min-width: 120px;
+    flex: 1 1 166px;
+    min-width: 166px;
   }
 
+  /* min-width raised from 80px to 134px (asked for directly) - "Expansiones",
+  its own longest option, needs ~129px unconstrained to render in full;
+  anything narrower than that clips it to "Expansione" mid-word instead
+  of wrapping or ellipsizing, since a native <select> just crops its
+  selected value silently. 134px leaves a few px of real-device slack
+  above that measured minimum, same margin this file already keeps
+  elsewhere (.sort-criterion's 118px, .clear-confirm-row input's
+  115px). Basis raised from 100px to match, so it starts from a
+  comfortable width rather than depending on the min-width floor alone. */
   .type-filter {
-    flex: 1 1 100px;
+    flex: 1 1 134px;
     width: auto;
     max-width: none;
-    min-width: 80px;
+    min-width: 134px;
   }
 
   .sort-criterion-group {
