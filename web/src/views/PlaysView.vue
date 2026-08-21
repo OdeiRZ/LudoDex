@@ -76,7 +76,9 @@ async function onReimportConfirm() {
     const result = await plays.importPlays(reimportUsername.value)
     await plays.fetchPage(1)
     reimportPanelOpen.value = false
-    toast.show(t('importBgg.playsCompleted', { count: result.imported_count }))
+    toast.show(
+      t('importBgg.playsCompleted', { count: result.imported_count }, result.imported_count),
+    )
   } catch {
     reimportError.value = t('importBgg.playsGenericError')
   } finally {

@@ -406,6 +406,17 @@ describe('ImportBggView', () => {
     expect(wrapper.text()).toContain('7 partidas importadas.')
   })
 
+  it('uses the singular form for exactly one imported play', async () => {
+    const { wrapper, playsStore } = mountImport()
+    vi.spyOn(playsStore, 'importPlays').mockResolvedValue({ imported_count: 1 })
+    vi.spyOn(playsStore, 'fetchPage').mockResolvedValue()
+
+    await submitPlaysUsername(wrapper)
+
+    expect(wrapper.text()).toContain('1 partida importada.')
+    expect(wrapper.text()).not.toContain('1 partidas importadas.')
+  })
+
   it('shows a generic error when importing plays fails', async () => {
     const { wrapper, playsStore } = mountImport()
     vi.spyOn(playsStore, 'importPlays').mockRejectedValue(new Error('network error'))

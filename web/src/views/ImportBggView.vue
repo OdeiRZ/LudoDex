@@ -356,7 +356,15 @@ onMounted(() => {
         </form>
 
         <div v-else role="status" class="status-block">
-          <p>{{ $t('importBgg.playsCompleted', { count: playsResult.imported_count }) }}</p>
+          <p>
+            {{
+              $t(
+                'importBgg.playsCompleted',
+                { count: playsResult.imported_count },
+                playsResult.imported_count,
+              )
+            }}
+          </p>
           <RouterLink :to="{ name: 'plays' }" class="btn btn-primary">{{
             $t('importBgg.viewPlays')
           }}</RouterLink>

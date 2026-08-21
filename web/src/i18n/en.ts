@@ -262,7 +262,7 @@ export default {
     playsSubmit: 'Import plays',
     playsSubmitting: 'Importing…',
     playsGenericError: "Couldn't import your plays.",
-    playsCompleted: '{count} plays imported.',
+    playsCompleted: '{count} play imported. | {count} plays imported.',
     viewPlays: 'View your plays',
   },
   plays: {

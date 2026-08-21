@@ -262,7 +262,7 @@ export default {
     playsSubmit: 'Importar partidas',
     playsSubmitting: 'Importando…',
     playsGenericError: 'No se han podido importar las partidas.',
-    playsCompleted: '{count} partidas importadas.',
+    playsCompleted: '{count} partida importada. | {count} partidas importadas.',
     viewPlays: 'Ver partidas',
   },
   plays: {

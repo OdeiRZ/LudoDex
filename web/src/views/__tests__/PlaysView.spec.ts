@@ -279,6 +279,22 @@ describe('PlaysView', () => {
     expect(useToastStore().message).toBe('2 partidas importadas.')
   })
 
+  it('uses the singular form in the toast for exactly one reimported play', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.entries = [makePlay()]
+    await wrapper.vm.$nextTick()
+    vi.spyOn(store, 'importPlays').mockResolvedValue({ imported_count: 1 })
+
+    await wrapper.find('.reimport-btn').trigger('click')
+    await wrapper.find('#reimport-username').setValue('odei1987')
+    await wrapper.find('.reimport-panel .btn-primary').trigger('click')
+    await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick()
+
+    expect(useToastStore().message).toBe('1 partida importada.')
+  })
+
   it('shows an error inside the panel (without closing it) if reimporting fails', async () => {
     const { wrapper, store } = await mountPlays()
     store.loaded = true
