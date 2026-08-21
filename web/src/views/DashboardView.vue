@@ -675,6 +675,23 @@ width - collapsed into the one threshold instead of two. Also where
 further down) - same media query, not a separate rule for what's
 really the same threshold. */
 @media (max-width: 880px) {
+  /* .action-buttons (Vaciar/Añadir's own labelled-button column, 'clear'/
+  'add' below) is display: none at this tier - without also collapsing
+  the grid back to a single column here, that whole second column still
+  reserves its own column-gap next to an now-empty auto track, leaving
+  the density/clear/add cluster's own margin-left: auto stop short of
+  the toolbar's actual right edge by that gap's width instead of
+  reaching it (reported directly - the cluster looked "almost" flush,
+  not quite). One column removes that dead strip entirely - title-row
+  and search-controls each already only ever used the first column
+  anyway. */
+  .dashboard-toolbar {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'title'
+      'search';
+  }
+
   .action-buttons {
     display: none;
   }
