@@ -17,7 +17,14 @@ function makePlay(overrides: Partial<Play> = {}): Play {
     played_at: '2026-01-01',
     quantity: 1,
     duration_minutes: 30,
-    game: { id: 'game-1', bgg_id: 13, name: 'Catan', image_url: null },
+    game: {
+      id: 'game-1',
+      bgg_id: 13,
+      name: 'Catan',
+      image_url: null,
+      description: null,
+      description_es: null,
+    },
     ...overrides,
   }
 }
@@ -59,6 +66,34 @@ describe('usePlaysStore', () => {
 
     expect(store.entries).toEqual([first, second])
     expect(store.currentPage).toBe(2)
+  })
+
+  it('sends the currently active search term (empty by default) alongside every page request', async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: { data: [], meta: { current_page: 1, last_page: 1 } },
+    })
+    const store = usePlaysStore()
+
+    await store.fetchPage(1)
+
+    expect(apiClient.get).toHaveBeenCalledWith('/plays', { params: { page: 1, search: '' } })
+  })
+
+  it('setSearch sets the term and reloads from page 1, replacing whatever was there', async () => {
+    const store = usePlaysStore()
+    store.entries = [makePlay({ id: 'stale' })]
+    store.currentPage = 3
+
+    const fresh = makePlay({ id: 'fresh' })
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: { data: [fresh], meta: { current_page: 1, last_page: 1 } },
+    })
+
+    await store.setSearch('catan')
+
+    expect(store.search).toBe('catan')
+    expect(apiClient.get).toHaveBeenCalledWith('/plays', { params: { page: 1, search: 'catan' } })
+    expect(store.entries).toEqual([fresh])
   })
 
   it('turns loading off even when fetchPage fails', async () => {

@@ -47,8 +47,12 @@ npm run test:unit      # Vitest
   usuario" daría a entender que la de CSV no lo es — Partidas no tiene ese
   problema porque solo existe un método para ella.
 - `src/views/PlaysView.vue` — página "Partidas": lista el historial de
-  partidas ya importado (paginado, con "cargar más"); el propio formulario
-  de importación vive en `ImportBggView.vue`, no aquí.
+  partidas ya importado (paginado, con "cargar más" y numeración
+  correlativa que no se reinicia por página); el propio formulario de
+  importación vive en `ImportBggView.vue`, no aquí. El buscador por
+  nombre de juego filtra en el backend (`GET /api/plays?search=`), no en
+  el cliente como Colección/¿A qué jugamos? — la lista está paginada, así
+  que un filtro local solo vería la página ya cargada.
 - `src/views/PickerView.vue` — selector "¿A qué jugamos?": filtra la
   colección propia en el cliente por jugadores, duración y modo de juego.
 

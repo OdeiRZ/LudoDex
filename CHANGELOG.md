@@ -24,7 +24,12 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   categorías) en vez de exigir siempre el objeto `Game` completo, y su
   botón de traducir ya no depende de que el juego esté en la colección
   cargada para reflejar el resultado. Portadas de la lista un poco más
-  grandes (40px → 56px).
+  grandes (40px → 56px). Cada partida lleva delante un número correlativo
+  ascendente que no se reinicia al pulsar "Cargar más". Buscador por
+  nombre de juego (con *debounce*, filtrado en el propio backend ya que
+  la lista está paginada, a diferencia del filtrado en el cliente de
+  Colección/¿A qué jugamos?) para encontrar rápido cuándo se jugó a un
+  juego concreto sin recorrer todo el historial.
 - Cuarto enlace de nav ("Partidas") junto a los ya existentes, lo que
   obligó a revisar toda la cabecera para anchos estrechos: por debajo de
   576px el nav se sustituye por un menú ☰ desplegable en vez de partir los

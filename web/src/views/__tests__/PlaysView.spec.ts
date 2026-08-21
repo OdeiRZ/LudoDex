@@ -85,6 +85,41 @@ describe('PlaysView', () => {
 
     expect(wrapper.find('.empty-state').exists()).toBe(true)
     expect(wrapper.find('.empty-state a').attributes('href')).toBe('/import-bgg?tab=plays')
+    // Nothing to search yet - hidden for this specific empty state only.
+    expect(wrapper.find('.search-field').exists()).toBe(false)
+  })
+
+  it('shows a different empty state for a search with no matches, keeping the search box', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.search = 'nonexistent'
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.search-field').exists()).toBe(true)
+    expect(wrapper.find('.empty-state').text()).toBe('Ninguna partida coincide con la búsqueda.')
+    expect(wrapper.find('.empty-state a').exists()).toBe(false)
+  })
+
+  it('debounces the search box, calling setSearch with the final value after 300ms of no typing', async () => {
+    vi.useFakeTimers()
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.entries = [makePlay()]
+    await wrapper.vm.$nextTick()
+    const setSearchSpy = vi.spyOn(store, 'setSearch').mockResolvedValue()
+
+    const input = wrapper.find('#plays-search')
+    await input.setValue('cat')
+    await input.setValue('cata')
+    await input.setValue('catan')
+
+    expect(setSearchSpy).not.toHaveBeenCalled()
+
+    await vi.advanceTimersByTimeAsync(300)
+
+    expect(setSearchSpy).toHaveBeenCalledTimes(1)
+    expect(setSearchSpy).toHaveBeenCalledWith('catan')
+    vi.useRealTimers()
   })
 
   it('lists plays once loaded, including quantity and duration', async () => {

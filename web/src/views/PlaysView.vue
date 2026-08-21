@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { usePlaysStore, type Play } from '@/stores/plays'
 import { FALLBACK_ICON_URL } from '@/lib/assets'
 import GameDetailModal from '@/components/GameDetailModal.vue'
@@ -9,6 +9,20 @@ const plays = usePlaysStore()
 // Which play's own game detail is open, if any - same "one at a time"
 // pattern as the picker/dashboard's own detailEntry.
 const detailGame = ref<Play['game'] | null>(null)
+
+// Local, immediate-feedback copy of the search box's own value - the
+// store's own plays.search only updates (and triggers a fetch) after the
+// debounce below, so typing itself is never blocked waiting on a
+// request.
+const searchInput = ref('')
+let searchDebounce: ReturnType<typeof setTimeout> | undefined
+
+function onSearchInput() {
+  clearTimeout(searchDebounce)
+  searchDebounce = setTimeout(() => plays.setSearch(searchInput.value), 300)
+}
+
+onUnmounted(() => clearTimeout(searchDebounce))
 
 function loadMore() {
   plays.fetchPage(plays.currentPage + 1)
@@ -25,11 +39,30 @@ onMounted(() => {
   <div class="plays">
     <h1>{{ $t('plays.title') }}</h1>
 
-    <p v-if="plays.loaded && plays.entries.length === 0" class="empty-state">
+    <!-- Hidden only for the true "nothing imported yet" empty state below -
+    plays.search is what tells the two apart, since an empty entries list
+    means either that or a search with no matches (which keeps the box,
+    so it can be cleared/changed). -->
+    <div v-if="plays.loaded && (plays.entries.length > 0 || plays.search)" class="search-field">
+      <label for="plays-search">{{ $t('plays.searchLabel') }}</label>
+      <input
+        id="plays-search"
+        v-model="searchInput"
+        type="search"
+        :placeholder="$t('plays.searchPlaceholder')"
+        @input="onSearchInput"
+      />
+    </div>
+
+    <p v-if="plays.loaded && plays.entries.length === 0 && !plays.search" class="empty-state">
       {{ $t('plays.empty') }}<br />
       <RouterLink :to="{ name: 'import-bgg', query: { tab: 'plays' } }">{{
         $t('plays.importLink')
       }}</RouterLink>.
+    </p>
+
+    <p v-else-if="plays.loaded && plays.entries.length === 0" class="empty-state">
+      {{ $t('plays.noMatches') }}
     </p>
 
     <ul v-else class="play-list">
@@ -86,6 +119,10 @@ onMounted(() => {
 }
 
 h1 {
+  margin-bottom: var(--space-4);
+}
+
+.search-field {
   margin-bottom: var(--space-4);
 }
 

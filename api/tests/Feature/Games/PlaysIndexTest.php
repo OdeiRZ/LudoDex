@@ -62,6 +62,39 @@ it('includes the game\'s description so the play list can open its detail modal'
         ->assertJsonPath('data.0.game.description_es', 'Comercia y construye en la isla de Catan.');
 });
 
+it('filters by the played game\'s own name via ?search=, case-insensitively', function () {
+    $user = actingAsUser();
+    $catan = Game::factory()->create(['name' => 'Catan', 'bgg_id' => 13]);
+    $catanExpansion = Game::factory()->create(['name' => 'Catan: Seafarers', 'bgg_id' => 14]);
+    $sevenWonders = Game::factory()->create(['name' => '7 Wonders', 'bgg_id' => 68448]);
+
+    Play::factory()->for($user)->for($catan)->create();
+    Play::factory()->for($user)->for($catanExpansion)->create();
+    Play::factory()->for($user)->for($sevenWonders)->create();
+
+    $response = $this->getJson('/api/plays?search=catan')->assertOk();
+
+    $response->assertJsonCount(2, 'data');
+    $names = collect($response->json('data'))->pluck('game.name');
+    expect($names)->toContain('Catan')->toContain('Catan: Seafarers')->not->toContain('7 Wonders');
+});
+
+it('returns no plays when the search does not match any played game', function () {
+    $user = actingAsUser();
+    $game = Game::factory()->create(['name' => 'Catan', 'bgg_id' => 13]);
+    Play::factory()->for($user)->for($game)->create();
+
+    $this->getJson('/api/plays?search=nonexistent')->assertOk()->assertJson(['data' => []]);
+});
+
+it('ignores an empty ?search= and returns every play', function () {
+    $user = actingAsUser();
+    $game = Game::factory()->create(['bgg_id' => 13]);
+    Play::factory()->for($user)->for($game)->create();
+
+    $this->getJson('/api/plays?search=')->assertOk()->assertJsonCount(1, 'data');
+});
+
 it('paginates at 20 per page', function () {
     $user = actingAsUser();
     $game = Game::factory()->create(['bgg_id' => 13]);
