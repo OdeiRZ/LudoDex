@@ -23,6 +23,12 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   del título, quedaba demasiado lejos de la vista inicial, y como acción
   de página (no de búsqueda) encaja mejor con el mismo patrón que
   "Vaciar biblioteca" en Colección.
+- El contador de la cabecera de "Tu colección" añade el número de
+  expansiones entre paréntesis (p. ej. "305 juegos (189 expansiones)")
+  mientras el filtro de tipo está en "Todos" — el de juegos base se
+  deduce restando, así que no hace falta mostrar los tres números a la
+  vez. Desaparece al elegir "Juegos base"/"Expansiones", ya que en ese
+  caso el propio contador principal pasa a ser ya uno de los dos.
 
 ## [0.7.0] - 2026-08-21
 

@@ -279,6 +279,46 @@ describe('DashboardView', () => {
       expect(names(wrapper)).toEqual(['Root'])
     })
 
+    it('adds an expansions count in parentheses to the header while "Todos" is selected', () => {
+      const { wrapper } = mountDashboard([
+        makeEntry({ id: 'root', name: 'Root' }),
+        makeEntry({ name: 'Root: Riverfolk', base_game_id: 'root' }),
+        makeEntry({ name: 'Catan' }),
+      ])
+
+      expect(wrapper.find('.count').text()).toBe('3 juegos (1 expansiones)')
+    })
+
+    it('omits the expansions parenthetical once the type filter is no longer "Todos"', async () => {
+      const { wrapper } = mountDashboard([
+        makeEntry({ id: 'root', name: 'Root' }),
+        makeEntry({ name: 'Root: Riverfolk', base_game_id: 'root' }),
+      ])
+
+      await wrapper.find('.type-filter').setValue('expansion')
+
+      expect(wrapper.find('.count').text()).toBe('1 juegos')
+    })
+
+    it('omits the expansions parenthetical when the collection has no expansions at all', () => {
+      const { wrapper } = mountDashboard([makeEntry({ name: 'Catan' })])
+
+      expect(wrapper.find('.count').text()).toBe('1 juegos')
+    })
+
+    it('counts only expansions matching the active search, not the whole collection', async () => {
+      const { wrapper } = mountDashboard([
+        makeEntry({ id: 'root', name: 'Root' }),
+        makeEntry({ name: 'Root: Riverfolk', base_game_id: 'root' }),
+        makeEntry({ id: 'catan', name: 'Catan' }),
+        makeEntry({ name: 'Catan: Seafarers', base_game_id: 'catan' }),
+      ])
+
+      await wrapper.find('input[type="search"]').setValue('root')
+
+      expect(wrapper.find('.count').text()).toBe('2 juegos (1 expansiones)')
+    })
+
     it('never shows a BGG rank badge on an expansion, even if one has a bgg_id/rank of its own', () => {
       const { wrapper } = mountDashboard([
         makeEntry({ id: 'root', name: 'Root', bgg_id: 1 }),
