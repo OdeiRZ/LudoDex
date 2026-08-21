@@ -36,7 +36,10 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   solapamiento por si se edita algo reciente en BGG); una edición más
   antigua que ese margen sí necesitaría un reimport completo para
   reflejarse. El primer import de un usuario sigue trayendo el
-  historial entero, al no haber nada guardado aún que filtrar.
+  historial entero, al no haber nada guardado aún que filtrar. Estado de
+  carga (icono del dado) mientras se pide la primera página, igual que
+  en Colección/¿A qué jugamos? — antes esa espera inicial no mostraba
+  ningún indicador.
 - Cuarto enlace de nav ("Partidas") junto a los ya existentes, lo que
   obligó a revisar toda la cabecera para anchos estrechos: por debajo de
   576px el nav se sustituye por un menú ☰ desplegable en vez de partir los
