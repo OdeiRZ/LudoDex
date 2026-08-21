@@ -178,13 +178,18 @@ h1 {
 /* A running count across every loaded page (asked for directly), not
 per-page - "load more" appends to the same plays.entries array rather
 than replacing it, so the v-for's own index already counts continuously
-without needing separate state to track it. Fixed width (rather than
-just a gap) keeps every row's own cover/name lined up regardless of how
-many digits a given index needs (1 vs 100+). */
+without needing separate state to track it. text-align: left (asked
+for directly, down from the original right) hugs the row's own left
+edge instead of the cover. width: 0.75rem (asked for directly, down
+from 1.5rem) keeps a 1-2 digit index snug against that edge too -
+narrower than a 3-digit index's own natural width, so past 99 plays
+the number starts overflowing this fixed box rather than the row still
+lining every cover up regardless of digit count the way the original
+1.5rem did. */
 .play-index {
-  width: 1.5rem;
+  width: 0.75rem;
   flex-shrink: 0;
-  text-align: right;
+  text-align: left;
   color: var(--color-text-muted);
   font-size: 0.85rem;
 }
