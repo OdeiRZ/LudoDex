@@ -51,7 +51,7 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   también los stores de `games` y `plays` (`$reset()`), no solo el de
   `auth` — cubre tanto el cierre de sesión manual como el automático
   por token caducado (401), que comparten el mismo método.
-- En "Tu colección", entre 741-860px, el grupo de mini-botones (vista,
+- En "Tu colección", entre 741-850px, el grupo de mini-botones (vista,
   vaciar, añadir) no quedaba pegado al borde derecho como debía —
   "Vaciar"/"Añadir" en su formato con etiqueta dejan de usarse en este
   tramo, pero la columna de la rejilla que ocupaban seguía reservando
@@ -62,7 +62,7 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 ### Cambiado
 
 - El tramo de "Tu colección" que pasa Vaciar/Añadir a solo icono baja de
-  880px a 860px (pedido directamente).
+  880px a 860px y después a 850px (pedido directamente en dos pasos).
 
 ## [0.7.0] - 2026-08-21
 

@@ -622,7 +622,7 @@ which is what lets them share one row together once narrow. */
 edges line up (the button up top and this one below read as one
 vertical pair) instead of "Vaciar biblioteca" (the longer label, now
 also carrying an icon) running wider than "+ Añadir juego" underneath
-it; once they're side by side instead (below 860px), kept for the same
+it; once they're side by side instead (below 850px), kept for the same
 reason in spirit - shrinking only "+ Añadir juego" down to its own
 shorter content while "Vaciar biblioteca" stayed put read as one button
 being singled out rather than both simply not needing to shrink yet. */
@@ -674,7 +674,7 @@ width - collapsed into the one threshold instead of two. Also where
 .sort-criterion/.type-filter give up their roomy widths (see both
 further down) - same media query, not a separate rule for what's
 really the same threshold. */
-@media (max-width: 860px) {
+@media (max-width: 850px) {
   /* .action-buttons (Vaciar/Añadir's own labelled-button column, 'clear'/
   'add' below) is display: none at this tier - without also collapsing
   the grid back to a single column here, that whole second column still
@@ -840,7 +840,7 @@ row) rather than being stranded together off to one side. */
     display: none;
   }
 
-  /* Undoes the icon-only sizing from the 860px tier - back to full size
+  /* Undoes the icon-only sizing from the 850px tier - back to full size
   with its label, same as before any of these breakpoints. padding is
   spelled out explicitly (matching .btn's own value) rather than
   revert, which falls through to the user-agent default instead of an
@@ -854,7 +854,7 @@ row) rather than being stranded together off to one side. */
 
 /* Below this, the labelled buttons from the 740px tier above no longer
 fit their own column comfortably next to the two flexible selects -
-back to icon-only, same as the 860px tier, landing in the same
+back to icon-only, same as the 850px tier, landing in the same
 'clear'/'add' grid cells the labelled ones use. The compound selectors
 (.inline-actions .clear-library-btn, not just .clear-library-btn) are
 what let this coexist with the 740px block's own rule for the same
@@ -882,7 +882,7 @@ which one's size/grid-area wins here. */
     display: contents;
   }
 
-  /* min-width: 0 (not a fixed floor) is what the 860px tier's flexbox
+  /* min-width: 0 (not a fixed floor) is what the 850px tier's flexbox
   version needs to shrink past its own content, but here clear/add are
   grid items instead - 0 strips the track's normal content-based
   minimum protection entirely, letting the two flexible (1fr) columns
@@ -897,7 +897,7 @@ which one's size/grid-area wins here. */
   }
 
   /* The grid's own column-gap (16px, var(--space-4)) is wider than
-  these three actually use at the 860px tier, where density/clear/add
+  these three actually use at the 850px tier, where density/clear/add
   are flex siblings instead (gap: var(--space-3) between density and
   clear, var(--space-2) between clear and add) - negative margin pulls
   each one in by the difference so the spacing matches, without
@@ -968,7 +968,7 @@ now, instead of an oversized column dragging space between the two. */
   add - is one left-aligned unit spanning the full row, the same
   "together fill the row" pattern search+type use above. gap:
   var(--space-3) matches .sort-group's own original gap (the one used
-  everywhere above 860px) now that this is a real flex row again, not
+  everywhere above 850px) now that this is a real flex row again, not
   grid columns needing column-gap compensated via negative margins. */
   .sort-criterion-group {
     display: flex;
@@ -986,7 +986,7 @@ now, instead of an oversized column dragging space between the two. */
     max-width: none;
   }
 
-  /* Tighter gap between just these two, same as the 860px tier - real
+  /* Tighter gap between just these two, same as the 850px tier - real
   flex gap now, not the negative-margin compensation the 671px tier
   needs for its grid-column context. */
   .inline-actions {
