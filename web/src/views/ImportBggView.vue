@@ -238,7 +238,7 @@ onMounted(() => {
 
       <template v-if="method === 'username'">
         <form v-if="phase === 'idle' || phase === 'failed'" class="form" @submit.prevent="onSubmit">
-          <p class="hint">{{ $t('importBgg.readOnlyNotice') }}</p>
+          <p class="hint">{{ $t('importBgg.usernameHint') }}</p>
 
           <div>
             <label for="bgg_username">{{ $t('importBgg.username') }}</label>

@@ -237,6 +237,8 @@ export default {
     tabCsv: 'From CSV',
     tabPlays: 'Plays',
     username: 'BGG username',
+    usernameHint:
+      "Bring in your game collection from BoardGameGeek. Your BGG collection is only ever read, never written back to - nothing you edit here is sent to BGG.",
     readOnlyNotice: "Your BGG collection is only ever read, never written back to - nothing you edit here is sent to BGG.",
     submit: 'Import',
     genericStartError: "Couldn't start the import.",
