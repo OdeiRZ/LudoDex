@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { usePlaysStore, type Play } from '@/stores/plays'
+import { useToastStore } from '@/stores/toast'
 import { FALLBACK_ICON_URL } from '@/lib/assets'
 import GameDetailModal from '@/components/GameDetailModal.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const plays = usePlaysStore()
+const toast = useToastStore()
+const { t } = useI18n()
 
 // Which play's own game detail is open, if any - same "one at a time"
 // pattern as the picker/dashboard's own detailEntry.
@@ -44,6 +48,42 @@ function loadMore() {
   plays.fetchPage(plays.currentPage + 1)
 }
 
+// A shortcut for the same "Partidas" import form ImportBggView already has,
+// so re-checking BGG for new plays doesn't require leaving this page - the
+// username is asked for again each time (never prefilled) rather than
+// stored anywhere, matching how the standalone import form itself behaves.
+const reimportPanelOpen = ref(false)
+const reimportUsername = ref('')
+const reimportError = ref<string | null>(null)
+const reimporting = ref(false)
+
+function toggleReimportPanel() {
+  if (reimportPanelOpen.value) {
+    reimportPanelOpen.value = false
+    return
+  }
+
+  reimportUsername.value = ''
+  reimportError.value = null
+  reimportPanelOpen.value = true
+}
+
+async function onReimportConfirm() {
+  reimporting.value = true
+  reimportError.value = null
+
+  try {
+    const result = await plays.importPlays(reimportUsername.value)
+    await plays.fetchPage(1)
+    reimportPanelOpen.value = false
+    toast.show(t('importBgg.playsCompleted', { count: result.imported_count }))
+  } catch {
+    reimportError.value = t('importBgg.playsGenericError')
+  } finally {
+    reimporting.value = false
+  }
+}
+
 onMounted(() => {
   if (!plays.loaded) {
     plays.fetchPage(1)
@@ -61,13 +101,63 @@ onMounted(() => {
     so it can be cleared/changed). -->
     <div v-if="plays.loaded && (plays.entries.length > 0 || plays.search)" class="search-field">
       <label for="plays-search">{{ $t('plays.searchLabel') }}</label>
-      <input
-        id="plays-search"
-        v-model="searchInput"
-        type="search"
-        :placeholder="$t('plays.searchPlaceholder')"
-        @input="onSearchInput"
-      />
+      <div class="search-row">
+        <input
+          id="plays-search"
+          v-model="searchInput"
+          type="search"
+          :placeholder="$t('plays.searchPlaceholder')"
+          @input="onSearchInput"
+        />
+        <button
+          type="button"
+          class="btn reimport-btn"
+          :aria-label="$t('plays.reimportButton')"
+          :title="$t('plays.reimportButton')"
+          :aria-expanded="reimportPanelOpen"
+          @click="toggleReimportPanel"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <polyline points="23 4 23 10 17 10" stroke-linecap="round" stroke-linejoin="round" />
+            <polyline points="1 20 1 14 7 14" stroke-linecap="round" stroke-linejoin="round" />
+            <path
+              d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <div v-if="reimportPanelOpen" class="reimport-panel card" role="dialog">
+        <p>{{ $t('plays.reimportWarning') }}</p>
+        <label for="reimport-username">{{ $t('importBgg.username') }}</label>
+        <div class="reimport-row">
+          <input
+            id="reimport-username"
+            v-model="reimportUsername"
+            type="text"
+            autocomplete="off"
+            :disabled="reimporting"
+          />
+          <button type="button" class="btn" :disabled="reimporting" @click="toggleReimportPanel">
+            {{ $t('dashboard.cancel') }}
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            :disabled="!reimportUsername.trim() || reimporting"
+            @click="onReimportConfirm"
+          >
+            {{ reimporting ? $t('importBgg.playsSubmitting') : $t('plays.reimportSubmit') }}
+          </button>
+        </div>
+        <p v-if="reimporting" class="alert alert-info reimport-submitting">
+          <LoadingSpinner :size="20" />
+          {{ $t('importBgg.dontCloseTab') }}
+        </p>
+        <p v-if="reimportError" role="alert" class="alert alert-error">{{ reimportError }}</p>
+      </div>
     </div>
 
     <!-- Only for the very first fetch, before plays.loaded flips true -
@@ -155,6 +245,53 @@ h1 {
 
 .search-field {
   margin-bottom: var(--space-4);
+}
+
+.search-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.search-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.reimport-btn {
+  flex-shrink: 0;
+  padding: 0.55rem;
+}
+
+.reimport-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.reimport-panel {
+  margin-top: var(--space-2);
+}
+
+.reimport-panel label {
+  display: block;
+  margin-top: var(--space-2);
+}
+
+.reimport-row {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.reimport-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.reimport-submitting {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
 }
 
 .play-list {

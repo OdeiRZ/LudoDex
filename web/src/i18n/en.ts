@@ -275,5 +275,9 @@ export default {
     noMatches: 'No play matches that search.',
     loadMore: 'Load more',
     duration: '{minutes} min',
+    reimportButton: 'Reimport from BGG',
+    reimportWarning:
+      "We'll check BoardGameGeek for the most recent plays under this username and add them to your history.",
+    reimportSubmit: 'Reimport',
   },
 }

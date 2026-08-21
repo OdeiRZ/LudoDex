@@ -39,7 +39,12 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   historial entero, al no haber nada guardado aún que filtrar. Estado de
   carga (icono del dado) mientras se pide la primera página, igual que
   en Colección/¿A qué jugamos? — antes esa espera inicial no mostraba
-  ningún indicador.
+  ningún indicador. Botón de recarga junto al buscador para reimportar
+  sin salir de la página: despliega un panel con el aviso de qué va a
+  pasar y un campo para el usuario de BGG, reutilizando el mismo import
+  incremental de arriba en vez de duplicar el formulario de "Importar
+  BGG" — muestra el mismo spinner de carga mientras la petición está en
+  curso.
 - Cuarto enlace de nav ("Partidas") junto a los ya existentes, lo que
   obligó a revisar toda la cabecera para anchos estrechos: por debajo de
   576px el nav se sustituye por un menú ☰ desplegable en vez de partir los

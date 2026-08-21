@@ -48,11 +48,14 @@ npm run test:unit      # Vitest
   problema porque solo existe un método para ella.
 - `src/views/PlaysView.vue` — página "Partidas": lista el historial de
   partidas ya importado (paginado, con "cargar más" y numeración
-  correlativa que no se reinicia por página); el propio formulario de
-  importación vive en `ImportBggView.vue`, no aquí. El buscador por
-  nombre de juego filtra en el backend (`GET /api/plays?search=`), no en
-  el cliente como Colección/¿A qué jugamos? — la lista está paginada, así
-  que un filtro local solo vería la página ya cargada.
+  correlativa que no se reinicia por página); el formulario de
+  importación inicial vive en `ImportBggView.vue`, no aquí. El botón junto
+  al buscador despliega un panel para reimportar (mismo import
+  incremental, solo pide de nuevo el usuario de BGG) sin salir de la
+  página. El buscador por nombre de juego filtra en el backend (`GET
+  /api/plays?search=`), no en el cliente como Colección/¿A qué jugamos? —
+  la lista está paginada, así que un filtro local solo vería la página ya
+  cargada.
 - `src/views/PickerView.vue` — selector "¿A qué jugamos?": filtra la
   colección propia en el cliente por jugadores, duración y modo de juego.
 

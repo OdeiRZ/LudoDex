@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import PlaysView from '@/views/PlaysView.vue'
 import { usePlaysStore, type Play } from '@/stores/plays'
 import { useGamesStore } from '@/stores/games'
+import { useToastStore } from '@/stores/toast'
 import { i18n } from '@/i18n'
 
 function makePlay(overrides: Partial<Play> = {}): Play {
@@ -240,5 +241,101 @@ describe('PlaysView', () => {
     const reopened = wrapper.findComponent({ name: 'GameDetailModal' })
     expect(reopened.find('.modal-description').text()).toBe('Comercia y construye en la isla de Catan.')
     expect(reopened.find('.modal-translate').exists()).toBe(false)
+  })
+
+  it('toggles the reimport panel from its search-row button, closed by default', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.entries = [makePlay()]
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.reimport-panel').exists()).toBe(false)
+
+    await wrapper.find('.reimport-btn').trigger('click')
+    expect(wrapper.find('.reimport-panel').exists()).toBe(true)
+
+    await wrapper.find('.reimport-btn').trigger('click')
+    expect(wrapper.find('.reimport-panel').exists()).toBe(false)
+  })
+
+  it('reimports plays for the typed username, refreshes the list and toasts the result', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.entries = [makePlay()]
+    await wrapper.vm.$nextTick()
+    const importSpy = vi
+      .spyOn(store, 'importPlays')
+      .mockResolvedValue({ imported_count: 2 })
+
+    await wrapper.find('.reimport-btn').trigger('click')
+    await wrapper.find('#reimport-username').setValue('odei1987')
+    await wrapper.find('.reimport-panel .btn-primary').trigger('click')
+    await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick()
+
+    expect(importSpy).toHaveBeenCalledWith('odei1987')
+    expect(store.fetchPage).toHaveBeenCalledWith(1)
+    expect(wrapper.find('.reimport-panel').exists()).toBe(false)
+    expect(useToastStore().message).toBe('2 partidas importadas.')
+  })
+
+  it('shows an error inside the panel (without closing it) if reimporting fails', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.entries = [makePlay()]
+    await wrapper.vm.$nextTick()
+    vi.spyOn(store, 'importPlays').mockRejectedValue(new Error('network error'))
+
+    await wrapper.find('.reimport-btn').trigger('click')
+    await wrapper.find('#reimport-username').setValue('odei1987')
+    await wrapper.find('.reimport-panel .btn-primary').trigger('click')
+    await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.reimport-panel').exists()).toBe(true)
+    expect(wrapper.find('.reimport-panel .alert-error').text()).toBe(
+      'No se han podido importar las partidas.',
+    )
+  })
+
+  it('shows the loading spinner while a reimport is in flight, hides it once it settles', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.entries = [makePlay()]
+    await wrapper.vm.$nextTick()
+
+    let resolveImport!: (value: { imported_count: number }) => void
+    vi.spyOn(store, 'importPlays').mockReturnValue(
+      new Promise((resolve) => {
+        resolveImport = resolve
+      }),
+    )
+
+    await wrapper.find('.reimport-btn').trigger('click')
+    await wrapper.find('#reimport-username').setValue('odei1987')
+    await wrapper.find('.reimport-panel .btn-primary').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.reimport-submitting').exists()).toBe(true)
+    expect(wrapper.findComponent({ name: 'LoadingSpinner' }).exists()).toBe(true)
+
+    resolveImport({ imported_count: 1 })
+    await flushPromises()
+
+    expect(wrapper.find('.reimport-submitting').exists()).toBe(false)
+  })
+
+  it('disables the confirm button until a username is typed', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.entries = [makePlay()]
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('.reimport-btn').trigger('click')
+    const confirmBtn = wrapper.find('.reimport-panel .btn-primary')
+    expect((confirmBtn.element as HTMLButtonElement).disabled).toBe(true)
+
+    await wrapper.find('#reimport-username').setValue('odei1987')
+    expect((confirmBtn.element as HTMLButtonElement).disabled).toBe(false)
   })
 })

@@ -275,5 +275,9 @@ export default {
     noMatches: 'Ninguna partida coincide con la búsqueda.',
     loadMore: 'Cargar más',
     duration: '{minutes} min',
+    reimportButton: 'Reimportar desde BGG',
+    reimportWarning:
+      'Se comprobarán tus partidas más recientes en BoardGameGeek para el usuario indicado y se añadirán a tu historial.',
+    reimportSubmit: 'Reimportar',
   },
 }
