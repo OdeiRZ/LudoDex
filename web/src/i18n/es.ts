@@ -279,5 +279,13 @@ export default {
     reimportWarning:
       'Se comprobarán tus partidas más recientes en BoardGameGeek para el usuario indicado y se añadirán a tu historial.',
     reimportSubmit: 'Reimportar',
+    statsTotalPlays: 'Partidas jugadas',
+    statsDistinctGames: 'Juegos distintos',
+    statsTotalTime: 'Tiempo total',
+    statsNoDuration: 'Sin datos',
+    statsHoursOnly: '{hours} h',
+    statsHoursMinutes: '{hours} h {minutes} min',
+    statsMostPlayed: 'Más jugados',
+    statsMostPlayedCount: '{count} vez | {count} veces',
   },
 }

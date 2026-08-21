@@ -46,5 +46,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/bgg-lookup/games/{bggId}', [BggLookupController::class, 'show'])->middleware('throttle:12,1');
 
     Route::get('/plays', [PlayController::class, 'index']);
+    Route::get('/plays/stats', [PlayController::class, 'stats']);
     Route::post('/bgg-plays-imports', [BggPlaysImportController::class, 'store'])->middleware('throttle:6,1');
 });

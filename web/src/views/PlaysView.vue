@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePlaysStore, type Play } from '@/stores/plays'
 import { useToastStore } from '@/stores/toast'
@@ -74,7 +74,7 @@ async function onReimportConfirm() {
 
   try {
     const result = await plays.importPlays(reimportUsername.value)
-    await plays.fetchPage(1)
+    await Promise.all([plays.fetchPage(1), plays.fetchStats()])
     reimportPanelOpen.value = false
     toast.show(
       t('importBgg.playsCompleted', { count: result.imported_count }, result.imported_count),
@@ -86,9 +86,36 @@ async function onReimportConfirm() {
   }
 }
 
+// "n/d" when nothing has a known duration (a fresh import from an
+// account that never logs play length, say) rather than "0 min" - total
+// only ever sums rows that do have one (see PlayController::stats' own
+// docblock), so 0 here is ambiguous between "genuinely nothing" and
+// "unknown" without this flag.
+const totalTimeLabel = computed(() => {
+  const stats = plays.stats
+  if (!stats || stats.duration_known_plays === 0) {
+    return t('plays.statsNoDuration')
+  }
+
+  const hours = Math.floor(stats.total_minutes / 60)
+  const minutes = stats.total_minutes % 60
+
+  if (hours === 0) {
+    return t('plays.duration', { minutes })
+  }
+
+  return minutes === 0
+    ? t('plays.statsHoursOnly', { hours })
+    : t('plays.statsHoursMinutes', { hours, minutes })
+})
+
 onMounted(() => {
   if (!plays.loaded) {
     plays.fetchPage(1)
+  }
+
+  if (!plays.stats) {
+    plays.fetchStats()
   }
 })
 </script>
@@ -96,6 +123,42 @@ onMounted(() => {
 <template>
   <div class="plays">
     <h1>{{ $t('plays.title') }}</h1>
+
+    <!-- Aggregated server-side over the full history (see
+    plays.fetchStats' own comment), not derived from plays.entries, which
+    only ever holds whatever pages have been paged through so far. Hidden
+    until there's at least one play, same as the search box below. -->
+    <div v-if="plays.stats && plays.stats.total_plays > 0" class="stats-bar">
+      <div class="stat-tile">
+        <span class="stat-value">{{ plays.stats.total_plays }}</span>
+        <span class="stat-label">{{ $t('plays.statsTotalPlays') }}</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-value">{{ plays.stats.distinct_games }}</span>
+        <span class="stat-label">{{ $t('plays.statsDistinctGames') }}</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-value">{{ totalTimeLabel }}</span>
+        <span class="stat-label">{{ $t('plays.statsTotalTime') }}</span>
+      </div>
+    </div>
+
+    <div v-if="plays.stats && plays.stats.top_played.length > 0" class="top-played">
+      <h2 class="top-played-title">{{ $t('plays.statsMostPlayed') }}</h2>
+      <ol class="top-played-list">
+        <li
+          v-for="(entry, index) in plays.stats.top_played"
+          :key="entry.game.id"
+          class="top-played-row"
+        >
+          <span class="top-played-rank">{{ index + 1 }}</span>
+          <span class="top-played-name">{{ entry.game.name }}</span>
+          <span class="top-played-count">
+            {{ $t('plays.statsMostPlayedCount', { count: entry.count }, entry.count) }}
+          </span>
+        </li>
+      </ol>
+    </div>
 
     <!-- Hidden only for the true "nothing imported yet" empty state below -
     plays.search is what tells the two apart, since an empty entries list
@@ -243,6 +306,84 @@ onMounted(() => {
 
 h1 {
   margin-bottom: var(--space-4);
+}
+
+.stats-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.stat-tile {
+  flex: 1 1 auto;
+  min-width: 7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border-radius: var(--radius);
+}
+
+.stat-value {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.stat-label {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+.top-played {
+  margin-bottom: var(--space-4);
+}
+
+.top-played-title {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.top-played-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.top-played-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-surface);
+  border-radius: var(--radius);
+}
+
+.top-played-rank {
+  flex-shrink: 0;
+  width: 1rem;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.top-played-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.top-played-count {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
 }
 
 .search-field {

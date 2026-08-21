@@ -279,5 +279,13 @@ export default {
     reimportWarning:
       "We'll check BoardGameGeek for the most recent plays under this username and add them to your history.",
     reimportSubmit: 'Reimport',
+    statsTotalPlays: 'Plays',
+    statsDistinctGames: 'Distinct games',
+    statsTotalTime: 'Total time',
+    statsNoDuration: 'No data',
+    statsHoursOnly: '{hours} h',
+    statsHoursMinutes: '{hours} h {minutes} min',
+    statsMostPlayed: 'Most played',
+    statsMostPlayedCount: '{count} time | {count} times',
   },
 }

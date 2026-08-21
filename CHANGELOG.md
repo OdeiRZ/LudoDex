@@ -7,6 +7,18 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Añadido
+
+- Bloque de estadísticas en Partidas: partidas jugadas, juegos distintos y
+  tiempo total (horas/minutos, o "Sin datos" si ninguna partida tiene
+  duración registrada), más un top 3 de juegos más jugados por número de
+  partidas (sumando `quantity`, no por número de filas — una entrada de
+  BGG con `quantity` 5 pesa más que tres entradas sueltas de otro juego).
+  Se calcula en el backend (`GET /api/plays/stats`) sobre todo el
+  historial, no solo la página ya cargada, para que el total y el ranking
+  sean correctos aunque haya más de una página. Se actualiza también tras
+  reimportar.
+
 ## [0.7.0] - 2026-08-21
 
 ### Añadido

@@ -43,6 +43,7 @@ async function mountPlays() {
   setActivePinia(createPinia())
   const store = usePlaysStore()
   vi.spyOn(store, 'fetchPage').mockResolvedValue()
+  vi.spyOn(store, 'fetchStats').mockResolvedValue()
 
   const router = makeRouter()
   router.push('/')
@@ -71,6 +72,7 @@ describe('PlaysView', () => {
     const store = usePlaysStore()
     store.loaded = true
     vi.spyOn(store, 'fetchPage').mockResolvedValue()
+    vi.spyOn(store, 'fetchStats').mockResolvedValue()
 
     const router = makeRouter()
     router.push('/')
@@ -353,5 +355,153 @@ describe('PlaysView', () => {
 
     await wrapper.find('#reimport-username').setValue('odei1987')
     expect((confirmBtn.element as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  it('fetches stats on mount when not already loaded, skips it if already present', async () => {
+    const { store } = await mountPlays()
+    expect(store.fetchStats).toHaveBeenCalledTimes(1)
+
+    setActivePinia(createPinia())
+    const store2 = usePlaysStore()
+    store2.stats = {
+      total_plays: 1,
+      distinct_games: 1,
+      total_minutes: 30,
+      duration_known_plays: 1,
+      top_played: [],
+    }
+    vi.spyOn(store2, 'fetchPage').mockResolvedValue()
+    vi.spyOn(store2, 'fetchStats').mockResolvedValue()
+    const router = makeRouter()
+    router.push('/')
+    await router.isReady()
+    mount(PlaysView, { global: { plugins: [router, i18n] } })
+
+    expect(store2.fetchStats).not.toHaveBeenCalled()
+  })
+
+  it('hides the stats bar until there is at least one play', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.stats-bar').exists()).toBe(false)
+
+    store.stats = {
+      total_plays: 3,
+      distinct_games: 2,
+      total_minutes: 90,
+      duration_known_plays: 3,
+      top_played: [],
+    }
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.stats-bar').exists()).toBe(true)
+  })
+
+  it('shows total plays, distinct games and an hours+minutes total time', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.stats = {
+      total_plays: 10,
+      distinct_games: 4,
+      total_minutes: 135,
+      duration_known_plays: 8,
+      top_played: [],
+    }
+    await wrapper.vm.$nextTick()
+
+    const tiles = wrapper.findAll('.stat-value').map((el) => el.text())
+    expect(tiles).toContain('10')
+    expect(tiles).toContain('4')
+    expect(tiles).toContain('2 h 15 min')
+  })
+
+  it('shows a bare hours total when the total is an exact number of hours', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.stats = {
+      total_plays: 4,
+      distinct_games: 1,
+      total_minutes: 120,
+      duration_known_plays: 4,
+      top_played: [],
+    }
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.findAll('.stat-value').map((el) => el.text())).toContain('2 h')
+  })
+
+  it('shows "Sin datos" for total time when no play has a known duration', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.stats = {
+      total_plays: 2,
+      distinct_games: 1,
+      total_minutes: 0,
+      duration_known_plays: 0,
+      top_played: [],
+    }
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.findAll('.stat-value').map((el) => el.text())).toContain('Sin datos')
+  })
+
+  it('lists the top played games ranked, with a pluralized play count each', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.stats = {
+      total_plays: 8,
+      distinct_games: 3,
+      total_minutes: 240,
+      duration_known_plays: 8,
+      top_played: [
+        { game: { id: 'game-1', name: 'Catan', image_url: null }, count: 5 },
+        { game: { id: 'game-2', name: '7 Wonders', image_url: null }, count: 1 },
+      ],
+    }
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.top-played-title').text()).toBe('Más jugados')
+
+    const rows = wrapper.findAll('.top-played-row')
+    expect(rows).toHaveLength(2)
+    expect(rows[0].find('.top-played-rank').text()).toBe('1')
+    expect(rows[0].find('.top-played-name').text()).toBe('Catan')
+    expect(rows[0].find('.top-played-count').text()).toBe('5 veces')
+    expect(rows[1].find('.top-played-rank').text()).toBe('2')
+    expect(rows[1].find('.top-played-name').text()).toBe('7 Wonders')
+    expect(rows[1].find('.top-played-count').text()).toBe('1 vez')
+  })
+
+  it('hides the top played list when there is nothing to rank', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.stats = {
+      total_plays: 0,
+      distinct_games: 0,
+      total_minutes: 0,
+      duration_known_plays: 0,
+      top_played: [],
+    }
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.top-played').exists()).toBe(false)
+  })
+
+  it('also refreshes stats after a successful reimport', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.entries = [makePlay()]
+    await wrapper.vm.$nextTick()
+    vi.spyOn(store, 'importPlays').mockResolvedValue({ imported_count: 1 })
+    const fetchStatsSpy = vi.spyOn(store, 'fetchStats').mockResolvedValue()
+
+    await wrapper.find('.reimport-btn').trigger('click')
+    await wrapper.find('#reimport-username').setValue('odei1987')
+    await wrapper.find('.reimport-panel .btn-primary').trigger('click')
+    await flushPromises()
+
+    expect(fetchStatsSpy).toHaveBeenCalled()
   })
 })

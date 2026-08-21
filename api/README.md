@@ -155,3 +155,22 @@ tiene `/collection`, así que una sola llamada basta. Pensado para el botón
 "Rellenar desde BGG" del alta/edición manual de un juego (nombre, imagen,
 jugadores, duración, complejidad, mecánicas y categorías en una sola
 respuesta).
+
+| Método | Ruta                      | Auth | Descripción                       |
+|--------|---------------------------|------|--------------------------------------------|
+| GET    | `/api/plays`              | Sí   | Lista el historial de partidas del usuario, paginado (20/página), más reciente primero |
+| GET    | `/api/plays/stats`        | Sí   | Estadísticas agregadas sobre todo el historial: partidas jugadas, juegos distintos, tiempo total y top 3 de más jugados |
+| POST   | `/api/bgg-plays-imports`  | Sí   | Importa el historial de partidas desde BGG (limitado a 6/minuto) |
+
+`GET /api/plays` acepta `?search=` para filtrar por el nombre del juego
+jugado (case-insensitive, resuelto en el propio backend ya que la lista
+está paginada — un filtro en el cliente solo vería la página ya cargada).
+`GET /api/plays/stats` siempre agrega sobre el historial completo, nunca
+sobre la página actual: `total_plays` y `total_minutes` suman `quantity`
+(BGG agrupa varias partidas del mismo juego el mismo día en una sola fila),
+y `total_minutes` solo cuenta las partidas con duración conocida —
+`duration_known_plays` es lo que le dice al frontend si debe mostrar "Sin
+datos" en vez de un total de 0 engañoso. `POST /api/bgg-plays-imports` es
+incremental a partir del segundo import: solo pide a BGG las partidas desde
+la última ya guardada (con una semana de margen de solapamiento), en vez de
+repetir el historial completo cada vez.

@@ -116,4 +116,21 @@ describe('usePlaysStore', () => {
     expect(apiClient.post).toHaveBeenCalledWith('/bgg-plays-imports', { bgg_username: 'odei' })
     expect(store.entries).toEqual([])
   })
+
+  it('fetchStats stores the aggregated result from the backend', async () => {
+    const stats = {
+      total_plays: 10,
+      distinct_games: 4,
+      total_minutes: 300,
+      duration_known_plays: 9,
+      top_played: [{ game: { id: 'game-1', name: 'Catan', image_url: null }, count: 5 }],
+    }
+    vi.mocked(apiClient.get).mockResolvedValue({ data: { data: stats } })
+    const store = usePlaysStore()
+
+    await store.fetchStats()
+
+    expect(apiClient.get).toHaveBeenCalledWith('/plays/stats')
+    expect(store.stats).toEqual(stats)
+  })
 })

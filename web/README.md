@@ -55,7 +55,11 @@ npm run test:unit      # Vitest
   página. El buscador por nombre de juego filtra en el backend (`GET
   /api/plays?search=`), no en el cliente como Colección/¿A qué jugamos? —
   la lista está paginada, así que un filtro local solo vería la página ya
-  cargada.
+  cargada. Encima de la lista, un bloque de estadísticas (`GET
+  /api/plays/stats`) con partidas jugadas, juegos distintos, tiempo total
+  y un top 3 de más jugados — agregado en el backend sobre todo el
+  historial, no derivado de `plays.entries` (que solo tiene las páginas ya
+  cargadas); se refresca también tras reimportar.
 - `src/views/PickerView.vue` — selector "¿A qué jugamos?": filtra la
   colección propia en el cliente por jugadores, duración y modo de juego.
 

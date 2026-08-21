@@ -20,6 +20,18 @@ export interface PlaysImportResult {
   imported_count: number
 }
 
+export interface PlaysStats {
+  total_plays: number
+  distinct_games: number
+  total_minutes: number
+  duration_known_plays: number
+  /** Ranked by summed quantity, capped server-side at 3 entries. */
+  top_played: {
+    game: { id: string; name: string; image_url: string | null }
+    count: number
+  }[]
+}
+
 interface PlaysState {
   entries: Play[]
   loaded: boolean
@@ -27,6 +39,7 @@ interface PlaysState {
   currentPage: number
   lastPage: number
   search: string
+  stats: PlaysStats | null
 }
 
 export const usePlaysStore = defineStore('plays', {
@@ -37,6 +50,7 @@ export const usePlaysStore = defineStore('plays', {
     currentPage: 1,
     lastPage: 1,
     search: '',
+    stats: null,
   }),
 
   actions: {
@@ -76,6 +90,15 @@ export const usePlaysStore = defineStore('plays', {
     async importPlays(username: string): Promise<PlaysImportResult> {
       const { data } = await apiClient.post('/bgg-plays-imports', { bgg_username: username })
       return data.data
+    },
+
+    /** Aggregated over the user's entire history server-side, never
+     * derived from entries - that only ever holds whatever pages have
+     * been paged through so far, which would make a "most played game"
+     * or total wrong the moment there's more than one page. */
+    async fetchStats() {
+      const { data } = await apiClient.get('/plays/stats')
+      this.stats = data.data
     },
   },
 })
