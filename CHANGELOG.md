@@ -30,6 +30,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   vez. Desaparece al elegir "Juegos base"/"Expansiones", ya que en ese
   caso el propio contador principal pasa a ser ya uno de los dos.
 
+### Corregido
+
+- La notificación flotante (guardar/quitar juego, vaciar biblioteca...)
+  centraba la caja en pantalla pero no el propio texto — un mensaje que
+  ocupaba dos líneas quedaba con la segunda desalineada hacia la
+  izquierda en vez de seguir centrada como la primera.
+
 ## [0.7.0] - 2026-08-21
 
 ### Añadido

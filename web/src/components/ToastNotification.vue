@@ -20,6 +20,7 @@ const toast = useToastStore()
   transform: translateX(-50%);
   z-index: 100;
   box-shadow: var(--shadow-card);
+  text-align: center;
 }
 
 /* .alert-success's usual translucent tint (18%) assumes solid, opaque
