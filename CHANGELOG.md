@@ -7,6 +7,8 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-08-22
+
 ### Añadido
 
 - Bloque de estadísticas en Partidas: partidas jugadas, juegos distintos y
