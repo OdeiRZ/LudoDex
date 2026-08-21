@@ -79,6 +79,36 @@ describe('PlaysView', () => {
     expect(store.fetchPage).not.toHaveBeenCalled()
   })
 
+  it('shows the loading state (dice spinner) before the first fetch resolves', async () => {
+    const { wrapper, store } = await mountPlays()
+
+    expect(store.loaded).toBe(false)
+    expect(wrapper.find('.loading-state').exists()).toBe(true)
+    expect(wrapper.findComponent({ name: 'LoadingSpinner' }).exists()).toBe(true)
+    expect(wrapper.find('.play-list').exists()).toBe(false)
+  })
+
+  it('hides the loading state once loaded, even with no plays yet', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.loading-state').exists()).toBe(false)
+  })
+
+  it('does not show the loading state while "load more" fetches a later page', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.entries = [makePlay()]
+    store.currentPage = 1
+    store.lastPage = 2
+    store.loading = true
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.loading-state').exists()).toBe(false)
+    expect(wrapper.find('.play-list').exists()).toBe(true)
+  })
+
   it('shows the empty state with a link to the Plays import tab once loaded with no plays', async () => {
     const { wrapper, store } = await mountPlays()
     store.loaded = true

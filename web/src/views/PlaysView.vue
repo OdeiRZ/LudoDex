@@ -3,6 +3,7 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import { usePlaysStore, type Play } from '@/stores/plays'
 import { FALLBACK_ICON_URL } from '@/lib/assets'
 import GameDetailModal from '@/components/GameDetailModal.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const plays = usePlaysStore()
 
@@ -69,14 +70,24 @@ onMounted(() => {
       />
     </div>
 
-    <p v-if="plays.loaded && plays.entries.length === 0 && !plays.search" class="empty-state">
+    <!-- Only for the very first fetch, before plays.loaded flips true -
+    "load more" (later pages) also sets plays.loading, but shouldn't hide
+    the list already on screen while it fetches, so this checks !loaded
+    rather than plays.loading alone; that later loading state is covered
+    by the load-more button's own disabled+label further down instead. -->
+    <p v-if="!plays.loaded" class="loading-state">
+      <LoadingSpinner :size="28" />
+      {{ $t('plays.loading') }}
+    </p>
+
+    <p v-else-if="plays.entries.length === 0 && !plays.search" class="empty-state">
       {{ $t('plays.empty') }}<br />
       <RouterLink :to="{ name: 'import-bgg', query: { tab: 'plays' } }">{{
         $t('plays.importLink')
       }}</RouterLink>.
     </p>
 
-    <p v-else-if="plays.loaded && plays.entries.length === 0" class="empty-state">
+    <p v-else-if="plays.entries.length === 0" class="empty-state">
       {{ $t('plays.noMatches') }}
     </p>
 

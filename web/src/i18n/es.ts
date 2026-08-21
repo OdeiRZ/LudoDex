@@ -238,7 +238,7 @@ export default {
     tabPlays: 'Partidas',
     username: 'Usuario de BGG',
     usernameHint:
-      'Trae tu colección de juegos desde BoardGameGeek. Solo se lee tu colección de BGG; nada de lo que edites aquí se envía de vuelta a BGG.',
+      'Trae tu colección de juegos desde BoardGameGeek. Solo se lee tu colección; nada de lo que edites aquí se envía de vuelta a BGG.',
     readOnlyNotice: 'Solo se lee tu colección de BGG; nada de lo que edites aquí se envía de vuelta a BGG.',
     submit: 'Importar colección',
     genericStartError: 'No se ha podido iniciar la importación.',
@@ -267,6 +267,7 @@ export default {
   },
   plays: {
     title: 'Tus partidas',
+    loading: 'Cargando tus partidas…',
     empty: 'Todavía no hay partidas importadas.',
     importLink: 'Importar desde BGG',
     searchLabel: 'Buscar partida',

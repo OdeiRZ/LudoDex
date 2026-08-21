@@ -267,6 +267,7 @@ export default {
   },
   plays: {
     title: 'Your plays',
+    loading: 'Loading your plays…',
     empty: 'No plays imported yet.',
     importLink: 'Import from BGG',
     searchLabel: 'Search plays',
