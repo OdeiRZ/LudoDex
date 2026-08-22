@@ -275,7 +275,7 @@ async function onLookupBgg() {
       </fieldset>
     </div>
 
-    <fieldset>
+    <fieldset class="mode-fieldset">
       <legend>{{ $t('gameForm.modeLegend') }}</legend>
       <label><input v-model="modeChoice" type="radio" value="cooperative" /> {{ $t('gameForm.cooperative') }}</label>
       <label><input v-model="modeChoice" type="radio" value="competitive" /> {{ $t('gameForm.competitive') }}</label>
@@ -340,6 +340,10 @@ async function onLookupBgg() {
 .hint {
   color: var(--color-text-muted);
   font-size: 0.85rem;
+}
+
+.mode-fieldset {
+  justify-content: center;
 }
 
 .name-and-image {
