@@ -84,6 +84,7 @@ export default {
     searchLabel: 'Search your collection',
     searchPlaceholder: 'Search by name…',
     azScrubberLabel: 'Jump to a letter',
+    yearScrubberLabel: 'Jump to a decade',
     sortAsc: 'Sort A to Z',
     sortDesc: 'Sort Z to A',
     sortByLabel: 'Sort by',

@@ -156,12 +156,17 @@ const baseGamesInFiltered = computed(
 const { density, toggle: toggleDensity } = useCollectionDensity()
 const expansionCounts = useExpansionCounts(computed(() => games.collection))
 
-// Prototype: an iOS-Contacts-style A-Z strip for jumping around a long,
-// name-sorted collection instead of scrolling through it by hand. Only
-// makes sense while sorted by name - "jump to L" has no coherent meaning
-// against a list ordered by rank or year - and only worth showing once
-// there's actually enough length to justify it.
+// Prototype: an iOS-Contacts-style strip for jumping around a long
+// collection instead of scrolling through it by hand - one set of
+// buckets while sorted by name (the alphabet), another while sorted by
+// year (the decades actually present, since "jump to 1994" has no
+// coherent meaning as an index the way a bounded, small alphabet does).
+// Not shown for rank: BGG ranks span a huge, mostly-unranked range with
+// no natural small set of buckets like these two, so it'd need a
+// genuinely different design (rank tiers, not one slot per value).
 const ALPHABET = ['#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')]
+
+const YEAR_UNKNOWN = '?'
 
 const COMBINING_MARKS = /[̀-ͯ]/g
 
@@ -171,28 +176,70 @@ function normalizeLetter(name: string): string {
   return /[A-Z]/.test(first) ? first : '#'
 }
 
+function yearBucket(year: number | null): string {
+  return year === null ? YEAR_UNKNOWN : String(Math.floor(year / 10) * 10)
+}
+
 const gamesListRef = ref<HTMLUListElement | null>(null)
 
-const availableLetters = computed(() => {
-  if (sortCriterion.value !== 'name') return new Set<string>()
-  return new Set(filtered.value.map((entry) => normalizeLetter(entry.game.name)))
+// Decades actually present across the whole collection, not just
+// `filtered` - kept stable while the user types a search, same reasoning
+// as ALPHABET being a fixed constant rather than derived from whatever
+// happens to be currently visible. Sorted oldest-first; this is the
+// scrubber's own canonical order for year mode, the same role ALPHABET
+// plays for name mode.
+const yearDecades = computed(() => {
+  const decades = new Set<number>()
+  for (const entry of games.collection) {
+    if (entry.game.year_published !== null) {
+      decades.add(Math.floor(entry.game.year_published / 10) * 10)
+    }
+  }
+  return [...decades].sort((a, b) => a - b).map(String)
 })
 
-const showAzScrubber = computed(
-  () => sortCriterion.value === 'name' && filtered.value.length > 12 && !detailEntry.value,
+const scrubberBuckets = computed<string[]>(() =>
+  sortCriterion.value === 'year' ? [...yearDecades.value, YEAR_UNKNOWN] : ALPHABET,
+)
+
+function bucketForEntry(entry: UserGame): string {
+  return sortCriterion.value === 'year'
+    ? yearBucket(entry.game.year_published)
+    : normalizeLetter(entry.game.name)
+}
+
+const availableBuckets = computed(() => {
+  if (sortCriterion.value !== 'name' && sortCriterion.value !== 'year') return new Set<string>()
+  return new Set(filtered.value.map((entry) => bucketForEntry(entry)))
+})
+
+const showScrubber = computed(
+  () =>
+    (sortCriterion.value === 'name' || sortCriterion.value === 'year') &&
+    filtered.value.length > 12 &&
+    !detailEntry.value,
 )
 
 // The strip's own visual order needs to follow whichever direction the
-// list itself is actually sorted in - otherwise, sorted Z→A, the top of
-// the strip (showing "A") would jump to the very bottom of the list
-// instead of its top, and vice versa at the bottom of the strip. Only
-// the display order flips here; nearestAvailableLetter below still walks
-// the canonical A→Z order, since "nearest available letter" is about
-// alphabetical adjacency, not about where either one happens to sit on
-// screen.
-const displayAlphabet = computed(() =>
-  sortOrder.value === 'asc' ? ALPHABET : [...ALPHABET].reverse(),
-)
+// list itself is actually sorted in - otherwise, sorted Z→A (or
+// newest-first), the top of the strip would jump to the very bottom of
+// the list instead of its top, and vice versa at the bottom. Games with
+// no known year always sink to the very end of the list regardless of
+// direction (see `filtered`'s own year-sort comment above), so unlike
+// the alphabet's "#" bucket - which does reverse along with the rest,
+// since non-letter names are ordered normally by localeCompare - the
+// "unknown year" slot never moves from the end. nearestAvailableBucket
+// below still walks scrubberBuckets' own canonical (always oldest/A
+// first) order, since "nearest available bucket" is about the buckets'
+// own adjacency, not about where either one happens to sit on screen.
+const displayBuckets = computed(() => {
+  if (sortCriterion.value === 'year') {
+    const decades = sortOrder.value === 'asc' ? yearDecades.value : [...yearDecades.value].reverse()
+    return [...decades, YEAR_UNKNOWN]
+  }
+
+  return sortOrder.value === 'asc' ? ALPHABET : [...ALPHABET].reverse()
+})
 
 const scrubbing = ref(false)
 const scrubLetter = ref<string | null>(null)
@@ -213,42 +260,44 @@ function onScrubberLeave() {
   hovering.value = false
 }
 
-// A letter with no games in the current filter/search still needs a
+// A bucket with no games in the current filter/search still needs a
 // sensible target while dragging across it - silently doing nothing reads
-// as the strip being broken, not as "no games here". Walks outward in both
-// directions and jumps to whichever available letter is closest.
-function nearestAvailableLetter(letter: string): string | null {
-  if (availableLetters.value.has(letter)) return letter
+// as the strip being broken, not as "nothing here". Walks outward in both
+// directions and jumps to whichever available bucket is closest.
+function nearestAvailableBucket(bucket: string): string | null {
+  if (availableBuckets.value.has(bucket)) return bucket
 
-  const index = ALPHABET.indexOf(letter)
-  for (let offset = 1; offset < ALPHABET.length; offset++) {
-    const before = ALPHABET[index - offset]
-    const after = ALPHABET[index + offset]
-    if (before && availableLetters.value.has(before)) return before
-    if (after && availableLetters.value.has(after)) return after
+  const buckets = scrubberBuckets.value
+  const index = buckets.indexOf(bucket)
+  for (let offset = 1; offset < buckets.length; offset++) {
+    const before = buckets[index - offset]
+    const after = buckets[index + offset]
+    if (before && availableBuckets.value.has(before)) return before
+    if (after && availableBuckets.value.has(after)) return after
   }
 
   return null
 }
 
-function jumpToLetter(letter: string) {
-  const target = nearestAvailableLetter(letter)
+function jumpToBucket(bucket: string) {
+  const target = nearestAvailableBucket(bucket)
   if (!target) return
 
   scrubLetter.value = target
-  const el = gamesListRef.value?.querySelector<HTMLElement>(`[data-letter="${target}"]`)
+  const attr = sortCriterion.value === 'year' ? 'data-year-bucket' : 'data-letter'
+  const el = gamesListRef.value?.querySelector<HTMLElement>(`[${attr}="${target}"]`)
   el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
-// clientY -> letter is done by position within the strip's own bounding
+// clientY -> bucket is done by position within the strip's own bounding
 // box, not by which child element the pointer happens to be over - that's
-// what lets a single continuous drag sweep through every letter smoothly
+// what lets a single continuous drag sweep through every bucket smoothly
 // (via setPointerCapture below) instead of only reacting at the exact
 // pixel of each <span>.
-function letterAtPointer(clientY: number, container: HTMLElement): string {
+function bucketAtPointer(clientY: number, container: HTMLElement): string {
   const rect = container.getBoundingClientRect()
   const ratio = Math.min(Math.max((clientY - rect.top) / rect.height, 0), 0.999)
-  return displayAlphabet.value[Math.floor(ratio * displayAlphabet.value.length)]
+  return displayBuckets.value[Math.floor(ratio * displayBuckets.value.length)]
 }
 
 function startScrub(event: PointerEvent) {
@@ -256,12 +305,12 @@ function startScrub(event: PointerEvent) {
   container.setPointerCapture(event.pointerId)
   hovering.value = true
   scrubbing.value = true
-  jumpToLetter(letterAtPointer(event.clientY, container))
+  jumpToBucket(bucketAtPointer(event.clientY, container))
 }
 
 function moveScrub(event: PointerEvent) {
   if (!scrubbing.value) return
-  jumpToLetter(letterAtPointer(event.clientY, event.currentTarget as HTMLElement))
+  jumpToBucket(bucketAtPointer(event.clientY, event.currentTarget as HTMLElement))
 }
 
 // A real mouse keeps sending its own pointerenter/pointerleave once
@@ -541,6 +590,7 @@ async function onClearCollection() {
         :key="entry.id"
         class="game-card"
         :data-letter="normalizeLetter(entry.game.name)"
+        :data-year-bucket="yearBucket(entry.game.year_published)"
       >
         <GameCard
           :image-url="entry.game.image_url"
@@ -663,11 +713,11 @@ async function onClearCollection() {
     <GameDetailModal v-if="detailEntry" :game="detailEntry.game" @close="detailEntry = null" />
 
     <div
-      v-if="showAzScrubber"
+      v-if="showScrubber"
       class="az-scrubber"
       :class="{ 'az-scrubber-visible': hovering || scrubbing }"
       role="navigation"
-      :aria-label="$t('dashboard.azScrubberLabel')"
+      :aria-label="sortCriterion === 'year' ? $t('dashboard.yearScrubberLabel') : $t('dashboard.azScrubberLabel')"
       @pointerenter="onScrubberEnter"
       @pointerleave="onScrubberLeave"
       @pointerdown="startScrub"
@@ -676,12 +726,12 @@ async function onClearCollection() {
       @pointercancel="endScrub"
     >
       <span
-        v-for="letter in displayAlphabet"
-        :key="letter"
+        v-for="bucket in displayBuckets"
+        :key="bucket"
         class="az-scrubber-letter"
-        :class="{ 'az-scrubber-letter-available': availableLetters.has(letter) }"
+        :class="{ 'az-scrubber-letter-available': availableBuckets.has(bucket) }"
       >
-        {{ letter }}
+        {{ bucket }}
       </span>
     </div>
 
@@ -1561,7 +1611,7 @@ real phone, opacity: 0 left no visible hint of where the strip even was,
 so there was nothing to aim a first touch at). Full opacity on
 hover/touch is the feedback that it landed - a growing scale was tried
 here too, but reverted (asked for directly): scaling shifts every
-letter's own screen position out from under whatever's still hovering
+bucket's own screen position out from under whatever's still hovering
 it, fighting the drag it's supposed to be giving feedback for. */
 .az-scrubber-visible {
   opacity: 1;
@@ -1579,9 +1629,9 @@ at the in-between widths. */
   opacity: 0.35;
 }
 
-/* Only letters with at least one matching game in the current
-filter/search read as fully legible - a dimmed letter still works (drags
-snap to the nearest available one, see nearestAvailableLetter), but
+/* Only buckets with at least one matching game in the current
+filter/search read as fully legible - a dimmed one still works (drags
+snap to the nearest available bucket, see nearestAvailableBucket), but
 looking disabled sets the right expectation before the user commits to
 that section. */
 .az-scrubber-letter-available {
@@ -1591,7 +1641,7 @@ that section. */
 }
 
 /* Mirrors iOS's own "big letter" callout while scrubbing - without it,
-a letter this small under a fingertip is otherwise unreadable while
+a bucket this small under a fingertip is otherwise unreadable while
 dragging, defeating the point of showing feedback at all. */
 /* Same base offset as .az-scrubber's own right (kept in sync by hand,
 same reasoning as its comment above) plus a fixed 2.5rem - the original
@@ -1604,16 +1654,22 @@ the strip regardless of where that ends up landing. */
   top: 50%;
   transform: translateY(-50%);
   z-index: 21;
-  width: 3rem;
+  /* min-width (not a fixed width) plus horizontal padding is what lets
+  this same bubble fit a single letter and a 4-digit decade label
+  ("1990") equally well - a fixed box sized for one character would
+  clip the year labels instead of growing to fit them. */
+  min-width: 3rem;
   height: 3rem;
+  padding: 0 0.6rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: #fff;
   background: var(--color-primary);
   border-radius: var(--radius);
   pointer-events: none;
+  white-space: nowrap;
 }
 </style>

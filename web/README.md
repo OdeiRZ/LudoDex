@@ -121,36 +121,60 @@ retoca este bloque:
   ese hueco si la rejilla sigue teniendo una segunda columna sin usar,
   en vez de haberla colapsado a una sola.
 
-### Tira A-Z (prototipo)
+### Tira de salto rápido — letras o décadas (prototipo)
 
-Solo se muestra mientras `sortCriterion === 'name'` y hay más de 12
-juegos en `filtered` — "saltar a la L" no tiene un significado coherente
-ordenado por ranking o año. Un único elemento fijo (`.az-scrubber`,
-`position: fixed`) hace de zona de detección y de tira visual a la vez:
-cada `<li>` de la lista lleva su propia `data-letter` (primera letra del
+Solo se muestra mientras `sortCriterion` es `'name'` o `'year'` y hay más
+de 12 juegos en `filtered` — "saltar a la L" (o "a 1994") no tiene un
+significado coherente ordenado por ranking BGG, que es un rango casi sin
+límite superior y con la mayoría de juegos sin ranking: no existe ahí un
+conjunto pequeño y natural de "cajones" como el alfabeto o las décadas,
+así que no se ha construido un tercer panel para ese caso — necesitaría
+un diseño distinto (tramos de ranking, no una casilla por número). Un
+único elemento fijo (`.az-scrubber`, `position: fixed`) hace de zona de
+detección y de tira visual a la vez, para ambos modos.
+
+Cada `<li>` de la lista lleva sus dos atributos siempre calculados,
+independientemente de cuál esté en uso: `data-letter` (primera letra del
 nombre, mayúscula, sin acentos vía `normalize('NFD')` + regex de marcas
-combinantes), y el punto vertical donde cae el puntero dentro de la tira
-(`clientY` relativo a su propio `getBoundingClientRect()`) se traduce a
-un índice sobre el alfabeto — no se calcula letra por `<span>` individual,
-lo que permite arrastrar de un tirón sin perder eventos entre letras
-(`setPointerCapture` en el `pointerdown` mantiene los `pointermove`
-dirigidos al mismo elemento aunque el dedo/cursor salga de sus límites).
+combinantes) y `data-year-bucket` (década del `year_published`,
+`Math.floor(year / 10) * 10`, o `'?'` si no tiene año conocido). El punto
+vertical donde cae el puntero dentro de la tira (`clientY` relativo a su
+propio `getBoundingClientRect()`) se traduce a un índice sobre
+`scrubberBuckets` (la lista de "cajones" del modo activo: el alfabeto fijo
+para nombre, o las décadas que existan de verdad en la colección para
+año) — no se calcula cajón por `<span>` individual, lo que permite
+arrastrar de un tirón sin perder eventos entre ellos (`setPointerCapture`
+en el `pointerdown` mantiene los `pointermove` dirigidos al mismo
+elemento aunque el dedo/cursor salga de sus límites).
 
-El índice se resuelve sobre `displayAlphabet` (un `computed`), no sobre
-la constante `ALPHABET` directamente — con `sortOrder === 'desc'` es el
-alfabeto invertido (`[...ALPHABET].reverse()`), para que el orden visual
+Las décadas de año se calculan sobre `games.collection` completa, no
+sobre `filtered` — igual que el alfabeto es una constante fija en vez de
+derivarse de lo que hay visible ahora mismo, así los "cajones" no
+aparecen ni desaparecen mientras el usuario escribe una búsqueda, solo
+cambia cuáles están disponibles (atenuadas si no).
+
+El índice se resuelve sobre `displayBuckets` (un `computed`), no sobre
+`scrubberBuckets` directamente — con `sortOrder === 'desc'` el alfabeto
+se invierte entero (`[...ALPHABET].reverse()`), para que el orden visual
 de la tira siga siempre al mismo orden en el que está la lista debajo:
 sin esto, con la lista en "Z → A", tocar arriba de la tira (donde antes
 seguía apareciendo "A") saltaba al final de la lista en vez de al
-principio. `nearestAvailableLetter` sigue recorriendo el `ALPHABET`
-canónico (A→Z) para buscar la letra disponible más cercana — esa
-búsqueda es sobre proximidad alfabética de la propia letra, no sobre
-proximidad visual en la tira, así que no le afecta cuál de las dos se
-esté mostrando.
+principio. Las décadas se invierten igual, pero el cajón `'?'` (sin año)
+se queda siempre al final en los dos sentidos — los juegos sin año
+también se quedan siempre al final de la propia lista (ver el
+comentario del propio sort por año, más arriba en este componente), así
+que a diferencia de "#" en el alfabeto (que sí reordena junto al resto,
+al ser un nombre cualquiera ordenado por `localeCompare` normal), aquí no
+tendría sentido que reordenase. `nearestAvailableBucket` sigue
+recorriendo `scrubberBuckets` en su orden canónico (A→Z o década más
+antigua primero) para buscar el cajón disponible más cercano — esa
+búsqueda es sobre proximidad dentro del propio conjunto de cajones, no
+sobre proximidad visual en la tira, así que no le afecta cuál de los dos
+órdenes se esté mostrando.
 
-Una letra sin ningún juego en el filtro/búsqueda actual salta a la letra
-disponible más cercana (recorriendo el alfabeto en ambas direcciones)
-en vez de no hacer nada.
+Un cajón sin ningún juego en el filtro/búsqueda actual salta al cajón
+disponible más cercano (recorriendo `scrubberBuckets` en ambas
+direcciones) en vez de no hacer nada.
 
 Transparencia por proximidad: `opacity: 0.4` en reposo (probado con
 `opacity: 0` primero, pero en un móvil real no dejaba ninguna pista visual
@@ -159,7 +183,7 @@ lleva a `opacity: 1`, que es la confirmación de que el toque ha caído
 dentro de la tira; un `pointerleave` la devuelve a 0.4. Se probó también
 a agrandarla un poco (`scale()`) al revelarse, pero se descartó (pedido
 directamente): escalar el contenedor desplaza la posición en pantalla de
-cada letra respecto al propio dedo/puntero que la está arrastrando,
+cada cajón respecto al propio dedo/puntero que lo está arrastrando,
 justo la referencia que el arrastre necesita mantener fija — el tamaño
 base de la tira (padding, tamaño de letra) es el que hay que tocar si
 hace falta más grande, no un efecto al pasar por encima. El ratón tiene
@@ -169,7 +193,10 @@ contacto, así que en ese caso el efecto solo llega en el instante del
 toque (`pointerdown`) y se deshace explícitamente al soltar (`endScrub`
 fuerza `hovering = false` cuando `event.pointerType !== 'mouse'`, ya que
 un `pointerleave` no tiene sentido para un dedo que ya no está en
-pantalla).
+pantalla). `.az-scrubber-bubble` (la burbuja grande que muestra el cajón
+actual mientras se arrastra) usa `min-width` en vez de un ancho fijo,
+para poder mostrar sin recortarse tanto una sola letra como una década de
+4 dígitos ("1990").
 
 Posición horizontal: `right` no es un valor fijo, sino
 `max(4px, calc((100vw - 1024px) / 2 + var(--space-4) - var(--space-2)))`.
