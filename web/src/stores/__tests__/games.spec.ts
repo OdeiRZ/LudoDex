@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useGamesStore } from '@/stores/games'
+import { usePlaysStore } from '@/stores/plays'
 import { apiClient } from '@/lib/api'
 import { makeEntry } from '@/stores/__tests__/gameFixtures'
 
@@ -38,6 +39,29 @@ describe('useGamesStore', () => {
     expect(store.categoryOptions).toEqual(['Bluffing'])
     expect(store.loaded).toBe(true)
     expect(store.loading).toBe(false)
+  })
+
+  it('ignores a second fetchAll call while the first is still in flight', async () => {
+    // A single shared pending promise, not a new one per call - fetchAll
+    // fires three concurrent apiClient.get calls (games/mechanics/
+    // categories) via Promise.all, so resolving only the most recently
+    // created promise (as a naive `mockImplementation` capturing its own
+    // resolver each time would) would leave the other two stuck forever.
+    let resolveFetch: (value: unknown) => void = () => {}
+    const pending = new Promise((resolve) => { resolveFetch = resolve })
+    vi.mocked(apiClient.get).mockImplementation(() => pending)
+    const store = useGamesStore()
+
+    // e.g. a fast Dashboard -> Picker -> Dashboard navigation, each
+    // mount's own `if (!loaded) fetchAll()` guard firing before the
+    // first request has resolved.
+    const first = store.fetchAll()
+    const second = store.fetchAll()
+
+    resolveFetch({ data: { data: [] } })
+    await Promise.all([first, second])
+
+    expect(apiClient.get).toHaveBeenCalledTimes(3) // /games, /mechanics, /categories - once, not twice
   })
 
   it('turns loading off even when fetchAll fails', async () => {
@@ -127,5 +151,40 @@ describe('useGamesStore', () => {
     expect(result).toBe('Un juego sobre facciones del bosque.')
     expect(store.collection[0].game.description_es).toBe('Un juego sobre facciones del bosque.')
     expect(store.collection[1].game.description_es).toBeNull()
+  })
+
+  // Regression test: play.game is its own separately-fetched projection
+  // of the same Game, never part of `collection` - without patching it
+  // too, translating from Dashboard/Picker never reached a play's own
+  // detail modal on Partidas (found via a caching audit, not reported
+  // directly).
+  it('also patches description_es onto any matching entry in the plays store', async () => {
+    const root = makeEntry({ id: 'g1', description: 'A game about woodland factions.' })
+    const store = useGamesStore()
+    store.collection = [root]
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { description_es: 'Un juego sobre facciones del bosque.' } })
+
+    const plays = usePlaysStore()
+    plays.entries = [
+      {
+        id: 'play-1',
+        played_at: '2026-01-01',
+        quantity: 1,
+        duration_minutes: null,
+        game: { id: 'g1', bgg_id: null, name: 'Root', image_url: null, description: null, description_es: null },
+      },
+      {
+        id: 'play-2',
+        played_at: '2026-01-01',
+        quantity: 1,
+        duration_minutes: null,
+        game: { id: 'g2', bgg_id: null, name: 'Other', image_url: null, description: null, description_es: null },
+      },
+    ]
+
+    await store.translateDescription('g1')
+
+    expect(plays.entries[0].game.description_es).toBe('Un juego sobre facciones del bosque.')
+    expect(plays.entries[1].game.description_es).toBeNull()
   })
 })

@@ -31,6 +31,16 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   importar, ya que esa página solo refresca sus estadísticas si no las
   tenía cargadas ya. Ahora refresca ambas cosas, igual que ya hacía el
   propio botón de reimportar dentro de "Partidas".
+- Traducir la descripción de un juego desde "Tu colección" o "¿A qué
+  jugamos?" no llegaba nunca al store de Partidas — si después abrías el
+  detalle de ese mismo juego desde el historial de partidas, seguía
+  mostrando la descripción en inglés pese a que la traducción ya estaba
+  guardada en la base de datos. Ahora se actualiza también ahí.
+- Dos peticiones concurrentes a la colección o al historial de partidas
+  (por ejemplo, una navegación rápida entre páginas antes de que la
+  primera petición termine, o un doble clic en "Cargar más") podían
+  disparar dos llamadas a la API en paralelo — la segunda ahora se
+  ignora mientras la primera sigue en curso.
 
 ### Añadido
 

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { apiClient } from '@/lib/api'
+import { usePlaysStore } from './plays'
 
 export interface Game {
   id: string
@@ -110,7 +111,15 @@ export const useGamesStore = defineStore('games', {
   }),
 
   actions: {
+    // Guards against a fetch already in flight, not just the UI-level
+    // disabling that's supposed to prevent a second one - `loaded` alone
+    // isn't enough for that, since it only flips true once the first
+    // request resolves, leaving a window where a second mount (e.g. a
+    // fast Dashboard -> Picker -> Dashboard navigation) can fire its own
+    // concurrent request before then (found via a caching audit, not
+    // reported directly).
     async fetchAll() {
+      if (this.loading) return
       this.loading = true
 
       try {
@@ -187,10 +196,19 @@ export const useGamesStore = defineStore('games', {
      * description_es back without calling DeepL again), and games is a
      * catalog shared across every user - patches every collection entry
      * for this game (not just the one that happened to trigger it),
-     * since a shared game only ever needs translating once. Returns the
-     * value rather than relying only on the store mutation, so a caller
-     * with its own local copy of the game (like the details modal) can
-     * update without waiting on the collection array to re-render it. */
+     * since a shared game only ever needs translating once. Also patches
+     * any matching entry in the plays store: play.game is its own
+     * separately-fetched projection of the same Game (see PlayResource),
+     * never part of this collection array, so without this a translation
+     * done from Dashboard/Picker never reached Partidas - opening the
+     * same game's play-history modal there kept showing English despite
+     * the DB already having the translation (found via a caching audit,
+     * not reported directly; GameDetailModal's own `translated` event
+     * already covers the same gap for a modal already open on Partidas
+     * itself, but not one opened there afterwards). Returns the value
+     * rather than relying only on the store mutations, so a caller with
+     * its own local copy of the game (like the details modal) can update
+     * without waiting on either array to re-render it. */
     async translateDescription(gameId: string): Promise<string | null> {
       const { data } = await apiClient.post(`/games/${gameId}/translate-description`)
 
@@ -198,6 +216,12 @@ export const useGamesStore = defineStore('games', {
         .filter((entry) => entry.game.id === gameId)
         .forEach((entry) => {
           entry.game.description_es = data.description_es
+        })
+
+      usePlaysStore()
+        .entries.filter((play) => play.game.id === gameId)
+        .forEach((play) => {
+          play.game.description_es = data.description_es
         })
 
       return data.description_es

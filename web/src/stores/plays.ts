@@ -61,7 +61,15 @@ export const usePlaysStore = defineStore('plays', {
      * backend treats a blank ?search= the same as omitting it), so
      * "load more" keeps filtering by whatever the user last searched for
      * without needing to pass it in again itself. */
+    // Guards against a fetch already in flight, not just the "load more"
+    // button's own disabled-while-loading state - a fast enough
+    // double-click can still fire two clicks before Vue re-renders that
+    // disabled attribute, which without this guard fired two real
+    // fetchPage(n) calls for the same page, both appending their own
+    // copy of it to `entries` (found via a caching audit, not reported
+    // directly).
     async fetchPage(page = 1) {
+      if (this.loading) return
       this.loading = true
 
       try {

@@ -96,6 +96,22 @@ describe('usePlaysStore', () => {
     expect(store.entries).toEqual([fresh])
   })
 
+  it('ignores a second fetchPage call while the first is still in flight', async () => {
+    let resolveFirst: (value: unknown) => void = () => {}
+    vi.mocked(apiClient.get).mockImplementation(
+      () => new Promise((resolve) => { resolveFirst = resolve }),
+    )
+    const store = usePlaysStore()
+
+    const first = store.fetchPage(1)
+    const second = store.fetchPage(1) // e.g. a fast double-click on "load more"
+
+    resolveFirst({ data: { data: [], meta: { current_page: 1, last_page: 1 } } })
+    await Promise.all([first, second])
+
+    expect(apiClient.get).toHaveBeenCalledTimes(1)
+  })
+
   it('turns loading off even when fetchPage fails', async () => {
     vi.mocked(apiClient.get).mockRejectedValue(new Error('network error'))
     const store = usePlaysStore()
