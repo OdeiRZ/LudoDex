@@ -41,6 +41,10 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   duplicado en `main.css` y en la fórmula de posición de la tira de
   salto rápido — antes, un cambio en uno de los dos sitios no avisaba
   de que había que actualizar el otro a mano.
+- Icono de la app (favicon, íconos PWA, apple-touch-icon): pasa del dado
+  plano de 5 puntos al mismo emoji 🎲 que ya se usa como enlace a "Inicio"
+  en la barra de navegación, sobre el mismo degradado teal — más volumen
+  y contraste, y coherente con lo que ya se ve dentro de la propia app.
 
 ### Corregido
 
