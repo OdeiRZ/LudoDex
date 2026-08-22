@@ -7,6 +7,19 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Corregido
+
+- Importar el historial de partidas fallaba por completo ("No se han
+  podido importar las partidas.") en cuentas de BGG con un historial
+  grande — reproducido directamente con una cuenta real de 7250
+  partidas: BGG empieza a devolver 429 (demasiadas peticiones) a partir
+  de la página 15 de 73 si se piden todas seguidas sin pausa, y el
+  código trataba esa respuesta como un error fatal, descartando también
+  las páginas ya descargadas con éxito. Ahora hay una pequeña pausa
+  entre página y página, y un 429 se reintenta con espera creciente en
+  vez de abortar la importación entera. Verificado: la misma cuenta de
+  7250 partidas ya importa completa.
+
 ### Cambiado
 
 - El ancho máximo de `#app` (1024px) pasa a ser un token compartido

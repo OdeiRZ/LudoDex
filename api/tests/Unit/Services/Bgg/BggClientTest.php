@@ -4,6 +4,14 @@ use App\Services\Bgg\BggClient;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Sleep;
+
+// fetchPlays() paces itself between pages, and retries a 429 with backoff -
+// both via Sleep::usleep()/Sleep::for(), so every test in this file fakes it
+// rather than actually waiting real seconds per multi-page/retry scenario.
+beforeEach(function () {
+    Sleep::fake();
+});
 
 // fetchCollection() always makes two requests (boardgame, then
 // boardgameexpansion subtypes) and concatenates their items - so a plain
@@ -512,6 +520,67 @@ it('reports an error for /plays without crashing when the username does not exis
     expect($result['status'])->toBe('error')
         ->and($result['message'])->toBe('Invalid username specified')
         ->and($result['transient'])->toBeFalse();
+});
+
+it('retries a 429 from BGG with backoff before succeeding', function () {
+    $attempt = 0;
+    Http::fake(function () use (&$attempt) {
+        $attempt++;
+
+        if ($attempt < 3) {
+            return Http::response('', 429);
+        }
+
+        return Http::response(
+            '<?xml version="1.0" encoding="utf-8"?><plays username="odei" total="1" page="1">'
+            .playXml(1, 13, 'Catan', '2026-01-01')
+            .'</plays>'
+        );
+    });
+
+    $result = (new BggClient)->fetchPlays('odei');
+
+    Http::assertSentCount(3);
+    expect($result['status'])->toBe('ready')->and($result['plays'])->toHaveCount(1);
+    Sleep::assertSequence([
+        Sleep::for(2)->seconds(),
+        Sleep::for(4)->seconds(),
+    ]);
+});
+
+it('gives up as a transient error after a 429 from BGG never clears', function () {
+    Http::fake(fn () => Http::response('', 429));
+
+    $result = (new BggClient)->fetchPlays('odei');
+
+    Http::assertSentCount(4); // one immediate attempt + 3 backed-off retries
+    expect($result['status'])->toBe('error')
+        ->and($result['transient'])->toBeTrue();
+});
+
+it('pauses between pages to avoid triggering BGG\'s own rate limit in the first place', function () {
+    Http::fake(function (ClientRequest $request) {
+        $query = [];
+        parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+        $page = (int) $query['page'];
+
+        $count = $page === 1 ? 100 : 1;
+        $plays = '';
+
+        for ($i = 0; $i < $count; $i++) {
+            $plays .= playXml(($page * 1000) + $i, 13, 'Catan', '2026-01-01');
+        }
+
+        return Http::response('<?xml version="1.0" encoding="utf-8"?><plays username="odei" total="101" page="'.$page.'">'.$plays.'</plays>');
+    });
+
+    (new BggClient)->fetchPlays('odei');
+
+    Http::assertSentCount(2);
+    // One pause before the second page - none before the very first request.
+    Sleep::assertSequence([
+        Sleep::usleep(1_000_000),
+    ]);
 });
 
 it('does not call BGG for plays when no application token is configured', function () {

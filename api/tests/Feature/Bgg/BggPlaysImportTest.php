@@ -4,7 +4,14 @@ use App\Models\Game;
 use App\Models\Play;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Sleep;
 use Illuminate\Testing\TestResponse;
+
+// BggClient::fetchPlays() paces itself between pages - fake it so the
+// multi-page test below doesn't actually wait a real second.
+beforeEach(function () {
+    Sleep::fake();
+});
 
 function playXmlRow(int $id, int $bggId, string $name, string $date, ?string $quantity = null, ?string $length = null): string
 {
