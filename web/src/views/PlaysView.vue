@@ -405,7 +405,7 @@ h1 {
 
 .reimport-btn {
   flex-shrink: 0;
-  padding: 0.55rem;
+  padding: var(--space-2);
 }
 
 .reimport-btn svg {
@@ -504,7 +504,7 @@ specifically below the cover in each row. */
   width: 56px;
   height: 56px;
   object-fit: cover;
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
 }
 

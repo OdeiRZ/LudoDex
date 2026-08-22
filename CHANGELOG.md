@@ -17,6 +17,14 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   el resto de páginas; y el icono del botón de reimportar en "Partidas"
   medía 18px en vez de los 16px de cualquier otro icono-en-botón del
   proyecto.
+- Otras tres, misma auditoría: el botón de reimportar en "Partidas"
+  tenía `padding: 0.55rem` en vez del token `var(--space-2)` (0.5rem)
+  que usa el mismo patrón en "Tu colección"; la miniatura de cada
+  partida (`.play-cover`) tenía `border-radius: 5px`, que no coincidía
+  con ningún token de la escala (`--radius-sm` son 6px); y "Importar
+  BGG" tenía 2rem de margen superior que ninguna otra página con el
+  mismo patrón de tarjeta centrada lleva, sin ningún motivo en su propia
+  plantilla que lo justificara — quitado.
 - La tira de salto rápido (letras/décadas/tramos de ranking) separa
   ahora 14px del borde derecho de la pantalla en vez de 4px, para no
   arriesgarse a chocar con el gesto de "atrás"/"adelante" que algunos

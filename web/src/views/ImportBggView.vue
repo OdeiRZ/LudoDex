@@ -383,7 +383,7 @@ onMounted(() => {
 <style scoped>
 .import-bgg {
   max-width: 440px;
-  margin: var(--space-8) auto 0;
+  margin: 0 auto;
 }
 
 h1 {
