@@ -41,6 +41,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   distinto del diseño ya usado en Colección). Mismo aspecto final en
   ambas páginas: título en su propia línea, contador debajo a la
   izquierda, botón pegado al borde derecho a la misma altura.
+- Ese mismo bloque, en su versión apilada, se quedaba sin separación
+  ni entre título y contador ni respecto al formulario de filtros de
+  debajo (reportado directamente) — el `margin-bottom` que daba ese
+  aire vivía en el propio `h1`, que deja de ser lo último del bloque
+  en cuanto algo se apila debajo suyo. Movido al contenedor de la fila
+  en sí (mismo sitio que ya usa "Tu colección" para lo mismo), y
+  aplicado también como separación entre título y contador al apilarse.
 
 ## [0.8.0] - 2026-08-22
 

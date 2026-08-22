@@ -556,15 +556,20 @@ const filtered = computed(() => {
 </template>
 
 <style scoped>
-h1 {
-  margin-bottom: var(--space-4);
-}
-
+/* margin-bottom lives here, not on h1 directly (reported directly: no
+breathing room below the block once count/toggle wrap below the
+title) - h1's own bottom margin only ever created space below h1
+itself, which is the same as "below the whole row" while everything
+fits on one line, but stops being true the moment anything wraps
+under it (h1 is no longer the row's own lowest content). Living on the
+row itself instead means it's always the space below whatever ends up
+at the bottom, wrapped or not. */
 .title-row {
   display: flex;
   align-items: baseline;
   gap: var(--space-2);
   flex-wrap: wrap;
+  margin-bottom: var(--space-4);
 }
 
 .count {
@@ -661,7 +666,11 @@ height. */
       'title   toggle'
       'count   toggle';
     column-gap: var(--space-2);
-    row-gap: 0;
+    /* Same gap as .title-row's own margin-bottom below the whole
+    block (asked for directly) - without it, title and count sat
+    flush against each other once stacked, the same missing-breathing-
+    room problem one level up. */
+    row-gap: var(--space-4);
   }
 
   .title-row h1 {
