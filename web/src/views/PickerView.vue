@@ -666,11 +666,9 @@ height. */
       'title   toggle'
       'count   toggle';
     column-gap: var(--space-2);
-    /* Same gap as .title-row's own margin-bottom below the whole
-    block (asked for directly) - without it, title and count sat
-    flush against each other once stacked, the same missing-breathing-
-    room problem one level up. */
-    row-gap: var(--space-4);
+    /* 0.5rem (asked for directly) - title and count sat flush against
+    each other once stacked without this. */
+    row-gap: 0.5rem;
   }
 
   .title-row h1 {

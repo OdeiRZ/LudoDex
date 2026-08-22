@@ -46,8 +46,9 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   debajo (reportado directamente) — el `margin-bottom` que daba ese
   aire vivía en el propio `h1`, que deja de ser lo último del bloque
   en cuanto algo se apila debajo suyo. Movido al contenedor de la fila
-  en sí (mismo sitio que ya usa "Tu colección" para lo mismo), y
-  aplicado también como separación entre título y contador al apilarse.
+  en sí (mismo sitio que ya usa "Tu colección" para lo mismo). Entre
+  título y contador el hueco es más pequeño (0.5rem, pedido
+  directamente) que el que separa el bloque entero del formulario.
 
 ## [0.8.0] - 2026-08-22
 
