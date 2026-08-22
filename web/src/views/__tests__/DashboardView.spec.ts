@@ -289,7 +289,7 @@ describe('DashboardView', () => {
       expect(wrapper.find('.count').text()).toBe('2 base · 1 expansiones')
     })
 
-    it('shows the plain total once the type filter is no longer "Todos"', async () => {
+    it('labels the header count "expansiones" while that type filter is picked', async () => {
       const { wrapper } = mountDashboard([
         makeEntry({ id: 'root', name: 'Root' }),
         makeEntry({ name: 'Root: Riverfolk', base_game_id: 'root' }),
@@ -297,7 +297,18 @@ describe('DashboardView', () => {
 
       await wrapper.find('.type-filter').setValue('expansion')
 
-      expect(wrapper.find('.count').text()).toBe('1 juegos')
+      expect(wrapper.find('.count').text()).toBe('1 expansiones')
+    })
+
+    it('labels the header count "juegos base" while that type filter is picked', async () => {
+      const { wrapper } = mountDashboard([
+        makeEntry({ id: 'root', name: 'Root' }),
+        makeEntry({ name: 'Root: Riverfolk', base_game_id: 'root' }),
+      ])
+
+      await wrapper.find('.type-filter').setValue('base')
+
+      expect(wrapper.find('.count').text()).toBe('1 juegos base')
     })
 
     it('shows the plain total when the collection has no expansions at all', () => {

@@ -17,6 +17,10 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   "Expansiones" seleccionado el número principal sí es siempre el
   recuento de lo visible. Con dos cifras del mismo peso, ninguna de las
   dos aparenta ser "la oficial".
+- Ese mismo contador dice "N expansiones" o "N juegos base" (en vez de
+  "N juegos") cuando el filtro de tipo está en "Expansiones" o "Juegos
+  base" respectivamente — pedido directamente para el primer caso,
+  extendido también al segundo por coherencia.
 
 ## [0.8.0] - 2026-08-22
 

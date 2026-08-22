@@ -10,6 +10,8 @@ export default {
     showPassword: 'Mostrar contraseña',
     hidePassword: 'Ocultar contraseña',
     gamesCount: '{count} juegos',
+    baseGamesCount: '{count} juegos base',
+    expansionsCount: '{count} expansiones',
     baseAndExpansionsCount: '{base} base · {expansions} expansiones',
     densityToCompact: 'Vista compacta',
     densityToComfortable: 'Vista cómoda',

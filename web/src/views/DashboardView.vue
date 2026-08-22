@@ -247,6 +247,12 @@ async function onClearCollection() {
               })
             }}
           </template>
+          <template v-else-if="typeFilter === 'expansion'">
+            {{ $t('common.expansionsCount', { count: filtered.length }) }}
+          </template>
+          <template v-else-if="typeFilter === 'base'">
+            {{ $t('common.baseGamesCount', { count: filtered.length }) }}
+          </template>
           <template v-else>{{ $t('common.gamesCount', { count: filtered.length }) }}</template>
         </span>
       </div>
