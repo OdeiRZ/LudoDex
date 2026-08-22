@@ -1510,8 +1510,8 @@ them together. */
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  height: min(64vh, 460px);
-  padding: 0.35rem 0.3rem;
+  height: min(70vh, 520px);
+  padding: 0.45rem 0.4rem;
   border-radius: var(--radius-pill);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -1535,7 +1535,7 @@ it, fighting the drag it's supposed to be giving feedback for. */
 }
 
 .az-scrubber-letter {
-  font-size: 0.75rem;
+  font-size: 0.95rem;
   line-height: 1;
   color: var(--color-text-muted);
   opacity: 0.35;

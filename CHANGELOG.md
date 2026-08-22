@@ -25,8 +25,9 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   caso el efecto llega justo al tocar y se deshace al soltar. (Se probó
   también a agrandarla un poco al tocarla, pero se descartó: cambiaba la
   posición de cada letra bajo el propio dedo/puntero, justo la referencia
-  que el arrastre necesita mantener fija.) En pantallas de escritorio
-  anchas se ancla junto al
+  que el arrastre necesita mantener fija — en vez de eso, el tamaño base
+  de toda la tira se subió dos veces seguidas, ajustado a lo pedido
+  directamente.) En pantallas de escritorio anchas se ancla junto al
   borde real de la columna de contenido (que tiene un ancho máximo de
   1024px y queda centrada) en vez de junto al borde de la ventana del
   navegador — con esta última, en un monitor ancho la tira quedaba muy
