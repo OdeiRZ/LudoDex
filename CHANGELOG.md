@@ -7,69 +7,6 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
-### Cambiado
-
-- El contador de la cabecera de "Tu colección" pasa de "305 juegos (189
-  expansiones)" a "116 base · 189 expansiones" mientras el filtro de
-  tipo está en "Todos" — el primer formato hacía que el número
-  principal (el total) dejara de coincidir con "cuántas tarjetas hay
-  debajo" solo en ese caso concreto, ya que con "Juegos base"/
-  "Expansiones" seleccionado el número principal sí es siempre el
-  recuento de lo visible. Con dos cifras del mismo peso, ninguna de las
-  dos aparenta ser "la oficial".
-- Ese mismo contador dice "N expansiones" o "N juegos base" (en vez de
-  "N juegos") cuando el filtro de tipo está en "Expansiones" o "Juegos
-  base" respectivamente — pedido directamente para el primer caso,
-  extendido también al segundo por coherencia.
-- En el último tramo (≤389px), el toggle de vista (lista/rejilla) pasa
-  a alinearse abajo, a la altura del texto de recuento, en vez de
-  centrarse en toda la altura de la fila del título — a este ancho el
-  título parte en dos líneas (título y recuento) y quedaba centrado
-  entre ambas en vez de a la altura de la segunda.
-- En "¿A qué jugamos?", a un real ~346px, se invierte qué elemento de
-  la fila del título baja de línea primero cuando no caben los tres
-  (título, contador y botón de vista): antes era el botón el que
-  bajaba solo a los 346px, y el contador solo bajaba después, a los
-  306px (ambos anchos reportados directamente); ahora el contador es
-  el primero en ceder, y el botón (de tamaño fijo) se queda junto al
-  título más tiempo.
-- Ese mismo ajuste pasa de intercambiar el `order` de contador/botón a
-  usar una pequeña rejilla, igual que ya hace "Tu colección" en su
-  propio tramo estrecho (reportado con capturas: el primer intento no
-  se veía bien — cuando contador y botón acababan compartiendo línea,
-  salían en el orden "botón, contador" en vez de "contador, botón",
-  distinto del diseño ya usado en Colección). Mismo aspecto final en
-  ambas páginas: título en su propia línea, contador debajo a la
-  izquierda, botón pegado al borde derecho a la misma altura.
-- Ese mismo bloque, en su versión apilada, se quedaba sin separación
-  ni entre título y contador ni respecto al formulario de filtros de
-  debajo (reportado directamente) — el `margin-bottom` que daba ese
-  aire vivía en el propio `h1`, que deja de ser lo último del bloque
-  en cuanto algo se apila debajo suyo. Movido al contenedor de la fila
-  en sí (mismo sitio que ya usa "Tu colección" para lo mismo). Entre
-  título y contador el hueco es más pequeño (0.5rem, pedido
-  directamente) que el que separa el bloque entero del formulario.
-
-### Corregido
-
-- **Reportado en real**: editar un juego a mitad de un scroll largo de
-  "Tu colección" y guardar los cambios devolvía siempre a la parte
-  superior de la página en vez de a donde se estaba antes de entrar a
-  editar. El router no tenía configurado `scrollBehavior`, y guardar/
-  eliminar volvían con `router.push` (una navegación nueva, no un
-  "atrás" real) — ahora usan `router.back()`, y el router restaura la
-  posición de scroll guardada cuando la navegación es de ese tipo
-  (botón atrás real, o `back()`/`forward()`/`go()`), no solo en
-  navegaciones hacia una página nueva.
-
-### Cambiado
-
-- El resumen de filtros colapsado en "¿A qué jugamos?" (el texto con
-  los filtros aplicados, p. ej. "2 jugadores") reduce su `padding` de
-  1.5rem (heredado de `.card`) a 0.75rem (pedido directamente) — no
-  necesita tanto aire como una tarjeta de contenido normal, al ser solo
-  una línea de texto.
-
 ## [0.8.0] - 2026-08-22
 
 ### Añadido
@@ -88,12 +25,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   del título, quedaba demasiado lejos de la vista inicial, y como acción
   de página (no de búsqueda) encaja mejor con el mismo patrón que
   "Vaciar biblioteca" en Colección.
-- El contador de la cabecera de "Tu colección" añade el número de
-  expansiones entre paréntesis (p. ej. "305 juegos (189 expansiones)")
-  mientras el filtro de tipo está en "Todos" — el de juegos base se
-  deduce restando, así que no hace falta mostrar los tres números a la
-  vez. Desaparece al elegir "Juegos base"/"Expansiones", ya que en ese
-  caso el propio contador principal pasa a ser ya uno de los dos.
+- El contador de la cabecera de "Tu colección" se desglosa en "N base ·
+  N expansiones" mientras el filtro de tipo está en "Todos" (en vez de
+  un único total), y pasa a decir "N expansiones" o "N juegos base" al
+  elegir cada uno de esos dos filtros (en vez de "N juegos" siempre) —
+  en todos los casos el contador refleja exactamente lo que hay debajo,
+  en vez de un total que solo coincide con "cuántas tarjetas hay
+  debajo" en dos de los tres filtros posibles.
 
 ### Corregido
 
@@ -123,11 +61,41 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   su propio hueco (`column-gap`) vacío junto a ella, dejando el grupo
   esos 16px corto del borde real. Colapsada a una sola columna en este
   tramo, ya que ninguno de los dos bloques la necesitaba.
+- **Reportado en real**: editar un juego a mitad de un scroll largo de
+  "Tu colección" y guardar los cambios devolvía siempre a la parte
+  superior de la página en vez de a donde se estaba antes de entrar a
+  editar. El router no tenía configurado `scrollBehavior`, y guardar/
+  eliminar volvían con `router.push` (una navegación nueva, no un
+  "atrás" real) — ahora usan `router.back()`, y el router restaura la
+  posición de scroll guardada cuando la navegación es de ese tipo
+  (botón atrás real, o `back()`/`forward()`/`go()`), no solo en
+  navegaciones hacia una página nueva.
 
 ### Cambiado
 
 - El tramo de "Tu colección" que pasa Vaciar/Añadir a solo icono baja de
   880px a 860px y después a 850px (pedido directamente en dos pasos).
+- En ese mismo tramo (≤389px), el toggle de vista pasa a alinearse
+  abajo, a la altura del texto de recuento, en vez de centrarse en toda
+  la altura de la fila del título — a este ancho el título parte en dos
+  líneas (título y recuento) y quedaba centrado entre ambas en vez de a
+  la altura de la segunda.
+- En "¿A qué jugamos?", a un real ~346px, se invierte qué elemento de
+  la fila del título baja de línea primero cuando no caben los tres
+  (título, contador y botón de vista): antes era el botón el que
+  bajaba solo a los 346px, y el contador solo bajaba después, a los
+  306px (ambos anchos reportados directamente); ahora el contador es
+  el primero en ceder, y el botón (de tamaño fijo) se queda junto al
+  título más tiempo — mismo mecanismo que "Tu colección" ya usa en su
+  propio tramo estrecho (una rejilla en vez de flex, con el botón en
+  una columna aparte alineada abajo), no un intercambio de `order`
+  (un primer intento con eso invertía también el orden visual, no solo
+  la prioridad de quién cede primero).
+- El resumen de filtros colapsado en "¿A qué jugamos?" (el texto con
+  los filtros aplicados, p. ej. "2 jugadores") reduce su `padding` de
+  1.5rem (heredado de `.card`) a 0.75rem (pedido directamente) — no
+  necesita tanto aire como una tarjeta de contenido normal, al ser solo
+  una línea de texto.
 
 ## [0.7.0] - 2026-08-21
 
