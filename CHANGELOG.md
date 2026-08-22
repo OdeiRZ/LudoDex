@@ -30,7 +30,9 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   60 segundos por petición — el log local mostraba el proceso muerto a
   mitad de una espera de reintento, no un fallo real de BGG. Ahora la
   importación levanta ese límite explícitamente por código en vez de
-  depender de la configuración de PHP de cada entorno.
+  depender de la configuración de PHP de cada entorno. Verificado en
+  producción tras el despliegue: la cuenta de 7250 partidas importa
+  correctamente de principio a fin.
 
 ### Cambiado
 
