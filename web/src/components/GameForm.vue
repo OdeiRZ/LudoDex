@@ -340,7 +340,6 @@ async function onLookupBgg() {
 .hint {
   color: var(--color-text-muted);
   font-size: 0.85rem;
-  margin-top: var(--space-2);
 }
 
 .name-and-image {
