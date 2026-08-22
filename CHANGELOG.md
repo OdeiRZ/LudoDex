@@ -7,6 +7,22 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Añadido
+
+- Tira lateral A-Z en "Tu colección" para saltar directamente a los
+  juegos que empiezan por una letra, en vez de hacer scroll manual por
+  toda la lista — solo aparece mientras el orden está fijado en
+  "Nombre" (única forma en la que "saltar a la L" tiene sentido) y con
+  más de 12 juegos visibles. Permite tocar una letra suelta o arrastrar
+  el dedo/ratón por toda la tira para recorrerla de un tirón; una letra
+  sin ningún juego (ninguno empieza por "Q", por ejemplo) salta a la
+  letra disponible más cercana en vez de no hacer nada. Mientras se
+  arrastra, una burbuja grande muestra la letra actual, al estilo de la
+  lista de contactos de iOS. Permanece totalmente transparente hasta que
+  el puntero se acerca (ratón) o toca (dedo) su propia zona — el táctil
+  no tiene una señal real de "acercarse" antes del contacto, así que en
+  ese caso se revela justo al tocar y vuelve a desvanecerse al soltar.
+
 ## [0.8.0] - 2026-08-22
 
 ### Añadido

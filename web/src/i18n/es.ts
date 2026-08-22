@@ -83,6 +83,7 @@ export default {
     addFirst: 'Añade el primero',
     searchLabel: 'Buscar en tu colección',
     searchPlaceholder: 'Buscar por nombre…',
+    azScrubberLabel: 'Saltar a una letra',
     sortAsc: 'Ordenar de la A a la Z',
     sortDesc: 'Ordenar de la Z a la A',
     sortByLabel: 'Ordenar por',

@@ -156,6 +156,116 @@ const baseGamesInFiltered = computed(
 const { density, toggle: toggleDensity } = useCollectionDensity()
 const expansionCounts = useExpansionCounts(computed(() => games.collection))
 
+// Prototype: an iOS-Contacts-style A-Z strip for jumping around a long,
+// name-sorted collection instead of scrolling through it by hand. Only
+// makes sense while sorted by name - "jump to L" has no coherent meaning
+// against a list ordered by rank or year - and only worth showing once
+// there's actually enough length to justify it.
+const ALPHABET = ['#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')]
+
+const COMBINING_MARKS = /[̀-ͯ]/g
+
+function normalizeLetter(name: string): string {
+  const stripped = name.trim().normalize('NFD').replace(COMBINING_MARKS, '')
+  const first = stripped.charAt(0).toUpperCase()
+  return /[A-Z]/.test(first) ? first : '#'
+}
+
+const gamesListRef = ref<HTMLUListElement | null>(null)
+
+const availableLetters = computed(() => {
+  if (sortCriterion.value !== 'name') return new Set<string>()
+  return new Set(filtered.value.map((entry) => normalizeLetter(entry.game.name)))
+})
+
+const showAzScrubber = computed(
+  () => sortCriterion.value === 'name' && filtered.value.length > 12 && !detailEntry.value,
+)
+
+const scrubbing = ref(false)
+const scrubLetter = ref<string | null>(null)
+
+// Stays fully transparent until something actually reveals it - a mouse
+// hovering over its own (narrow) hit area counts as "approaching" it, but
+// touch has no equivalent proximity signal before actual contact, so on
+// touch it only appears the moment a finger lands on it (see the
+// pointerType check in endScrub below, which is the counterpart for
+// hiding it again once that finger lifts).
+const hovering = ref(false)
+
+function onScrubberEnter() {
+  hovering.value = true
+}
+
+function onScrubberLeave() {
+  hovering.value = false
+}
+
+// A letter with no games in the current filter/search still needs a
+// sensible target while dragging across it - silently doing nothing reads
+// as the strip being broken, not as "no games here". Walks outward in both
+// directions and jumps to whichever available letter is closest.
+function nearestAvailableLetter(letter: string): string | null {
+  if (availableLetters.value.has(letter)) return letter
+
+  const index = ALPHABET.indexOf(letter)
+  for (let offset = 1; offset < ALPHABET.length; offset++) {
+    const before = ALPHABET[index - offset]
+    const after = ALPHABET[index + offset]
+    if (before && availableLetters.value.has(before)) return before
+    if (after && availableLetters.value.has(after)) return after
+  }
+
+  return null
+}
+
+function jumpToLetter(letter: string) {
+  const target = nearestAvailableLetter(letter)
+  if (!target) return
+
+  scrubLetter.value = target
+  const el = gamesListRef.value?.querySelector<HTMLElement>(`[data-letter="${target}"]`)
+  el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+// clientY -> letter is done by position within the strip's own bounding
+// box, not by which child element the pointer happens to be over - that's
+// what lets a single continuous drag sweep through every letter smoothly
+// (via setPointerCapture below) instead of only reacting at the exact
+// pixel of each <span>.
+function letterAtPointer(clientY: number, container: HTMLElement): string {
+  const rect = container.getBoundingClientRect()
+  const ratio = Math.min(Math.max((clientY - rect.top) / rect.height, 0), 0.999)
+  return ALPHABET[Math.floor(ratio * ALPHABET.length)]
+}
+
+function startScrub(event: PointerEvent) {
+  const container = event.currentTarget as HTMLElement
+  container.setPointerCapture(event.pointerId)
+  hovering.value = true
+  scrubbing.value = true
+  jumpToLetter(letterAtPointer(event.clientY, container))
+}
+
+function moveScrub(event: PointerEvent) {
+  if (!scrubbing.value) return
+  jumpToLetter(letterAtPointer(event.clientY, event.currentTarget as HTMLElement))
+}
+
+// A real mouse keeps sending its own pointerenter/pointerleave once
+// capture ends, so its hover state doesn't need forcing here - it'll
+// naturally go transparent once the cursor actually leaves. Touch/pen
+// have no such lingering hover state to fall back on, so without this
+// they'd stay visible after the finger lifts until some other page
+// interaction happened to trigger pointerleave.
+function endScrub(event: PointerEvent) {
+  scrubbing.value = false
+  scrubLetter.value = null
+  if (event.pointerType !== 'mouse') {
+    hovering.value = false
+  }
+}
+
 async function onDelete(userGameId: string) {
   try {
     await games.deleteGame(userGameId)
@@ -413,8 +523,13 @@ async function onClearCollection() {
       </p>
     </template>
 
-    <ul class="games" :class="{ compact: density === 'compact' }">
-      <li v-for="entry in filtered" :key="entry.id" class="game-card">
+    <ul ref="gamesListRef" class="games" :class="{ compact: density === 'compact' }">
+      <li
+        v-for="entry in filtered"
+        :key="entry.id"
+        class="game-card"
+        :data-letter="normalizeLetter(entry.game.name)"
+      >
         <GameCard
           :image-url="entry.game.image_url"
           :compact="density === 'compact'"
@@ -534,6 +649,31 @@ async function onClearCollection() {
     </ul>
 
     <GameDetailModal v-if="detailEntry" :game="detailEntry.game" @close="detailEntry = null" />
+
+    <div
+      v-if="showAzScrubber"
+      class="az-scrubber"
+      :class="{ 'az-scrubber-visible': hovering || scrubbing }"
+      role="navigation"
+      :aria-label="$t('dashboard.azScrubberLabel')"
+      @pointerenter="onScrubberEnter"
+      @pointerleave="onScrubberLeave"
+      @pointerdown="startScrub"
+      @pointermove="moveScrub"
+      @pointerup="endScrub"
+      @pointercancel="endScrub"
+    >
+      <span
+        v-for="letter in ALPHABET"
+        :key="letter"
+        class="az-scrubber-letter"
+        :class="{ 'az-scrubber-letter-available': availableLetters.has(letter) }"
+      >
+        {{ letter }}
+      </span>
+    </div>
+
+    <div v-if="scrubbing && scrubLetter" class="az-scrubber-bubble">{{ scrubLetter }}</div>
   </div>
 </template>
 
@@ -1342,5 +1482,81 @@ overflow visibly. */
 
 .games.compact :deep(.card-actions) {
   gap: var(--space-1);
+}
+
+/* Prototype - fixed to the viewport (not the page) so it stays reachable
+regardless of scroll position, the whole point of a jump-navigation strip.
+touch-action: none stops the browser's own scroll/pan gesture from
+competing with the drag-to-scrub gesture on touch devices. */
+.az-scrubber {
+  position: fixed;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  height: min(64vh, 460px);
+  padding: 0.25rem 0.15rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  touch-action: none;
+  user-select: none;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+/* opacity: 0 alone still leaves the strip hit-testable (unlike
+visibility/display), which is exactly what lets a mouse hovering its own
+transparent hit area - or a finger landing on it - reveal it in the
+first place; nothing needs to change here for hit-testing to keep
+working underneath. */
+.az-scrubber-visible {
+  opacity: 1;
+}
+
+.az-scrubber-letter {
+  font-size: 0.6rem;
+  line-height: 1;
+  color: var(--color-text-muted);
+  opacity: 0.35;
+}
+
+/* Only letters with at least one matching game in the current
+filter/search read as fully legible - a dimmed letter still works (drags
+snap to the nearest available one, see nearestAvailableLetter), but
+looking disabled sets the right expectation before the user commits to
+that section. */
+.az-scrubber-letter-available {
+  color: var(--color-text);
+  opacity: 1;
+  font-weight: 600;
+}
+
+/* Mirrors iOS's own "big letter" callout while scrubbing - without it,
+a letter this small under a fingertip is otherwise unreadable while
+dragging, defeating the point of showing feedback at all. */
+.az-scrubber-bubble {
+  position: fixed;
+  right: 2.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 21;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--color-primary);
+  border-radius: var(--radius);
+  pointer-events: none;
 }
 </style>

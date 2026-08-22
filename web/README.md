@@ -121,6 +121,34 @@ retoca este bloque:
   ese hueco si la rejilla sigue teniendo una segunda columna sin usar,
   en vez de haberla colapsado a una sola.
 
+### Tira A-Z (prototipo)
+
+Solo se muestra mientras `sortCriterion === 'name'` y hay más de 12
+juegos en `filtered` — "saltar a la L" no tiene un significado coherente
+ordenado por ranking o año. Un único elemento fijo (`.az-scrubber`,
+`position: fixed`) hace de zona de detección y de tira visual a la vez:
+cada `<li>` de la lista lleva su propia `data-letter` (primera letra del
+nombre, mayúscula, sin acentos vía `normalize('NFD')` + regex de marcas
+combinantes), y el punto vertical donde cae el puntero dentro de la tira
+(`clientY` relativo a su propio `getBoundingClientRect()`) se traduce a
+un índice sobre el alfabeto — no se calcula letra por `<span>` individual,
+lo que permite arrastrar de un tirón sin perder eventos entre letras
+(`setPointerCapture` en el `pointerdown` mantiene los `pointermove`
+dirigidos al mismo elemento aunque el dedo/cursor salga de sus límites).
+
+Una letra sin ningún juego en el filtro/búsqueda actual salta a la letra
+disponible más cercana (recorriendo el alfabeto en ambas direcciones)
+en vez de no hacer nada.
+
+Transparencia por proximidad: `opacity: 0` por defecto (no
+`display`/`visibility`, que sí impedirían la detección) — un `pointerenter`
+la revela, un `pointerleave` la oculta. El ratón tiene un hover real antes
+de pulsar; el táctil no tiene ninguna señal de "acercarse" antes del
+contacto, así que en ese caso solo se revela en el instante del toque
+(`pointerdown`) y se oculta explícitamente al soltar (`endScrub` fuerza
+`hovering = false` cuando `event.pointerType !== 'mouse'`, ya que un
+`pointerleave` no tiene sentido para un dedo que ya no está en pantalla).
+
 ## Breakpoints del formulario de filtros de "¿A qué jugamos?" (`PickerView.vue`)
 
 `.filters` es un flex-wrap con `gap` partido en `column-gap` (espacio entre
