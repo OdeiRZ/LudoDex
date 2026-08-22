@@ -1126,11 +1126,18 @@ to land in row1/row3 at all. */
   to add's 36px, so without this it sits flush to the column's LEFT
   edge (its default alignment) instead of centered in the same block
   add fills completely on the row below. justify-self: center splits
-  the leftover 8px evenly instead of pushing it all to one side. */
+  the leftover 8px evenly instead of pushing it all to one side.
+  align-self: end (asked for directly, overriding .dashboard-toolbar's
+  own align-items: center) - 'title' wraps onto two lines at this
+  width (title, then the count below it), making its own grid row
+  taller than a single line; centered across that full height put the
+  toggle roughly between the two lines instead of level with the count
+  text specifically. */
   :deep(.density-toggle) {
     grid-area: density;
     margin-left: 0;
     justify-self: center;
+    align-self: end;
   }
 
   .inline-actions {

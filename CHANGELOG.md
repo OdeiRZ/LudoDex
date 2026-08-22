@@ -21,6 +21,11 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   "N juegos") cuando el filtro de tipo está en "Expansiones" o "Juegos
   base" respectivamente — pedido directamente para el primer caso,
   extendido también al segundo por coherencia.
+- En el último tramo (≤389px), el toggle de vista (lista/rejilla) pasa
+  a alinearse abajo, a la altura del texto de recuento, en vez de
+  centrarse en toda la altura de la fila del título — a este ancho el
+  título parte en dos líneas (título y recuento) y quedaba centrado
+  entre ambas en vez de a la altura de la segunda.
 
 ## [0.8.0] - 2026-08-22
 
