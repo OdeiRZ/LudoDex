@@ -182,6 +182,18 @@ const showAzScrubber = computed(
   () => sortCriterion.value === 'name' && filtered.value.length > 12 && !detailEntry.value,
 )
 
+// The strip's own visual order needs to follow whichever direction the
+// list itself is actually sorted in - otherwise, sorted Z→A, the top of
+// the strip (showing "A") would jump to the very bottom of the list
+// instead of its top, and vice versa at the bottom of the strip. Only
+// the display order flips here; nearestAvailableLetter below still walks
+// the canonical A→Z order, since "nearest available letter" is about
+// alphabetical adjacency, not about where either one happens to sit on
+// screen.
+const displayAlphabet = computed(() =>
+  sortOrder.value === 'asc' ? ALPHABET : [...ALPHABET].reverse(),
+)
+
 const scrubbing = ref(false)
 const scrubLetter = ref<string | null>(null)
 
@@ -236,7 +248,7 @@ function jumpToLetter(letter: string) {
 function letterAtPointer(clientY: number, container: HTMLElement): string {
   const rect = container.getBoundingClientRect()
   const ratio = Math.min(Math.max((clientY - rect.top) / rect.height, 0), 0.999)
-  return ALPHABET[Math.floor(ratio * ALPHABET.length)]
+  return displayAlphabet.value[Math.floor(ratio * displayAlphabet.value.length)]
 }
 
 function startScrub(event: PointerEvent) {
@@ -664,7 +676,7 @@ async function onClearCollection() {
       @pointercancel="endScrub"
     >
       <span
-        v-for="letter in ALPHABET"
+        v-for="letter in displayAlphabet"
         :key="letter"
         class="az-scrubber-letter"
         :class="{ 'az-scrubber-letter-available': availableLetters.has(letter) }"

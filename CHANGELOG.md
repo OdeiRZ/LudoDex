@@ -36,7 +36,11 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   borde real de la columna de contenido (que tiene un ancho máximo de
   1024px y queda centrada) en vez de junto al borde de la ventana del
   navegador — con esta última, en un monitor ancho la tira quedaba muy
-  lejos de la propia colección, flotando sola sobre el fondo vacío.
+  lejos de la propia colección, flotando sola sobre el fondo vacío. Al
+  invertir el orden a "Z → A" las letras de la propia tira se muestran
+  también en ese orden (Z arriba, A abajo) en vez de mantenerse siempre
+  A→Z — antes de este cambio, tocar la parte de arriba de la tira
+  ordenada al revés saltaba al final de la lista en vez de al principio.
 
 ## [0.8.0] - 2026-08-22
 

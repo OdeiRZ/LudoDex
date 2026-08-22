@@ -136,6 +136,18 @@ lo que permite arrastrar de un tirón sin perder eventos entre letras
 (`setPointerCapture` en el `pointerdown` mantiene los `pointermove`
 dirigidos al mismo elemento aunque el dedo/cursor salga de sus límites).
 
+El índice se resuelve sobre `displayAlphabet` (un `computed`), no sobre
+la constante `ALPHABET` directamente — con `sortOrder === 'desc'` es el
+alfabeto invertido (`[...ALPHABET].reverse()`), para que el orden visual
+de la tira siga siempre al mismo orden en el que está la lista debajo:
+sin esto, con la lista en "Z → A", tocar arriba de la tira (donde antes
+seguía apareciendo "A") saltaba al final de la lista en vez de al
+principio. `nearestAvailableLetter` sigue recorriendo el `ALPHABET`
+canónico (A→Z) para buscar la letra disponible más cercana — esa
+búsqueda es sobre proximidad alfabética de la propia letra, no sobre
+proximidad visual en la tira, así que no le afecta cuál de las dos se
+esté mostrando.
+
 Una letra sin ningún juego en el filtro/búsqueda actual salta a la letra
 disponible más cercana (recorriendo el alfabeto en ambas direcciones)
 en vez de no hacer nada.
