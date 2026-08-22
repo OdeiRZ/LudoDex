@@ -39,6 +39,17 @@ class BggPlaysImportService
      */
     public function import(string $username, User $user): array
     {
+        // BGG's rate limit can force fetchPlays() into many retries (up to
+        // 40s backoff per page, doubling the between-page pace once any
+        // page gets 429'd) - a large account can legitimately take several
+        // minutes end to end, past PHP's default 60s max_execution_time.
+        // Confirmed fatal locally (storage/logs/laravel.log): once inside
+        // Guzzle's curl call, once mid-Sleep::for() backoff wait - the
+        // retry logic was working, PHP was just killing the request out
+        // from under it. A per-request override, not a php.ini edit, so it
+        // holds regardless of what each environment's default happens to be.
+        set_time_limit(300);
+
         $minDate = $this->incrementalMinDate($user);
         $result = $this->client->fetchPlays($username, $minDate);
 

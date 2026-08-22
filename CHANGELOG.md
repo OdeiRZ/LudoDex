@@ -24,7 +24,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   a fallar en un segundo intento poco después — el margen de BGG no se
   había recuperado del todo, así que un retroceso fijo no bastaba;
   de ahí que ahora se adapte sobre la marcha en vez de asumir un ritmo
-  fijo.
+  fijo. Una segunda causa, independiente de BGG, apareció después: con
+  cuentas grandes, la propia importación puede tardar varios minutos en
+  total (reintentos + pausas), superando el límite por defecto de PHP de
+  60 segundos por petición — el log local mostraba el proceso muerto a
+  mitad de una espera de reintento, no un fallo real de BGG. Ahora la
+  importación levanta ese límite explícitamente por código en vez de
+  depender de la configuración de PHP de cada entorno.
 
 ### Cambiado
 
