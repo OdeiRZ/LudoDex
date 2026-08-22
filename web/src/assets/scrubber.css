@@ -1,0 +1,131 @@
+/* Shared, global (not scoped) on purpose - both the collection and
+picker pages render this same strip via useCollectionScrubber, and
+duplicating this whole block per-component would mean applying every
+future tweak twice. */
+
+/* Prototype - fixed to the viewport (not the page) so it stays reachable
+regardless of scroll position, the whole point of a jump-navigation strip.
+touch-action: none stops the browser's own scroll/pan gesture from
+competing with the drag-to-scrub gesture on touch devices. */
+/* right: 4px alone hugs the true browser edge - fine on mobile, where
+#app fills the viewport anyway, but on a wide desktop window #app caps
+out at 1024px and centers with margin: 0 auto, leaving a large empty
+strip of bare background outside it; anchoring to the viewport's own
+edge there stranded the scrubber far from the actual content column
+(reported directly). (100vw - 1024px) / 2 is that outside margin (0
+or negative below 1024px, hence the max() floor) - adding #app's own
+right padding (var(--space-4)) reaches its content's real right edge,
+then var(--space-2) pulls back inward from there for a small gap
+instead of sitting flush against it. 1024px/var(--space-4) have to be
+kept in sync with #app's own rule in main.css by hand - nothing ties
+them together. */
+.az-scrubber {
+  position: fixed;
+  right: max(4px, calc((100vw - 1024px) / 2 + var(--space-4) - var(--space-2)));
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  /* Fluid, not stepped at a breakpoint (asked for directly - "reduce as
+  the screen gets smaller", not "drop to a second fixed size below some
+  width"). Tried the obvious "(100vw - 360px) / 664px" fluid-scale
+  formula first (a length divided by a length, meant to produce a 0..1
+  fraction) - this browser rejects any calc() that divides one length
+  by another and drops the whole declaration, silently falling back to
+  the property's initial value (verified directly: padding/height came
+  back as literal empty strings from the parsed stylesheet rule, not
+  just "looked wrong" on screen). Sidestepped entirely below by writing
+  the interpolation's slope as a plain number attached to the vw unit
+  itself (e.g. 21.0843vw is just a dimension, no division involved) and
+  adding that to a plain px intercept - only ever adding two different
+  absolute units together, which calc() has always supported. Both
+  constants are pre-solved by hand for a straight line between
+  (360px viewport, floor value) and (1024px viewport, the ceiling
+  values used before this fluid pass) - 360px is the narrowest real
+  phone this file has actual measurements for elsewhere (see the
+  389px/366px tiers in DashboardView.vue); 1024px matches #app's own
+  max-width, so growth stops exactly where the content column itself
+  stops growing. */
+  height: min(70vh, clamp(380px, calc(304.097px + 21.0843vw), 520px));
+  padding: clamp(0.25rem, calc(2.265px + 0.48193vw), 0.45rem)
+    clamp(0.2rem, calc(1.465px + 0.48193vw), 0.4rem);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  touch-action: none;
+  user-select: none;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.15s ease;
+}
+
+/* Faint rather than fully invisible at rest (asked for directly - on a
+real phone, opacity: 0 left no visible hint of where the strip even was,
+so there was nothing to aim a first touch at). Full opacity on
+hover/touch is the feedback that it landed - a growing scale was tried
+here too, but reverted (asked for directly): scaling shifts every
+bucket's own screen position out from under whatever's still hovering
+it, fighting the drag it's supposed to be giving feedback for. */
+.az-scrubber-visible {
+  opacity: 1;
+}
+
+/* Same fluid formula and anchors as .az-scrubber's own height/padding
+above - all four properties need to shrink together in the same
+proportion, not just the container, or the letters would end up
+disproportionately large (or small) relative to the pill around them
+at the in-between widths. */
+.az-scrubber-letter {
+  font-size: clamp(0.65rem, calc(7.7976px + 0.72289vw), 0.95rem);
+  line-height: 1;
+  color: var(--color-text-muted);
+  opacity: 0.35;
+}
+
+/* Only buckets with at least one matching game in the current
+filter/search read as fully legible - a dimmed one still works (drags
+snap to the nearest available bucket, see nearestAvailableBucket), but
+looking disabled sets the right expectation before the user commits to
+that section. */
+.az-scrubber-letter-available {
+  color: var(--color-text);
+  opacity: 1;
+  font-weight: 600;
+}
+
+/* Mirrors iOS's own "big letter" callout while scrubbing - without it,
+a bucket this small under a fingertip is otherwise unreadable while
+dragging, defeating the point of showing feedback at all. */
+/* Same base offset as .az-scrubber's own right (kept in sync by hand,
+same reasoning as its comment above) plus a fixed 2.5rem - the original
+gap between the two when the strip was still hardcoded at right: 4px
+(2.75rem - 4px), so the bubble keeps sitting the same distance outside
+the strip regardless of where that ends up landing. */
+.az-scrubber-bubble {
+  position: fixed;
+  right: calc(max(4px, calc((100vw - 1024px) / 2 + var(--space-4) - var(--space-2))) + 2.5rem);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 21;
+  /* min-width (not a fixed width) plus horizontal padding is what lets
+  this same bubble fit a single letter and a 4-digit decade label
+  ("1990") equally well - a fixed box sized for one character would
+  clip the year labels instead of growing to fit them. */
+  min-width: 3rem;
+  height: 3rem;
+  padding: 0 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--color-primary);
+  border-radius: var(--radius);
+  pointer-events: none;
+  white-space: nowrap;
+}

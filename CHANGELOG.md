@@ -61,6 +61,14 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   (sin ranking) se comporta igual que el de año: se queda siempre al
   final en los dos sentidos, y desaparece por completo si no queda
   ningún juego sin ranking.
+- La misma tira (letras, décadas o tramos de ranking) aparece también en
+  "¿A qué jugamos?", con el mismo comportamiento — solo que aquí calcula
+  sus "cajones" sobre los juegos jugables (propios, sin contar
+  expansiones sueltas), no sobre la colección completa, ya que ahí es
+  ese el único conjunto real de candidatos. Toda la mecánica (arrastre,
+  desvanecido por proximidad, tamaño fluido...) vive ahora en un
+  composable compartido (`useCollectionScrubber`) y en una hoja de
+  estilos global, en vez de estar duplicada en las dos páginas.
 
 ## [0.8.0] - 2026-08-22
 

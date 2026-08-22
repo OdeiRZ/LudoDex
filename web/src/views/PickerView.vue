@@ -4,6 +4,12 @@ import { useI18n } from 'vue-i18n'
 import { useGamesStore, type UserGame } from '@/stores/games'
 import { useCollectionDensity } from '@/composables/useCollectionDensity'
 import { useExpansionCounts } from '@/composables/useExpansionCounts'
+import {
+  useCollectionScrubber,
+  normalizeLetter,
+  yearBucket,
+  rankBucket,
+} from '@/composables/useCollectionScrubber'
 import { getLocale } from '@/i18n'
 import { translateCategory } from '@/i18n/bggCategories'
 import DensityToggle from '@/components/DensityToggle.vue'
@@ -299,6 +305,41 @@ const filtered = computed(() => {
     return sortOrder.value === 'asc' ? cmp : -cmp
   })
 })
+
+const resultsListRef = ref<HTMLElement | null>(null)
+
+const scrubberLabels = computed(() => ({
+  name: t('dashboard.azScrubberLabel'),
+  year: t('dashboard.yearScrubberLabel'),
+  rank: t('dashboard.rankScrubberLabel'),
+}))
+
+// Same mechanism as the collection page's own scrubber (see
+// useCollectionScrubber) - `playable`, not the raw collection, is the
+// pool it computes decades/rank tiers from, since an unowned or
+// standalone-expansion game was never a candidate here to begin with.
+const {
+  showScrubber,
+  displayBuckets,
+  availableBuckets,
+  scrubbing,
+  scrubLetter,
+  hovering,
+  scrubberAriaLabel,
+  onScrubberEnter,
+  onScrubberLeave,
+  startScrub,
+  moveScrub,
+  endScrub,
+} = useCollectionScrubber({
+  sortCriterion,
+  sortOrder,
+  pool: playable,
+  filtered,
+  listRef: resultsListRef,
+  hidden: computed(() => detailEntry.value !== null),
+  labels: scrubberLabels,
+})
 </script>
 
 <template>
@@ -469,8 +510,15 @@ const filtered = computed(() => {
       {{ $t('picker.noMatches') }}
     </p>
 
-    <ul v-else class="results" :class="{ compact: density === 'compact' }">
-      <li v-for="entry in filtered" :key="entry.id" class="game-card">
+    <ul v-else ref="resultsListRef" class="results" :class="{ compact: density === 'compact' }">
+      <li
+        v-for="entry in filtered"
+        :key="entry.id"
+        class="game-card"
+        :data-letter="normalizeLetter(entry.game.name)"
+        :data-year-bucket="yearBucket(entry.game.year_published)"
+        :data-rank-bucket="rankBucket(entry.game.bgg_rank)"
+      >
         <GameCard :image-url="entry.game.image_url" :compact="density === 'compact'">
           <div class="game-card-header">
             <h2>{{ entry.game.name }}</h2>
@@ -552,6 +600,31 @@ const filtered = computed(() => {
     </ul>
 
     <GameDetailModal v-if="detailEntry" :game="detailEntry.game" @close="detailEntry = null" />
+
+    <div
+      v-if="showScrubber"
+      class="az-scrubber"
+      :class="{ 'az-scrubber-visible': hovering || scrubbing }"
+      role="navigation"
+      :aria-label="scrubberAriaLabel"
+      @pointerenter="onScrubberEnter"
+      @pointerleave="onScrubberLeave"
+      @pointerdown="startScrub"
+      @pointermove="moveScrub"
+      @pointerup="endScrub"
+      @pointercancel="endScrub"
+    >
+      <span
+        v-for="bucket in displayBuckets"
+        :key="bucket"
+        class="az-scrubber-letter"
+        :class="{ 'az-scrubber-letter-available': availableBuckets.has(bucket) }"
+      >
+        {{ bucket }}
+      </span>
+    </div>
+
+    <div v-if="scrubbing && scrubLetter" class="az-scrubber-bubble">{{ scrubLetter }}</div>
   </div>
 </template>
 

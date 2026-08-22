@@ -44,6 +44,10 @@ npm run test:unit      # Vitest
   alta de nuevas sobre la marcha.
 - `src/views/DashboardView.vue` / `AddGameView.vue` — listado de la colección
   y formulario de alta manual.
+- `src/composables/useCollectionScrubber.ts` / `src/assets/scrubber.css`
+  — la tira de salto rápido (letras/décadas/tramos de ranking) que
+  comparten `DashboardView.vue` y `PickerView.vue`; ver su propia sección
+  más abajo.
 - `src/views/ImportBggView.vue` — importación desde BGG con tres pestañas:
   por usuario (*polling* cada 3s contra el estado de la importación), desde
   el CSV que exporta la propia colección de BGG, o el historial de partidas
@@ -123,6 +127,17 @@ retoca este bloque:
 
 ### Tira de salto rápido — letras, décadas o tramos de ranking (prototipo)
 
+Compartida entre "Tu colección" y "¿A qué jugamos?" vía el composable
+`useCollectionScrubber` (`src/composables/useCollectionScrubber.ts`) y
+una hoja de estilos global (`src/assets/scrubber.css`, importada desde
+`main.css`) — la mecánica (arrastre, cajones, desvanecido por
+proximidad...) es la misma pieza no trivial en ambas páginas, así que
+duplicarla en vez de compartirla habría significado aplicar cada ajuste
+futuro dos veces. Cada vista solo aporta su propia referencia a la
+lista (`listRef`), su propio `pool` (`games.collection` en Colección,
+`playable` — los juegos jugables, sin expansiones sueltas — en el
+selector) y su propio `filtered`.
+
 Solo se muestra mientras `sortCriterion` es `'name'`, `'year'` o `'rank'`
 y hay más de 12 juegos en `filtered`. Un único elemento fijo
 (`.az-scrubber`, `position: fixed`) hace de zona de detección y de tira
@@ -143,11 +158,13 @@ eventos entre ellos (`setPointerCapture` en el `pointerdown` mantiene los
 `pointermove` dirigidos al mismo elemento aunque el dedo/cursor salga de
 sus límites).
 
-Las décadas de año se calculan sobre `games.collection` completa, no
-sobre `filtered` — igual que el alfabeto es una constante fija en vez de
-derivarse de lo que hay visible ahora mismo, así los "cajones" no
-aparecen ni desaparecen mientras el usuario escribe una búsqueda, solo
-cambia cuáles están disponibles (atenuadas si no). Los tramos de ranking,
+Las décadas de año se calculan sobre el `pool` que cada página le pasa
+al composable (la colección completa, o los juegos jugables en el
+selector), no sobre `filtered` — igual que el alfabeto es una constante
+fija en vez de derivarse de lo que hay visible ahora mismo, así los
+"cajones" no aparecen ni desaparecen mientras el usuario escribe una
+búsqueda, solo cambia cuáles están disponibles (atenuadas si no). Los
+tramos de ranking,
 a diferencia de las décadas, no se calculan de la colección — son un
 `RANK_TIERS` fijo (`preguntado directamente: "Top 100" tiene que
 significar siempre el mismo corte, no ir cambiando de umbral según lo
@@ -165,8 +182,8 @@ seguía apareciendo "A") saltaba al final de la lista en vez de al
 principio. Las décadas y los tramos de ranking se invierten igual, pero
 sus respectivos cajones `'?'` (sin año / sin ranking) se quedan siempre
 al final en los dos sentidos — esos juegos también se quedan siempre al
-final de la propia lista (ver los comentarios de los propios sort por
-año y por ranking, más arriba en este componente), así que a diferencia
+final de la propia lista (ver los comentarios del propio sort por año y
+por ranking en el `filtered` de cada página), así que a diferencia
 de "#" en el alfabeto (que sí reordena junto al resto, al ser un nombre
 cualquiera ordenado por `localeCompare` normal), aquí no tendría sentido
 que reordenasen.
