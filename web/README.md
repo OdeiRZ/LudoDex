@@ -28,8 +28,15 @@ npm run test:unit      # Vitest
   Bearer a cada petición.
 - `src/stores/auth.ts` — store de Pinia: sesión (usuario + token), acciones de
   registro/login/logout, y restauración de sesión al recargar la página.
-- `src/router/index.ts` — rutas y guard de navegación (`requiresAuth` /
-  `guestOnly`).
+- `src/router/index.ts` — rutas, guard de navegación (`requiresAuth` /
+  `guestOnly`) y `scrollBehavior` (restaura la posición de scroll guardada
+  cuando la navegación es un "atrás" real — botón atrás del navegador, o
+  `router.back()`/`forward()`/`go()` — y solo en ese caso; una navegación
+  normal hacia una página nueva sigue empezando arriba). Guardar o
+  eliminar en `EditGameView.vue` usan `router.back()` en vez de
+  `router.push()` precisamente para aprovechar esto: sin ello, volver de
+  editar un juego a mitad de un scroll largo de la colección siempre
+  devolvía a la parte superior de la página.
 - `src/stores/games.ts` — store de Pinia: colección del usuario, catálogo de
   mecánicas/categorías, altas y borrados.
 - `src/components/TagInput.vue` — selector de mecánicas/categorías como
@@ -96,7 +103,7 @@ orden). Igual que en `App.vue`, cada ajuste es acumulativo (`max-width`):
 | `740px` | Buscador+tipo y orden+extras ya no caben en una línea → dos filas de grid. Vaciar/Añadir recuperan su etiqueta de texto. |
 | `671px` | Vaciar/Añadir vuelven a solo icono. |
 | `583px` | Buscador+tipo ocupan el 100% de la primera línea. Orden, su toggle, vista, eliminar y añadir se agrupan a la izquierda en la segunda línea. |
-| `389px` | Vista sube a la línea del título (a la derecha). Eliminar y añadir se agrupan juntos en la línea de orden (a la derecha, eliminar primero). `.search-group` deja de ser parte de la rejilla compartida y pasa a ser una fila flex propia de ancho completo — el buscador y el select de tipo se reparten el espacio de forma proporcional entre sí (`flex: 1` ambos), sin depender de las columnas de eliminar/añadir/orden. |
+| `389px` | Vista sube a la línea del título (a la derecha). Eliminar y añadir se agrupan juntos en la línea de orden (a la derecha, eliminar primero). `.search-group` deja de ser parte de la rejilla compartida y pasa a ser una fila flex propia de ancho completo — el buscador y el select de tipo se reparten el espacio de forma proporcional entre sí (`flex: 1` ambos), sin depender de las columnas de eliminar/añadir/orden. El título parte en dos líneas a este ancho (título y contador), haciendo más alta la fila de la rejilla que comparte con el toggle de vista — `align-self: end` (en vez del `align-items: center` general del toolbar) alinea el toggle a la altura del contador en vez de centrarlo entre ambas líneas. |
 
 Dos lecciones de CSS Grid que costó descubrir y que conviene recordar si se
 retoca este bloque:
@@ -148,7 +155,15 @@ toolbar de "Tu colección" en su propio tramo estrecho: título en su
 propia fila, contador debajo, y el botón en una columna aparte que
 abarca ambas filas con `align-self: end` para quedar a la altura del
 contador — mismo aspecto en las dos páginas, sin la inconsistencia de
-`order`.
+`order`. Sin separación propia entre título y contador al apilarse
+(`row-gap: 0`, título y contador quedan pegados a propósito); el aire
+respecto al formulario de filtros de debajo vive en el propio
+`margin-bottom` de `.title-row` (no en el del `h1`, que deja de ser lo
+último del bloque en cuanto algo se apila debajo suyo — reportado
+directamente tras notar que faltaba ese margen). El resumen de filtros
+colapsado (`.filters-summary`, el texto con los filtros aplicados)
+reduce el `padding` heredado de `.card` (1.5rem) a 0.75rem, al ser solo
+una línea de texto.
 
 Dos técnicas que se repiten en varios de estos tramos:
 - **Forzar un salto de línea real**: un `order` por sí solo no reordena a una
