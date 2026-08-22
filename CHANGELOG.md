@@ -7,68 +7,32 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-08-22
+
 ### Añadido
 
-- Tira lateral A-Z en "Tu colección" para saltar directamente a los
-  juegos que empiezan por una letra, en vez de hacer scroll manual por
-  toda la lista — solo aparece mientras el orden está fijado en
-  "Nombre" (única forma en la que "saltar a la L" tiene sentido) y con
-  más de 12 juegos visibles. Permite tocar una letra suelta o arrastrar
-  el dedo/ratón por toda la tira para recorrerla de un tirón; una letra
-  sin ningún juego (ninguno empieza por "Q", por ejemplo) salta a la
-  letra disponible más cercana en vez de no hacer nada. Mientras se
-  arrastra, una burbuja grande muestra la letra actual, al estilo de la
-  lista de contactos de iOS. En reposo se ve semitransparente (lo justo
-  para saber dónde está sin que estorbe) y recupera el color sólido en
-  cuanto el puntero se acerca (ratón) o la toca un dedo — el táctil no
-  tiene una señal real de "acercarse" antes del contacto, así que en ese
-  caso el efecto llega justo al tocar y se deshace al soltar. (Se probó
-  también a agrandarla un poco al tocarla, pero se descartó: cambiaba la
-  posición de cada letra bajo el propio dedo/puntero, justo la referencia
-  que el arrastre necesita mantener fija — en vez de eso, el tamaño base
-  de toda la tira se subió dos veces seguidas, ajustado a lo pedido
-  directamente, y después se hizo fluido: encoge de forma continua según
-  el ancho de pantalla en vez de tener un único tamaño fijo — de camino
-  salió a la luz que este navegador descarta en silencio cualquier
-  `calc()` que divida una longitud entre otra, que era como estaba
-  escrita la interpolación al principio.) En pantallas de escritorio
-  anchas se ancla junto al
-  borde real de la columna de contenido (que tiene un ancho máximo de
-  1024px y queda centrada) en vez de junto al borde de la ventana del
-  navegador — con esta última, en un monitor ancho la tira quedaba muy
-  lejos de la propia colección, flotando sola sobre el fondo vacío. Al
-  invertir el orden a "Z → A" las letras de la propia tira se muestran
-  también en ese orden (Z arriba, A abajo) en vez de mantenerse siempre
-  A→Z — antes de este cambio, tocar la parte de arriba de la tira
-  ordenada al revés saltaba al final de la lista en vez de al principio.
-- La misma tira lateral aparece también mientras "Tu colección" está
-  ordenada por "Año de juego", con las décadas realmente presentes en la
-  colección en vez de las letras (calculadas de la colección completa,
-  no solo de lo filtrado, para que no cambien de sitio al buscar) más un
-  último hueco para los juegos sin año conocido (solo si hay al menos
-  uno en la colección — si todos tienen año, ese hueco ni aparece) —
-  cuando sí aparece, se queda siempre al final, en ambos sentidos de
-  orden, igual que esos juegos se quedan siempre al final de la propia
-  lista.
-- La misma tira aparece también ordenando por "Ranking BGG", con tramos
-  fijos ("≤100", "101-500", "501-1k", "1k-5k", "5k+", "?") en vez de una
-  casilla por posición exacta — el ranking es un rango casi sin límite
-  superior y la mayoría de juegos no tienen ninguno, así que "saltar al
-  puesto 4238" no tendría sentido como índice. A diferencia de las
-  décadas (que se calculan de la colección), estos tramos son fijos:
-  "Top 100" tiene que significar siempre lo mismo, no ir cambiando de
-  umbral según lo que haya en la colección en cada momento. El hueco "?"
-  (sin ranking) se comporta igual que el de año: se queda siempre al
-  final en los dos sentidos, y desaparece por completo si no queda
-  ningún juego sin ranking.
-- La misma tira (letras, décadas o tramos de ranking) aparece también en
-  "¿A qué jugamos?", con el mismo comportamiento — solo que aquí calcula
-  sus "cajones" sobre los juegos jugables (propios, sin contar
-  expansiones sueltas), no sobre la colección completa, ya que ahí es
-  ese el único conjunto real de candidatos. Toda la mecánica (arrastre,
-  desvanecido por proximidad, tamaño fluido...) vive ahora en un
-  composable compartido (`useCollectionScrubber`) y en una hoja de
-  estilos global, en vez de estar duplicada en las dos páginas.
+- Tira lateral de salto rápido en "Tu colección" y en "¿A qué
+  jugamos?", al estilo de la lista de contactos de iOS — solo aparece
+  con más de 12 juegos visibles, y se adapta al criterio de orden
+  activo: con "Nombre" muestra el alfabeto completo; con "Año de
+  juego", las décadas realmente presentes en la colección, más un
+  hueco final para los juegos sin año conocido (solo si queda alguno);
+  con "Ranking BGG", seis tramos fijos ("≤100", "101-500", "501-1k",
+  "1k-5k", "5k+", "?") en vez de una casilla por posición exacta, ya
+  que el ranking es un rango casi sin límite superior y la mayoría de
+  juegos no tienen ninguno. Tocar una letra/década/tramo sin ningún
+  juego salta al disponible más cercano en vez de no hacer nada, y
+  arrastrar el dedo o el ratón por toda la tira la recorre de un tirón,
+  con una burbuja grande mostrando el cajón actual mientras se arrastra.
+  En reposo se ve semitransparente y recupera el color sólido al
+  acercarse (ratón) o tocar (dedo); en pantallas anchas se ancla junto
+  al borde real de la columna de contenido, no de la ventana del
+  navegador, y su tamaño encoge de forma fluida en pantallas estrechas.
+  Invertir el orden de la lista invierte también la tira, salvo los
+  huecos de "sin año"/"sin ranking", que se quedan siempre al final —
+  igual que esos juegos se quedan siempre al final de la propia lista,
+  en ambos sentidos. Comparte toda su mecánica entre las dos páginas
+  mediante un composable (`useCollectionScrubber`).
 
 ## [0.8.0] - 2026-08-22
 
