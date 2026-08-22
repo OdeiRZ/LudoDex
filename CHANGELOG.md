@@ -16,6 +16,15 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   ha bajado 40px de su centrado vertical exacto — en "¿A qué jugamos?"
   llegaba a solaparse con el botón de mostrar/ocultar filtros, que flota
   justo debajo del título.
+- `POST /register` no tenía límite de peticiones (a diferencia de
+  `/login`, `/forgot-password` y `/reset-password`, que sí lo tienen) —
+  permitía usarlo como oráculo para averiguar si un email ya está
+  registrado sin límite de intentos, y crear cuentas sin límite alguno.
+  Ahora lleva el mismo `throttle:6,1` que sus hermanas. `GET
+  /bgg-imports/{bggImport}` (el sondeo del estado de una importación en
+  curso) tampoco tenía límite, a diferencia de la ruta que la inicia —
+  ahora lleva `throttle:30,1`, generoso respecto al sondeo real cada 3s
+  del frontend (~20/min) pero sí acota un sondeo descontrolado.
 
 ## [0.9.0] - 2026-08-22
 

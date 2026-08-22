@@ -79,7 +79,7 @@ La suite usa Pest y `RefreshDatabase` (SQLite en memoria durante los tests).
 
 | Método | Ruta            | Auth | Descripción                              |
 |--------|-----------------|------|-------------------------------------------|
-| POST   | `/api/register` | No   | Crea el usuario y devuelve `{ user, token }` |
+| POST   | `/api/register` | No   | Crea el usuario y devuelve `{ user, token }` (limitado a 6 intentos/minuto) |
 | POST   | `/api/login`    | No   | Valida credenciales, devuelve `{ user, token }` (limitado a 6 intentos/minuto) |
 | POST   | `/api/logout`   | Sí   | Revoca el token con el que se autenticó la petición |
 | GET    | `/api/user`     | Sí   | Devuelve el usuario autenticado |
@@ -125,14 +125,15 @@ ya sabe mostrar el texto original en inglés en ese caso.
 | Método | Ruta                        | Auth | Descripción                              |
 |--------|-----------------------------|------|-------------------------------------------|
 | POST   | `/api/bgg-imports`          | Sí   | Inicia una importación desde BGG (limitado a 6/minuto) |
-| GET    | `/api/bgg-imports/{id}`     | Sí   | Consulta el estado; si sigue `pending`, reintenta contra BGG en la propia petición |
+| GET    | `/api/bgg-imports/{id}`     | Sí   | Consulta el estado; si sigue `pending`, reintenta contra BGG en la propia petición (limitado a 30/minuto) |
 
 Sin *worker* en segundo plano (ver README raíz): la exportación de
 colecciones de BGG es asíncrona (responde `202` mientras se genera), así que
 `GET /api/bgg-imports/{id}` no se limita a leer el estado guardado — cada
 llamada reintenta la petición a BGG mientras siga `pending`. El frontend hace
-*polling* contra este endpoint cada pocos segundos hasta `completed` o
-`failed`.
+*polling* contra este endpoint cada 3s hasta `completed` o `failed` (~20
+peticiones/minuto en uso normal); el límite de 30/minuto deja margen sobre
+eso mientras sigue acotando un *polling* descontrolado.
 
 | Método | Ruta                     | Auth | Descripción                              |
 |--------|--------------------------|------|--------------------------------------------|

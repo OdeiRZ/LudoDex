@@ -16,7 +16,7 @@ use App\Http\Controllers\Games\UserGameController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/register', [AuthController::class, 'register']);
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:6,1');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:6,1');
 Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])->middleware('throttle:6,1');
 Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:6,1');
@@ -40,7 +40,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/categories', [CategoryController::class, 'index']);
 
     Route::post('/bgg-imports', [BggImportController::class, 'store'])->middleware('throttle:6,1');
-    Route::get('/bgg-imports/{bggImport}', [BggImportController::class, 'show']);
+    // 30,1 (not the same 6,1 as the routes that actually trigger a BGG
+    // request) - the frontend polls this one every 3s while an import is
+    // pending, i.e. ~20 legitimate requests/min on its own; a strict 6,1
+    // would throttle normal usage, not just abuse.
+    Route::get('/bgg-imports/{bggImport}', [BggImportController::class, 'show'])->middleware('throttle:30,1');
     Route::post('/bgg-imports/csv', [BggCsvImportController::class, 'store'])->middleware('throttle:6,1');
 
     Route::get('/bgg-lookup/games/{bggId}', [BggLookupController::class, 'show'])->middleware('throttle:12,1');
