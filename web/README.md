@@ -140,14 +140,21 @@ Una letra sin ningún juego en el filtro/búsqueda actual salta a la letra
 disponible más cercana (recorriendo el alfabeto en ambas direcciones)
 en vez de no hacer nada.
 
-Transparencia por proximidad: `opacity: 0` por defecto (no
-`display`/`visibility`, que sí impedirían la detección) — un `pointerenter`
-la revela, un `pointerleave` la oculta. El ratón tiene un hover real antes
-de pulsar; el táctil no tiene ninguna señal de "acercarse" antes del
-contacto, así que en ese caso solo se revela en el instante del toque
-(`pointerdown`) y se oculta explícitamente al soltar (`endScrub` fuerza
-`hovering = false` cuando `event.pointerType !== 'mouse'`, ya que un
-`pointerleave` no tiene sentido para un dedo que ya no está en pantalla).
+Transparencia por proximidad: `opacity: 0.4` en reposo (probado con
+`opacity: 0` primero, pero en un móvil real no dejaba ninguna pista visual
+de dónde estaba la tira — nada que tocar a ciegas). Un `pointerenter` la
+lleva a `opacity: 1` y a un `scale(1.12)` (fundido en el mismo `transform`
+que ya usa la regla base para el `translateY(-50%)` de centrado, no en
+una propiedad `transform` aparte, que sustituiría el centrado en vez de
+sumarse a él) — el color sólido y el tamaño algo mayor son la propia
+confirmación táctil de que el toque ha caído dentro de la tira. Un
+`pointerleave` deshace ambas cosas. El ratón tiene un hover real antes de
+pulsar; el táctil no tiene ninguna señal de "acercarse" antes del
+contacto, así que en ese caso el efecto solo llega en el instante del
+toque (`pointerdown`) y se deshace explícitamente al soltar (`endScrub`
+fuerza `hovering = false` cuando `event.pointerType !== 'mouse'`, ya que
+un `pointerleave` no tiene sentido para un dedo que ya no está en
+pantalla).
 
 ## Breakpoints del formulario de filtros de "¿A qué jugamos?" (`PickerView.vue`)
 

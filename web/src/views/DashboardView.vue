@@ -1507,17 +1507,22 @@ competing with the drag-to-scrub gesture on touch devices. */
   touch-action: none;
   user-select: none;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.15s ease;
+  opacity: 0.4;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 
-/* opacity: 0 alone still leaves the strip hit-testable (unlike
-visibility/display), which is exactly what lets a mouse hovering its own
-transparent hit area - or a finger landing on it - reveal it in the
-first place; nothing needs to change here for hit-testing to keep
-working underneath. */
+/* Faint rather than fully invisible at rest (asked for directly - on a
+real phone, opacity: 0 left no visible hint of where the strip even was,
+so there was nothing to aim a first touch at). Full opacity plus a
+slightly larger size is the feedback that a touch/hover actually landed
+on it - the scale has to be folded into the same transform as the base
+rule's own translateY(-50%) centering, not layered separately, since a
+second transform property would replace rather than combine with it. */
 .az-scrubber-visible {
   opacity: 1;
+  transform: translateY(-50%) scale(1.12);
 }
 
 .az-scrubber-letter {

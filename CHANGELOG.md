@@ -18,10 +18,12 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   sin ningún juego (ninguno empieza por "Q", por ejemplo) salta a la
   letra disponible más cercana en vez de no hacer nada. Mientras se
   arrastra, una burbuja grande muestra la letra actual, al estilo de la
-  lista de contactos de iOS. Permanece totalmente transparente hasta que
-  el puntero se acerca (ratón) o toca (dedo) su propia zona — el táctil
-  no tiene una señal real de "acercarse" antes del contacto, así que en
-  ese caso se revela justo al tocar y vuelve a desvanecerse al soltar.
+  lista de contactos de iOS. En reposo se ve semitransparente (lo justo
+  para saber dónde está sin que estorbe) y recupera el color sólido y un
+  tamaño algo mayor en cuanto el puntero se acerca (ratón) o la toca un
+  dedo — el táctil no tiene una señal real de "acercarse" antes del
+  contacto, así que en ese caso el efecto llega justo al tocar y se
+  deshace al soltar.
 
 ## [0.8.0] - 2026-08-22
 
