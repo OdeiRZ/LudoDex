@@ -55,6 +55,15 @@ Repo único con dos aplicaciones independientes, cada una con su propio
   hay que reactivarlo a mano desde su panel. Neon se reactiva solo en la
   primera consulta — mejor encaje para una pieza de portfolio con tráfico
   esporádico.
+- **Sin *ping* periódico para evitar el sueño de la API**: se consideró un
+  *keep-alive* (un GitHub Action con `schedule:`, o un servicio externo tipo
+  UptimeRobot) que golpease la API cada pocos minutos para que Render nunca
+  la viera inactiva. Se descartó a propósito: el free tier da 750 horas de
+  instancia al mes por workspace, y un mes tiene ~744 — mantenerla siempre
+  despierta consumiría prácticamente el cupo entero, dejando sin margen a
+  cualquier otro servicio gratuito del mismo workspace. Para un proyecto de
+  portfolio con tráfico bajo e impredecible, se prefiere asumir el retraso
+  ocasional (documentado arriba) antes que arriesgarse a quedarse sin cupo.
 
 ## Requisitos externos
 
