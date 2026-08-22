@@ -178,6 +178,26 @@ también aquí. `1024px`/`var(--space-4)` no están enlazados con
 `main.css` por ningún mecanismo — si esos valores cambian ahí, hay que
 actualizarlos también aquí a mano.
 
+Tamaño fluido (pedido directamente: que la tira encoja de forma continua
+con el ancho de pantalla, no en un salto brusco a un breakpoint):
+`font-size`, `padding` y `height` usan cada uno un `clamp()` que
+interpola entre un valor mínimo a 360px de ancho de viewport y un
+máximo a partir de 1024px (el mismo par de anchos que ya usa la
+posición horizontal, por consistencia). El primer intento escribió la
+interpolación como `(100vw - 360px) / 664px` (una longitud dividida
+entre otra, para obtener una fracción de 0 a 1) — este navegador
+descarta silenciosamente cualquier `calc()` que divida una longitud
+entre otra longitud (comprobado directamente: la regla, leída desde la
+hoja de estilos ya parseada, tenía esas propiedades vacías, no solo mal
+calculadas). La solución es no dividir nunca — la pendiente de la recta
+se resuelve a mano de antemano y se escribe como un número plano pegado
+a la propia unidad `vw` (p. ej. `21.0843vw` es un único valor con
+unidad, no una operación), sumado a una constante en `px`; sumar dos
+unidades absolutas distintas dentro de `calc()` sí es una operación
+siempre soportada. Si estos rangos (mínimo/máximo, 360px/1024px) cambian
+en el futuro, hay que resolver la recta de nuevo a mano de la misma
+forma, no reintroducir una división.
+
 ## Breakpoints del formulario de filtros de "¿A qué jugamos?" (`PickerView.vue`)
 
 `.filters` es un flex-wrap con `gap` partido en `column-gap` (espacio entre

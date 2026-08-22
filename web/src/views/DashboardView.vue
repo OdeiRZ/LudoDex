@@ -1510,8 +1510,29 @@ them together. */
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  height: min(70vh, 520px);
-  padding: 0.45rem 0.4rem;
+  /* Fluid, not stepped at a breakpoint (asked for directly - "reduce as
+  the screen gets smaller", not "drop to a second fixed size below some
+  width"). Tried the obvious "(100vw - 360px) / 664px" fluid-scale
+  formula first (a length divided by a length, meant to produce a 0..1
+  fraction) - this browser rejects any calc() that divides one length
+  by another and drops the whole declaration, silently falling back to
+  the property's initial value (verified directly: padding/height came
+  back as literal empty strings from the parsed stylesheet rule, not
+  just "looked wrong" on screen). Sidestepped entirely below by writing
+  the interpolation's slope as a plain number attached to the vw unit
+  itself (e.g. 21.0843vw is just a dimension, no division involved) and
+  adding that to a plain px intercept - only ever adding two different
+  absolute units together, which calc() has always supported. Both
+  constants are pre-solved by hand for a straight line between
+  (360px viewport, floor value) and (1024px viewport, the ceiling
+  values used before this fluid pass) - 360px is the narrowest real
+  phone this file has actual measurements for elsewhere (see the
+  389px/366px tiers further up); 1024px matches #app's own max-width,
+  so growth stops exactly where the content column itself stops
+  growing. */
+  height: min(70vh, clamp(380px, calc(304.097px + 21.0843vw), 520px));
+  padding: clamp(0.25rem, calc(2.265px + 0.48193vw), 0.45rem)
+    clamp(0.2rem, calc(1.465px + 0.48193vw), 0.4rem);
   border-radius: var(--radius-pill);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -1534,8 +1555,13 @@ it, fighting the drag it's supposed to be giving feedback for. */
   opacity: 1;
 }
 
+/* Same fluid formula and anchors as .az-scrubber's own height/padding
+above - all four properties need to shrink together in the same
+proportion, not just the container, or the letters would end up
+disproportionately large (or small) relative to the pill around them
+at the in-between widths. */
 .az-scrubber-letter {
-  font-size: 0.95rem;
+  font-size: clamp(0.65rem, calc(7.7976px + 0.72289vw), 0.95rem);
   line-height: 1;
   color: var(--color-text-muted);
   opacity: 0.35;

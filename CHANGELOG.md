@@ -27,7 +27,12 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   posición de cada letra bajo el propio dedo/puntero, justo la referencia
   que el arrastre necesita mantener fija — en vez de eso, el tamaño base
   de toda la tira se subió dos veces seguidas, ajustado a lo pedido
-  directamente.) En pantallas de escritorio anchas se ancla junto al
+  directamente, y después se hizo fluido: encoge de forma continua según
+  el ancho de pantalla en vez de tener un único tamaño fijo — de camino
+  salió a la luz que este navegador descarta en silencio cualquier
+  `calc()` que divida una longitud entre otra, que era como estaba
+  escrita la interpolación al principio.) En pantallas de escritorio
+  anchas se ancla junto al
   borde real de la columna de contenido (que tiene un ancho máximo de
   1024px y queda centrada) en vez de junto al borde de la ventana del
   navegador — con esta última, en un monitor ancho la tira quedaba muy
