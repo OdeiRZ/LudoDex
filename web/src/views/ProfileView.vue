@@ -150,7 +150,7 @@ async function onSubmitPassword() {
         </button>
 
         <p v-if="isProfileSlow" class="slow-request-hint">
-          <LoadingSpinner :size="16" />
+          <LoadingSpinner :size="24" />
           {{ $t('common.coldStartHint') }}
         </p>
       </form>
@@ -218,7 +218,7 @@ async function onSubmitPassword() {
         </button>
 
         <p v-if="isPasswordSlow" class="slow-request-hint">
-          <LoadingSpinner :size="16" />
+          <LoadingSpinner :size="24" />
           {{ $t('common.coldStartHint') }}
         </p>
       </form>

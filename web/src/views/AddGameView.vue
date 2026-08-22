@@ -106,7 +106,7 @@ async function onSubmit() {
       />
 
       <p v-if="isSlow" class="slow-request-hint">
-        <LoadingSpinner :size="16" />
+        <LoadingSpinner :size="24" />
         {{ $t('common.coldStartHint') }}
       </p>
     </form>

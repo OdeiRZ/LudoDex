@@ -13,6 +13,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   tira de salto rápido ahora sigue la altura real del dedo/puntero en
   vez de quedarse siempre a la misma altura fija (el centro de la
   propia tira) — pedido directamente.
+- El icono de carga (`LoadingSpinner`) sube de tamaño en los 17 sitios
+  donde aparece — con el nuevo diseño de dado isométrico, a los tamaños
+  de antes costaba distinguir qué era de un simple borrón (pedido
+  directamente). Las cuatro escalas ya existentes (14/16/20/28px, según
+  el contexto: junto a texto suelto, dentro de un aviso, o como estado
+  de carga de página completa) suben en bloque a 22/24/28/36px, mismos
+  saltos relativos entre ellas que antes, solo desplazados hacia arriba.
 
 ## [0.10.0] - 2026-08-22
 

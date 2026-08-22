@@ -500,7 +500,7 @@ const {
     </form>
 
     <p v-if="games.loading" class="loading-state">
-      <LoadingSpinner :size="28" />
+      <LoadingSpinner :size="36" />
       {{ $t('common.loadingCollection') }}
     </p>
     <p v-else-if="playable.length === 0" class="empty-state">

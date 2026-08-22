@@ -173,7 +173,7 @@ onMounted(() => {
         </button>
       </div>
       <p v-if="reimporting" class="alert alert-info reimport-submitting">
-        <LoadingSpinner :size="20" />
+        <LoadingSpinner :size="28" />
         {{ $t('importBgg.dontCloseTab') }}
       </p>
       <p v-if="reimportError" role="alert" class="alert alert-error">{{ reimportError }}</p>
@@ -236,7 +236,7 @@ onMounted(() => {
     rather than plays.loading alone; that later loading state is covered
     by the load-more button's own disabled+label further down instead. -->
     <p v-if="!plays.loaded" class="loading-state">
-      <LoadingSpinner :size="28" />
+      <LoadingSpinner :size="36" />
       {{ $t('plays.loading') }}
     </p>
 

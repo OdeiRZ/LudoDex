@@ -261,7 +261,7 @@ onMounted(() => {
         </form>
 
         <div v-else-if="phase === 'pending'" role="status" class="status-block">
-          <LoadingSpinner :size="28" />
+          <LoadingSpinner :size="36" />
           <p>
             {{ $t('importBgg.pending') }}
           </p>
@@ -298,7 +298,7 @@ onMounted(() => {
           </p>
 
           <p v-if="csvSubmitting" class="alert alert-info csv-submitting">
-            <LoadingSpinner :size="20" />
+            <LoadingSpinner :size="28" />
             {{ $t('importBgg.dontCloseTab') }}
           </p>
 
@@ -352,7 +352,7 @@ onMounted(() => {
           </p>
 
           <p v-if="playsSubmitting" class="alert alert-info csv-submitting">
-            <LoadingSpinner :size="20" />
+            <LoadingSpinner :size="28" />
             {{ $t('importBgg.dontCloseTab') }}
           </p>
 

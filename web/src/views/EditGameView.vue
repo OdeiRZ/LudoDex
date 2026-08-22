@@ -182,7 +182,7 @@ async function onDelete() {
     </div>
 
     <p v-if="games.loading" class="loading-state">
-      <LoadingSpinner :size="28" />
+      <LoadingSpinner :size="36" />
       {{ $t('common.loading') }}
     </p>
 
@@ -200,7 +200,7 @@ async function onDelete() {
       />
 
       <p v-if="isSlow" class="slow-request-hint">
-        <LoadingSpinner :size="16" />
+        <LoadingSpinner :size="24" />
         {{ $t('common.coldStartHint') }}
       </p>
     </form>
@@ -230,7 +230,7 @@ async function onDelete() {
       </button>
 
       <p v-if="deleting" class="loading-state">
-        <LoadingSpinner :size="16" />
+        <LoadingSpinner :size="24" />
         {{ $t('editGame.deleting') }}
       </p>
     </div>

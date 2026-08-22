@@ -122,7 +122,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         :disabled="translating"
         @click="onTranslateClick"
       >
-        <LoadingSpinner v-if="translating" :size="14" />
+        <LoadingSpinner v-if="translating" :size="22" />
         {{ translating ? $t('picker.translating') : $t('picker.translateButton') }}
       </button>
       <p v-if="translateFailed" role="alert" class="alert alert-error modal-translate-error">
