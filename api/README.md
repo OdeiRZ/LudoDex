@@ -222,9 +222,15 @@ poco después contra la misma cuenta — el margen de BGG no se había
 recuperado del todo entre ambas pruebas, así que un ritmo fijo no bastaba;
 de ahí que ahora se adapte sobre la marcha (`$pageDelayMicroseconds` se
 dobla en el propio bucle de `fetchPlays()`) en vez de asumir que el primer
-resultado se repetirá siempre igual. Para una cuenta así de extrema, sigue
-siendo posible que algún límite de tiempo de la propia plataforma (Render)
-corte la petición antes de que Laravel termine, sobre todo si el
-retroceso adaptativo alarga bastante el total; arreglar eso de raíz
-significaría rehacer este import como asíncrono con sondeo, igual que ya
-funciona el de colección, no un ajuste rápido.
+resultado se repetirá siempre igual.
+
+Con reintentos y pausas, una cuenta grande bajo rate-limit sostenido puede
+tardar varios minutos en total — de hecho, un segundo fallo real (reportado
+localmente tras este mismo arreglo) no era cosa de BGG en absoluto: era
+PHP matando la petición a los 60 segundos (`max_execution_time` por
+defecto), a mitad de una de las propias esperas de reintento. Por eso
+`BggPlaysImportService::import()` llama a `set_time_limit(300)` al
+empezar — una anulación por código, no un cambio de `php.ini`, así que
+vale igual en cualquier entorno sea cual sea su configuración por defecto.
+Con este arreglo, la cuenta de 7250 partidas importa de principio a fin
+verificado tanto en local como en producción.
