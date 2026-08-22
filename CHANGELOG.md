@@ -7,6 +7,17 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Cambiado
+
+- El contador de la cabecera de "Tu colección" pasa de "305 juegos (189
+  expansiones)" a "116 base · 189 expansiones" mientras el filtro de
+  tipo está en "Todos" — el primer formato hacía que el número
+  principal (el total) dejara de coincidir con "cuántas tarjetas hay
+  debajo" solo en ese caso concreto, ya que con "Juegos base"/
+  "Expansiones" seleccionado el número principal sí es siempre el
+  recuento de lo visible. Con dos cifras del mismo peso, ninguna de las
+  dos aparenta ser "la oficial".
+
 ## [0.8.0] - 2026-08-22
 
 ### Añadido

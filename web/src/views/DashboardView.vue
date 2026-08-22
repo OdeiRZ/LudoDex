@@ -140,13 +140,17 @@ const filtered = computed(() => {
 
 // Only meaningful while "Todos" is selected - switching typeFilter to
 // "Juegos base"/"Expansiones" already turns the header count itself into
-// exactly one of these two numbers, so showing this alongside it there
-// would just repeat what filtered.length already says. Counted within
-// filtered (not the raw collection) so it stays consistent with an
-// active search - if a search only matches 2 of the collection's 7
+// exactly one of these two numbers, so showing this split alongside it
+// there would just repeat what filtered.length already says. Counted
+// within filtered (not the raw collection) so it stays consistent with
+// an active search - if a search only matches 2 of the collection's 7
 // expansions, this reflects the 2, not the 7.
 const expansionsInFiltered = computed(
   () => filtered.value.filter((entry) => entry.game.base_game_id !== null).length,
+)
+
+const baseGamesInFiltered = computed(
+  () => filtered.value.filter((entry) => entry.game.base_game_id === null).length,
 )
 
 const { density, toggle: toggleDensity } = useCollectionDensity()
@@ -235,10 +239,15 @@ async function onClearCollection() {
       <div class="title-row">
         <h1>{{ $t('dashboard.title') }}</h1>
         <span v-if="games.loaded" class="count">
-          {{ $t('common.gamesCount', { count: filtered.length }) }}
           <template v-if="typeFilter === 'all' && expansionsInFiltered > 0">
-            {{ $t('common.expansionsCountParenthetical', { count: expansionsInFiltered }) }}
+            {{
+              $t('common.baseAndExpansionsCount', {
+                base: baseGamesInFiltered,
+                expansions: expansionsInFiltered,
+              })
+            }}
           </template>
+          <template v-else>{{ $t('common.gamesCount', { count: filtered.length }) }}</template>
         </span>
       </div>
 
