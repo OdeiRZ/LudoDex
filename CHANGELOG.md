@@ -7,6 +7,22 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Cambiado
+
+- En "Añadir juego"/"Editar juego" (comparten formulario): desaparece el
+  hueco extra bajo "Rellenar desde BGG", y las opciones de "Modo"
+  (Cooperativo/Competitivo/Ambos) pasan a estar centradas en vez de
+  pegadas al borde izquierdo del recuadro.
+- El mismo formulario gana varios puntos de corte responsive nuevos,
+  documentados en detalle en `web/README.md`: por debajo de 547px,
+  Jugadores/Duración pasan a ocupar toda su fila con Mínimo/Máximo
+  repartiéndose el ancho a partes iguales (antes cajas pequeñas y
+  centradas) y las etiquetas escritas completas, y Año de
+  juego/Ranking/Valoración/Complejidad hacen lo mismo en una rejilla de
+  2 columnas iguales; por debajo de 428px, "Rellenar desde BGG" se
+  abrevia a "Rellenar"; por debajo de 344px, "Edad recomendada" se
+  abrevia a "Edad recom.".
+
 ## [0.10.0] - 2026-08-22
 
 ### Corregido

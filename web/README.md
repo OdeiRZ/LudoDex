@@ -345,3 +345,16 @@ Dos técnicas que se repiten en varios de estos tramos:
   otro sitio de la app (`--space-1`... `--space-4`), nunca valores sueltos
   inventados para la ocasión, salvo cuando ya no queda ningún token por
   debajo de la necesidad real (ahí se pasa a `font-size: 12px`).
+
+## Breakpoints del formulario de alta/edición (`GameForm.vue`)
+
+Compartido entre "Añadir juego" y "Editar juego" — cada ajuste aplica a
+los dos por igual. Igual que en el formulario de filtros de arriba, cada
+tramo es acumulativo (`max-width`), de más ancho a más estrecho:
+
+| Rango | Qué hace |
+|---|---|
+| `≤547px` | Jugadores y Duración pasan de compartir fila a ocupar cada uno la suya entera. Mínimo y Máximo crecen para repartirse ese ancho a partes iguales (`.range-input { flex: 1 1 0 }`, antes 70/90px fijos con hueco vacío alrededor) y sus etiquetas se escriben completas ("Mínimo"/"Máximo" en vez de "Min."/"Max."). El sufijo "min" de Duración se saca del flujo normal (`position: absolute`, anclado al padding derecho del `fieldset`) para no competir por ancho con los dos inputs — en flujo normal, esa competencia hacía que Jugadores y Duración repartieran el ancho de forma distinta y sus cajas dejaran de alinearse entre las dos filas. Año de juego/Ranking en BGG/Valoración/Complejidad pasan del mismo modo de un ancho fijo compacto (108px) a una rejilla de 2 columnas iguales (`1fr`), mismo reparto 50/50 que Jugadores/Duración. |
+| `≤428px` | "Rellenar desde BGG" se abrevia a "Rellenar" (`Fill from BGG` → `Fill` en inglés) — el botón vive en una fila que no llega a partirse en dos líneas, así que solo puede ceder texto, no altura. |
+| `≤366px` | Edad recomendada y Estructura comparten fila sin el `min-width: 140px` que heredan de `.field-row` por defecto (lo necesitan menos que ese mínimo genérico), y Estructura recorta su padding lateral. |
+| `≤344px` | "Edad recomendada" se abrevia a "Edad recom." (`Recommended age` → `Rec. age` en inglés). |
