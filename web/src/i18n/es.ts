@@ -137,6 +137,7 @@ export default {
     imageUrl: 'URL de la imagen',
     yearPublished: 'Año de juego',
     minAge: 'Edad recomendada',
+    minAgeShort: 'Edad recom.',
     minAgePlaceholder: 'ej. 10+, 4-12',
     years: 'años',
     bggRank: 'Ranking en BGG',

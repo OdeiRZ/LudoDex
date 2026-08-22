@@ -227,7 +227,10 @@ async function onLookupBgg() {
     them uses both blocks' spare room instead of wasting two. -->
     <div class="field-row">
       <div class="min-age-field">
-        <label for="min_age">{{ $t('gameForm.minAge') }}</label>
+        <label for="min_age">
+          <span class="minage-label-full">{{ $t('gameForm.minAge') }}</span>
+          <span class="minage-label-short">{{ $t('gameForm.minAgeShort') }}</span>
+        </label>
         <div class="input-with-suffix">
           <input id="min_age" v-model="form.min_age" type="text" :placeholder="$t('gameForm.minAgePlaceholder')" />
           <span class="input-suffix">{{ $t('gameForm.years') }}</span>
@@ -550,6 +553,13 @@ than stranded. */
   }
 }
 
+/* Swapped for the abbreviated .minage-label-short below ≤344px (see
+that media query) - "Edad recomendada" is the fuller, clearer label
+everywhere there's room for it. */
+.minage-label-short {
+  display: none;
+}
+
 /* At a real 360-366px phone, Edad recomendada and Estructura were
 stacking onto their own separate lines instead of sharing the row:
 .field-row's shared min-width: 140px per child needs 296px for the
@@ -574,6 +584,20 @@ the same way its legend/label content does. */
   .structure-field {
     padding-left: var(--space-2);
     padding-right: var(--space-2);
+  }
+}
+
+/* At ≤344px (asked for directly), "Edad recomendada" abbreviates to
+"Edad recom." - narrower still than the 366px tier above already
+trims for, so the label itself needs to give up some width too rather
+than just the fieldset padding around it. */
+@media (max-width: 344px) {
+  .minage-label-full {
+    display: none;
+  }
+
+  .minage-label-short {
+    display: inline;
   }
 }
 </style>
