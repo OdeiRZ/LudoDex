@@ -1488,9 +1488,21 @@ overflow visibly. */
 regardless of scroll position, the whole point of a jump-navigation strip.
 touch-action: none stops the browser's own scroll/pan gesture from
 competing with the drag-to-scrub gesture on touch devices. */
+/* right: 4px alone hugs the true browser edge - fine on mobile, where
+#app fills the viewport anyway, but on a wide desktop window #app caps
+out at 1024px and centers with margin: 0 auto, leaving a large empty
+strip of bare background outside it; anchoring to the viewport's own
+edge there stranded the scrubber far from the actual content column
+(reported directly). (100vw - 1024px) / 2 is that outside margin (0
+or negative below 1024px, hence the max() floor) - adding #app's own
+right padding (var(--space-4)) reaches its content's real right edge,
+then var(--space-2) pulls back inward from there for a small gap
+instead of sitting flush against it. 1024px/var(--space-4) have to be
+kept in sync with #app's own rule in main.css by hand - nothing ties
+them together. */
 .az-scrubber {
   position: fixed;
-  right: 4px;
+  right: max(4px, calc((100vw - 1024px) / 2 + var(--space-4) - var(--space-2)));
   top: 50%;
   transform: translateY(-50%);
   z-index: 20;
@@ -1546,9 +1558,14 @@ that section. */
 /* Mirrors iOS's own "big letter" callout while scrubbing - without it,
 a letter this small under a fingertip is otherwise unreadable while
 dragging, defeating the point of showing feedback at all. */
+/* Same base offset as .az-scrubber's own right (kept in sync by hand,
+same reasoning as its comment above) plus a fixed 2.5rem - the original
+gap between the two when the strip was still hardcoded at right: 4px
+(2.75rem - 4px), so the bubble keeps sitting the same distance outside
+the strip regardless of where that ends up landing. */
 .az-scrubber-bubble {
   position: fixed;
-  right: 2.75rem;
+  right: calc(max(4px, calc((100vw - 1024px) / 2 + var(--space-4) - var(--space-2))) + 2.5rem);
   top: 50%;
   transform: translateY(-50%);
   z-index: 21;

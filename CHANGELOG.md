@@ -23,7 +23,11 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   tamaño algo mayor en cuanto el puntero se acerca (ratón) o la toca un
   dedo — el táctil no tiene una señal real de "acercarse" antes del
   contacto, así que en ese caso el efecto llega justo al tocar y se
-  deshace al soltar.
+  deshace al soltar. En pantallas de escritorio anchas se ancla junto al
+  borde real de la columna de contenido (que tiene un ancho máximo de
+  1024px y queda centrada) en vez de junto al borde de la ventana del
+  navegador — con esta última, en un monitor ancho la tira quedaba muy
+  lejos de la propia colección, flotando sola sobre el fondo vacío.
 
 ## [0.8.0] - 2026-08-22
 

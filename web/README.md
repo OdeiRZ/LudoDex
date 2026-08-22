@@ -156,6 +156,25 @@ fuerza `hovering = false` cuando `event.pointerType !== 'mouse'`, ya que
 un `pointerleave` no tiene sentido para un dedo que ya no está en
 pantalla).
 
+Posición horizontal: `right` no es un valor fijo, sino
+`max(4px, calc((100vw - 1024px) / 2 + var(--space-4) - var(--space-2)))`.
+`#app` (en `main.css`) tiene `max-width: 1024px; margin: 0 auto`, así que
+`(100vw - 1024px) / 2` es exactamente el margen vacío que queda fuera de
+`#app` en un monitor ancho (0 o negativo por debajo de ese ancho, de ahí
+el `max()`); sumar el padding derecho de `#app` (`var(--space-4)`) llega
+hasta el borde real del contenido, y restar `var(--space-2)` separa la
+tira de ese borde en vez de pegarla encima. Anclarla solo a `right: 4px`
+(como al principio) la dejaba pegada al borde de la ventana del
+navegador en vez de al de la propia colección — en un monitor ancho
+quedaba lejísimos de las tarjetas, flotando sola sobre fondo vacío. Por
+debajo de 1024px de ancho, la fórmula converge al mismo `4px` de antes
+(no hay margen que restar). `.az-scrubber-bubble` usa la misma fórmula
+más `2.5rem` fijos (la separación original entre burbuja y tira cuando
+esta última aún vivía en `right: 4px`), para mantenerse pegada a la tira
+también aquí. `1024px`/`var(--space-4)` no están enlazados con
+`main.css` por ningún mecanismo — si esos valores cambian ahí, hay que
+actualizarlos también aquí a mano.
+
 ## Breakpoints del formulario de filtros de "¿A qué jugamos?" (`PickerView.vue`)
 
 `.filters` es un flex-wrap con `gap` partido en `column-gap` (espacio entre
