@@ -543,8 +543,8 @@ it('retries a 429 from BGG with backoff before succeeding', function () {
     Http::assertSentCount(3);
     expect($result['status'])->toBe('ready')->and($result['plays'])->toHaveCount(1);
     Sleep::assertSequence([
-        Sleep::for(2)->seconds(),
-        Sleep::for(4)->seconds(),
+        Sleep::for(3)->seconds(),
+        Sleep::for(6)->seconds(),
     ]);
 });
 
@@ -553,9 +553,46 @@ it('gives up as a transient error after a 429 from BGG never clears', function (
 
     $result = (new BggClient)->fetchPlays('odei');
 
-    Http::assertSentCount(4); // one immediate attempt + 3 backed-off retries
+    Http::assertSentCount(6); // one immediate attempt + 5 backed-off retries
     expect($result['status'])->toBe('error')
         ->and($result['transient'])->toBeTrue();
+});
+
+it('doubles the pacing delay for the rest of the run once any page gets rate-limited', function () {
+    $callsByPage = [];
+    Http::fake(function (ClientRequest $request) use (&$callsByPage) {
+        $query = [];
+        parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+        $page = (int) $query['page'];
+        $callsByPage[$page] = ($callsByPage[$page] ?? 0) + 1;
+
+        // Page 2's first attempt is rate-limited; every other request
+        // (including page 2's own retry) succeeds right away.
+        if ($page === 2 && $callsByPage[$page] === 1) {
+            return Http::response('', 429);
+        }
+
+        // Page 3 is the one with fewer than 100, stopping pagination there.
+        $count = $page < 3 ? 100 : 1;
+        $plays = '';
+
+        for ($i = 0; $i < $count; $i++) {
+            $plays .= playXml(($page * 1000) + $i, 13, 'Catan', '2026-01-01');
+        }
+
+        return Http::response('<?xml version="1.0" encoding="utf-8"?><plays username="odei" total="201" page="'.$page.'">'.$plays.'</plays>');
+    });
+
+    (new BggClient)->fetchPlays('odei');
+
+    // Page 1 -> page 2: base 1s pace. Page 2's own retry: the backoff
+    // schedule's own first delay (3s). Page 2 -> page 3: doubled to 2s,
+    // since page 2 needed a retry at all.
+    Sleep::assertSequence([
+        Sleep::usleep(1_000_000),
+        Sleep::for(3)->seconds(),
+        Sleep::usleep(2_000_000),
+    ]);
 });
 
 it('pauses between pages to avoid triggering BGG\'s own rate limit in the first place', function () {

@@ -209,15 +209,22 @@ directamente contra una cuenta real de 7250 partidas (73 páginas): pedirlas
 todas seguidas, sin ninguna pausa, provocó un 429 a partir de la página 15,
 y el código entonces trataba cualquier respuesta que no fuera 2xx como error
 fatal, descartando también las páginas ya descargadas con éxito — así se
-reportó el fallo de "byfed" directamente. Ahora hay una pausa de 1s entre
-página y página (no garantiza evitar el límite, solo lo hace mucho menos
-probable para cuentas grandes pero no extremas) y, si aun así llega un 429,
-se reintenta esa misma página con espera creciente (2s, 4s, 8s) antes de
-rendirse — el límite de BGG resultó ser de corta duración, una petición
-normal poco después ya funcionaba sin más. Con este arreglo, la cuenta de
-7250 partidas importa completa (verificado directamente), aunque tarda
-~140s en total — para una cuenta así de grande, sigue siendo posible que
-algún límite de tiempo de la propia plataforma (Render) corte la petición
-antes de que Laravel termine; arreglar eso de raíz significaría rehacer
-este import como asíncrono con sondeo, igual que ya funciona el de
-colección, no un ajuste rápido.
+reportó el fallo de "byfed" directamente.
+
+La pausa entre páginas empieza en 1s pero **se duplica** (hasta un tope de
+10s) en cuanto una sola página choca con un 429 — no solo para esa página,
+para el resto de la importación — y esa misma página se reintenta con
+espera creciente (0s, 3s, 6s, 12s, 24s, 40s) antes de rendirse del todo.
+Una primera versión de este arreglo (pausa fija de 1s, solo 3 reintentos)
+bastó para importar la cuenta de 7250 partidas completa una vez
+(verificado directamente, ~140s en total) pero falló en un segundo intento
+poco después contra la misma cuenta — el margen de BGG no se había
+recuperado del todo entre ambas pruebas, así que un ritmo fijo no bastaba;
+de ahí que ahora se adapte sobre la marcha (`$pageDelayMicroseconds` se
+dobla en el propio bucle de `fetchPlays()`) en vez de asumir que el primer
+resultado se repetirá siempre igual. Para una cuenta así de extrema, sigue
+siendo posible que algún límite de tiempo de la propia plataforma (Render)
+corte la petición antes de que Laravel termine, sobre todo si el
+retroceso adaptativo alarga bastante el total; arreglar eso de raíz
+significaría rehacer este import como asíncrono con sondeo, igual que ya
+funciona el de colección, no un ajuste rápido.

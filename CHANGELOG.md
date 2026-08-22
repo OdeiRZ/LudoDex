@@ -15,10 +15,16 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   partidas: BGG empieza a devolver 429 (demasiadas peticiones) a partir
   de la página 15 de 73 si se piden todas seguidas sin pausa, y el
   código trataba esa respuesta como un error fatal, descartando también
-  las páginas ya descargadas con éxito. Ahora hay una pequeña pausa
-  entre página y página, y un 429 se reintenta con espera creciente en
-  vez de abortar la importación entera. Verificado: la misma cuenta de
-  7250 partidas ya importa completa.
+  las páginas ya descargadas con éxito. Ahora hay una pausa entre página
+  y página que se duplica en cuanto una sola página choca con el
+  límite (no solo para esa página — para el resto de la importación),
+  y un 429 se reintenta con espera creciente antes de rendirse. La
+  primera versión de este arreglo (pausa fija de 1s, 3 reintentos)
+  bastó para completar la cuenta de 7250 partidas una vez, pero volvió
+  a fallar en un segundo intento poco después — el margen de BGG no se
+  había recuperado del todo, así que un retroceso fijo no bastaba;
+  de ahí que ahora se adapte sobre la marcha en vez de asumir un ritmo
+  fijo.
 
 ### Cambiado
 

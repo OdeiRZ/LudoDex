@@ -156,26 +156,32 @@ class BggClient
 
         $plays = [];
 
+        // Starts at 1s, doubled (capped at 10s) every time a page actually
+        // gets rate-limited - not just a fixed guess. Reproduced directly
+        // against a real 7250-play account twice: hammering /plays with no
+        // delay at all got a 429 at page 15; with a flat 1s delay and a
+        // few retries per page it succeeded once, then failed again on a
+        // second attempt shortly after (BGG's own window hadn't cleared
+        // from the first run yet) - a single fixed delay can't account for
+        // how sensitive BGG happens to be right now, so this backs off
+        // harder for the rest of the run the moment it sees any sign of
+        // that, instead of assuming the same pace will keep working.
+        $pageDelayMicroseconds = 1_000_000;
+
         // Defensive cap, not an expected limit - a real account's history
         // paginates out well before 500 pages (50,000 plays). Guards
         // against looping forever on a malformed response that never
         // reports fewer than 100 plays.
         for ($page = 1; $page <= 500; $page++) {
             if ($page > 1) {
-                // BGG rate-limits rapid sequential pagination - reproduced
-                // directly against a real 7250-play account: hammering
-                // /plays back to back (no delay at all beyond each
-                // request's own network latency) got a 429 starting at
-                // page 15. A second between pages doesn't guarantee
-                // avoiding it (BGG's own window/threshold isn't
-                // documented), just make it far less likely for the
-                // large-but-not-extreme accounts most users actually
-                // have - fetchPlaysPage()'s own retry below is the real
-                // safety net for whenever it happens anyway.
-                Sleep::usleep(1_000_000);
+                Sleep::usleep($pageDelayMicroseconds);
             }
 
-            $response = $this->fetchPlaysPage($username, $page, $minDate);
+            ['response' => $response, 'rate_limited' => $rateLimited] = $this->fetchPlaysPage($username, $page, $minDate);
+
+            if ($rateLimited) {
+                $pageDelayMicroseconds = min($pageDelayMicroseconds * 2, 10_000_000);
+            }
 
             if ($response === null) {
                 return ['status' => 'error', 'message' => __('bgg.unreachable'), 'transient' => true];
@@ -228,20 +234,24 @@ class BggClient
 
     /**
      * A 429 here is BGG's own rate limit, observed directly to be
-     * short-lived (a plain request a little later succeeded again with no
-     * special handling) - so it's retried a few times with backoff rather
-     * than failing the whole import outright over one throttled page,
-     * discarding every page already fetched successfully before it.
-     * Returns null only for a connection-level failure (caller logs and
-     * gives up entirely, same as before); a non-null response - even a
-     * 429 that never cleared across every retry - is returned as-is for
-     * the caller's own successful() check to handle the same way it
-     * already does.
+     * short-lived most of the time (a plain request a little later
+     * succeeded again with no special handling) but not reliably so - a
+     * second full run shortly after a first successful one hit it harder,
+     * presumably because BGG's own window hadn't cleared yet. Retried
+     * several times with a longer backoff than that alone would need,
+     * rather than failing the whole import outright over one throttled
+     * page and discarding every page already fetched successfully before
+     * it. `rate_limited` tells the caller a 429 showed up at all (even if
+     * this same call went on to recover from it) so it can slow the rest
+     * of the run down too, not just this one page.
+     *
+     * @return array{response: ?Response, rate_limited: bool}
      */
-    private function fetchPlaysPage(string $username, int $page, ?string $minDate): ?Response
+    private function fetchPlaysPage(string $username, int $page, ?string $minDate): array
     {
-        $backoffSecondsByAttempt = [0, 2, 4, 8];
+        $backoffSecondsByAttempt = [0, 3, 6, 12, 24, 40];
         $response = null;
+        $rateLimited = false;
 
         foreach ($backoffSecondsByAttempt as $attempt => $delaySeconds) {
             if ($delaySeconds > 0) {
@@ -257,17 +267,18 @@ class BggClient
             } catch (ConnectionException $e) {
                 Log::warning('BGG /plays request failed to connect', ['page' => $page, 'exception' => $e->getMessage()]);
 
-                return null;
+                return ['response' => null, 'rate_limited' => $rateLimited];
             }
 
             if ($response->status() !== 429) {
-                return $response;
+                return ['response' => $response, 'rate_limited' => $rateLimited];
             }
 
+            $rateLimited = true;
             Log::info('BGG /plays rate-limited, retrying', ['page' => $page, 'attempt' => $attempt + 1]);
         }
 
-        return $response;
+        return ['response' => $response, 'rate_limited' => true];
     }
 
     /**
