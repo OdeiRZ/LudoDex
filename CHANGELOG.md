@@ -7,6 +7,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Cambiado
+
+- La burbuja que muestra la letra/década/tramo mientras se arrastra la
+  tira de salto rápido ahora sigue la altura real del dedo/puntero en
+  vez de quedarse siempre a la misma altura fija (el centro de la
+  propia tira) — pedido directamente.
+
 ## [0.10.0] - 2026-08-22
 
 ### Corregido
