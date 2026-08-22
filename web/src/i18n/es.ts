@@ -144,6 +144,8 @@ export default {
     players: 'Jugadores',
     min: 'Min.',
     max: 'Max.',
+    minFull: 'Mínimo',
+    maxFull: 'Máximo',
     playtime: 'Duración',
     minutesShort: 'min',
     weight: 'Complejid. (1-5)',

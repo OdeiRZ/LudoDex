@@ -144,6 +144,8 @@ export default {
     players: 'Players',
     min: 'Min.',
     max: 'Max.',
+    minFull: 'Minimum',
+    maxFull: 'Maximum',
     playtime: 'Duration',
     minutesShort: 'min',
     weight: 'Weight (1-5)',

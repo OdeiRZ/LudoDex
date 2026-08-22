@@ -202,7 +202,7 @@ async function onLookupBgg() {
     left each of them stretched across half the form's width for almost
     nothing to show. .field-compact caps them to just enough room instead,
     so all four fit comfortably on one line. -->
-    <div class="field-row">
+    <div class="field-row stats-row">
       <div class="field-compact">
         <label for="year_published">{{ $t('gameForm.yearPublished') }}</label>
         <input id="year_published" v-model.number="form.year_published" type="number" min="1" />
@@ -251,12 +251,18 @@ async function onLookupBgg() {
         <legend>{{ $t('gameForm.players') }}</legend>
         <div class="range-input">
           <input id="min_players" v-model.number="form.min_players" type="number" min="1" />
-          <label for="min_players">{{ $t('gameForm.min') }}</label>
+          <label for="min_players">
+            <span class="range-label-short">{{ $t('gameForm.min') }}</span>
+            <span class="range-label-full">{{ $t('gameForm.minFull') }}</span>
+          </label>
         </div>
         <span class="range-sep">–</span>
         <div class="range-input">
           <input id="max_players" v-model.number="form.max_players" type="number" min="1" />
-          <label for="max_players">{{ $t('gameForm.max') }}</label>
+          <label for="max_players">
+            <span class="range-label-short">{{ $t('gameForm.max') }}</span>
+            <span class="range-label-full">{{ $t('gameForm.maxFull') }}</span>
+          </label>
         </div>
       </fieldset>
 
@@ -264,12 +270,18 @@ async function onLookupBgg() {
         <legend>{{ $t('gameForm.playtime') }}</legend>
         <div class="range-input">
           <input id="min_playtime" v-model.number="form.min_playtime_minutes" type="number" min="1" />
-          <label for="min_playtime">{{ $t('gameForm.min') }}</label>
+          <label for="min_playtime">
+            <span class="range-label-short">{{ $t('gameForm.min') }}</span>
+            <span class="range-label-full">{{ $t('gameForm.minFull') }}</span>
+          </label>
         </div>
         <span class="range-sep">–</span>
         <div class="range-input">
           <input id="max_playtime" v-model.number="form.max_playtime_minutes" type="number" min="1" />
-          <label for="max_playtime">{{ $t('gameForm.max') }}</label>
+          <label for="max_playtime">
+            <span class="range-label-short">{{ $t('gameForm.max') }}</span>
+            <span class="range-label-full">{{ $t('gameForm.maxFull') }}</span>
+          </label>
         </div>
         <span class="input-suffix">{{ $t('gameForm.minutesShort') }}</span>
       </fieldset>
@@ -455,6 +467,89 @@ center (see "años" next to min_age). */
   margin-top: 10px;
 }
 
+/* Swapped for the spelled-out .range-label-full below ≤547px (see that
+media query) - once Jugadores/Duración each get a full row to
+themselves there, "Min."/"Max." reads as needlessly clipped for the
+room actually available. */
+.range-label-full {
+  display: none;
+}
+
+/* At ≤547px (asked for directly), Jugadores and Duración each take the
+full row width instead of sitting side by side - .range-field's own
+flex: 0 1 auto (sized to content) is overridden to a 100% basis, which
+with .field-row's flex-wrap is enough on its own to push each onto its
+own line. Min. and Max. then each grow to fill exactly half that row
+(.range-input flex: 1 1 0, the input itself back to the width: 100%
+every other input already gets - .range-field's own width: 70/90px was
+what had been capping it) instead of sitting in a small fixed-width box
+with empty space on either side (asked for directly). Captions swap
+from the abbreviated "Min."/"Max." to the full "Mínimo"/"Máximo" too -
+both fields have the width to spare now that they're not squeezed side
+by side.
+
+Duración's trailing "min" suffix is pulled out of that flex row
+(position: absolute instead) - left in flow, it would compete with
+Jugadores/Duración's own two range-inputs for space (there being no
+equivalent sibling on Jugadores' side to match), so the two fieldsets'
+flex: 1 1 0 inputs would end up different widths and the boxes
+wouldn't line up between the two stacked rows. Pinned to the
+fieldset's own right padding edge, which - now that Max genuinely
+stretches most of the way there itself - sits right next to it rather
+than stranded. */
+@media (max-width: 547px) {
+  .range-field {
+    position: relative;
+    flex: 1 1 100%;
+    /* Extra room on the right for Duración's absolutely-positioned "min"
+    (below), so its Max input - which now stretches most of the way
+    across the fieldset - stops short of growing underneath it. Applied
+    to both fieldsets, not just Duración: Jugadores has no suffix
+    competing for that space, but giving it the same padding is what
+    keeps its own Min./Max. the exact same width as Duración's, matching
+    between the two stacked rows the way the rest of this breakpoint
+    already does. */
+    padding-right: 48px;
+  }
+
+  .range-input {
+    flex: 1 1 0;
+  }
+
+  .range-field input {
+    width: 100%;
+  }
+
+  .range-field .input-suffix {
+    position: absolute;
+    top: 22px;
+    right: var(--space-4);
+    margin-top: 0;
+  }
+
+  .range-label-short {
+    display: none;
+  }
+
+  .range-label-full {
+    display: inline;
+  }
+
+  /* Año de juego/Ranking en BGG/Valoración/Complejidad (asked for
+  directly): 1fr columns instead of a fixed compact width, so each of
+  the two fields sharing a row grows to fill exactly half of it - same
+  reasoning as Jugadores/Duración's own inputs just above. Wide enough
+  on its own even at a real 360-366px phone (half this card's ~283px
+  content width, minus the gap between them, is still more room than
+  the fixed 118px that width used to be capped to there) that the
+  narrow-phone-specific widening this replaced isn't needed anymore. */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+  }
+}
+
 /* At a real 360-366px phone, Edad recomendada and Estructura were
 stacking onto their own separate lines instead of sharing the row:
 .field-row's shared min-width: 140px per child needs 296px for the
@@ -479,19 +574,6 @@ the same way its legend/label content does. */
   .structure-field {
     padding-left: var(--space-2);
     padding-right: var(--space-2);
-  }
-
-  /* Año de juego/Ranking en BGG/Valoración/Complejidad share this
-  card's own ~283px content width two at a time (four never fit on
-  one line even at their normal 108px, so this only ever affects
-  which two share a line) - 108px left "Ranking en BGG" and
-  "Valoración (0-10)" only 1-2px of real margin over their own
-  measured single-line width, thin enough that a real phone's font
-  rendering (not just this simulated width) tips them onto a second
-  line. Widened enough to leave real breathing room instead of a
-  margin that only works in theory. */
-  .field-compact {
-    flex-basis: 118px;
   }
 }
 </style>
