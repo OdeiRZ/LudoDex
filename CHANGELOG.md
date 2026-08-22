@@ -45,9 +45,11 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   ordenada por "Año de juego", con las décadas realmente presentes en la
   colección en vez de las letras (calculadas de la colección completa,
   no solo de lo filtrado, para que no cambien de sitio al buscar) más un
-  último hueco para los juegos sin año conocido — ese hueco se queda
-  siempre al final, en ambos sentidos de orden, igual que esos juegos se
-  quedan siempre al final de la propia lista. No se ha añadido para el
+  último hueco para los juegos sin año conocido (solo si hay al menos
+  uno en la colección — si todos tienen año, ese hueco ni aparece) —
+  cuando sí aparece, se queda siempre al final, en ambos sentidos de
+  orden, igual que esos juegos se quedan siempre al final de la propia
+  lista. No se ha añadido para el
   ranking de BGG: al ser un rango casi sin límite superior y con la
   mayoría de juegos sin ranking, no tiene un conjunto pequeño y natural
   de "cajones" como letras o décadas — necesitaría un diseño distinto

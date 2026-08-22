@@ -165,7 +165,15 @@ también se quedan siempre al final de la propia lista (ver el
 comentario del propio sort por año, más arriba en este componente), así
 que a diferencia de "#" en el alfabeto (que sí reordena junto al resto,
 al ser un nombre cualquiera ordenado por `localeCompare` normal), aquí no
-tendría sentido que reordenase. `nearestAvailableBucket` sigue
+tendría sentido que reordenase.
+
+Ese cajón `'?'` solo existe de verdad (`hasUnknownYear`) mientras al
+menos un juego de la colección carezca de año — si todos lo tienen, ni
+`yearBuckets` ni `displayBuckets` lo incluyen, y desaparece de la tira
+por completo en vez de quedarse siempre atenuado sin nada que alcanzar
+(preguntado directamente al ponerle año al único juego que no lo tenía).
+
+`nearestAvailableBucket` sigue
 recorriendo `scrubberBuckets` en su orden canónico (A→Z o década más
 antigua primero) para buscar el cajón disponible más cercano — esa
 búsqueda es sobre proximidad dentro del propio conjunto de cajones, no

@@ -198,8 +198,21 @@ const yearDecades = computed(() => {
   return [...decades].sort((a, b) => a - b).map(String)
 })
 
+// Only a real slot at all once at least one game actually needs it -
+// otherwise it's a dead, permanently-dimmed entry with nothing to ever
+// jump to, cluttering the strip for no reason (asked about directly,
+// after the collection's one yearless game got a year and the "?" kept
+// showing with nothing behind it).
+const hasUnknownYear = computed(() =>
+  games.collection.some((entry) => entry.game.year_published === null),
+)
+
+const yearBuckets = computed(() =>
+  hasUnknownYear.value ? [...yearDecades.value, YEAR_UNKNOWN] : yearDecades.value,
+)
+
 const scrubberBuckets = computed<string[]>(() =>
-  sortCriterion.value === 'year' ? [...yearDecades.value, YEAR_UNKNOWN] : ALPHABET,
+  sortCriterion.value === 'year' ? yearBuckets.value : ALPHABET,
 )
 
 function bucketForEntry(entry: UserGame): string {
@@ -235,7 +248,7 @@ const showScrubber = computed(
 const displayBuckets = computed(() => {
   if (sortCriterion.value === 'year') {
     const decades = sortOrder.value === 'asc' ? yearDecades.value : [...yearDecades.value].reverse()
-    return [...decades, YEAR_UNKNOWN]
+    return hasUnknownYear.value ? [...decades, YEAR_UNKNOWN] : decades
   }
 
   return sortOrder.value === 'asc' ? ALPHABET : [...ALPHABET].reverse()
