@@ -693,8 +693,12 @@ longer needs justify-content: space-between to push it to the far side. */
 /* margin-bottom: 5px (asked for directly) only applies here, while
 filters are collapsed - .filters itself (the expanded form) has its
 own separate margin-bottom, halved rather than matched to this one. */
+/* padding: 0.75rem (asked for directly) overrides the global .card
+class's own var(--space-4) - a one-line filter summary doesn't need as
+much breathing room as an actual content card. */
 .filters-summary {
   position: relative;
+  padding: 0.75rem;
   color: var(--color-text-muted);
   font-size: 0.9rem;
   margin-bottom: 5px;

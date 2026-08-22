@@ -62,6 +62,14 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   (botón atrás real, o `back()`/`forward()`/`go()`), no solo en
   navegaciones hacia una página nueva.
 
+### Cambiado
+
+- El resumen de filtros colapsado en "¿A qué jugamos?" (el texto con
+  los filtros aplicados, p. ej. "2 jugadores") reduce su `padding` de
+  1.5rem (heredado de `.card`) a 0.75rem (pedido directamente) — no
+  necesita tanto aire como una tarjeta de contenido normal, al ser solo
+  una línea de texto.
+
 ## [0.8.0] - 2026-08-22
 
 ### Añadido
