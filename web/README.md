@@ -135,6 +135,16 @@ o rango), de más ancho a más estrecho:
 | `≤388px` | `font-size: 12px` en todos los controles del formulario (labels, legends, selects, botones, radios) — a partir de aquí ya no caben con el tamaño normal (14px). |
 | `≤352px` | Recorte extra de `gap`/`min-width` en las etiquetas de Minutos disponibles, encima del `font-size: 12px` del tramo anterior, para que el 3+2 se sostenga hasta un móvil real de ~345px. |
 
+Aparte del formulario, `.title-row` (título + contador + botón de vista) es
+un flex-wrap propio, sin ningún ajuste hasta un real ~346px: por defecto,
+si no caben los tres, el último en orden de flujo (el botón de vista) es
+el primero en bajar de línea, y solo si el título + botón tampoco caben
+baja también el contador. Pedido al revés (el botón de vista, al ser de
+tamaño fijo, se queda junto al título más tiempo que el contador, que sí
+puede permitirse su propia línea) — `≤346px` intercambia el `order` de
+ambos (contador por detrás del botón en la secuencia de flujo) sin tocar
+su posición visual mientras todavía quepan los tres en una línea.
+
 Dos técnicas que se repiten en varios de estos tramos:
 - **Forzar un salto de línea real**: un `order` por sí solo no reordena a una
   línea distinta — `flex-wrap` decide la línea de cada elemento por su

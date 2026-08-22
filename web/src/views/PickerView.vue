@@ -638,6 +638,28 @@ else on this page, just with only one rendition actually live now. */
   margin-right: 5px;
 }
 
+/* .title-row's own flex-wrap (no width override otherwise) drops
+whichever item runs out of room first in flex order - by default that
+was .count (DOM order: title, count, toggle), wrapping alone at a real
+346px before the title+toggle pair themselves stopped fitting at 306px
+(both reported directly). Asked for the opposite priority: the toggle
+is the small, fixed-size one, so keeping it paired with the title
+longer reads better than a count that can wrap alone without breaking
+anything either title or toggle need. order swaps count behind toggle
+in flex sequence (unconditionally past this width, not just while
+actually wrapping) - .count now gives way first, and only once
+title+toggle alone stop fitting does the toggle wrap down too, exactly
+mirroring the original two-stage behavior with the priority reversed. */
+@media (max-width: 346px) {
+  .title-density-toggle {
+    order: 1;
+  }
+
+  .count {
+    order: 2;
+  }
+}
+
 /* position: relative anchors .filters-toggle-floating, same as .filters
 itself - the button isn't a flex participant here either, so this no
 longer needs justify-content: space-between to push it to the far side. */

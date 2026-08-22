@@ -26,6 +26,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   centrarse en toda la altura de la fila del título — a este ancho el
   título parte en dos líneas (título y recuento) y quedaba centrado
   entre ambas en vez de a la altura de la segunda.
+- En "¿A qué jugamos?", a un real ~346px, se invierte qué elemento de
+  la fila del título baja de línea primero cuando no caben los tres
+  (título, contador y botón de vista): antes era el botón el que
+  bajaba solo a los 346px, y el contador solo bajaba después, a los
+  306px (ambos anchos reportados directamente); ahora el contador es
+  el primero en ceder, y el botón (de tamaño fijo) se queda junto al
+  título más tiempo.
 
 ## [0.8.0] - 2026-08-22
 
