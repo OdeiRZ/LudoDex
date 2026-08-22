@@ -642,21 +642,41 @@ else on this page, just with only one rendition actually live now. */
 whichever item runs out of room first in flex order - by default that
 was .count (DOM order: title, count, toggle), wrapping alone at a real
 346px before the title+toggle pair themselves stopped fitting at 306px
-(both reported directly). Asked for the opposite priority: the toggle
-is the small, fixed-size one, so keeping it paired with the title
-longer reads better than a count that can wrap alone without breaking
-anything either title or toggle need. order swaps count behind toggle
-in flex sequence (unconditionally past this width, not just while
-actually wrapping) - .count now gives way first, and only once
-title+toggle alone stop fitting does the toggle wrap down too, exactly
-mirroring the original two-stage behavior with the priority reversed. */
+(both reported directly). A first attempt just swapped their flex
+order to reverse that priority, but order controls visual position too
+- once both ended up sharing line 2, the toggle rendered first (left)
+and the count after it, backwards from the collection toolbar's own
+equivalent state (count left, toggle flush against the right edge,
+matching image reference). Switched to the same technique that other
+toolbar already uses instead of patching flex order further: a small
+grid, title and count stacked in one column, the toggle in its own
+column spanning both rows and bottom-aligned so it lines up with count
+specifically, not centered across the title+count block's combined
+height. */
 @media (max-width: 346px) {
-  .title-density-toggle {
-    order: 1;
+  .title-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'title   toggle'
+      'count   toggle';
+    column-gap: var(--space-2);
+    row-gap: 0;
+  }
+
+  .title-row h1 {
+    grid-area: title;
   }
 
   .count {
-    order: 2;
+    grid-area: count;
+  }
+
+  .title-density-toggle {
+    grid-area: toggle;
+    align-self: end;
+    margin-left: 0;
+    margin-right: 0;
   }
 }
 

@@ -139,11 +139,16 @@ Aparte del formulario, `.title-row` (título + contador + botón de vista) es
 un flex-wrap propio, sin ningún ajuste hasta un real ~346px: por defecto,
 si no caben los tres, el último en orden de flujo (el botón de vista) es
 el primero en bajar de línea, y solo si el título + botón tampoco caben
-baja también el contador. Pedido al revés (el botón de vista, al ser de
-tamaño fijo, se queda junto al título más tiempo que el contador, que sí
-puede permitirse su propia línea) — `≤346px` intercambia el `order` de
-ambos (contador por detrás del botón en la secuencia de flujo) sin tocar
-su posición visual mientras todavía quepan los tres en una línea.
+baja también el contador — y cuando ambos acababan compartiendo la
+segunda línea, salían en el orden "botón, contador" en vez de "contador,
+botón" (un primer intento con `order` invertía la prioridad de quién cede
+primero, pero eso mismo determina también el orden visual). `≤346px`
+pasa `.title-row` a una rejilla en vez de flex, igual que ya hace el
+toolbar de "Tu colección" en su propio tramo estrecho: título en su
+propia fila, contador debajo, y el botón en una columna aparte que
+abarca ambas filas con `align-self: end` para quedar a la altura del
+contador — mismo aspecto en las dos páginas, sin la inconsistencia de
+`order`.
 
 Dos técnicas que se repiten en varios de estos tramos:
 - **Forzar un salto de línea real**: un `order` por sí solo no reordena a una

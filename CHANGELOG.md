@@ -33,6 +33,14 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   306px (ambos anchos reportados directamente); ahora el contador es
   el primero en ceder, y el botón (de tamaño fijo) se queda junto al
   título más tiempo.
+- Ese mismo ajuste pasa de intercambiar el `order` de contador/botón a
+  usar una pequeña rejilla, igual que ya hace "Tu colección" en su
+  propio tramo estrecho (reportado con capturas: el primer intento no
+  se veía bien — cuando contador y botón acababan compartiendo línea,
+  salían en el orden "botón, contador" en vez de "contador, botón",
+  distinto del diseño ya usado en Colección). Mismo aspecto final en
+  ambas páginas: título en su propia línea, contador debajo a la
+  izquierda, botón pegado al borde derecho a la misma altura.
 
 ## [0.8.0] - 2026-08-22
 
