@@ -119,15 +119,15 @@ custom property for the whole expression would be one way to close
 that too, not done here) plus a fixed 2.5rem - the original gap between
 the two when the strip was still hardcoded at right: 4px (2.75rem -
 4px), so the bubble keeps sitting the same distance outside the strip
-regardless of where that ends up landing. Same +40px top offset as the
-strip too, kept in sync by hand for the same reason - the bubble is
-only ever shown while actively dragging the strip, so it has to track
-wherever that ends up sitting. */
+regardless of where that ends up landing. No top/transform here (unlike
+.az-scrubber above) - top is set inline from scrubBubbleTop (asked for
+directly: the bubble should track the pointer's own height instead of
+always sitting at the strip's center), and centering on that value is
+folded into the inline transform right alongside it, not split across
+here and there. */
 .az-scrubber-bubble {
   position: fixed;
   right: calc(max(14px, calc((100vw - var(--content-max-width)) / 2 + var(--space-4) - var(--space-2))) + 2.5rem);
-  top: calc(50% + 40px);
-  transform: translateY(-50%);
   z-index: 21;
   /* min-width (not a fixed width) plus horizontal padding is what lets
   this same bubble fit a single letter and a 4-digit decade label

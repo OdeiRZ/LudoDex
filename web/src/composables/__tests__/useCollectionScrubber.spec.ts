@@ -292,6 +292,50 @@ describe('useCollectionScrubber - drag/jump behavior', () => {
     expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' })
   })
 
+  it('positions the bubble at the pointer, not fixed to the strip center', () => {
+    const { scrubber } = setup(bigCollection())
+    const container = document.createElement('div')
+    vi.spyOn(container, 'getBoundingClientRect').mockReturnValue({
+      top: 0,
+      height: 270,
+      left: 0,
+      width: 30,
+      right: 30,
+      bottom: 270,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    })
+
+    scrubber.startScrub(fakePointerEvent({ clientY: 30, currentTarget: container }))
+    expect(scrubber.scrubBubbleTop.value).toBe(30)
+
+    scrubber.moveScrub(fakePointerEvent({ clientY: 200, currentTarget: container }))
+    expect(scrubber.scrubBubbleTop.value).toBe(200)
+  })
+
+  it('clamps the bubble to the strip bounds when the pointer drags past either edge', () => {
+    const { scrubber } = setup(bigCollection())
+    const container = document.createElement('div')
+    vi.spyOn(container, 'getBoundingClientRect').mockReturnValue({
+      top: 50,
+      height: 270,
+      left: 0,
+      width: 30,
+      right: 30,
+      bottom: 320,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    })
+
+    scrubber.startScrub(fakePointerEvent({ clientY: -100, currentTarget: container }))
+    expect(scrubber.scrubBubbleTop.value).toBe(50)
+
+    scrubber.moveScrub(fakePointerEvent({ clientY: 900, currentTarget: container }))
+    expect(scrubber.scrubBubbleTop.value).toBe(320)
+  })
+
   it('snaps to the nearest available bucket when the one under the pointer has no games', () => {
     // Only "C" and "Z" are available; the pointer lands on "M", which
     // isn't - "C" is 10 letters away, "Z" is 13, so it should resolve to

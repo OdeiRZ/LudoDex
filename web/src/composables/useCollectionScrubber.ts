@@ -163,6 +163,13 @@ export function useCollectionScrubber(options: UseCollectionScrubberOptions) {
 
   const scrubbing = ref(false)
   const scrubLetter = ref<string | null>(null)
+  // Viewport Y the bubble should sit at while dragging - tracks the
+  // pointer itself (clamped to the strip's own bounds, since drag events
+  // keep arriving even once a finger sweeps past the strip's actual top/
+  // bottom edge) rather than staying fixed at the strip's center, so the
+  // callout stays right next to whatever the pointer is currently over
+  // (asked for directly).
+  const scrubBubbleTop = ref(0)
 
   // Stays fully transparent until something actually reveals it - a mouse
   // hovering over its own (narrow) hit area counts as "approaching" it, but
@@ -225,17 +232,25 @@ export function useCollectionScrubber(options: UseCollectionScrubberOptions) {
     return displayBuckets.value[Math.floor(ratio * displayBuckets.value.length)]
   }
 
+  function updateBubblePosition(clientY: number, container: HTMLElement) {
+    const rect = container.getBoundingClientRect()
+    scrubBubbleTop.value = Math.min(Math.max(clientY, rect.top), rect.bottom)
+  }
+
   function startScrub(event: PointerEvent) {
     const container = event.currentTarget as HTMLElement
     container.setPointerCapture(event.pointerId)
     hovering.value = true
     scrubbing.value = true
+    updateBubblePosition(event.clientY, container)
     jumpToBucket(bucketAtPointer(event.clientY, container))
   }
 
   function moveScrub(event: PointerEvent) {
     if (!scrubbing.value) return
-    jumpToBucket(bucketAtPointer(event.clientY, event.currentTarget as HTMLElement))
+    const container = event.currentTarget as HTMLElement
+    updateBubblePosition(event.clientY, container)
+    jumpToBucket(bucketAtPointer(event.clientY, container))
   }
 
   // A real mouse keeps sending its own pointerenter/pointerleave once
@@ -258,6 +273,7 @@ export function useCollectionScrubber(options: UseCollectionScrubberOptions) {
     availableBuckets,
     scrubbing,
     scrubLetter,
+    scrubBubbleTop,
     hovering,
     scrubberAriaLabel,
     onScrubberEnter,

@@ -324,6 +324,7 @@ const {
   availableBuckets,
   scrubbing,
   scrubLetter,
+  scrubBubbleTop,
   hovering,
   scrubberAriaLabel,
   onScrubberEnter,
@@ -624,7 +625,13 @@ const {
       </span>
     </div>
 
-    <div v-if="scrubbing && scrubLetter" class="az-scrubber-bubble">{{ scrubLetter }}</div>
+    <div
+      v-if="scrubbing && scrubLetter"
+      class="az-scrubber-bubble"
+      :style="{ top: `${scrubBubbleTop}px`, transform: 'translateY(-50%)' }"
+    >
+      {{ scrubLetter }}
+    </div>
   </div>
 </template>
 
