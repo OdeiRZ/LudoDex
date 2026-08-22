@@ -7,6 +7,8 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-08-22
+
 ### Corregido
 
 - Importar el historial de partidas fallaba por completo ("No se han
@@ -45,6 +47,11 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   plano de 5 puntos al mismo emoji 🎲 que ya se usa como enlace a "Inicio"
   en la barra de navegación, sobre el mismo degradado teal — más volumen
   y contraste, y coherente con lo que ya se ve dentro de la propia app.
+- El icono de carga (`LoadingSpinner`) pasa del mismo cuadrado plano de 5
+  puntos que llevaba el favicon antiguo a un dado isométrico, a juego con
+  el nuevo icono de la app — sigue dibujado como vector en `currentColor`,
+  así que se adapta igual a claro/oscuro y a cualquier color de texto
+  donde se use.
 
 ### Corregido
 
