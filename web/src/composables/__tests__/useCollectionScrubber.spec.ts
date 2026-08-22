@@ -156,7 +156,7 @@ describe('useCollectionScrubber - name mode buckets', () => {
   it('reverses the whole alphabet, "#" included, when sorted Z-A', () => {
     const { scrubber } = setup(bigCollection(), { order: 'desc' })
     expect(scrubber.displayBuckets.value[0]).toBe('Z')
-    expect(scrubber.displayBuckets.value.at(-1)).toBe('#')
+    expect(scrubber.displayBuckets.value[scrubber.displayBuckets.value.length - 1]).toBe('#')
   })
 })
 
@@ -170,7 +170,7 @@ describe('useCollectionScrubber - year mode buckets', () => {
     const entries = bigCollection()
     entries.push(makeEntry({ name: 'Mystery', year_published: null, bgg_rank: null }))
     const { scrubber } = setup(entries, { criterion: 'year' })
-    expect(scrubber.displayBuckets.value.at(-1)).toBe('?')
+    expect(scrubber.displayBuckets.value[scrubber.displayBuckets.value.length - 1]).toBe('?')
   })
 
   it('omits the "?" bucket entirely when every game has a known year', () => {
@@ -225,7 +225,7 @@ describe('useCollectionScrubber - rank mode buckets', () => {
     const entries = bigCollection()
     entries.push(makeEntry({ name: 'Homebrew', year_published: 2020, bgg_rank: null }))
     const { scrubber } = setup(entries, { criterion: 'rank' })
-    expect(scrubber.displayBuckets.value.at(-1)).toBe('?')
+    expect(scrubber.displayBuckets.value[scrubber.displayBuckets.value.length - 1]).toBe('?')
 
     const { scrubber: allRanked } = setup(bigCollection(), { criterion: 'rank' })
     expect(allRanked.displayBuckets.value).not.toContain('?')
