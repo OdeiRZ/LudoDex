@@ -7,6 +7,14 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Cambiado
+
+- El ancho máximo de `#app` (1024px) pasa a ser un token compartido
+  (`--content-max-width`, en `base.css`) en vez de estar escrito por
+  duplicado en `main.css` y en la fórmula de posición de la tira de
+  salto rápido — antes, un cambio en uno de los dos sitios no avisaba
+  de que había que actualizar el otro a mano.
+
 ### Corregido
 
 - Tres pequeñas inconsistencias visuales en "Partidas"/"Importar BGG",

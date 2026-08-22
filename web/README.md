@@ -232,26 +232,29 @@ para poder mostrar sin recortarse tanto una sola letra como una década de
 4 dígitos ("1990").
 
 Posición horizontal: `right` no es un valor fijo, sino
-`max(14px, calc((100vw - 1024px) / 2 + var(--space-4) - var(--space-2)))`.
-`#app` (en `main.css`) tiene `max-width: 1024px; margin: 0 auto`, así que
-`(100vw - 1024px) / 2` es exactamente el margen vacío que queda fuera de
-`#app` en un monitor ancho (0 o negativo por debajo de ese ancho, de ahí
-el `max()`); sumar el padding derecho de `#app` (`var(--space-4)`) llega
-hasta el borde real del contenido, y restar `var(--space-2)` separa la
-tira de ese borde en vez de pegarla encima. Anclarla solo a un valor fijo
-(como al principio) la dejaba pegada al borde de la ventana del
-navegador en vez de al de la propia colección — en un monitor ancho
-quedaba lejísimos de las tarjetas, flotando sola sobre fondo vacío. Por
-debajo de 1024px de ancho, la fórmula converge al propio suelo del
-`max()` — subido de `4px` a `14px` (pedido directamente): en un móvil
-real, sentarse justo en el borde de la pantalla arriesga a chocar con el
-gesto de "atrás"/"adelante" que algunos navegadores/sistemas móviles
-reconocen ahí. `.az-scrubber-bubble` usa la misma fórmula más `2.5rem`
-fijos (la separación original entre burbuja y tira cuando esta última
-aún vivía en `right: 4px`), para mantenerse pegada a la tira también
-aquí. `1024px`/`var(--space-4)` no están enlazados con `main.css` por
-ningún mecanismo — si esos valores cambian ahí, hay que actualizarlos
-también aquí a mano.
+`max(14px, calc((100vw - var(--content-max-width)) / 2 + var(--space-4) - var(--space-2)))`.
+`#app` (en `main.css`) tiene `max-width: var(--content-max-width); margin: 0
+auto`, así que `(100vw - var(--content-max-width)) / 2` es exactamente el
+margen vacío que queda fuera de `#app` en un monitor ancho (0 o negativo por
+debajo de ese ancho, de ahí el `max()`); sumar el padding derecho de `#app`
+(`var(--space-4)`) llega hasta el borde real del contenido, y restar
+`var(--space-2)` separa la tira de ese borde en vez de pegarla encima.
+Anclarla solo a un valor fijo (como al principio) la dejaba pegada al borde
+de la ventana del navegador en vez de al de la propia colección — en un
+monitor ancho quedaba lejísimos de las tarjetas, flotando sola sobre fondo
+vacío. Por debajo de ese ancho, la fórmula converge al propio suelo del
+`max()` — subido de `4px` a `14px` (pedido directamente): en un móvil real,
+sentarse justo en el borde de la pantalla arriesga a chocar con el gesto de
+"atrás"/"adelante" que algunos navegadores/sistemas móviles reconocen ahí.
+`.az-scrubber-bubble` usa la misma fórmula más `2.5rem` fijos (la separación
+original entre burbuja y tira cuando esta última aún vivía en `right: 4px`),
+para mantenerse pegada a la tira también aquí — esa duplicación entre las
+dos reglas sigue siendo a mano (una variable compartida para la fórmula
+entera cerraría también eso, no hecho aquí). `--content-max-width` es un
+token en `base.css` (no el número `1024px` repetido en dos sitios distintos)
+precisamente para que `#app` y esta fórmula no puedan desincronizarse en
+silencio si ese ancho cambia algún día — antes de esto, el propio comentario
+del código advertía que había que actualizarlos a mano en los dos sitios.
 
 Posición vertical: `top: calc(50% + 40px)` en vez de un `50%` centrado a
 secas (pedido directamente, aunque signifique dejar de estar centrada

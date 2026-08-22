@@ -40,6 +40,13 @@
   --space-6: 1.5rem;
   --space-8: 2rem;
 
+  /* Also referenced outside #app's own rule (scrubber.css's horizontal
+  positioning formula needs to know where the content column's real
+  right edge lands) - a token here, rather than the literal 1024px
+  repeated in both places, is what keeps a future change to one from
+  silently breaking the other. */
+  --content-max-width: 1024px;
+
   --radius: 10px;
   --radius-sm: 6px;
   --radius-pill: 999px;
