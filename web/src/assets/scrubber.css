@@ -7,7 +7,7 @@ future tweak twice. */
 regardless of scroll position, the whole point of a jump-navigation strip.
 touch-action: none stops the browser's own scroll/pan gesture from
 competing with the drag-to-scrub gesture on touch devices. */
-/* right: 4px alone hugs the true browser edge - fine on mobile, where
+/* right: 14px alone hugs the true browser edge - fine on mobile, where
 #app fills the viewport anyway, but on a wide desktop window #app caps
 out at 1024px and centers with margin: 0 auto, leaving a large empty
 strip of bare background outside it; anchoring to the viewport's own
@@ -18,11 +18,22 @@ right padding (var(--space-4)) reaches its content's real right edge,
 then var(--space-2) pulls back inward from there for a small gap
 instead of sitting flush against it. 1024px/var(--space-4) have to be
 kept in sync with #app's own rule in main.css by hand - nothing ties
-them together. */
+them together. 14px (up from an original 4px, asked for directly) gives
+real breathing room from the screen's own right edge on a phone - a
+strip sitting right at that edge risks colliding with an edge-swipe
+back/forward gesture some mobile browsers/OSes recognize there. */
 .az-scrubber {
   position: fixed;
-  right: max(4px, calc((100vw - 1024px) / 2 + var(--space-4) - var(--space-2)));
-  top: 50%;
+  right: max(14px, calc((100vw - 1024px) / 2 + var(--space-4) - var(--space-2)));
+  /* +40px (asked for directly, no longer perfectly centered on purpose)
+  - dead center overlapped the picker page's own filters show/hide
+  button, which floats at the top of its card right below the title
+  row (confirmed directly: at a real 1281x866 window the two already
+  overlapped by about 15px before this). Pushing the strip's own center
+  down clears it without needing to know that button's exact position -
+  simpler than reading its layout from here, and harmless on the
+  collection page, which has no such button to clear. */
+  top: calc(50% + 40px);
   transform: translateY(-50%);
   z-index: 20;
   display: flex;
@@ -104,11 +115,14 @@ dragging, defeating the point of showing feedback at all. */
 same reasoning as its comment above) plus a fixed 2.5rem - the original
 gap between the two when the strip was still hardcoded at right: 4px
 (2.75rem - 4px), so the bubble keeps sitting the same distance outside
-the strip regardless of where that ends up landing. */
+the strip regardless of where that ends up landing. Same +40px top
+offset as the strip too, kept in sync by hand for the same reason - the
+bubble is only ever shown while actively dragging the strip, so it has
+to track wherever that ends up sitting. */
 .az-scrubber-bubble {
   position: fixed;
-  right: calc(max(4px, calc((100vw - 1024px) / 2 + var(--space-4) - var(--space-2))) + 2.5rem);
-  top: 50%;
+  right: calc(max(14px, calc((100vw - 1024px) / 2 + var(--space-4) - var(--space-2))) + 2.5rem);
+  top: calc(50% + 40px);
   transform: translateY(-50%);
   z-index: 21;
   /* min-width (not a fixed width) plus horizontal padding is what lets

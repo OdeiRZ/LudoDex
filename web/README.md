@@ -232,23 +232,38 @@ para poder mostrar sin recortarse tanto una sola letra como una década de
 4 dígitos ("1990").
 
 Posición horizontal: `right` no es un valor fijo, sino
-`max(4px, calc((100vw - 1024px) / 2 + var(--space-4) - var(--space-2)))`.
+`max(14px, calc((100vw - 1024px) / 2 + var(--space-4) - var(--space-2)))`.
 `#app` (en `main.css`) tiene `max-width: 1024px; margin: 0 auto`, así que
 `(100vw - 1024px) / 2` es exactamente el margen vacío que queda fuera de
 `#app` en un monitor ancho (0 o negativo por debajo de ese ancho, de ahí
 el `max()`); sumar el padding derecho de `#app` (`var(--space-4)`) llega
 hasta el borde real del contenido, y restar `var(--space-2)` separa la
-tira de ese borde en vez de pegarla encima. Anclarla solo a `right: 4px`
+tira de ese borde en vez de pegarla encima. Anclarla solo a un valor fijo
 (como al principio) la dejaba pegada al borde de la ventana del
 navegador en vez de al de la propia colección — en un monitor ancho
 quedaba lejísimos de las tarjetas, flotando sola sobre fondo vacío. Por
-debajo de 1024px de ancho, la fórmula converge al mismo `4px` de antes
-(no hay margen que restar). `.az-scrubber-bubble` usa la misma fórmula
-más `2.5rem` fijos (la separación original entre burbuja y tira cuando
-esta última aún vivía en `right: 4px`), para mantenerse pegada a la tira
-también aquí. `1024px`/`var(--space-4)` no están enlazados con
-`main.css` por ningún mecanismo — si esos valores cambian ahí, hay que
-actualizarlos también aquí a mano.
+debajo de 1024px de ancho, la fórmula converge al propio suelo del
+`max()` — subido de `4px` a `14px` (pedido directamente): en un móvil
+real, sentarse justo en el borde de la pantalla arriesga a chocar con el
+gesto de "atrás"/"adelante" que algunos navegadores/sistemas móviles
+reconocen ahí. `.az-scrubber-bubble` usa la misma fórmula más `2.5rem`
+fijos (la separación original entre burbuja y tira cuando esta última
+aún vivía en `right: 4px`), para mantenerse pegada a la tira también
+aquí. `1024px`/`var(--space-4)` no están enlazados con `main.css` por
+ningún mecanismo — si esos valores cambian ahí, hay que actualizarlos
+también aquí a mano.
+
+Posición vertical: `top: calc(50% + 40px)` en vez de un `50%` centrado a
+secas (pedido directamente, aunque signifique dejar de estar centrada
+del todo) — en "¿A qué jugamos?" el botón de mostrar/ocultar filtros
+flota justo debajo del título, y a un tamaño de ventana real (1281×866px,
+comprobado directamente) la tira centrada llegaba a solaparse con él
+unos 15px. Bajar el centro de la tira 40px la aleja de esa zona sin
+necesidad de leer la posición exacta del botón desde aquí — más simple,
+y no afecta a "Tu colección", que no tiene ese botón. `.az-scrubber-bubble`
+lleva el mismo `+40px`, a mano, por la misma razón que su propio `right`:
+solo se muestra mientras se arrastra la tira, así que tiene que seguirla
+allá donde acabe.
 
 Tamaño fluido (pedido directamente: que la tira encoja de forma continua
 con el ancho de pantalla, no en un salto brusco a un breakpoint):

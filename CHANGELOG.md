@@ -7,6 +7,16 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Corregido
+
+- La tira de salto rápido (letras/décadas/tramos de ranking) separa
+  ahora 14px del borde derecho de la pantalla en vez de 4px, para no
+  arriesgarse a chocar con el gesto de "atrás"/"adelante" que algunos
+  navegadores/sistemas móviles reconocen justo en ese borde. También se
+  ha bajado 40px de su centrado vertical exacto — en "¿A qué jugamos?"
+  llegaba a solaparse con el botón de mostrar/ocultar filtros, que flota
+  justo debajo del título.
+
 ## [0.9.0] - 2026-08-22
 
 ### Añadido
