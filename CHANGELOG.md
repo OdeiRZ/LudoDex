@@ -25,6 +25,18 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   curso) tampoco tenía límite, a diferencia de la ruta que la inicia —
   ahora lleva `throttle:30,1`, generoso respecto al sondeo real cada 3s
   del frontend (~20/min) pero sí acota un sondeo descontrolado.
+- Importar partidas desde "Importar BGG" refrescaba la lista de
+  partidas pero no las estadísticas agregadas — al volver después a
+  "Partidas", el total/top 3 se quedaban con los datos de antes de
+  importar, ya que esa página solo refresca sus estadísticas si no las
+  tenía cargadas ya. Ahora refresca ambas cosas, igual que ya hacía el
+  propio botón de reimportar dentro de "Partidas".
+
+### Añadido
+
+- Tests para `useCollectionScrubber` (el composable de la tira de salto
+  rápido) — no tenía ninguno pese a ser, con diferencia, la pieza de
+  lógica más compleja sin cubrir del frontend.
 
 ## [0.9.0] - 2026-08-22
 

@@ -161,7 +161,13 @@ async function onPlaysSubmit() {
 
   try {
     playsResult.value = await plays.importPlays(playsUsername.value)
-    plays.fetchPage(1)
+    // Both, not just the page - PlaysView's own stats bar reads
+    // `plays.stats` independently of `plays.entries`, and its mount guard
+    // only refetches stats when null, so without this an import started
+    // from here left the list fresh but the totals/top-3 stale until an
+    // unrelated full reload (found via a caching audit, not reported
+    // directly).
+    await Promise.all([plays.fetchPage(1), plays.fetchStats()])
   } catch {
     playsErrorMessage.value = t('importBgg.playsGenericError')
   } finally {

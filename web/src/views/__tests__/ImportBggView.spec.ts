@@ -398,6 +398,7 @@ describe('ImportBggView', () => {
     const { wrapper, playsStore } = mountImport()
     const importSpy = vi.spyOn(playsStore, 'importPlays').mockResolvedValue({ imported_count: 7 })
     const fetchPageSpy = vi.spyOn(playsStore, 'fetchPage').mockResolvedValue()
+    vi.spyOn(playsStore, 'fetchStats').mockResolvedValue()
 
     await submitPlaysUsername(wrapper)
 
@@ -406,10 +407,27 @@ describe('ImportBggView', () => {
     expect(wrapper.text()).toContain('7 partidas importadas.')
   })
 
+  // Regression test: this refetch used to only cover fetchPage, leaving
+  // PlaysView's own stats bar (total plays, top 3...) stale after an
+  // import started from here specifically, since PlaysView's mount guard
+  // only refetches stats when null - found via a caching audit, not
+  // reported directly.
+  it('also refreshes the plays stats after a successful import, not just the page', async () => {
+    const { wrapper, playsStore } = mountImport()
+    vi.spyOn(playsStore, 'importPlays').mockResolvedValue({ imported_count: 7 })
+    vi.spyOn(playsStore, 'fetchPage').mockResolvedValue()
+    const fetchStatsSpy = vi.spyOn(playsStore, 'fetchStats').mockResolvedValue()
+
+    await submitPlaysUsername(wrapper)
+
+    expect(fetchStatsSpy).toHaveBeenCalled()
+  })
+
   it('uses the singular form for exactly one imported play', async () => {
     const { wrapper, playsStore } = mountImport()
     vi.spyOn(playsStore, 'importPlays').mockResolvedValue({ imported_count: 1 })
     vi.spyOn(playsStore, 'fetchPage').mockResolvedValue()
+    vi.spyOn(playsStore, 'fetchStats').mockResolvedValue()
 
     await submitPlaysUsername(wrapper)
 
@@ -519,6 +537,7 @@ describe('ImportBggView', () => {
         () => new Promise((resolve) => { resolveImport = resolve }),
       )
       vi.spyOn(playsStore, 'fetchPage').mockResolvedValue()
+      vi.spyOn(playsStore, 'fetchStats').mockResolvedValue()
 
       await wrapper.find('[role="tab"]:nth-of-type(3)').trigger('click')
       await wrapper.find('#plays_bgg_username').setValue('odei')
