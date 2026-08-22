@@ -10,6 +10,21 @@ declare module 'vue-router' {
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  // Without this, every navigation (including router.back()) landed at
+  // the top of the new page regardless - reported directly: editing a
+  // game from partway down a long collection, then saving, lost the
+  // scroll position entirely. savedPosition is only ever populated for
+  // a popstate-driven navigation (the real back/forward buttons, or
+  // router.back()/forward()/go() - never a plain router.push()), so
+  // this only restores scroll for those, falling back to the top for
+  // an ordinary forward navigation to a new page.
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    }
+
+    return { top: 0 }
+  },
   routes: [
     {
       path: '/',

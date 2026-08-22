@@ -50,6 +50,18 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   título y contador el hueco es más pequeño (0.5rem, pedido
   directamente) que el que separa el bloque entero del formulario.
 
+### Corregido
+
+- **Reportado en real**: editar un juego a mitad de un scroll largo de
+  "Tu colección" y guardar los cambios devolvía siempre a la parte
+  superior de la página en vez de a donde se estaba antes de entrar a
+  editar. El router no tenía configurado `scrollBehavior`, y guardar/
+  eliminar volvían con `router.push` (una navegación nueva, no un
+  "atrás" real) — ahora usan `router.back()`, y el router restaura la
+  posición de scroll guardada cuando la navegación es de ese tipo
+  (botón atrás real, o `back()`/`forward()`/`go()`), no solo en
+  navegaciones hacia una página nueva.
+
 ## [0.8.0] - 2026-08-22
 
 ### Añadido

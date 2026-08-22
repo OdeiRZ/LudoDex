@@ -36,7 +36,12 @@ async function mountEdit(path: string, id: string) {
   store.loaded = true
 
   const router = makeRouter()
-  router.push(path)
+  await router.push('/')
+  // A real visit always arrives here from the collection (see the
+  // component's own comment on returnTo) - pushing dashboard first
+  // gives router.back() (used by save/delete) somewhere real to land,
+  // same as an actual back-button press would.
+  await router.push(path)
   await router.isReady()
 
   const wrapper = mount(EditGameView, {

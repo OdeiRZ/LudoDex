@@ -18,8 +18,11 @@ const { t } = useI18n()
 const { isSlow, wrap } = useSlowRequestHint()
 
 // Editing is only reachable from the collection now (the picker's own
-// edit shortcut was replaced by a read-only details view), so both
-// "cancel" and "save" always return there.
+// edit shortcut was replaced by a read-only details view) - still used
+// by "← Volver" below. Save/delete use router.back() instead (not this
+// same push), so returning from either preserves the collection's own
+// scroll position the way a real back-button press would, rather than
+// landing back at its top.
 const returnTo = { name: 'dashboard' }
 
 const form = reactive<GameFormData>({
@@ -141,7 +144,7 @@ async function onSubmit() {
   try {
     await wrap(games.updateGame(props.id, form))
     toast.show(t('editGame.toastSaved'))
-    router.push(returnTo)
+    router.back()
   } catch (err) {
     if (isAxiosError(err) && err.response?.status === 422) {
       const fieldErrors: Record<string, string[]> = err.response.data.errors
@@ -161,7 +164,7 @@ async function onDelete() {
   try {
     await games.deleteGame(props.id)
     toast.show(t('dashboard.toastRemoved'))
-    router.push(returnTo)
+    router.back()
   } catch {
     errors.value = { general: [t('editGame.deleteError')] }
     confirmingDelete.value = false
