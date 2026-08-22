@@ -287,7 +287,7 @@ onMounted(() => {
     <button
       v-if="plays.loaded && plays.currentPage < plays.lastPage"
       type="button"
-      class="btn btn-secondary load-more"
+      class="btn load-more"
       :disabled="plays.loading"
       @click="loadMore"
     >
@@ -409,8 +409,8 @@ h1 {
 }
 
 .reimport-btn svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 
 .reimport-panel {

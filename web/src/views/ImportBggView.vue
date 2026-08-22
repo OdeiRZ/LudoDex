@@ -261,7 +261,7 @@ onMounted(() => {
         </form>
 
         <div v-else-if="phase === 'pending'" role="status" class="status-block">
-          <LoadingSpinner :size="32" />
+          <LoadingSpinner :size="28" />
           <p>
             {{ $t('importBgg.pending') }}
           </p>

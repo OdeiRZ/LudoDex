@@ -9,6 +9,14 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Corregido
 
+- Tres pequeñas inconsistencias visuales en "Partidas"/"Importar BGG",
+  encontradas en una auditoría: el botón "Cargar más" llevaba una clase
+  `btn-secondary` que no está definida en ningún sitio del proyecto (caía
+  en silencio al estilo `.btn` normal); el spinner de carga de "Importar
+  BGG" medía 32px en vez de los 28px que usa el mismo tipo de estado en
+  el resto de páginas; y el icono del botón de reimportar en "Partidas"
+  medía 18px en vez de los 16px de cualquier otro icono-en-botón del
+  proyecto.
 - La tira de salto rápido (letras/décadas/tramos de ranking) separa
   ahora 14px del borde derecho de la pantalla en vez de 4px, para no
   arriesgarse a chocar con el gesto de "atrás"/"adelante" que algunos
