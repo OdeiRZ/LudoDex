@@ -121,37 +121,40 @@ retoca este bloque:
   ese hueco si la rejilla sigue teniendo una segunda columna sin usar,
   en vez de haberla colapsado a una sola.
 
-### Tira de salto rápido — letras o décadas (prototipo)
+### Tira de salto rápido — letras, décadas o tramos de ranking (prototipo)
 
-Solo se muestra mientras `sortCriterion` es `'name'` o `'year'` y hay más
-de 12 juegos en `filtered` — "saltar a la L" (o "a 1994") no tiene un
-significado coherente ordenado por ranking BGG, que es un rango casi sin
-límite superior y con la mayoría de juegos sin ranking: no existe ahí un
-conjunto pequeño y natural de "cajones" como el alfabeto o las décadas,
-así que no se ha construido un tercer panel para ese caso — necesitaría
-un diseño distinto (tramos de ranking, no una casilla por número). Un
-único elemento fijo (`.az-scrubber`, `position: fixed`) hace de zona de
-detección y de tira visual a la vez, para ambos modos.
+Solo se muestra mientras `sortCriterion` es `'name'`, `'year'` o `'rank'`
+y hay más de 12 juegos en `filtered`. Un único elemento fijo
+(`.az-scrubber`, `position: fixed`) hace de zona de detección y de tira
+visual a la vez, para los tres modos.
 
-Cada `<li>` de la lista lleva sus dos atributos siempre calculados,
+Cada `<li>` de la lista lleva sus tres atributos siempre calculados,
 independientemente de cuál esté en uso: `data-letter` (primera letra del
 nombre, mayúscula, sin acentos vía `normalize('NFD')` + regex de marcas
-combinantes) y `data-year-bucket` (década del `year_published`,
-`Math.floor(year / 10) * 10`, o `'?'` si no tiene año conocido). El punto
-vertical donde cae el puntero dentro de la tira (`clientY` relativo a su
-propio `getBoundingClientRect()`) se traduce a un índice sobre
-`scrubberBuckets` (la lista de "cajones" del modo activo: el alfabeto fijo
-para nombre, o las décadas que existan de verdad en la colección para
-año) — no se calcula cajón por `<span>` individual, lo que permite
-arrastrar de un tirón sin perder eventos entre ellos (`setPointerCapture`
-en el `pointerdown` mantiene los `pointermove` dirigidos al mismo
-elemento aunque el dedo/cursor salga de sus límites).
+combinantes), `data-year-bucket` (década del `year_published`,
+`Math.floor(year / 10) * 10`, o `'?'` si no tiene año conocido) y
+`data-rank-bucket` (tramo fijo del `bgg_rank` — `≤100`/`101-500`/
+`501-1k`/`1k-5k`/`5k+`/`?`). El punto vertical donde cae el puntero
+dentro de la tira (`clientY` relativo a su propio
+`getBoundingClientRect()`) se traduce a un índice sobre `scrubberBuckets`
+(la lista de "cajones" del modo activo) — no se calcula cajón por
+`<span>` individual, lo que permite arrastrar de un tirón sin perder
+eventos entre ellos (`setPointerCapture` en el `pointerdown` mantiene los
+`pointermove` dirigidos al mismo elemento aunque el dedo/cursor salga de
+sus límites).
 
 Las décadas de año se calculan sobre `games.collection` completa, no
 sobre `filtered` — igual que el alfabeto es una constante fija en vez de
 derivarse de lo que hay visible ahora mismo, así los "cajones" no
 aparecen ni desaparecen mientras el usuario escribe una búsqueda, solo
-cambia cuáles están disponibles (atenuadas si no).
+cambia cuáles están disponibles (atenuadas si no). Los tramos de ranking,
+a diferencia de las décadas, no se calculan de la colección — son un
+`RANK_TIERS` fijo (`preguntado directamente: "Top 100" tiene que
+significar siempre el mismo corte, no ir cambiando de umbral según lo
+que haya en la colección en cada momento`), ya que el ranking en sí es un
+rango casi sin límite superior y la mayoría de juegos no tienen ninguno —
+no existe ahí un conjunto pequeño y natural de "un cajón por valor" como
+con letras o décadas.
 
 El índice se resuelve sobre `displayBuckets` (un `computed`), no sobre
 `scrubberBuckets` directamente — con `sortOrder === 'desc'` el alfabeto
@@ -159,19 +162,24 @@ se invierte entero (`[...ALPHABET].reverse()`), para que el orden visual
 de la tira siga siempre al mismo orden en el que está la lista debajo:
 sin esto, con la lista en "Z → A", tocar arriba de la tira (donde antes
 seguía apareciendo "A") saltaba al final de la lista en vez de al
-principio. Las décadas se invierten igual, pero el cajón `'?'` (sin año)
-se queda siempre al final en los dos sentidos — los juegos sin año
-también se quedan siempre al final de la propia lista (ver el
-comentario del propio sort por año, más arriba en este componente), así
-que a diferencia de "#" en el alfabeto (que sí reordena junto al resto,
-al ser un nombre cualquiera ordenado por `localeCompare` normal), aquí no
-tendría sentido que reordenase.
+principio. Las décadas y los tramos de ranking se invierten igual, pero
+sus respectivos cajones `'?'` (sin año / sin ranking) se quedan siempre
+al final en los dos sentidos — esos juegos también se quedan siempre al
+final de la propia lista (ver los comentarios de los propios sort por
+año y por ranking, más arriba en este componente), así que a diferencia
+de "#" en el alfabeto (que sí reordena junto al resto, al ser un nombre
+cualquiera ordenado por `localeCompare` normal), aquí no tendría sentido
+que reordenasen.
 
-Ese cajón `'?'` solo existe de verdad (`hasUnknownYear`) mientras al
-menos un juego de la colección carezca de año — si todos lo tienen, ni
-`yearBuckets` ni `displayBuckets` lo incluyen, y desaparece de la tira
-por completo en vez de quedarse siempre atenuado sin nada que alcanzar
-(preguntado directamente al ponerle año al único juego que no lo tenía).
+Esos dos cajones `'?'` solo existen de verdad (`hasUnknownYear`/
+`hasUnrankedGame`) mientras al menos un juego de la colección carezca de
+año/ranking — si todos lo tienen, ni `yearBuckets`/`rankBuckets` ni
+`displayBuckets` los incluyen, y desaparecen de la tira por completo en
+vez de quedarse siempre atenuados sin nada que alcanzar (el de año,
+preguntado directamente al ponerle año al único juego que no lo tenía).
+En la práctica el de ranking casi nunca desaparecerá — la mayoría de
+juegos familiares/locales no llegan a tener un ranking BGG — pero se
+trata igual por consistencia con el de año, no por necesidad real.
 
 `nearestAvailableBucket` sigue
 recorriendo `scrubberBuckets` en su orden canónico (A→Z o década más

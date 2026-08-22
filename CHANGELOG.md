@@ -49,11 +49,18 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   uno en la colección — si todos tienen año, ese hueco ni aparece) —
   cuando sí aparece, se queda siempre al final, en ambos sentidos de
   orden, igual que esos juegos se quedan siempre al final de la propia
-  lista. No se ha añadido para el
-  ranking de BGG: al ser un rango casi sin límite superior y con la
-  mayoría de juegos sin ranking, no tiene un conjunto pequeño y natural
-  de "cajones" como letras o décadas — necesitaría un diseño distinto
-  (tramos, no una casilla por número).
+  lista.
+- La misma tira aparece también ordenando por "Ranking BGG", con tramos
+  fijos ("≤100", "101-500", "501-1k", "1k-5k", "5k+", "?") en vez de una
+  casilla por posición exacta — el ranking es un rango casi sin límite
+  superior y la mayoría de juegos no tienen ninguno, así que "saltar al
+  puesto 4238" no tendría sentido como índice. A diferencia de las
+  décadas (que se calculan de la colección), estos tramos son fijos:
+  "Top 100" tiene que significar siempre lo mismo, no ir cambiando de
+  umbral según lo que haya en la colección en cada momento. El hueco "?"
+  (sin ranking) se comporta igual que el de año: se queda siempre al
+  final en los dos sentidos, y desaparece por completo si no queda
+  ningún juego sin ranking.
 
 ## [0.8.0] - 2026-08-22
 

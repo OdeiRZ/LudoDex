@@ -85,6 +85,7 @@ export default {
     searchPlaceholder: 'Buscar por nombre…',
     azScrubberLabel: 'Saltar a una letra',
     yearScrubberLabel: 'Saltar a una década',
+    rankScrubberLabel: 'Saltar a un tramo de ranking',
     sortAsc: 'Ordenar de la A a la Z',
     sortDesc: 'Ordenar de la Z a la A',
     sortByLabel: 'Ordenar por',

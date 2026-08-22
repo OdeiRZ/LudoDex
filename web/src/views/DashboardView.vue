@@ -158,15 +158,20 @@ const expansionCounts = useExpansionCounts(computed(() => games.collection))
 
 // Prototype: an iOS-Contacts-style strip for jumping around a long
 // collection instead of scrolling through it by hand - one set of
-// buckets while sorted by name (the alphabet), another while sorted by
-// year (the decades actually present, since "jump to 1994" has no
-// coherent meaning as an index the way a bounded, small alphabet does).
-// Not shown for rank: BGG ranks span a huge, mostly-unranked range with
-// no natural small set of buckets like these two, so it'd need a
-// genuinely different design (rank tiers, not one slot per value).
+// buckets per sort criterion: the alphabet for name, the decades
+// actually present for year, and a fixed set of rank tiers for BGG
+// rank. Rank can't reuse "one slot per value" the way letters/decades
+// do - ranks span a huge, mostly-unranked range - and unlike decades,
+// its tiers are fixed rather than derived from the collection: "Top
+// 100" needs to mean the same thing regardless of what's currently
+// owned, where letting it drift with the data would make the same
+// label mean a different cutoff over time.
 const ALPHABET = ['#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')]
 
 const YEAR_UNKNOWN = '?'
+
+const RANK_TIERS = ['≤100', '101-500', '501-1k', '1k-5k', '5k+']
+const RANK_UNRANKED = '?'
 
 const COMBINING_MARKS = /[̀-ͯ]/g
 
@@ -178,6 +183,15 @@ function normalizeLetter(name: string): string {
 
 function yearBucket(year: number | null): string {
   return year === null ? YEAR_UNKNOWN : String(Math.floor(year / 10) * 10)
+}
+
+function rankBucket(rank: number | null): string {
+  if (rank === null) return RANK_UNRANKED
+  if (rank <= 100) return RANK_TIERS[0]
+  if (rank <= 500) return RANK_TIERS[1]
+  if (rank <= 1000) return RANK_TIERS[2]
+  if (rank <= 5000) return RANK_TIERS[3]
+  return RANK_TIERS[4]
 }
 
 const gamesListRef = ref<HTMLUListElement | null>(null)
@@ -202,53 +216,80 @@ const yearDecades = computed(() => {
 // otherwise it's a dead, permanently-dimmed entry with nothing to ever
 // jump to, cluttering the strip for no reason (asked about directly,
 // after the collection's one yearless game got a year and the "?" kept
-// showing with nothing behind it).
+// showing with nothing behind it). Same idea applies to the rank
+// scrubber's own unranked bucket below, even though in practice it'll
+// almost always have games in it - most family/local games never get a
+// BGG rank at all.
 const hasUnknownYear = computed(() =>
   games.collection.some((entry) => entry.game.year_published === null),
+)
+
+const hasUnrankedGame = computed(() =>
+  games.collection.some((entry) => entry.game.bgg_rank === null),
 )
 
 const yearBuckets = computed(() =>
   hasUnknownYear.value ? [...yearDecades.value, YEAR_UNKNOWN] : yearDecades.value,
 )
 
-const scrubberBuckets = computed<string[]>(() =>
-  sortCriterion.value === 'year' ? yearBuckets.value : ALPHABET,
+const rankBuckets = computed(() =>
+  hasUnrankedGame.value ? [...RANK_TIERS, RANK_UNRANKED] : RANK_TIERS,
 )
 
+const scrubberBuckets = computed<string[]>(() => {
+  if (sortCriterion.value === 'year') return yearBuckets.value
+  if (sortCriterion.value === 'rank') return rankBuckets.value
+  return ALPHABET
+})
+
 function bucketForEntry(entry: UserGame): string {
-  return sortCriterion.value === 'year'
-    ? yearBucket(entry.game.year_published)
-    : normalizeLetter(entry.game.name)
+  if (sortCriterion.value === 'year') return yearBucket(entry.game.year_published)
+  if (sortCriterion.value === 'rank') return rankBucket(entry.game.bgg_rank)
+  return normalizeLetter(entry.game.name)
 }
 
 const availableBuckets = computed(() => {
-  if (sortCriterion.value !== 'name' && sortCriterion.value !== 'year') return new Set<string>()
+  if (sortCriterion.value !== 'name' && sortCriterion.value !== 'year' && sortCriterion.value !== 'rank') {
+    return new Set<string>()
+  }
   return new Set(filtered.value.map((entry) => bucketForEntry(entry)))
+})
+
+const scrubberAriaLabel = computed(() => {
+  if (sortCriterion.value === 'year') return t('dashboard.yearScrubberLabel')
+  if (sortCriterion.value === 'rank') return t('dashboard.rankScrubberLabel')
+  return t('dashboard.azScrubberLabel')
 })
 
 const showScrubber = computed(
   () =>
-    (sortCriterion.value === 'name' || sortCriterion.value === 'year') &&
+    (sortCriterion.value === 'name' || sortCriterion.value === 'year' || sortCriterion.value === 'rank') &&
     filtered.value.length > 12 &&
     !detailEntry.value,
 )
 
 // The strip's own visual order needs to follow whichever direction the
 // list itself is actually sorted in - otherwise, sorted Z→A (or
-// newest-first), the top of the strip would jump to the very bottom of
-// the list instead of its top, and vice versa at the bottom. Games with
-// no known year always sink to the very end of the list regardless of
-// direction (see `filtered`'s own year-sort comment above), so unlike
-// the alphabet's "#" bucket - which does reverse along with the rest,
-// since non-letter names are ordered normally by localeCompare - the
-// "unknown year" slot never moves from the end. nearestAvailableBucket
-// below still walks scrubberBuckets' own canonical (always oldest/A
+// newest-first, or worst-rank-first), the top of the strip would jump to
+// the very bottom of the list instead of its top, and vice versa at the
+// bottom. Games with no known year/rank always sink to the very end of
+// the list regardless of direction (see `filtered`'s own year- and
+// rank-sort comments above), so unlike the alphabet's "#" bucket - which
+// does reverse along with the rest, since non-letter names are ordered
+// normally by localeCompare - the "unknown" slot in either of the other
+// two never moves from the end. nearestAvailableBucket below still
+// walks scrubberBuckets' own canonical (always oldest/best-ranked/A
 // first) order, since "nearest available bucket" is about the buckets'
 // own adjacency, not about where either one happens to sit on screen.
 const displayBuckets = computed(() => {
   if (sortCriterion.value === 'year') {
     const decades = sortOrder.value === 'asc' ? yearDecades.value : [...yearDecades.value].reverse()
     return hasUnknownYear.value ? [...decades, YEAR_UNKNOWN] : decades
+  }
+
+  if (sortCriterion.value === 'rank') {
+    const tiers = sortOrder.value === 'asc' ? RANK_TIERS : [...RANK_TIERS].reverse()
+    return hasUnrankedGame.value ? [...tiers, RANK_UNRANKED] : tiers
   }
 
   return sortOrder.value === 'asc' ? ALPHABET : [...ALPHABET].reverse()
@@ -297,7 +338,12 @@ function jumpToBucket(bucket: string) {
   if (!target) return
 
   scrubLetter.value = target
-  const attr = sortCriterion.value === 'year' ? 'data-year-bucket' : 'data-letter'
+  const attr =
+    sortCriterion.value === 'year'
+      ? 'data-year-bucket'
+      : sortCriterion.value === 'rank'
+        ? 'data-rank-bucket'
+        : 'data-letter'
   const el = gamesListRef.value?.querySelector<HTMLElement>(`[${attr}="${target}"]`)
   el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
@@ -604,6 +650,7 @@ async function onClearCollection() {
         class="game-card"
         :data-letter="normalizeLetter(entry.game.name)"
         :data-year-bucket="yearBucket(entry.game.year_published)"
+        :data-rank-bucket="rankBucket(entry.game.bgg_rank)"
       >
         <GameCard
           :image-url="entry.game.image_url"
@@ -730,7 +777,7 @@ async function onClearCollection() {
       class="az-scrubber"
       :class="{ 'az-scrubber-visible': hovering || scrubbing }"
       role="navigation"
-      :aria-label="sortCriterion === 'year' ? $t('dashboard.yearScrubberLabel') : $t('dashboard.azScrubberLabel')"
+      :aria-label="scrubberAriaLabel"
       @pointerenter="onScrubberEnter"
       @pointerleave="onScrubberLeave"
       @pointerdown="startScrub"
