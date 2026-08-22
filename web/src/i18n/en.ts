@@ -128,6 +128,7 @@ export default {
     bggImportLegend: 'Import from BGG (optional)',
     bggIdPlaceholder: 'BGG game ID',
     bggFillButton: 'Fill from BGG',
+    bggFillButtonShort: 'Fill',
     bggFillLoading: 'Looking up…',
     bggLookupGenericError: "Couldn't reach BoardGameGeek.",
     bggFillHint: "If the name or image already have a value, they won't be overwritten.",

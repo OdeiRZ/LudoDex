@@ -160,7 +160,11 @@ async function onLookupBgg() {
           :disabled="!form.bgg_id || bggLookupLoading"
           @click="onLookupBgg"
         >
-          {{ bggLookupLoading ? $t('gameForm.bggFillLoading') : $t('gameForm.bggFillButton') }}
+          <span v-if="bggLookupLoading">{{ $t('gameForm.bggFillLoading') }}</span>
+          <template v-else>
+            <span class="bggfill-label-full">{{ $t('gameForm.bggFillButton') }}</span>
+            <span class="bggfill-label-short">{{ $t('gameForm.bggFillButtonShort') }}</span>
+          </template>
         </button>
       </div>
       <p class="hint">{{ $t('gameForm.bggFillHint') }}</p>
@@ -478,6 +482,13 @@ room actually available. */
   display: none;
 }
 
+/* Swapped for the plain .bggfill-label-short below ≤428px (see that
+media query) - "Rellenar desde BGG" is the clearer label everywhere
+there's room for it. */
+.bggfill-label-short {
+  display: none;
+}
+
 /* At ≤547px (asked for directly), Jugadores and Duración each take the
 full row width instead of sitting side by side - .range-field's own
 flex: 0 1 auto (sized to content) is overridden to a 100% basis, which
@@ -550,6 +561,20 @@ than stranded. */
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-4);
+  }
+}
+
+/* At ≤428px (asked for directly), "Rellenar desde BGG" abbreviates to
+just "Rellenar" - the button sits right next to the BGG ID input in a
+row that doesn't wrap, so unlike the labels above it can't fall back on
+extra height, only less text. */
+@media (max-width: 428px) {
+  .bggfill-label-full {
+    display: none;
+  }
+
+  .bggfill-label-short {
+    display: inline;
   }
 }
 
