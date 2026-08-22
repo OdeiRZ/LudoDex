@@ -19,11 +19,14 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   letra disponible más cercana en vez de no hacer nada. Mientras se
   arrastra, una burbuja grande muestra la letra actual, al estilo de la
   lista de contactos de iOS. En reposo se ve semitransparente (lo justo
-  para saber dónde está sin que estorbe) y recupera el color sólido y un
-  tamaño algo mayor en cuanto el puntero se acerca (ratón) o la toca un
-  dedo — el táctil no tiene una señal real de "acercarse" antes del
-  contacto, así que en ese caso el efecto llega justo al tocar y se
-  deshace al soltar. En pantallas de escritorio anchas se ancla junto al
+  para saber dónde está sin que estorbe) y recupera el color sólido en
+  cuanto el puntero se acerca (ratón) o la toca un dedo — el táctil no
+  tiene una señal real de "acercarse" antes del contacto, así que en ese
+  caso el efecto llega justo al tocar y se deshace al soltar. (Se probó
+  también a agrandarla un poco al tocarla, pero se descartó: cambiaba la
+  posición de cada letra bajo el propio dedo/puntero, justo la referencia
+  que el arrastre necesita mantener fija.) En pantallas de escritorio
+  anchas se ancla junto al
   borde real de la columna de contenido (que tiene un ancho máximo de
   1024px y queda centrada) en vez de junto al borde de la ventana del
   navegador — con esta última, en un monitor ancho la tira quedaba muy

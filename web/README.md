@@ -143,12 +143,15 @@ en vez de no hacer nada.
 Transparencia por proximidad: `opacity: 0.4` en reposo (probado con
 `opacity: 0` primero, pero en un móvil real no dejaba ninguna pista visual
 de dónde estaba la tira — nada que tocar a ciegas). Un `pointerenter` la
-lleva a `opacity: 1` y a un `scale(1.12)` (fundido en el mismo `transform`
-que ya usa la regla base para el `translateY(-50%)` de centrado, no en
-una propiedad `transform` aparte, que sustituiría el centrado en vez de
-sumarse a él) — el color sólido y el tamaño algo mayor son la propia
-confirmación táctil de que el toque ha caído dentro de la tira. Un
-`pointerleave` deshace ambas cosas. El ratón tiene un hover real antes de
+lleva a `opacity: 1`, que es la confirmación de que el toque ha caído
+dentro de la tira; un `pointerleave` la devuelve a 0.4. Se probó también
+a agrandarla un poco (`scale()`) al revelarse, pero se descartó (pedido
+directamente): escalar el contenedor desplaza la posición en pantalla de
+cada letra respecto al propio dedo/puntero que la está arrastrando,
+justo la referencia que el arrastre necesita mantener fija — el tamaño
+base de la tira (padding, tamaño de letra) es el que hay que tocar si
+hace falta más grande, no un efecto al pasar por encima. El ratón tiene
+un hover real antes de
 pulsar; el táctil no tiene ninguna señal de "acercarse" antes del
 contacto, así que en ese caso el efecto solo llega en el instante del
 toque (`pointerdown`) y se deshace explícitamente al soltar (`endScrub`

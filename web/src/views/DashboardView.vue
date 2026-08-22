@@ -1511,7 +1511,7 @@ them together. */
   justify-content: space-between;
   align-items: center;
   height: min(64vh, 460px);
-  padding: 0.25rem 0.15rem;
+  padding: 0.35rem 0.3rem;
   border-radius: var(--radius-pill);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -1520,25 +1520,22 @@ them together. */
   user-select: none;
   cursor: pointer;
   opacity: 0.4;
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
+  transition: opacity 0.15s ease;
 }
 
 /* Faint rather than fully invisible at rest (asked for directly - on a
 real phone, opacity: 0 left no visible hint of where the strip even was,
-so there was nothing to aim a first touch at). Full opacity plus a
-slightly larger size is the feedback that a touch/hover actually landed
-on it - the scale has to be folded into the same transform as the base
-rule's own translateY(-50%) centering, not layered separately, since a
-second transform property would replace rather than combine with it. */
+so there was nothing to aim a first touch at). Full opacity on
+hover/touch is the feedback that it landed - a growing scale was tried
+here too, but reverted (asked for directly): scaling shifts every
+letter's own screen position out from under whatever's still hovering
+it, fighting the drag it's supposed to be giving feedback for. */
 .az-scrubber-visible {
   opacity: 1;
-  transform: translateY(-50%) scale(1.12);
 }
 
 .az-scrubber-letter {
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   line-height: 1;
   color: var(--color-text-muted);
   opacity: 0.35;
