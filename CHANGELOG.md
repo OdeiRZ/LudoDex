@@ -47,6 +47,12 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 - Tests para `useCollectionScrubber` (el composable de la tira de salto
   rápido) — no tenía ninguno pese a ser, con diferencia, la pieza de
   lógica más compleja sin cubrir del frontend.
+- `php artisan translations:sync` (con `--dry-run`): copia
+  `description_es` entre la base de datos local y producción, en ambas
+  direcciones, sin sobrescribir nunca una traducción ya existente en
+  ninguno de los dos lados. Sustituye al proceso manual de antes (sacar
+  el token de sesión de una pestaña ya logueada en producción y llamar
+  al endpoint de *backfill* a mano).
 
 ## [0.9.0] - 2026-08-22
 

@@ -65,6 +65,33 @@ así que ahí el mailer cae en `log` y `/api/forgot-password` no envía ningún
 email real por ahora. `DEEPL_API_KEY` sí está configurada en Render, así
 que el botón de traducir funciona igual en producción que en local.
 
+## Sincronizar traducciones entre local y producción
+
+```bash
+php artisan translations:sync            # copia en ambas direcciones
+php artisan translations:sync --dry-run  # solo informa de lo que cambiaría
+```
+
+Copia `description_es` entre esta base de datos local y producción, en
+ambas direcciones, sin sobrescribir nunca una traducción ya existente en
+ninguno de los dos lados (misma regla de "solo rellena huecos" que ya
+aplica `GameTranslationBackfillController` del lado de producción) —
+así no hace falta volver a gastar cuota de DeepL traduciendo el mismo
+juego dos veces solo porque se probó primero en un sitio y luego en el
+otro. Sustituye al proceso manual que había antes (sacar el token de
+sesión de una pestaña del navegador ya logueada en producción y llamar
+al endpoint de backfill a mano).
+
+Necesita `PROD_API_URL` y `PROD_API_TOKEN` en `.env` (ver
+`.env.example`) — el token es un token Sanctum normal de tu propia
+cuenta; al ser el mismo que usa tu sesión activa en el navegador, un
+logout ahí lo revocaría, con lo que el comando dejaría de funcionar
+hasta pegar uno nuevo. Se ejecuta siempre desde local (producción no
+tiene forma de alcanzar tu máquina), en las dos direcciones: hacia
+producción vía el propio `POST /api/games/backfill-translations`, y
+hacia local escribiendo directamente en la base de datos (sin pasar por
+HTTP, al correr ya en el mismo proceso).
+
 ## Testing
 
 ```bash
