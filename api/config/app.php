@@ -70,6 +70,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Owner Email
+    |--------------------------------------------------------------------------
+    |
+    | This app has no admin/role system - it's a single-owner project with a
+    | shared games catalog, so the one endpoint that writes to that catalog
+    | without scoping to the caller's own data (GameTranslationBackfillController)
+    | needs some other way to tell "the owner" apart from any other
+    | authenticated account. Compared against the requesting user's own email.
+    |
+    */
+
+    'owner_email' => env('OWNER_EMAIL'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

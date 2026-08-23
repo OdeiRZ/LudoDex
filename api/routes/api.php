@@ -33,7 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/games/{userGame}', [UserGameController::class, 'destroy']);
     Route::delete('/games', [UserGameController::class, 'clear']);
     Route::post('/games/{game}/translate-description', [GameDescriptionController::class, 'translate'])->middleware('throttle:20,1');
-    // Temporary, remove after use - see GameTranslationBackfillController docblock.
+    // Owner-only - see GameTranslationBackfillController docblock.
     Route::post('/games/backfill-translations', GameTranslationBackfillController::class)->middleware('throttle:2,1');
 
     Route::get('/mechanics', [MechanicController::class, 'index']);
