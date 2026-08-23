@@ -40,7 +40,6 @@ there. */
   z-index: 20;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   align-items: center;
   /* Fluid, not stepped at a breakpoint (asked for directly - "reduce as
   the screen gets smaller", not "drop to a second fixed size below some
@@ -71,9 +70,45 @@ there. */
   box-shadow: var(--shadow-card);
   touch-action: none;
   user-select: none;
-  cursor: pointer;
   opacity: 0.4;
   transition: opacity 0.15s ease;
+}
+
+/* Small grip icon spanning the top of the pill - dragging from here moves
+the whole strip (see useCollectionScrubber's startHandleDrag), instead of
+jumping to a letter/decade/tier the way dragging the rest of the strip
+does. Double-click/tap resets back to the default position. */
+.az-scrubber-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding-bottom: var(--space-1);
+  color: var(--color-text-muted);
+  cursor: grab;
+  touch-action: none;
+}
+
+.az-scrubber-handle:active {
+  cursor: grabbing;
+}
+
+.az-scrubber-handle svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* The buckets themselves keep the old space-between + pointer cursor the
+whole strip used to have before the handle above was split out of it. */
+.az-scrubber-buckets {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  cursor: pointer;
 }
 
 /* Faint rather than fully invisible at rest (asked for directly - on a
@@ -112,22 +147,14 @@ that section. */
 
 /* Mirrors iOS's own "big letter" callout while scrubbing - without it,
 a bucket this small under a fingertip is otherwise unreadable while
-dragging, defeating the point of showing feedback at all. */
-/* Same base offset formula as .az-scrubber's own right above (still
-duplicated by hand between the two selectors themselves - a shared
-custom property for the whole expression would be one way to close
-that too, not done here) plus a fixed 2.5rem - the original gap between
-the two when the strip was still hardcoded at right: 4px (2.75rem -
-4px), so the bubble keeps sitting the same distance outside the strip
-regardless of where that ends up landing. No top/transform here (unlike
-.az-scrubber above) - top is set inline from scrubBubbleTop (asked for
-directly: the bubble should track the pointer's own height instead of
-always sitting at the strip's center), and centering on that value is
-folded into the inline transform right alongside it, not split across
-here and there. */
+dragging, defeating the point of showing feedback at all. No top/right/
+transform here - all three are set inline from scrubBubbleTop/
+scrubBubbleRight (computed from the strip's own live position, which can
+now be anywhere on screen once it's been dragged - see
+useCollectionScrubber's updateBubblePosition), not replayed as a parallel
+CSS formula the way .az-scrubber's own fixed-position default is. */
 .az-scrubber-bubble {
   position: fixed;
-  right: calc(max(14px, calc((100vw - var(--content-max-width)) / 2 + var(--space-4) - var(--space-2))) + 2.5rem);
   z-index: 21;
   /* min-width (not a fixed width) plus horizontal padding is what lets
   this same bubble fit a single letter and a 4-digit decade label

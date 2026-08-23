@@ -1,4 +1,4 @@
-import { computed, ref, type ComputedRef, type Ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, type ComputedRef, type Ref } from 'vue'
 import type { UserGame } from '@/stores/games'
 
 // An iOS-Contacts-style strip for jumping around a long collection
@@ -24,6 +24,56 @@ const RANK_TIERS = ['≤100', '101-500', '501-1k', '1k-5k', '5k+']
 const RANK_UNRANKED = '?'
 
 const COMBINING_MARKS = /[̀-ͯ]/g
+
+// Sorting by rank widens the strip a lot ("101-500", "1k-5k"... instead of
+// a single letter), and the strip's default position is anchored to the
+// viewport's own right edge, not to its own width - on a real phone, that
+// wider rank-mode strip stretched left far enough to sit on top of each
+// card's "view details" button, disabling it (reported directly, along
+// with the reasoning for why chasing this per sort-mode/breakpoint instead
+// isn't worth it: the same fix would need redoing for every future sort
+// mode or screen size that happens to collide). A drag handle - see
+// startHandleDrag below - lets it be moved out of the way once, instead.
+const POSITION_STORAGE_KEY = 'ludodex-scrubber-position'
+
+interface ScrubberPosition {
+  top: number
+  left: number
+}
+
+function loadStoredPosition(): ScrubberPosition | null {
+  const raw = localStorage.getItem(POSITION_STORAGE_KEY)
+  if (raw === null) return null
+
+  try {
+    const parsed: unknown = JSON.parse(raw)
+    if (
+      typeof parsed === 'object' &&
+      parsed !== null &&
+      typeof (parsed as ScrubberPosition).top === 'number' &&
+      typeof (parsed as ScrubberPosition).left === 'number'
+    ) {
+      return parsed as ScrubberPosition
+    }
+  } catch {
+    // Malformed value from an older format, or hand-edited - treated the
+    // same as "never set" rather than surfacing an error for something
+    // this unimportant.
+  }
+
+  return null
+}
+
+// Keeps the whole strip on-screen (not just its top-left corner) after a
+// drag, and again on every resize - a position saved on a wide desktop
+// window would otherwise strand the strip off the edge of a narrower one
+// reopened later.
+function clampPosition(position: ScrubberPosition, size: { width: number; height: number }): ScrubberPosition {
+  return {
+    top: Math.min(Math.max(position.top, 0), Math.max(0, window.innerHeight - size.height)),
+    left: Math.min(Math.max(position.left, 0), Math.max(0, window.innerWidth - size.width)),
+  }
+}
 
 export function normalizeLetter(name: string): string {
   const stripped = name.trim().normalize('NFD').replace(COMBINING_MARKS, '')
@@ -170,6 +220,92 @@ export function useCollectionScrubber(options: UseCollectionScrubberOptions) {
   // callout stays right next to whatever the pointer is currently over
   // (asked for directly).
   const scrubBubbleTop = ref(0)
+  // Distance from the viewport's right edge, mirroring .az-scrubber-bubble's
+  // own right-anchored CSS - computed in JS (from the strip's actual live
+  // position) rather than a parallel CSS formula, since the strip can now
+  // sit anywhere on screen once it's been dragged, not just at its default
+  // spot the old formula assumed.
+  const scrubBubbleRight = ref(0)
+
+  // null until moved at least once - the default CSS-computed position
+  // (right-anchored, see scrubber.css) is used in that case. Loaded from
+  // localStorage up front so a page reload doesn't snap the strip back to
+  // its default spot and need re-dragging every time.
+  const customPosition = ref<ScrubberPosition | null>(loadStoredPosition())
+  const scrubberRef = ref<HTMLElement | null>(null)
+  const draggingHandle = ref(false)
+
+  // Overrides scrubber.css's own right/top/transform - all three have to
+  // go together, since a position: fixed element with both left and right
+  // set (rather than right: auto) stretches to fill the gap between them
+  // instead of sizing to its own content.
+  const scrubberStyle = computed(() => {
+    if (customPosition.value === null) return {}
+
+    return {
+      top: `${customPosition.value.top}px`,
+      left: `${customPosition.value.left}px`,
+      right: 'auto',
+      transform: 'none',
+    }
+  })
+
+  function persistPosition(position: ScrubberPosition) {
+    customPosition.value = position
+    localStorage.setItem(POSITION_STORAGE_KEY, JSON.stringify(position))
+  }
+
+  // Offset between the pointer and the strip's own top-left corner at drag
+  // start, kept constant through the drag - without it, the strip would
+  // jump to re-center itself under the pointer on the very first move
+  // instead of moving by exactly as much as the pointer did.
+  let handleDragOffset = { x: 0, y: 0 }
+
+  function startHandleDrag(event: PointerEvent) {
+    const handle = event.currentTarget as HTMLElement
+    const stripRect = scrubberRef.value?.getBoundingClientRect()
+    if (!stripRect) return
+
+    handle.setPointerCapture(event.pointerId)
+    draggingHandle.value = true
+    handleDragOffset = { x: event.clientX - stripRect.left, y: event.clientY - stripRect.top }
+  }
+
+  function moveHandleDrag(event: PointerEvent) {
+    if (!draggingHandle.value || !scrubberRef.value) return
+
+    const { width, height } = scrubberRef.value.getBoundingClientRect()
+    persistPosition(
+      clampPosition(
+        { top: event.clientY - handleDragOffset.y, left: event.clientX - handleDragOffset.x },
+        { width, height },
+      ),
+    )
+  }
+
+  function endHandleDrag() {
+    draggingHandle.value = false
+  }
+
+  // Double-tap/click the handle to go back to the default position - the
+  // only way back short of clearing localStorage by hand otherwise.
+  function resetHandlePosition() {
+    customPosition.value = null
+    localStorage.removeItem(POSITION_STORAGE_KEY)
+  }
+
+  // A position saved from a wider window would otherwise strand the strip
+  // past the edge of a narrower one (asked for directly - a real concern
+  // once the position can persist across sessions, not just this one).
+  function reclampToViewport() {
+    if (customPosition.value === null || !scrubberRef.value) return
+
+    const { width, height } = scrubberRef.value.getBoundingClientRect()
+    customPosition.value = clampPosition(customPosition.value, { width, height })
+  }
+
+  onMounted(() => window.addEventListener('resize', reclampToViewport))
+  onUnmounted(() => window.removeEventListener('resize', reclampToViewport))
 
   // Stays fully transparent until something actually reveals it - a mouse
   // hovering over its own (narrow) hit area counts as "approaching" it, but
@@ -235,6 +371,11 @@ export function useCollectionScrubber(options: UseCollectionScrubberOptions) {
   function updateBubblePosition(clientY: number, container: HTMLElement) {
     const rect = container.getBoundingClientRect()
     scrubBubbleTop.value = Math.min(Math.max(clientY, rect.top), rect.bottom)
+    // 8px gap between the bubble's own right edge and the strip's left one,
+    // wherever that currently is - a plain constant now that this is
+    // computed from the strip's real position instead of replaying its CSS
+    // formula in parallel (see scrubBubbleRight's own declaration above).
+    scrubBubbleRight.value = window.innerWidth - rect.left + 8
   }
 
   function startScrub(event: PointerEvent) {
@@ -274,12 +415,20 @@ export function useCollectionScrubber(options: UseCollectionScrubberOptions) {
     scrubbing,
     scrubLetter,
     scrubBubbleTop,
+    scrubBubbleRight,
     hovering,
     scrubberAriaLabel,
+    scrubberRef,
+    scrubberStyle,
+    draggingHandle,
     onScrubberEnter,
     onScrubberLeave,
     startScrub,
     moveScrub,
     endScrub,
+    startHandleDrag,
+    moveHandleDrag,
+    endHandleDrag,
+    resetHandlePosition,
   }
 }

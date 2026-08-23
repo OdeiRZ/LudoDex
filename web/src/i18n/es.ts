@@ -86,6 +86,7 @@ export default {
     azScrubberLabel: 'Saltar a una letra',
     yearScrubberLabel: 'Saltar a una década',
     rankScrubberLabel: 'Saltar a un tramo de ranking',
+    scrubberMoveLabel: 'Mover — doble toque para restablecer la posición',
     sortAsc: 'Ordenar de la A a la Z',
     sortDesc: 'Ordenar de la Z a la A',
     sortByLabel: 'Ordenar por',

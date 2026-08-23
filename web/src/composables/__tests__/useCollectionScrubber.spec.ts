@@ -12,10 +12,14 @@ import type { UserGame } from '@/stores/games'
 
 // jsdom implements neither of these (real Pointer Capture / scroll APIs) -
 // stubbed here rather than in the shared test-setup, since no other spec
-// touches pointer interaction.
+// touches pointer interaction. localStorage is real in jsdom and persists
+// across tests unless cleared - the drag-handle position below reads it on
+// every useCollectionScrubber() call, so a previous test's stored value
+// would otherwise leak into the next one.
 beforeEach(() => {
   Element.prototype.setPointerCapture = vi.fn()
   Element.prototype.scrollIntoView = vi.fn()
+  localStorage.clear()
 })
 
 function fakePointerEvent(overrides: Partial<PointerEvent> & { clientY: number; currentTarget: EventTarget }) {
@@ -457,5 +461,138 @@ describe('useCollectionScrubber - drag/jump behavior', () => {
     scrubber.hovering.value = true
     scrubber.endScrub({ pointerType: 'touch' } as PointerEvent)
     expect(scrubber.hovering.value).toBe(false)
+  })
+})
+
+// Sorting by rank widens the strip enough to sit on top of each card's own
+// "view details" button on a real phone (reported directly) - the drag
+// handle lets it be moved out of the way once instead of chasing the
+// overlap per sort mode/screen size.
+describe('useCollectionScrubber - drag-handle repositioning', () => {
+  function stubViewport(width: number, height: number) {
+    vi.stubGlobal('innerWidth', width)
+    vi.stubGlobal('innerHeight', height)
+  }
+
+  function stubStripRect(el: HTMLElement, rect: { top: number; left: number; width: number; height: number }) {
+    vi.spyOn(el, 'getBoundingClientRect').mockReturnValue({
+      top: rect.top,
+      left: rect.left,
+      width: rect.width,
+      height: rect.height,
+      right: rect.left + rect.width,
+      bottom: rect.top + rect.height,
+      x: rect.left,
+      y: rect.top,
+      toJSON: () => ({}),
+    })
+  }
+
+  it('uses the default CSS position (no inline style) when nothing has been dragged yet', () => {
+    const { scrubber } = setup(bigCollection())
+    expect(scrubber.scrubberStyle.value).toEqual({})
+  })
+
+  it('moves the strip by exactly the pointer delta while dragging the handle', () => {
+    stubViewport(1000, 800)
+    const { scrubber } = setup(bigCollection())
+    const strip = document.createElement('div')
+    stubStripRect(strip, { top: 100, left: 200, width: 50, height: 300 })
+    scrubber.scrubberRef.value = strip
+    const handle = document.createElement('div')
+
+    scrubber.startHandleDrag(fakePointerEvent({ clientY: 100, clientX: 200, currentTarget: handle }))
+    scrubber.moveHandleDrag(fakePointerEvent({ clientY: 120, clientX: 210, currentTarget: handle }))
+
+    expect(scrubber.scrubberStyle.value).toEqual({
+      top: '120px',
+      left: '210px',
+      right: 'auto',
+      transform: 'none',
+    })
+  })
+
+  it('keeps the pointer-to-corner offset from drag start, not just the raw pointer position', () => {
+    stubViewport(1000, 800)
+    const { scrubber } = setup(bigCollection())
+    const strip = document.createElement('div')
+    // Grabbed 15px right / 10px down from the strip's own top-left corner.
+    stubStripRect(strip, { top: 100, left: 200, width: 50, height: 300 })
+    scrubber.scrubberRef.value = strip
+    const handle = document.createElement('div')
+
+    scrubber.startHandleDrag(fakePointerEvent({ clientY: 110, clientX: 215, currentTarget: handle }))
+    scrubber.moveHandleDrag(fakePointerEvent({ clientY: 110, clientX: 215, currentTarget: handle }))
+
+    // No net movement yet, but the corner should land back where the strip
+    // already was, not snap to (215, 110) as if the offset were zero.
+    expect(scrubber.scrubberStyle.value).toMatchObject({ top: '100px', left: '200px' })
+  })
+
+  it('clamps the drag so the whole strip stays on-screen', () => {
+    stubViewport(1000, 800)
+    const { scrubber } = setup(bigCollection())
+    const strip = document.createElement('div')
+    stubStripRect(strip, { top: 100, left: 200, width: 50, height: 300 })
+    scrubber.scrubberRef.value = strip
+    const handle = document.createElement('div')
+
+    scrubber.startHandleDrag(fakePointerEvent({ clientY: 100, clientX: 200, currentTarget: handle }))
+    scrubber.moveHandleDrag(fakePointerEvent({ clientY: -500, clientX: -500, currentTarget: handle }))
+    expect(scrubber.scrubberStyle.value).toMatchObject({ top: '0px', left: '0px' })
+
+    scrubber.moveHandleDrag(fakePointerEvent({ clientY: 5000, clientX: 5000, currentTarget: handle }))
+    expect(scrubber.scrubberStyle.value).toMatchObject({ top: '500px', left: '950px' })
+  })
+
+  it('persists the dragged position to localStorage and reloads it on the next mount', () => {
+    stubViewport(1000, 800)
+    const { scrubber } = setup(bigCollection())
+    const strip = document.createElement('div')
+    stubStripRect(strip, { top: 100, left: 200, width: 50, height: 300 })
+    scrubber.scrubberRef.value = strip
+    const handle = document.createElement('div')
+
+    scrubber.startHandleDrag(fakePointerEvent({ clientY: 100, clientX: 200, currentTarget: handle }))
+    scrubber.moveHandleDrag(fakePointerEvent({ clientY: 150, clientX: 250, currentTarget: handle }))
+
+    expect(JSON.parse(localStorage.getItem('ludodex-scrubber-position') ?? 'null')).toEqual({
+      top: 150,
+      left: 250,
+    })
+
+    const { scrubber: reloaded } = setup(bigCollection())
+    expect(reloaded.scrubberStyle.value).toMatchObject({ top: '150px', left: '250px' })
+  })
+
+  it('resets to the default position on double-click, clearing localStorage too', () => {
+    stubViewport(1000, 800)
+    const { scrubber } = setup(bigCollection())
+    const strip = document.createElement('div')
+    stubStripRect(strip, { top: 100, left: 200, width: 50, height: 300 })
+    scrubber.scrubberRef.value = strip
+    const handle = document.createElement('div')
+
+    scrubber.startHandleDrag(fakePointerEvent({ clientY: 100, clientX: 200, currentTarget: handle }))
+    scrubber.moveHandleDrag(fakePointerEvent({ clientY: 150, clientX: 250, currentTarget: handle }))
+    expect(scrubber.scrubberStyle.value).not.toEqual({})
+
+    scrubber.resetHandlePosition()
+
+    expect(scrubber.scrubberStyle.value).toEqual({})
+    expect(localStorage.getItem('ludodex-scrubber-position')).toBeNull()
+  })
+
+  it('ignores a stray move event before the handle has actually been grabbed', () => {
+    stubViewport(1000, 800)
+    const { scrubber } = setup(bigCollection())
+    const strip = document.createElement('div')
+    stubStripRect(strip, { top: 100, left: 200, width: 50, height: 300 })
+    scrubber.scrubberRef.value = strip
+    const handle = document.createElement('div')
+
+    scrubber.moveHandleDrag(fakePointerEvent({ clientY: 150, clientX: 250, currentTarget: handle }))
+
+    expect(scrubber.scrubberStyle.value).toEqual({})
   })
 })

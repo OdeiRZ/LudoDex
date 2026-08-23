@@ -86,6 +86,7 @@ export default {
     azScrubberLabel: 'Jump to a letter',
     yearScrubberLabel: 'Jump to a decade',
     rankScrubberLabel: 'Jump to a rank tier',
+    scrubberMoveLabel: 'Move — double-tap to reset position',
     sortAsc: 'Sort A to Z',
     sortDesc: 'Sort Z to A',
     sortByLabel: 'Sort by',

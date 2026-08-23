@@ -177,13 +177,21 @@ const {
   scrubbing,
   scrubLetter,
   scrubBubbleTop,
+  scrubBubbleRight,
   hovering,
   scrubberAriaLabel,
+  scrubberRef,
+  scrubberStyle,
+  draggingHandle,
   onScrubberEnter,
   onScrubberLeave,
   startScrub,
   moveScrub,
   endScrub,
+  startHandleDrag,
+  moveHandleDrag,
+  endHandleDrag,
+  resetHandlePosition,
 } = useCollectionScrubber({
   sortCriterion,
   sortOrder,
@@ -582,31 +590,54 @@ async function onClearCollection() {
 
     <div
       v-if="showScrubber"
+      ref="scrubberRef"
       class="az-scrubber"
-      :class="{ 'az-scrubber-visible': hovering || scrubbing }"
+      :class="{ 'az-scrubber-visible': hovering || scrubbing || draggingHandle }"
       role="navigation"
       :aria-label="scrubberAriaLabel"
+      :style="scrubberStyle"
       @pointerenter="onScrubberEnter"
       @pointerleave="onScrubberLeave"
-      @pointerdown="startScrub"
-      @pointermove="moveScrub"
-      @pointerup="endScrub"
-      @pointercancel="endScrub"
     >
-      <span
-        v-for="bucket in displayBuckets"
-        :key="bucket"
-        class="az-scrubber-letter"
-        :class="{ 'az-scrubber-letter-available': availableBuckets.has(bucket) }"
+      <div
+        class="az-scrubber-handle"
+        :aria-label="$t('dashboard.scrubberMoveLabel')"
+        :title="$t('dashboard.scrubberMoveLabel')"
+        @pointerdown="startHandleDrag"
+        @pointermove="moveHandleDrag"
+        @pointerup="endHandleDrag"
+        @pointercancel="endHandleDrag"
+        @dblclick="resetHandlePosition"
       >
-        {{ bucket }}
-      </span>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <circle cx="8" cy="8" r="1.5" />
+          <circle cx="16" cy="8" r="1.5" />
+          <circle cx="8" cy="16" r="1.5" />
+          <circle cx="16" cy="16" r="1.5" />
+        </svg>
+      </div>
+      <div
+        class="az-scrubber-buckets"
+        @pointerdown="startScrub"
+        @pointermove="moveScrub"
+        @pointerup="endScrub"
+        @pointercancel="endScrub"
+      >
+        <span
+          v-for="bucket in displayBuckets"
+          :key="bucket"
+          class="az-scrubber-letter"
+          :class="{ 'az-scrubber-letter-available': availableBuckets.has(bucket) }"
+        >
+          {{ bucket }}
+        </span>
+      </div>
     </div>
 
     <div
       v-if="scrubbing && scrubLetter"
       class="az-scrubber-bubble"
-      :style="{ top: `${scrubBubbleTop}px`, transform: 'translateY(-50%)' }"
+      :style="{ top: `${scrubBubbleTop}px`, right: `${scrubBubbleRight}px`, transform: 'translateY(-50%)' }"
     >
       {{ scrubLetter }}
     </div>
