@@ -7,6 +7,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Corregido
+
+- `POST /api/games/backfill-translations` (el catálogo compartido, no
+  algo propio de quien llama) aceptaba cualquier cuenta autenticada, no
+  solo la propietaria de este despliegue. Ahora exige que el email del
+  usuario coincida con `OWNER_EMAIL`, y responde 403 en caso contrario.
+
 ## [0.11.0] - 2026-08-23
 
 ### Añadido

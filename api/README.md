@@ -92,6 +92,15 @@ producción vía el propio `POST /api/games/backfill-translations`, y
 hacia local escribiendo directamente en la base de datos (sin pasar por
 HTTP, al correr ya en el mismo proceso).
 
+`POST /api/games/backfill-translations` escribe en el catálogo de
+juegos compartido, no en nada propio de quien llama, así que un simple
+`auth:sanctum` no basta — esta app no tiene ni roles ni admin, y ya hay
+más de una cuenta en este despliegue. El controlador compara el email
+del usuario autenticado contra `OWNER_EMAIL` (`config('app.owner_email')`,
+ver `.env.example`) y responde 403 si no coincide. Sin esa variable
+configurada en producción, el endpoint rechaza cualquier llamada,
+incluida la tuya propia.
+
 ## Testing
 
 ```bash
