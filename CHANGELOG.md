@@ -7,6 +7,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Corregido
+
+- El fondo de la página ya no se desplaza mientras el modal de detalles
+  de un juego está abierto — al hacer scroll dentro del modal (con la
+  rueda o arrastrando en móvil), el gesto llegaba hasta la colección de
+  debajo en vez de quedarse solo en el propio modal.
+
 ## [0.11.0] - 2026-08-23
 
 ### Añadido
