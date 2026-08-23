@@ -7,6 +7,14 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Cambiado
+
+- El botón de ver detalles de cada juego (icono del ojo, en "Tu
+  colección" y en "¿A qué jugamos?") se separa 4px del borde derecho de
+  su tarjeta — pegado al borde, en la columna más a la derecha de la
+  rejilla quedaba tan cerca de la barra de scroll real del navegador que
+  a veces el toque destinado al botón caía sobre ella en su lugar.
+
 ## [0.10.0] - 2026-08-22
 
 ### Corregido

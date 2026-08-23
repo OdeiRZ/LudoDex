@@ -1299,6 +1299,11 @@ are unrelated primary actions, not a style this needs to follow). */
   width: 28px;
   height: 28px;
   flex-shrink: 0;
+  /* Nudged off the card's own right edge (asked for directly) - flush
+  against it, the rightmost column's own button sits close enough to a
+  real scrollbar that a tap aimed at the button sometimes lands on the
+  scrollbar instead. */
+  margin-right: var(--space-1);
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-pill);
   background: var(--color-surface);
