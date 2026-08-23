@@ -168,6 +168,17 @@ it('rejects unauthenticated access to protected routes', function () {
     $this->getJson('/api/user')->assertUnauthorized();
 });
 
+it('returns a clean 401 for an unauthenticated request without an Accept header', function () {
+    // getJson() above sends Accept: application/json itself, which never
+    // exercised this - Laravel's own default unauthenticated handling only
+    // renders JSON when that header is present, and otherwise falls back
+    // to redirecting to a named "login" route this app doesn't have,
+    // turning into a 500 instead of a 401 (found directly). A plain
+    // Http::withToken(...)->get(...) call - no Accept header set - is
+    // exactly this case.
+    $this->get('/api/user')->assertUnauthorized()->assertJson(['message' => 'Unauthenticated.']);
+});
+
 it('updates the authenticated user\'s name and email', function () {
     $user = actingAsUser();
 

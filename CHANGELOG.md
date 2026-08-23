@@ -26,6 +26,19 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   rejilla quedaba tan cerca de la barra de scroll real del navegador que
   a veces el toque destinado al botón caía sobre ella en su lugar.
 
+### Corregido
+
+- Una petición sin autenticar que no llevara `Accept: application/json`
+  (cualquier cliente HTTP que no lo indique a propósito, como el propio
+  `Http::withToken(...)->get(...)` de `translations:sync`) devolvía un
+  500 en vez de un 401 — encontrado al depurar un token caducado. Esta
+  API no tiene ninguna ruta `login` a la que redirigir, pero el manejo
+  por defecto de Laravel para "no autenticado" solo responde en JSON
+  cuando ya detecta ese header; si no, intenta redirigir a esa ruta
+  inexistente y revienta con `RouteNotFoundException`. Ahora responde
+  siempre en JSON con 401, sin depender de qué cabeceras mande el
+  cliente.
+
 ## [0.10.0] - 2026-08-22
 
 ### Corregido
