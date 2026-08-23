@@ -17,6 +17,16 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   pedirla a BGG por mucho que se repita o se espere. Marcando la casilla
   se salta ese filtro y se trae el historial completo, igual que en la
   primera importación.
+- Tirador para mover la tira de salto rápido (A-Z/años/ranking) a
+  cualquier punto de la pantalla, arrastrando desde el icono de puntos
+  en su parte superior — doble toque para volver a la posición por
+  defecto. Ordenar por ranking BGG ensancha mucho la tira (tramos como
+  "101-500" en vez de una sola letra), y esa versión ancha llegaba a
+  tapar por completo el botón de ver detalles de la columna derecha en
+  el móvil; perseguir el solape ajustando la tira o el botón cada vez
+  que cambia el ancho o el criterio de orden no es viable a largo plazo,
+  así que ahora se puede apartar una vez y se queda ahí (guardado en el
+  propio dispositivo).
 
 ### Cambiado
 

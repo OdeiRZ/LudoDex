@@ -246,11 +246,8 @@ vacío. Por debajo de ese ancho, la fórmula converge al propio suelo del
 `max()` — subido de `4px` a `14px` (pedido directamente): en un móvil real,
 sentarse justo en el borde de la pantalla arriesga a chocar con el gesto de
 "atrás"/"adelante" que algunos navegadores/sistemas móviles reconocen ahí.
-`.az-scrubber-bubble` usa la misma fórmula más `2.5rem` fijos (la separación
-original entre burbuja y tira cuando esta última aún vivía en `right: 4px`),
-para mantenerse pegada a la tira también aquí — esa duplicación entre las
-dos reglas sigue siendo a mano (una variable compartida para la fórmula
-entera cerraría también eso, no hecho aquí). `--content-max-width` es un
+Esta fórmula es la posición *por defecto* — ver más abajo el tirador que
+permite anularla arrastrando la tira a cualquier otro sitio. `--content-max-width` es un
 token en `base.css` (no el número `1024px` repetido en dos sitios distintos)
 precisamente para que `#app` y esta fórmula no puedan desincronizarse en
 silencio si ese ancho cambia algún día — antes de esto, el propio comentario
@@ -263,10 +260,45 @@ flota justo debajo del título, y a un tamaño de ventana real (1281×866px,
 comprobado directamente) la tira centrada llegaba a solaparse con él
 unos 15px. Bajar el centro de la tira 40px la aleja de esa zona sin
 necesidad de leer la posición exacta del botón desde aquí — más simple,
-y no afecta a "Tu colección", que no tiene ese botón. `.az-scrubber-bubble`
-lleva el mismo `+40px`, a mano, por la misma razón que su propio `right`:
-solo se muestra mientras se arrastra la tira, así que tiene que seguirla
-allá donde acabe.
+y no afecta a "Tu colección", que no tiene ese botón.
+
+La burbuja grande (`.az-scrubber-bubble`) no replica ninguna de las dos
+fórmulas anteriores en CSS — su `top`/`right` se calculan en JS
+(`updateBubblePosition`, en cada `pointermove`) a partir del
+`getBoundingClientRect()` real de la propia tira en ese instante, y se
+aplican inline. Esto es deliberado desde que la tira pasó a poder moverse
+(ver el tirador más abajo): una fórmula CSS paralela solo sabría replicar
+la posición *por defecto*, no dondequiera que el tirador la haya dejado.
+
+Tirador para reposicionar la tira entera (pedido directamente): ordenar
+por ranking BGG cambia los cajones de una sola letra a tramos como
+"101-500" o "1k-5k", mucho más anchos — como la tira se ancla por su
+borde derecho (la fórmula de arriba), ese ancho extra crece hacia la
+izquierda y en un móvil real llega a tapar por completo el botón de ver
+detalles de la tarjeta de al lado. Perseguir el solape ajustando la tira
+o el botón cada vez que cambian el criterio de orden o el ancho de
+pantalla no escala, así que en vez de eso `.az-scrubber-handle` (el icono
+de puntos en la parte superior de la tira) se puede arrastrar para dejar
+la tira en cualquier otro sitio de la pantalla. Su `pointerdown`/
+`pointermove`/`pointerup` son independientes de los que ya tenía la tira
+para saltar a un cajón (`startScrub`/`moveScrub`/`endScrub`, ahora en
+`.az-scrubber-buckets`, el div interior que excluye el tirador) — sin esa
+separación, no habría forma de distinguir "quiero mover la tira" de
+"quiero saltar a la M".
+
+Mover el tirador guarda `{ top, left }` en `localStorage`
+(`ludodex-scrubber-position`) y cambia `.az-scrubber` de su
+posicionamiento CSS por defecto (`right`/`top`/`transform`, ambos de
+arriba) a un `top`/`left` inline fijos, con `right: auto; transform:
+none` para que ambos no compitan (un `position: fixed` con `left` y
+`right` a la vez, sin `width` explícito, se estira para llenar el hueco
+entre los dos en vez de mantener su ancho de contenido). Un doble
+toque/clic sobre el tirador vuelve a la posición por defecto, borrando
+también lo guardado. La posición se recorta (`clampPosition`) tanto al
+arrastrar como en cada `resize` de la ventana, para que la tira entera
+siga dentro de la pantalla — sin esto, una posición guardada desde una
+ventana ancha podría dejarla fuera del borde de una más estrecha al
+reabrir la página.
 
 Tamaño fluido (pedido directamente: que la tira encoja de forma continua
 con el ancho de pantalla, no en un salto brusco a un breakpoint):
