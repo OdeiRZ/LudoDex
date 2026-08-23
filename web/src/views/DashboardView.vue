@@ -1313,7 +1313,7 @@ buttons plus their gaps need. */
 }
 
 .games :deep(h2) {
-  font-size: 1.05rem;
+  font-size: 1.03rem;
   overflow-wrap: anywhere;
   flex: 1;
   min-width: 0;
