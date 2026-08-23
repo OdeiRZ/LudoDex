@@ -7,6 +7,8 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-08-23
+
 ### Añadido
 
 - Casilla "Reimportar todo el historial" en "Tus partidas" y en la
@@ -35,6 +37,9 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   su tarjeta — pegado al borde, en la columna más a la derecha de la
   rejilla quedaba tan cerca de la barra de scroll real del navegador que
   a veces el toque destinado al botón caía sobre ella en su lugar.
+- El título de cada tarjeta de juego (nombre del juego, en "Tu
+  colección" y en "¿A qué jugamos?") reduce ligeramente su tamaño, de
+  1.05rem a 1.03rem.
 
 ### Corregido
 
