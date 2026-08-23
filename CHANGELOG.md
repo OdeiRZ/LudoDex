@@ -40,6 +40,11 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 - El título de cada tarjeta de juego (nombre del juego, en "Tu
   colección" y en "¿A qué jugamos?") reduce ligeramente su tamaño, de
   1.05rem a 1.03rem.
+- El campo de texto de la confirmación de "Vaciar biblioteca" (en Tu
+  colección) encoge de forma continua con el ancho de la ventana entre
+  404px y 353px, en vez de mantener un ancho fijo y saltar de golpe a
+  otro en un único punto — entre esos dos anchos la fila se desbordaba
+  y el botón "Vaciar" caía a su propia línea.
 
 ### Corregido
 

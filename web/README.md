@@ -125,6 +125,26 @@ retoca este bloque:
   ese hueco si la rejilla sigue teniendo una segunda columna sin usar,
   en vez de haberla colapsado a una sola.
 
+### Campo de texto de "Vaciar biblioteca" — ancho fluido por debajo de 404px
+
+`.clear-confirm-row` (el input "Escribe N para confirmar" + los botones
+Cancelar/Vaciar) mantenía el input a un `min-width: 160px` fijo hasta
+366px, donde saltaba de golpe a un `max-width: 115px` — bien calibrado
+en ese único punto, pero nada lo encogía entre medias, así que entre
+404px y 367px la fila se desbordaba y Vaciar caía a su propia línea
+(reportado directamente). Ahora el input encoge de forma continua en
+ese rango entero, con un `clamp()` interpolado a mano entre dos puntos
+(misma técnica que la tira de salto rápido más abajo, incluido el
+motivo de escribir la pendiente como un número pegado a `vw` en vez de
+como una división dentro de `calc()`): 160px a 404px — el mismo valor
+que ya le daba `flex: 1` justo ahí, para que no haya salto visible en
+el punto donde empieza a aplicarse la media query — hasta 100px a
+353px (pedido directamente, comprobado contra un dispositivo real más
+estrecho que los 366px para los que se ajustó originalmente esta fila).
+Por debajo de 353px el propio suelo de `clamp()` mantiene el input en
+100px, el mismo efecto que tenía el punto de ruptura fijo antes de
+hacerse fluido.
+
 ### Tira de salto rápido — letras, décadas o tramos de ranking (prototipo)
 
 Compartida entre "Tu colección" y "¿A qué jugamos?" vía el composable
