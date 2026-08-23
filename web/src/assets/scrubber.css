@@ -19,14 +19,17 @@ its content's real right edge, then var(--space-2) pulls back inward
 from there for a small gap instead of sitting flush against it.
 var(--content-max-width) is the same token #app's own rule in main.css
 uses, so the two can't drift out of sync the way two separately-typed
-1024px literals could have. 14px (up from an original 4px, asked for
-directly) gives real breathing room from the screen's own right edge on
-a phone - a strip sitting right at that edge risks colliding with an
+1024px literals could have. Floor raised from an original 4px to 14px
+to give real breathing room from the screen's own right edge on a
+phone (a strip sitting right at that edge risks colliding with an
 edge-swipe back/forward gesture some mobile browsers/OSes recognize
-there. */
+there), then to 20px (asked for directly) once 14px still wasn't
+enough clearance from a different edge gesture some phones recognize
+there too - switching tabs mid-swipe, before the drag on the handle
+itself ever registers. */
 .az-scrubber {
   position: fixed;
-  right: max(14px, calc((100vw - var(--content-max-width)) / 2 + var(--space-4) - var(--space-2)));
+  right: max(20px, calc((100vw - var(--content-max-width)) / 2 + var(--space-4) - var(--space-2)));
   /* +40px (asked for directly, no longer perfectly centered on purpose)
   - dead center overlapped the picker page's own filters show/hide
   button, which floats at the top of its card right below the title

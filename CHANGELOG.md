@@ -7,6 +7,14 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Cambiado
+
+- La tira de salto rápido (A-Z/años/ranking) se separa 20px del borde
+  derecho de la pantalla en vez de 14px — seguía sin ser suficiente
+  margen frente a un gesto de cambio de pestaña que algunos móviles
+  reconocen en el borde, que podía dispararse antes de llegar a
+  registrar el propio arrastre del tirador.
+
 ### Corregido
 
 - `POST /api/games/backfill-translations` (el catálogo compartido, no

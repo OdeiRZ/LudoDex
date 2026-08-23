@@ -252,7 +252,7 @@ para poder mostrar sin recortarse tanto una sola letra como una década de
 4 dígitos ("1990").
 
 Posición horizontal: `right` no es un valor fijo, sino
-`max(14px, calc((100vw - var(--content-max-width)) / 2 + var(--space-4) - var(--space-2)))`.
+`max(20px, calc((100vw - var(--content-max-width)) / 2 + var(--space-4) - var(--space-2)))`.
 `#app` (en `main.css`) tiene `max-width: var(--content-max-width); margin: 0
 auto`, así que `(100vw - var(--content-max-width)) / 2` es exactamente el
 margen vacío que queda fuera de `#app` en un monitor ancho (0 o negativo por
@@ -266,6 +266,10 @@ vacío. Por debajo de ese ancho, la fórmula converge al propio suelo del
 `max()` — subido de `4px` a `14px` (pedido directamente): en un móvil real,
 sentarse justo en el borde de la pantalla arriesga a chocar con el gesto de
 "atrás"/"adelante" que algunos navegadores/sistemas móviles reconocen ahí.
+Y de `14px` a `20px` (pedido directamente de nuevo): seguía sin ser
+suficiente margen frente a otro gesto de borde distinto que algunos móviles
+reconocen ahí — cambiar de pestaña a mitad de un intento de arrastrar el
+tirador, antes de que el propio gesto de arrastre llegue a registrarse.
 Esta fórmula es la posición *por defecto* — ver más abajo el tirador que
 permite anularla arrastrando la tira a cualquier otro sitio. `--content-max-width` es un
 token en `base.css` (no el número `1024px` repetido en dos sitios distintos)
