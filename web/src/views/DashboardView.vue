@@ -246,7 +246,12 @@ const clearConfirmCount = ref(0)
 const clearConfirmText = ref('')
 const clearing = ref(false)
 
-function openClearConfirm() {
+function toggleClearConfirm() {
+  if (clearConfirmOpen.value) {
+    clearConfirmOpen.value = false
+    return
+  }
+
   clearConfirmCount.value = games.collection.length
   clearConfirmText.value = ''
   clearConfirmOpen.value = true
@@ -355,7 +360,8 @@ async function onClearCollection() {
                   class="btn btn-danger clear-library-btn"
                   :aria-label="$t('dashboard.clearLibrary')"
                   :title="$t('dashboard.clearLibrary')"
-                  @click="openClearConfirm"
+                  :aria-expanded="clearConfirmOpen"
+                  @click="toggleClearConfirm"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path
@@ -388,7 +394,8 @@ async function onClearCollection() {
             class="btn btn-danger clear-library-btn"
             :aria-label="$t('dashboard.clearLibrary')"
             :title="$t('dashboard.clearLibrary')"
-            @click="openClearConfirm"
+            :aria-expanded="clearConfirmOpen"
+            @click="toggleClearConfirm"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path

@@ -45,6 +45,10 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   404px y 353px, en vez de mantener un ancho fijo y saltar de golpe a
   otro en un único punto — entre esos dos anchos la fila se desbordaba
   y el botón "Vaciar" caía a su propia línea.
+- El botón "Vaciar biblioteca" cierra el panel de confirmación si se
+  pulsa una segunda vez con el panel ya abierto, en vez de dejarlo
+  igual — mismo comportamiento que ya tenía el botón de reimportar
+  partidas.
 
 ### Corregido
 

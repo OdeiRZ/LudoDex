@@ -512,6 +512,16 @@ describe('DashboardView', () => {
       expect(wrapper.find('.clear-confirm').text()).toContain('2')
     })
 
+    it('closes the panel when "Vaciar biblioteca" is clicked again', async () => {
+      const { wrapper } = mountDashboard([makeEntry({ name: 'Root' })])
+
+      await wrapper.find('.clear-library-btn').trigger('click')
+      expect(wrapper.find('.clear-confirm').exists()).toBe(true)
+
+      await wrapper.find('.clear-library-btn').trigger('click')
+      expect(wrapper.find('.clear-confirm').exists()).toBe(false)
+    })
+
     it('keeps the confirm button disabled until the typed text matches the exact count', async () => {
       const { wrapper } = mountDashboard([makeEntry({ name: 'Root' })])
 
