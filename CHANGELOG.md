@@ -7,13 +7,6 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
-### Corregido
-
-- El fondo de la página ya no se desplaza mientras el modal de detalles
-  de un juego está abierto — al hacer scroll dentro del modal (con la
-  rueda o arrastrando en móvil), el gesto llegaba hasta la colección de
-  debajo en vez de quedarse solo en el propio modal.
-
 ## [0.11.0] - 2026-08-23
 
 ### Añadido
@@ -69,6 +62,10 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   inexistente y revienta con `RouteNotFoundException`. Ahora responde
   siempre en JSON con 401, sin depender de qué cabeceras mande el
   cliente.
+- El fondo de la página ya no se desplaza mientras el modal de detalles
+  de un juego está abierto — al hacer scroll dentro del modal (con la
+  rueda o arrastrando en móvil), el gesto llegaba hasta la colección de
+  debajo en vez de quedarse solo en el propio modal.
 
 ## [0.10.0] - 2026-08-22
 
