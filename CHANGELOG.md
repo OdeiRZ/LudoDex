@@ -13,6 +13,12 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   algo propio de quien llama) aceptaba cualquier cuenta autenticada, no
   solo la propietaria de este despliegue. Ahora exige que el email del
   usuario coincida con `OWNER_EMAIL`, y responde 403 en caso contrario.
+- Añadir un juego con un `bgg_id` que ya existía en el catálogo
+  compartido (otra cuenta ya lo había añadido antes) reventaba con un
+  500 sin manejar, en vez de reutilizar el juego ya existente — `bgg_id`
+  es único en `games` desde la primera migración. Ahora reutiliza esa
+  fila; si además el usuario actual ya tenía ese juego en su propia
+  colección, responde 422 con un mensaje claro en vez de otro 500.
 
 ## [0.11.0] - 2026-08-23
 

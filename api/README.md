@@ -146,6 +146,19 @@ si el nombre ya existe en el catálogo se reutiliza, si no se crea sobre la
 marcha (`firstOrCreate`). Actualizar o borrar la entrada de otro usuario
 devuelve 403 (`App\Policies\UserGamePolicy`).
 
+Si el `bgg_id` enviado ya existe en el catálogo compartido (otra cuenta
+añadió antes ese mismo juego real, algo perfectamente normal con más de un
+usuario), reutiliza esa fila de `games` en vez de intentar crear otra —
+`bgg_id` es único en esa tabla desde la primera migración, así que crear una
+segunda fila con el mismo valor reventaba con un 500 sin manejar en vez de
+responder algo útil (encontrado probando el propio endpoint de backfill de
+traducciones con un juego real que ya existía en el catálogo). Si además el
+usuario actual ya tenía ese juego en su propia colección, responde `422` con
+un mensaje claro en vez de otro 500 (violación del `unique(user_id, game_id)`
+de `user_games`). Un juego sin `bgg_id` (alta totalmente manual, sin pasar
+por "Rellenar desde BGG") sigue creando siempre su propia fila, igual que
+antes.
+
 | Método | Ruta                                      | Auth | Descripción                       |
 |--------|-------------------------------------------|------|------------------------------------|
 | POST   | `/api/games/{game}/translate-description` | Sí   | Traduce la descripción del juego al español (limitado a 20/minuto) |
