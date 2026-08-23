@@ -27,6 +27,10 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   es único en `games` desde la primera migración. Ahora reutiliza esa
   fila; si además el usuario actual ya tenía ese juego en su propia
   colección, responde 422 con un mensaje claro en vez de otro 500.
+- El mismo problema existía al editar: cambiar el `bgg_id` de un juego
+  ya en la colección al de otro juego que ya existiera en el catálogo
+  también reventaba con un 500. Ahora responde 422 en vez de dejarlo
+  llegar a la base de datos.
 
 ## [0.11.0] - 2026-08-23
 

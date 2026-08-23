@@ -159,6 +159,14 @@ de `user_games`). Un juego sin `bgg_id` (alta totalmente manual, sin pasar
 por "Rellenar desde BGG") sigue creando siempre su propia fila, igual que
 antes.
 
+`PUT /api/games/{userGame}` tenía el mismo punto ciego por el lado de
+editar: cambiar el `bgg_id` de un juego ya en la colección al de otro juego
+que ya existiera en el catálogo también reventaba con un 500 sin manejar
+(mismo `unique` de `games.bgg_id`, encontrado al auditar el resto de
+constraints únicos del esquema tras el fallo de arriba). `UpdateUserGameRequest`
+ahora rechaza ese cambio con un `422` en vez de dejarlo llegar a la base de
+datos.
+
 | Método | Ruta                                      | Auth | Descripción                       |
 |--------|-------------------------------------------|------|------------------------------------|
 | POST   | `/api/games/{game}/translate-description` | Sí   | Traduce la descripción del juego al español (limitado a 20/minuto) |
