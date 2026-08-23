@@ -79,8 +79,24 @@ function onKeydown(event: KeyboardEvent) {
   }
 }
 
-onMounted(() => window.addEventListener('keydown', onKeydown))
-onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+// Without this, scrolling inside the modal on a touch device (or over
+// the backdrop with a wheel) also scrolls the page underneath - the
+// backdrop covers the viewport but isn't itself scrollable, so the
+// gesture bubbles straight through to it. Restores whatever the body's
+// own overflow was before (rather than assuming it was the default
+// 'visible') in case something else already set it.
+let previousBodyOverflow = ''
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+  previousBodyOverflow = document.body.style.overflow
+  document.body.style.overflow = 'hidden'
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+  document.body.style.overflow = previousBodyOverflow
+})
 </script>
 
 <template>
@@ -150,6 +166,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   max-width: 480px;
   max-height: 90vh;
   overflow-y: auto;
+  /* Without this, dragging past the top/bottom of this panel's own
+  scroll on a touch device chains into scrolling the page behind it
+  instead of just stopping - the body's own overflow: hidden (see the
+  script block) blocks the wheel/scrollbar path, but not this one. */
+  overscroll-behavior: contain;
 }
 
 .modal-close {

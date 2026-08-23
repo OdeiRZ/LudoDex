@@ -156,4 +156,25 @@ describe('GameDetailModal', () => {
 
     expect(wrapper.emitted('close')).toBeUndefined()
   })
+
+  it('locks body scroll while open and restores it on close', () => {
+    document.body.style.overflow = ''
+    const wrapper = mountModal(makeGame())
+
+    expect(document.body.style.overflow).toBe('hidden')
+
+    wrapper.unmount()
+
+    expect(document.body.style.overflow).toBe('')
+  })
+
+  it('restores whatever overflow the body already had, not just the default', () => {
+    document.body.style.overflow = 'scroll'
+    const wrapper = mountModal(makeGame())
+
+    wrapper.unmount()
+
+    expect(document.body.style.overflow).toBe('scroll')
+    document.body.style.overflow = ''
+  })
 })
