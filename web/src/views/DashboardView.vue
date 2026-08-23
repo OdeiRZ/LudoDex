@@ -1282,14 +1282,28 @@ to land in row1/row3 at all. */
 }
 
 /* 160px's floor left no room for Cancelar/Vaciar to share the row with
-it at a real 366px phone (the input alone plus both buttons needs
-~300px total, all this row has) - they wrapped Vaciar onto its own
-second line instead. 115px is short enough to leave the ~179px both
-buttons plus their gaps need. */
-@media (max-width: 366px) {
+it starting at 404px (the input alone plus both buttons needs more
+width than the row has below that point) - they wrapped Vaciar onto
+its own second line instead. Below 404px the input now shrinks
+continuously with the viewport instead of holding 160px and then
+snapping to a fixed width at some narrower breakpoint.
+
+Interpolated by hand between two sample widths (same technique as the
+scrubber's own fluid sizing, see its README section, including why the
+slope is written as a flat number attached to vw instead of a division
+inside calc() - this browser silently drops the latter): 160px at
+404px (matches what flex: 1 already gives it there on its own, so
+there's no visible jump right where the media query starts applying),
+down to 100px at 353px (asked for directly, checked against a real
+device narrower than the 366px this row was originally tuned for).
+clamp()'s own 100px floor holds it there for anything narrower still,
+the same way the pre-fluid version held a single fixed width below its
+one breakpoint. */
+@media (max-width: 404px) {
   .clear-confirm-row input {
+    flex: 0 1 auto;
     min-width: 0;
-    max-width: 115px;
+    width: clamp(100px, calc(-315.294px + 117.6471vw), 160px);
   }
 }
 
