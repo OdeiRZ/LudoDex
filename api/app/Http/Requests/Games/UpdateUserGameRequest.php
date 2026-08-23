@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Games;
 
+use App\Models\Game;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -21,7 +22,25 @@ class UpdateUserGameRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'max:255'],
             'image_url' => ['sometimes', 'nullable', 'url', 'max:2048'],
-            'bgg_id' => ['sometimes', 'nullable', 'integer', 'min:1'],
+            // Same games.bgg_id unique constraint the store side has to
+            // respect (see UserGameController::store's own comment) -
+            // changing this game's bgg_id to one that already belongs to a
+            // different row would otherwise crash with an unhandled 500
+            // instead of a clean validation error.
+            'bgg_id' => [
+                'sometimes', 'nullable', 'integer', 'min:1',
+                function (string $attribute, mixed $value, Closure $fail) {
+                    if ($value === null) {
+                        return;
+                    }
+
+                    $conflict = Game::where('bgg_id', $value)->first();
+
+                    if ($conflict !== null && $conflict->id !== $this->route('userGame')?->game_id) {
+                        $fail(__('games.bgg_id_belongs_to_another_game'));
+                    }
+                },
+            ],
             'year_published' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:'.(date('Y') + 1)],
             'min_age' => ['sometimes', 'nullable', 'string', 'max:20'],
             'bgg_rank' => ['sometimes', 'nullable', 'integer', 'min:1'],

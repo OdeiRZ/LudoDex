@@ -151,6 +151,29 @@ it('updates the underlying game fields and taxonomies', function () {
         ->assertJsonPath('data.game.mechanics', ['Deck Building']);
 });
 
+it('rejects changing a game\'s bgg_id to one that already belongs to another game', function () {
+    $user = actingAsUser();
+    Game::factory()->create(['bgg_id' => 13]);
+    $game = Game::factory()->create(['bgg_id' => 14]);
+    $userGame = UserGame::factory()->for($user)->for($game)->create();
+
+    $response = $this->putJson("/api/games/{$userGame->id}", ['bgg_id' => 13]);
+
+    $response->assertUnprocessable()->assertJsonValidationErrors('bgg_id');
+    expect($game->fresh()->bgg_id)->toBe(14);
+});
+
+it('allows re-saving a game with its own unchanged bgg_id', function () {
+    $user = actingAsUser();
+    $game = Game::factory()->create(['bgg_id' => 13, 'name' => 'Old Name']);
+    $userGame = UserGame::factory()->for($user)->for($game)->create();
+
+    $this->putJson("/api/games/{$userGame->id}", [
+        'bgg_id' => 13,
+        'name' => 'New Name',
+    ])->assertOk()->assertJsonPath('data.game.name', 'New Name');
+});
+
 it('sets the base game when creating a game as an expansion of one already in the collection', function () {
     actingAsUser();
     $catan = Game::factory()->create(['name' => 'Catan']);
