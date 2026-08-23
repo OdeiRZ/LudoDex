@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class UserGameController extends Controller
 {
@@ -32,13 +33,28 @@ class UserGameController extends Controller
     public function store(StoreUserGameRequest $request): UserGameResource
     {
         $userGame = DB::transaction(function () use ($request) {
-            // Manual entry always creates its own Game row (no BGG id to
-            // dedupe against yet - that arrives with BGG import). Two users
-            // adding "the same" obscure game by hand independently ending up
-            // as two separate rows is an accepted MVP simplification.
-            $game = Game::create($request->safe()->except(['mechanics', 'categories', 'status']));
+            // bgg_id is unique on games (has been since the very first
+            // migration), so two different accounts manually adding the
+            // same real BGG game - reachable any time "Rellenar desde BGG"
+            // is used, not just an edge case - used to crash the second one
+            // with a raw 500 (unhandled unique-constraint violation) instead
+            // of either account ending up with a working collection entry.
+            // Reuses the existing shared row instead of trying to insert a
+            // duplicate; a game with no bgg_id (hand-typed, not looked up)
+            // still always gets its own row, same as before.
+            $bggId = $request->validated('bgg_id');
+            $game = $bggId !== null ? Game::where('bgg_id', $bggId)->first() : null;
 
-            $this->taxonomySyncer->sync($game, $request->validated('mechanics', []), $request->validated('categories', []));
+            if ($game !== null) {
+                if ($request->user()->games()->where('game_id', $game->id)->exists()) {
+                    throw ValidationException::withMessages([
+                        'bgg_id' => [__('games.bgg_id_already_in_collection')],
+                    ]);
+                }
+            } else {
+                $game = Game::create($request->safe()->except(['mechanics', 'categories', 'status']));
+                $this->taxonomySyncer->sync($game, $request->validated('mechanics', []), $request->validated('categories', []));
+            }
 
             return $request->user()->games()->create([
                 'game_id' => $game->id,

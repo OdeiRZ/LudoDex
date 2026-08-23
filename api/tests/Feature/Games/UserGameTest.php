@@ -66,6 +66,45 @@ it('reuses an existing mechanic instead of duplicating it', function () {
     expect($user->games()->count())->toBe(2);
 });
 
+it('reuses the existing shared game when a second user adds the same bgg_id', function () {
+    $firstUser = actingAsUser();
+    $this->postJson('/api/games', [
+        'name' => 'Catan',
+        'bgg_id' => 13,
+        'status' => 'owned',
+    ])->assertCreated();
+
+    $secondUser = actingAsUser();
+    $response = $this->postJson('/api/games', [
+        'name' => 'Catan',
+        'bgg_id' => 13,
+        'status' => 'wishlist',
+    ]);
+
+    $response->assertCreated()->assertJsonPath('data.status', 'wishlist');
+    expect(Game::where('bgg_id', 13)->count())->toBe(1);
+    expect($firstUser->games()->count())->toBe(1);
+    expect($secondUser->games()->count())->toBe(1);
+});
+
+it('rejects adding a bgg_id the current user already has, instead of crashing', function () {
+    actingAsUser();
+    $this->postJson('/api/games', [
+        'name' => 'Catan',
+        'bgg_id' => 13,
+        'status' => 'owned',
+    ])->assertCreated();
+
+    $response = $this->postJson('/api/games', [
+        'name' => 'Catan',
+        'bgg_id' => 13,
+        'status' => 'wishlist',
+    ]);
+
+    $response->assertUnprocessable()->assertJsonValidationErrors('bgg_id');
+    expect(Game::where('bgg_id', 13)->count())->toBe(1);
+});
+
 it('rejects a max_players lower than min_players', function () {
     actingAsUser();
 
