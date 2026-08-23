@@ -151,6 +151,7 @@ async function onCsvSubmit() {
 // has no BGG-side async export step to poll), just driven by a username
 // like the collection tab instead of a file.
 const playsUsername = ref('')
+const playsFull = ref(false)
 const playsSubmitting = ref(false)
 const playsResult = ref<PlaysImportResult | null>(null)
 const playsErrorMessage = ref<string | null>(null)
@@ -160,7 +161,7 @@ async function onPlaysSubmit() {
   playsErrorMessage.value = null
 
   try {
-    playsResult.value = await plays.importPlays(playsUsername.value)
+    playsResult.value = await plays.importPlays(playsUsername.value, playsFull.value)
     // Both, not just the page - PlaysView's own stats bar reads
     // `plays.stats` independently of `plays.entries`, and its mount guard
     // only refetches stats when null, so without this an import started
@@ -347,6 +348,12 @@ onMounted(() => {
             />
           </div>
 
+          <label class="plays-full-label">
+            <input v-model="playsFull" type="checkbox" :disabled="playsSubmitting" />
+            {{ $t('importBgg.playsFullLabel') }}
+          </label>
+          <p class="hint">{{ $t('importBgg.playsFullHint') }}</p>
+
           <p v-if="playsErrorMessage" role="alert" class="alert alert-error">
             {{ playsErrorMessage }}
           </p>
@@ -416,6 +423,21 @@ h1 {
   color: var(--color-text-muted);
   font-size: 0.9rem;
   margin-bottom: var(--space-2);
+}
+
+.plays-full-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The global input { width: 100% } rule (meant for text inputs) is
+normally countered by a fieldset-scoped override elsewhere in the app -
+this checkbox isn't inside a fieldset, so without this it stretches to
+the full row width instead of its own natural checkbox size. */
+.plays-full-label input[type='checkbox'] {
+  width: auto;
+  flex-shrink: 0;
 }
 
 .status-block {

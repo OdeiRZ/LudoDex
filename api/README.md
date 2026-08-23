@@ -201,7 +201,14 @@ y `total_minutes` solo cuenta las partidas con duración conocida —
 datos" en vez de un total de 0 engañoso. `POST /api/bgg-plays-imports` es
 incremental a partir del segundo import: solo pide a BGG las partidas desde
 la última ya guardada (con una semana de margen de solapamiento), en vez de
-repetir el historial completo cada vez.
+repetir el historial completo cada vez. Esto deja un punto ciego real: una
+partida que alguien rellena en BGG con fecha antigua (un backfill de una
+jugada de hace meses) cae fuera de esa ventana pase lo que pase — ni
+reimportando cien veces ni esperando aparece, porque el filtro de fecha la
+descarta antes de siquiera consultarla (reportado directamente). `full:
+true` en el body de la petición se salta el filtro incremental por completo
+y trae el historial entero, igual que en la primera importación — expuesto
+en el frontend como la casilla "Reimportar todo el historial".
 
 `BggClient::fetchPlays()` pagina contra `/plays` (100 partidas por página) y
 BGG limita la velocidad de peticiones consecutivas — reproducido

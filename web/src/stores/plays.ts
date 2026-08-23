@@ -94,9 +94,14 @@ export const usePlaysStore = defineStore('plays', {
 
     /** Synchronous on the backend (unlike the collection import, /plays has
      * no BGG-side async export step to poll) - resolves with the final
-     * result directly, same as importBggCsv(). */
-    async importPlays(username: string): Promise<PlaysImportResult> {
-      const { data } = await apiClient.post('/bgg-plays-imports', { bgg_username: username })
+     * result directly, same as importBggCsv(). `full` skips the backend's
+     * own incremental window (only ever pulling plays newer than the
+     * latest one already stored) and re-fetches the whole history instead
+     * - the only way to reach a play backfilled on BGG with an old date,
+     * which an ordinary reimport can never see no matter how many times
+     * it reruns. */
+    async importPlays(username: string, full = false): Promise<PlaysImportResult> {
+      const { data } = await apiClient.post('/bgg-plays-imports', { bgg_username: username, full })
       return data.data
     },
 

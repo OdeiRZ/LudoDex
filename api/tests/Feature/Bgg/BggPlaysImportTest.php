@@ -36,10 +36,13 @@ function fakePlaysOf(string $username, string $innerXml): void
     });
 }
 
-function postPlaysImport(string $username): TestResponse
+function postPlaysImport(string $username, bool $full = false): TestResponse
 {
     return test()->withHeader('Accept', 'application/json')
-        ->post('/api/bgg-plays-imports', ['bgg_username' => $username]);
+        ->post('/api/bgg-plays-imports', array_filter([
+            'bgg_username' => $username,
+            'full' => $full ?: null,
+        ], fn ($value) => $value !== null));
 }
 
 it('rejects the request without a bgg_username', function () {
@@ -226,6 +229,32 @@ it('sends mindate as the latest stored play minus a week\'s overlap on a reimpor
     });
 
     postPlaysImport('odei')->assertOk();
+
+    expect(Play::count())->toBe(2);
+});
+
+it('sends no mindate on a full reimport even with plays already stored', function () {
+    // A play backfilled on BGG with an old date (a game logged long after
+    // it was actually played) sits well outside the normal incremental
+    // window above - full=true is the only way to ever reach it, no
+    // matter how many times an ordinary reimport reruns.
+    $user = actingAsUser();
+    $game = Game::factory()->create(['bgg_id' => 13]);
+    Play::factory()->for($user)->for($game)->create(['played_at' => '2026-02-10']);
+
+    Http::fake(function (ClientRequest $request) {
+        $query = [];
+        parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+        expect($query)->not->toHaveKey('mindate');
+
+        return Http::response(
+            '<?xml version="1.0" encoding="utf-8"?><plays total="1" page="1">'
+            .playXmlRow(999, 13, 'Catan', '2025-06-01')
+            .'</plays>'
+        );
+    });
+
+    postPlaysImport('odei', full: true)->assertOk();
 
     expect(Play::count())->toBe(2);
 });

@@ -269,9 +269,12 @@ export default {
     viewCollection: 'Ver tu colección',
     playsHint:
       'Trae tu historial de partidas desde BoardGameGeek. Solo se lee de BGG; nada de lo que veas aquí se envía de vuelta.',
-    playsSubmit: 'Importar partidas',
+    playsSubmit: 'Reimportar partidas',
     playsSubmitting: 'Importando…',
     playsGenericError: 'No se han podido importar las partidas.',
+    playsFullLabel: 'Reimportar todo el historial',
+    playsFullHint:
+      'Trae también partidas con fecha antigua que un reimport normal no vuelve a comprobar (puede tardar más).',
     playsCompleted: '{count} partida importada. | {count} partidas importadas.',
     viewPlays: 'Ver partidas',
   },
@@ -288,7 +291,7 @@ export default {
     reimportButton: 'Reimportar desde BGG',
     reimportWarning:
       'Se comprobarán tus partidas más recientes en BoardGameGeek para el usuario indicado y se añadirán a tu historial.',
-    reimportSubmit: 'Reimportar',
+    reimportSubmit: 'Importar',
     statsTotalPlays: 'Partidas jugadas',
     statsDistinctGames: 'Juegos distintos',
     statsTotalTime: 'Tiempo total',

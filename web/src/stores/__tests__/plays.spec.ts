@@ -129,8 +129,17 @@ describe('usePlaysStore', () => {
     const result = await store.importPlays('odei')
 
     expect(result).toEqual({ imported_count: 42 })
-    expect(apiClient.post).toHaveBeenCalledWith('/bgg-plays-imports', { bgg_username: 'odei' })
+    expect(apiClient.post).toHaveBeenCalledWith('/bgg-plays-imports', { bgg_username: 'odei', full: false })
     expect(store.entries).toEqual([])
+  })
+
+  it('sends full: true when asked for a full reimport', async () => {
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { data: { imported_count: 42 } } })
+    const store = usePlaysStore()
+
+    await store.importPlays('odei', true)
+
+    expect(apiClient.post).toHaveBeenCalledWith('/bgg-plays-imports', { bgg_username: 'odei', full: true })
   })
 
   it('fetchStats stores the aggregated result from the backend', async () => {

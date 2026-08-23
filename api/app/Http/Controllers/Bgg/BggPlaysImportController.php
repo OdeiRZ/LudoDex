@@ -13,7 +13,11 @@ class BggPlaysImportController extends Controller
 
     public function store(StorePlaysImportRequest $request): JsonResponse
     {
-        $result = $this->importService->import($request->validated('bgg_username'), $request->user());
+        $result = $this->importService->import(
+            $request->validated('bgg_username'),
+            $request->user(),
+            $request->boolean('full'),
+        );
 
         if ($result['status'] === 'error') {
             return response()->json(['message' => $result['message']], 422);

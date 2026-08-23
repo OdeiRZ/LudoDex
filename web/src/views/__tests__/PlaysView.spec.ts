@@ -275,10 +275,29 @@ describe('PlaysView', () => {
     await wrapper.vm.$nextTick()
     await wrapper.vm.$nextTick()
 
-    expect(importSpy).toHaveBeenCalledWith('odei1987')
+    expect(importSpy).toHaveBeenCalledWith('odei1987', false)
     expect(store.fetchPage).toHaveBeenCalledWith(1)
     expect(wrapper.find('.reimport-panel').exists()).toBe(false)
     expect(useToastStore().message).toBe('2 partidas importadas.')
+  })
+
+  it('sends full: true when the full-reimport checkbox is checked', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.entries = [makePlay()]
+    await wrapper.vm.$nextTick()
+    const importSpy = vi
+      .spyOn(store, 'importPlays')
+      .mockResolvedValue({ imported_count: 2 })
+
+    await wrapper.find('.reimport-btn').trigger('click')
+    await wrapper.find('#reimport-username').setValue('odei1987')
+    await wrapper.find('.reimport-full-label input[type="checkbox"]').setValue(true)
+    await wrapper.find('.reimport-panel .btn-primary').trigger('click')
+    await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick()
+
+    expect(importSpy).toHaveBeenCalledWith('odei1987', true)
   })
 
   it('uses the singular form in the toast for exactly one reimported play', async () => {

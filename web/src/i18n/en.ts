@@ -269,9 +269,12 @@ export default {
     viewCollection: 'View your collection',
     playsHint:
       "Bring in your play history from BoardGameGeek. This only reads from BGG - nothing you see here is ever sent back.",
-    playsSubmit: 'Import plays',
+    playsSubmit: 'Reimport plays',
     playsSubmitting: 'Importing…',
     playsGenericError: "Couldn't import your plays.",
+    playsFullLabel: 'Reimport full history',
+    playsFullHint:
+      "Also fetches old-dated plays that an ordinary reimport won't check again (can take longer).",
     playsCompleted: '{count} play imported. | {count} plays imported.',
     viewPlays: 'View your plays',
   },
@@ -288,7 +291,7 @@ export default {
     reimportButton: 'Reimport from BGG',
     reimportWarning:
       "We'll check BoardGameGeek for the most recent plays under this username and add them to your history.",
-    reimportSubmit: 'Reimport',
+    reimportSubmit: 'Import',
     statsTotalPlays: 'Plays',
     statsDistinctGames: 'Distinct games',
     statsTotalTime: 'Total time',

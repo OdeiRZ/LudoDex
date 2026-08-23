@@ -7,6 +7,17 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Añadido
+
+- Casilla "Reimportar todo el historial" en "Tus partidas" y en la
+  pestaña "Partidas" de "Importar BGG" — una partida rellenada en BGG
+  con fecha antigua (backfill de una jugada de hace tiempo) queda fuera
+  de la ventana incremental habitual (últimas partidas guardadas menos
+  una semana de margen), así que un reimport normal nunca llega a
+  pedirla a BGG por mucho que se repita o se espere. Marcando la casilla
+  se salta ese filtro y se trae el historial completo, igual que en la
+  primera importación.
+
 ### Cambiado
 
 - El botón de ver detalles de cada juego (icono del ojo, en "Tu

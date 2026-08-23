@@ -402,7 +402,7 @@ describe('ImportBggView', () => {
 
     await submitPlaysUsername(wrapper)
 
-    expect(importSpy).toHaveBeenCalledWith('odei')
+    expect(importSpy).toHaveBeenCalledWith('odei', false)
     expect(fetchPageSpy).toHaveBeenCalledWith(1)
     expect(wrapper.text()).toContain('7 partidas importadas.')
   })

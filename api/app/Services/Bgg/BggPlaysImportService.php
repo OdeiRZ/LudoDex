@@ -28,16 +28,26 @@ class BggPlaysImportService
      * Overlap window for the incremental fetch below - wide enough to
      * still pick up a play someone edited on BGG a few days after
      * logging it (a corrected duration, a fixed date), without falling
-     * all the way back to a full reimport every time. An edit further
-     * back than this needs a full reimport to surface here - same
-     * trade-off any incremental sync makes.
+     * all the way back to a full reimport every time. A play backfilled
+     * on BGG with an older date - a game logged long after it was
+     * actually played - falls outside this window regardless of how
+     * many times the same account reimports afterward, since the window
+     * is anchored to the latest already-stored play's date, not to when
+     * the reimport itself runs; $full below is the escape hatch for
+     * exactly that case (reported directly).
      */
     private const INCREMENTAL_OVERLAP_DAYS = 7;
 
     /**
+     * @param  bool  $full  Skips the incremental window entirely and fetches
+     *                      the account's whole history, same as a first-ever
+     *                      import - see INCREMENTAL_OVERLAP_DAYS above for
+     *                      why the incremental fetch alone can't reach an
+     *                      old-dated backfilled play no matter how often it
+     *                      reruns.
      * @return array{status: 'ready'|'error', message?: string, imported_count?: int}
      */
-    public function import(string $username, User $user): array
+    public function import(string $username, User $user, bool $full = false): array
     {
         // BGG's rate limit can force fetchPlays() into many retries (up to
         // 40s backoff per page, doubling the between-page pace once any
@@ -50,7 +60,7 @@ class BggPlaysImportService
         // holds regardless of what each environment's default happens to be.
         set_time_limit(300);
 
-        $minDate = $this->incrementalMinDate($user);
+        $minDate = $full ? null : $this->incrementalMinDate($user);
         $result = $this->client->fetchPlays($username, $minDate);
 
         if ($result['status'] === 'error') {

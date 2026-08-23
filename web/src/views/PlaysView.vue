@@ -56,6 +56,11 @@ const reimportPanelOpen = ref(false)
 const reimportUsername = ref('')
 const reimportError = ref<string | null>(null)
 const reimporting = ref(false)
+// Off by default (the fast, common-case path) - only needed for a play
+// backfilled on BGG with an old date, which the incremental reimport
+// above can never reach on its own (see BggPlaysImportService's own
+// doc comment on why - reported directly).
+const reimportFull = ref(false)
 
 function toggleReimportPanel() {
   if (reimportPanelOpen.value) {
@@ -65,6 +70,7 @@ function toggleReimportPanel() {
 
   reimportUsername.value = ''
   reimportError.value = null
+  reimportFull.value = false
   reimportPanelOpen.value = true
 }
 
@@ -73,7 +79,7 @@ async function onReimportConfirm() {
   reimportError.value = null
 
   try {
-    const result = await plays.importPlays(reimportUsername.value)
+    const result = await plays.importPlays(reimportUsername.value, reimportFull.value)
     await Promise.all([plays.fetchPage(1), plays.fetchStats()])
     reimportPanelOpen.value = false
     toast.show(
@@ -172,6 +178,11 @@ onMounted(() => {
           {{ reimporting ? $t('importBgg.playsSubmitting') : $t('plays.reimportSubmit') }}
         </button>
       </div>
+      <label class="reimport-full-label">
+        <input v-model="reimportFull" type="checkbox" :disabled="reimporting" />
+        {{ $t('importBgg.playsFullLabel') }}
+      </label>
+      <p class="hint">{{ $t('importBgg.playsFullHint') }}</p>
       <p v-if="reimporting" class="alert alert-info reimport-submitting">
         <LoadingSpinner :size="28" />
         {{ $t('importBgg.dontCloseTab') }}
@@ -431,6 +442,29 @@ h1 {
 .reimport-row input {
   flex: 1;
   min-width: 0;
+}
+
+/* .reimport-panel's own "label { display: block }" rule (above) has
+higher specificity (class + element vs. this class alone) and would
+otherwise win over this - qualified with the same parent to match it. */
+.reimport-panel .reimport-full-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The global input { width: 100% } rule (meant for text inputs) is
+normally countered by a fieldset-scoped override elsewhere in the app -
+this checkbox isn't inside a fieldset, so without this it stretches to
+the full row width instead of its own natural checkbox size. */
+.reimport-full-label input[type='checkbox'] {
+  width: auto;
+  flex-shrink: 0;
+}
+
+.hint {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
 }
 
 .reimport-submitting {
