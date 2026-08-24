@@ -68,6 +68,61 @@ it('ranks top_played by summed quantity, not row count', function () {
         ->assertJsonPath('data.top_played.1.count', 3);
 });
 
+it('rolls up plays logged against an expansion into its base game for top_played', function () {
+    $user = actingAsUser();
+    $base = Game::factory()->create(['name' => '7 Wonders Duel', 'bgg_id' => 173346]);
+    $expansion = Game::factory()->create([
+        'name' => '7 Wonders Duel: Agora',
+        'bgg_id' => 233312,
+        'base_game_id' => $base->id,
+    ]);
+    $other = Game::factory()->create(['name' => 'Catan', 'bgg_id' => 13]);
+
+    Play::factory()->for($user)->for($base)->create(['quantity' => 2]);
+    Play::factory()->for($user)->for($expansion)->create(['quantity' => 3]);
+    Play::factory()->for($user)->for($other)->create(['quantity' => 4]);
+
+    $response = $this->getJson('/api/plays/stats')->assertOk();
+
+    // 7 Wonders Duel (2 + 3 = 5) outranks Catan (4) once the expansion's
+    // plays count toward its base game instead of staying split apart.
+    $response->assertJsonCount(2, 'data.top_played')
+        ->assertJsonPath('data.top_played.0.game.id', $base->id)
+        ->assertJsonPath('data.top_played.0.game.name', '7 Wonders Duel')
+        ->assertJsonPath('data.top_played.0.count', 5)
+        ->assertJsonPath('data.top_played.1.game.name', 'Catan')
+        ->assertJsonPath('data.top_played.1.count', 4);
+});
+
+it('includes a breakdown by specific game for a rolled-up entry with more than one contributor', function () {
+    $user = actingAsUser();
+    $base = Game::factory()->create(['name' => '7 Wonders Duel', 'bgg_id' => 173346]);
+    $expansion = Game::factory()->create([
+        'name' => '7 Wonders Duel: Agora',
+        'bgg_id' => 233312,
+        'base_game_id' => $base->id,
+    ]);
+
+    Play::factory()->for($user)->for($base)->create(['quantity' => 2]);
+    Play::factory()->for($user)->for($expansion)->create(['quantity' => 3]);
+
+    $this->getJson('/api/plays/stats')->assertOk()
+        ->assertJsonCount(2, 'data.top_played.0.breakdown')
+        ->assertJsonPath('data.top_played.0.breakdown.0.game.name', '7 Wonders Duel: Agora')
+        ->assertJsonPath('data.top_played.0.breakdown.0.count', 3)
+        ->assertJsonPath('data.top_played.0.breakdown.1.game.name', '7 Wonders Duel')
+        ->assertJsonPath('data.top_played.0.breakdown.1.count', 2);
+});
+
+it('leaves breakdown null for an entry with just one contributing game', function () {
+    $user = actingAsUser();
+    $game = Game::factory()->create(['name' => 'Catan', 'bgg_id' => 13]);
+    Play::factory()->for($user)->for($game)->create(['quantity' => 4]);
+
+    $this->getJson('/api/plays/stats')->assertOk()
+        ->assertJsonPath('data.top_played.0.breakdown', null);
+});
+
 it('caps top_played at 3 games even with more distinct games played', function () {
     $user = actingAsUser();
 
