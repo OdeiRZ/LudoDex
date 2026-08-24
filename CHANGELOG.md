@@ -7,6 +7,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Añadido
+
+- Cada partida de "Tus partidas" muestra "Expansión de {nombre}" bajo
+  el nombre del juego jugado, cuando ese juego es una expansión — texto,
+  no una segunda imagen de portada junto a la suya, para no duplicar
+  imágenes en una lista que puede llegar a miles de filas.
+
 ### Cambiado
 
 - El top 3 de más jugados en "Tus partidas" suma las partidas de una

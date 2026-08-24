@@ -223,6 +223,12 @@ respuesta).
 `GET /api/plays` acepta `?search=` para filtrar por el nombre del juego
 jugado (case-insensitive, resuelto en el propio backend ya que la lista
 está paginada — un filtro en el cliente solo vería la página ya cargada).
+Cada partida lleva `game.base_game_name` (mismo campo que ya expone
+`GameResource` para la colección/picker) — si la partida se jugó contra
+una expansión, el frontend lo muestra como "Expansión de {nombre}" bajo
+el nombre de la propia expansión, en vez de una segunda imagen de
+portada junto a la suya (una lista que puede llegar a miles de filas no
+se beneficia de duplicar imágenes por fila).
 `GET /api/plays/stats` siempre agrega sobre el historial completo, nunca
 sobre la página actual: `total_plays` y `total_minutes` suman `quantity`
 (BGG agrupa varias partidas del mismo juego el mismo día en una sola fila),
