@@ -115,6 +115,26 @@ const totalTimeLabel = computed(() => {
     : t('plays.statsHoursMinutes', { hours, minutes })
 })
 
+// Collapsed by default (asked for directly): a top_played entry with a
+// breakdown (base + one or more expansions contributing to it) can be
+// expanded to show it, one at a time isn't required here - unlike
+// detailGame above, there's no reason only one of the (at most 3) rows
+// could be open together. An entry with no breakdown has nothing to
+// toggle, so its own id never ends up in this set either way.
+const expandedTopPlayed = ref(new Set<string>())
+
+function toggleTopPlayedBreakdown(gameId: string) {
+  if (expandedTopPlayed.value.has(gameId)) {
+    expandedTopPlayed.value.delete(gameId)
+  } else {
+    expandedTopPlayed.value.add(gameId)
+  }
+
+  // Set mutations don't trigger Vue's reactivity on their own - swapping
+  // in a new Set (same contents) is what makes the template re-render.
+  expandedTopPlayed.value = new Set(expandedTopPlayed.value)
+}
+
 onMounted(() => {
   if (!plays.loaded) {
     plays.fetchPage(1)
@@ -225,20 +245,41 @@ onMounted(() => {
           :key="entry.game.id"
           class="top-played-item"
         >
-          <div class="top-played-row">
+          <!-- Only the entries with a breakdown (base + one or more
+          expansions contributing to the total) are interactive - asked
+          for directly, collapsed by default so the list reads as three
+          plain rows until there's something to drill into. A plain
+          <div> for the other two thirds/rare-case entries: making every
+          row a <button> regardless would mean either a fake disabled
+          one two thirds of the time, or a real one that does nothing
+          when clicked - both worse than just not being interactive. -->
+          <component
+            :is="entry.breakdown ? 'button' : 'div'"
+            :type="entry.breakdown ? 'button' : undefined"
+            class="top-played-row"
+            :class="{ 'top-played-row-expandable': entry.breakdown }"
+            :aria-expanded="entry.breakdown ? expandedTopPlayed.has(entry.game.id) : undefined"
+            @click="entry.breakdown && toggleTopPlayedBreakdown(entry.game.id)"
+          >
             <span class="top-played-rank">{{ index + 1 }}</span>
             <span class="top-played-name">{{ entry.game.name }}</span>
             <span class="top-played-count">
               {{ $t('plays.statsMostPlayedCount', { count: entry.count }, entry.count) }}
             </span>
-          </div>
-          <!-- Alongside the rolled-up total rather than instead of it
-          (kept after trying it out live against a real multi-expansion
-          play history): only present when more than one specific game
-          (the base and/or one of its expansions) contributed to this
-          entry's total - see the backend's own comment on why a
-          single-contributor entry never gets one. -->
-          <ul v-if="entry.breakdown" class="top-played-breakdown">
+            <svg
+              v-if="entry.breakdown"
+              class="top-played-chevron"
+              :class="{ 'top-played-chevron-expanded': expandedTopPlayed.has(entry.game.id) }"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" />
+            </svg>
+          </component>
+          <ul v-if="entry.breakdown && expandedTopPlayed.has(entry.game.id)" class="top-played-breakdown">
             <li v-for="item in entry.breakdown" :key="item.game.id" class="top-played-breakdown-row">
               <span class="top-played-breakdown-name">{{ item.game.name }}</span>
               <span class="top-played-breakdown-count">
@@ -415,11 +456,41 @@ itself is just the primary line's own flex layout now. */
   border-radius: var(--radius);
 }
 
+/* Rendered as a real <button> for entries with a breakdown (see the
+template's :is binding) - the resets below undo the browser's own button
+chrome so it still reads as a plain row and not a form control. */
 .top-played-row {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-1) var(--space-3);
+  width: 100%;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: default;
+}
+
+.top-played-row-expandable {
+  cursor: pointer;
+}
+
+.top-played-row-expandable:hover {
+  background: var(--color-surface-hover);
+}
+
+.top-played-chevron {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-text-muted);
+  transition: transform 0.15s ease;
+}
+
+.top-played-chevron-expanded {
+  transform: rotate(180deg);
 }
 
 .top-played-rank {

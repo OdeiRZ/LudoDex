@@ -517,9 +517,13 @@ describe('PlaysView', () => {
     expect(rows[1].find('.top-played-name').text()).toBe('7 Wonders')
     expect(rows[1].find('.top-played-count').text()).toBe('1 vez')
     expect(wrapper.find('.top-played-breakdown').exists()).toBe(false)
+    // Neither entry has a breakdown, so neither row is interactive.
+    expect(rows[0].element.tagName).toBe('DIV')
+    expect(rows[1].element.tagName).toBe('DIV')
+    expect(wrapper.find('.top-played-chevron').exists()).toBe(false)
   })
 
-  it('shows a breakdown by specific game under a rolled-up top-played entry', async () => {
+  it('expands a rolled-up top-played entry to its breakdown on click, and collapses it again', async () => {
     const { wrapper, store } = await mountPlays()
     store.loaded = true
     store.stats = {
@@ -540,12 +544,27 @@ describe('PlaysView', () => {
     }
     await wrapper.vm.$nextTick()
 
+    const row = wrapper.find('.top-played-row')
+    // Collapsed by default: an entry with a breakdown is still rendered as
+    // just its rolled-up header line until clicked.
+    expect(row.element.tagName).toBe('BUTTON')
+    expect(row.attributes('aria-expanded')).toBe('false')
+    expect(wrapper.find('.top-played-breakdown').exists()).toBe(false)
+
+    await row.trigger('click')
+
+    expect(row.attributes('aria-expanded')).toBe('true')
     const breakdownRows = wrapper.findAll('.top-played-breakdown-row')
     expect(breakdownRows).toHaveLength(2)
     expect(breakdownRows[0].find('.top-played-breakdown-name').text()).toBe('7 Wonders Duel: Agora')
     expect(breakdownRows[0].find('.top-played-breakdown-count').text()).toBe('3 veces')
     expect(breakdownRows[1].find('.top-played-breakdown-name').text()).toBe('7 Wonders Duel')
     expect(breakdownRows[1].find('.top-played-breakdown-count').text()).toBe('2 veces')
+
+    await row.trigger('click')
+
+    expect(row.attributes('aria-expanded')).toBe('false')
+    expect(wrapper.find('.top-played-breakdown').exists()).toBe(false)
   })
 
   it('hides the top played list when there is nothing to rank', async () => {
