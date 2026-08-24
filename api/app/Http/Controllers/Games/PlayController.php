@@ -150,6 +150,7 @@ class PlayController extends Controller
                                     'count' => (int) $row->play_count,
                                 ])
                                 ->values()
+                                ->all()
                             : null,
                     ];
                 })->values(),
