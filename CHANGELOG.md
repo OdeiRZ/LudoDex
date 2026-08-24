@@ -22,6 +22,11 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Cambiado
 
+- Licencia del proyecto: de MIT a AGPLv3 — para que un tercero que
+  ofrezca este código (o una versión modificada) como servicio de red
+  también esté obligado a compartir su código fuente, algo que MIT no
+  exige.
+
 - El top 3 de más jugados en "Tus partidas" suma las partidas de una
   expansión a las de su juego base en vez de contarlas por separado —
   BGG nunca registra una partida contra el juego base cuando en

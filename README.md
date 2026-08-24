@@ -150,7 +150,7 @@ seguimiento en [#21](https://github.com/OdeiRZ/LudoDex/issues/21).
 
 ## Licencia
 
-[MIT](LICENSE).
+[AGPLv3](LICENSE).
 
 ## Autor
 

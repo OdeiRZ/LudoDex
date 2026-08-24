@@ -4,7 +4,7 @@
     "type": "project",
     "description": "API de LudoDex: inventario virtual de juegos de mesa con importación desde BoardGameGeek y selector de qué jugar.",
     "keywords": ["laravel", "api", "board-games", "bgg"],
-    "license": "MIT",
+    "license": "AGPL-3.0-or-later",
     "require": {
         "php": "^8.2",
         "laravel/framework": "^12.0",
