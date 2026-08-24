@@ -228,8 +228,23 @@ sobre la página actual: `total_plays` y `total_minutes` suman `quantity`
 (BGG agrupa varias partidas del mismo juego el mismo día en una sola fila),
 y `total_minutes` solo cuenta las partidas con duración conocida —
 `duration_known_plays` es lo que le dice al frontend si debe mostrar "Sin
-datos" en vez de un total de 0 engañoso. `POST /api/bgg-plays-imports` es
-incremental a partir del segundo import: solo pide a BGG las partidas desde
+datos" en vez de un total de 0 engañoso. `top_played` suma las partidas de
+una expansión a las de su juego base (`COALESCE(games.base_game_id,
+games.id)`, no `games.id` a secas) antes de rankear — BGG nunca registra
+una partida contra el juego base cuando en realidad se ha jugado con una
+expansión suya, aunque esa expansión no sea jugable sin las reglas/
+componentes del propio base (comentado directamente); sin este ajuste, un
+juego jugado a menudo repartido entre varias expansiones distintas podía
+salir peor rankeado que uno jugado menos veces pero siempre bajo el mismo
+`game_id`, cuando en la práctica es "el mismo juego" el que más mesa ha
+visto. Cada entrada de `top_played` lleva además un `breakdown` (prototipo,
+pedido directamente para probarlo junto al total en vez de en su lugar):
+el mismo total partido de vuelta por `game_id` concreto (el base y cada
+expansión que haya contribuido), ordenado de más a menos partidas, pero
+solo cuando hay más de una fila contribuyendo — `null` si el total viene
+de un único juego, para no repetir en un array de una sola entrada lo que
+`count` ya dice. `POST /api/bgg-plays-imports` es incremental a partir del segundo
+import: solo pide a BGG las partidas desde
 la última ya guardada (con una semana de margen de solapamiento), en vez de
 repetir el historial completo cada vez. Esto deja un punto ciego real: una
 partida que alguien rellena en BGG con fecha antigua (un backfill de una

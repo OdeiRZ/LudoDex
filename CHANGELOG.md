@@ -9,6 +9,16 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Cambiado
 
+- El top 3 de más jugados en "Tus partidas" suma las partidas de una
+  expansión a las de su juego base en vez de contarlas por separado —
+  BGG nunca registra una partida contra el juego base cuando en
+  realidad se ha jugado con una expansión suya, así que un juego
+  jugado a menudo repartido entre varias expansiones distintas podía
+  salir peor rankeado que uno jugado menos veces bajo un único
+  `game_id`. Cuando una entrada del top junta más de un juego concreto
+  (el base y alguna de sus expansiones), muestra debajo el desglose de
+  cuántas partidas aportó cada uno.
+
 - La tira de salto rápido (A-Z/años/ranking) se separa 20px del borde
   derecho de la pantalla en vez de 14px — seguía sin ser suficiente
   margen frente a un gesto de cambio de pestaña que algunos móviles
