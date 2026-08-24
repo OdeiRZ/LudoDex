@@ -28,6 +28,7 @@ class PlayResource extends JsonResource
                 'image_url' => $this->game->image_url,
                 'description' => $this->game->description,
                 'description_es' => $this->game->description_es,
+                'base_game_name' => $this->game->baseGame?->name,
             ],
         ];
     }

@@ -47,6 +47,29 @@ it('includes quantity and duration in the response shape', function () {
         ->assertJsonPath('data.0.duration_minutes', 45);
 });
 
+it('includes the base game\'s name when the played game is an expansion', function () {
+    $user = actingAsUser();
+    $base = Game::factory()->create(['bgg_id' => 173346, 'name' => '7 Wonders Duel']);
+    $expansion = Game::factory()->create([
+        'bgg_id' => 233312,
+        'name' => '7 Wonders Duel: Agora',
+        'base_game_id' => $base->id,
+    ]);
+    Play::factory()->for($user)->for($expansion)->create();
+
+    $this->getJson('/api/plays')->assertOk()
+        ->assertJsonPath('data.0.game.base_game_name', '7 Wonders Duel');
+});
+
+it('leaves base_game_name null for a game that is not an expansion', function () {
+    $user = actingAsUser();
+    $game = Game::factory()->create(['bgg_id' => 13]);
+    Play::factory()->for($user)->for($game)->create();
+
+    $this->getJson('/api/plays')->assertOk()
+        ->assertJsonPath('data.0.game.base_game_name', null);
+});
+
 it('includes the game\'s description so the play list can open its detail modal', function () {
     $user = actingAsUser();
     $game = Game::factory()->create([

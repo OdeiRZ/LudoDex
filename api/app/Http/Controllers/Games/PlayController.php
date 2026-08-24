@@ -27,7 +27,7 @@ class PlayController extends Controller
     {
         $plays = $request->user()
             ->plays()
-            ->with('game')
+            ->with('game.baseGame')
             ->when(
                 $request->filled('search'),
                 fn ($query) => $query->whereHas(
