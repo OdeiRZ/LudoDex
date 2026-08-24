@@ -21,6 +21,7 @@ function makePlay(overrides: Partial<Play> = {}): Play {
       image_url: null,
       description: 'Trade and build on the island of Catan.',
       description_es: null,
+      base_game_name: null,
     },
     ...overrides,
   }
@@ -182,6 +183,20 @@ describe('PlaysView', () => {
     await wrapper.vm.$nextTick()
 
     expect(wrapper.findAll('.play-index').map((el) => el.text())).toEqual(['1', '2', '3'])
+  })
+
+  it('shows the base game\'s name under a play logged against an expansion', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.entries = [
+      makePlay({ id: 'play-1', game: { ...makePlay().game, name: 'Agora', base_game_name: '7 Wonders Duel' } }),
+      makePlay({ id: 'play-2' }),
+    ]
+    await wrapper.vm.$nextTick()
+
+    const baseGameLines = wrapper.findAll('.play-base-game')
+    expect(baseGameLines).toHaveLength(1)
+    expect(baseGameLines[0].text()).toBe('Expansión de 7 Wonders Duel')
   })
 
   it('shows a "load more" button only while there are more pages', async () => {

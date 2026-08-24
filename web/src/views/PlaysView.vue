@@ -300,6 +300,9 @@ onMounted(() => {
 
         <div class="play-info">
           <span class="play-name">{{ play.game.name }}</span>
+          <span v-if="play.game.base_game_name" class="play-base-game">
+            {{ $t('dashboard.expansionOf', { name: play.game.base_game_name }) }}
+          </span>
           <span class="play-meta">
             {{ play.played_at }}
             <template v-if="play.duration_minutes">
@@ -613,6 +616,20 @@ specifically below the cover in each row. */
 
 .play-name {
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Text, not a second cover image next to the expansion's own one (asked
+for directly, weighed against duplicating an image in a list that can
+run to thousands of rows) - same "Expansión de {name}" wording the
+collection/picker grids already use for the same relationship, just as
+a plain muted line here instead of a colored badge, to match this
+list's own denser row style. */
+.play-base-game {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

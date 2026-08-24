@@ -171,14 +171,30 @@ describe('useGamesStore', () => {
         played_at: '2026-01-01',
         quantity: 1,
         duration_minutes: null,
-        game: { id: 'g1', bgg_id: null, name: 'Root', image_url: null, description: null, description_es: null },
+        game: {
+          id: 'g1',
+          bgg_id: null,
+          name: 'Root',
+          image_url: null,
+          description: null,
+          description_es: null,
+          base_game_name: null,
+        },
       },
       {
         id: 'play-2',
         played_at: '2026-01-01',
         quantity: 1,
         duration_minutes: null,
-        game: { id: 'g2', bgg_id: null, name: 'Other', image_url: null, description: null, description_es: null },
+        game: {
+          id: 'g2',
+          bgg_id: null,
+          name: 'Other',
+          image_url: null,
+          description: null,
+          description_es: null,
+          base_game_name: null,
+        },
       },
     ]
 

@@ -13,6 +13,7 @@ export interface Play {
     image_url: string | null
     description: string | null
     description_es: string | null
+    base_game_name: string | null
   }
 }
 

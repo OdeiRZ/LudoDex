@@ -24,6 +24,7 @@ function makePlay(overrides: Partial<Play> = {}): Play {
       image_url: null,
       description: null,
       description_es: null,
+      base_game_name: null,
     },
     ...overrides,
   }
