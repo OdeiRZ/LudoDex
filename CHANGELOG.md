@@ -48,6 +48,12 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   ya en la colección al de otro juego que ya existiera en el catálogo
   también reventaba con un 500. Ahora responde 422 en vez de dejarlo
   llegar a la base de datos.
+- El panel de reimportar partidas ocultaba parte del usuario escrito
+  mientras se importaba — el texto del botón cambia de "Importar" a
+  "Importando…", más largo, y el input (único elemento flexible de la
+  fila) cedía ese espacio extra encogiéndose. Ahora el botón "Cancelar"
+  de esa misma fila desaparece mientras se importa (ya es irrelevante
+  en ese momento), liberando ese espacio para el input.
 
 ## [0.11.0] - 2026-08-23
 
