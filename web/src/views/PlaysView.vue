@@ -629,7 +629,7 @@ a plain muted line here instead of a colored badge, to match this
 list's own denser row style. */
 .play-base-game {
   color: var(--color-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
