@@ -9,6 +9,12 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Añadido
 
+- Los tres formularios que piden un usuario de BGG (las dos pestañas de
+  "Importar BGG" y el panel de reimportar de "Tus partidas") se rellenan
+  ya con el usuario guardado en el perfil, si lo hay — sigue siendo un
+  campo normal, editable y que se puede borrar sin más, no algo bloqueado
+  ni sincronizado de vuelta al perfil.
+
 - Cada partida de "Tus partidas" muestra "Expansión de {nombre}" bajo
   el nombre del juego jugado, cuando ese juego es una expansión — texto,
   no una segunda imagen de portada junto a la suya, para no duplicar

@@ -3,10 +3,12 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { isAxiosError } from 'axios'
+import { useAuthStore } from '@/stores/auth'
 import { useGamesStore, type BggImportStatus, type BggCsvImportResult } from '@/stores/games'
 import { usePlaysStore, type PlaysImportResult } from '@/stores/plays'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
+const auth = useAuthStore()
 const games = useGamesStore()
 const plays = usePlaysStore()
 const { t } = useI18n()
@@ -14,7 +16,10 @@ const route = useRoute()
 
 const method = ref<'username' | 'csv' | 'plays'>(route.query.tab === 'plays' ? 'plays' : 'username')
 
-const username = ref('')
+// Prefilled from the profile's own saved bgg_username (asked for directly)
+// so it doesn't have to be retyped on every visit - still a plain editable/
+// clearable local ref, not bound back to the profile in any way.
+const username = ref(auth.user?.bgg_username ?? '')
 const phase = ref<'idle' | 'pending' | 'completed' | 'failed'>('idle')
 const importedCount = ref<number | null>(null)
 const errorMessage = ref<string | null>(null)
@@ -149,8 +154,9 @@ async function onCsvSubmit() {
 
 // Plays import is synchronous too (same reasoning as CSV above - /plays
 // has no BGG-side async export step to poll), just driven by a username
-// like the collection tab instead of a file.
-const playsUsername = ref('')
+// like the collection tab instead of a file. Prefilled the same way as
+// that tab's own username ref, see its comment.
+const playsUsername = ref(auth.user?.bgg_username ?? '')
 const playsFull = ref(false)
 const playsSubmitting = ref(false)
 const playsResult = ref<PlaysImportResult | null>(null)

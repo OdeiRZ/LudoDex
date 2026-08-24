@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '@/stores/auth'
 import { usePlaysStore, type Play } from '@/stores/plays'
 import { useToastStore } from '@/stores/toast'
 import { FALLBACK_ICON_URL } from '@/lib/assets'
 import GameDetailModal from '@/components/GameDetailModal.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
+const auth = useAuthStore()
 const plays = usePlaysStore()
 const toast = useToastStore()
 const { t } = useI18n()
@@ -49,9 +51,7 @@ function loadMore() {
 }
 
 // A shortcut for the same "Partidas" import form ImportBggView already has,
-// so re-checking BGG for new plays doesn't require leaving this page - the
-// username is asked for again each time (never prefilled) rather than
-// stored anywhere, matching how the standalone import form itself behaves.
+// so re-checking BGG for new plays doesn't require leaving this page.
 const reimportPanelOpen = ref(false)
 const reimportUsername = ref('')
 const reimportError = ref<string | null>(null)
@@ -68,7 +68,12 @@ function toggleReimportPanel() {
     return
   }
 
-  reimportUsername.value = ''
+  // Prefilled from the profile's own saved bgg_username (asked for
+  // directly), same as ImportBggView's own username fields - still a
+  // plain editable/clearable local ref, reset on every open rather than
+  // just once, so a username saved to the profile *after* this page was
+  // first loaded still shows up next time the panel opens.
+  reimportUsername.value = auth.user?.bgg_username ?? ''
   reimportError.value = null
   reimportFull.value = false
   reimportPanelOpen.value = true

@@ -3,6 +3,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import PlaysView from '@/views/PlaysView.vue'
+import { useAuthStore } from '@/stores/auth'
 import { usePlaysStore, type Play } from '@/stores/plays'
 import { useGamesStore } from '@/stores/games'
 import { useToastStore } from '@/stores/toast'
@@ -40,11 +41,16 @@ function makeRouter() {
   })
 }
 
-async function mountPlays() {
+async function mountPlays(bggUsername?: string | null) {
   setActivePinia(createPinia())
   const store = usePlaysStore()
   vi.spyOn(store, 'fetchPage').mockResolvedValue()
   vi.spyOn(store, 'fetchStats').mockResolvedValue()
+
+  const authStore = useAuthStore()
+  if (bggUsername !== undefined) {
+    authStore.user = { id: 1, name: 'Odei', email: 'odei@example.com', bgg_username: bggUsername, avatar_url: null }
+  }
 
   const router = makeRouter()
   router.push('/')
@@ -54,7 +60,7 @@ async function mountPlays() {
     global: { plugins: [router, i18n] },
   })
 
-  return { wrapper, store }
+  return { wrapper, store, authStore }
 }
 
 describe('PlaysView', () => {
@@ -273,6 +279,40 @@ describe('PlaysView', () => {
 
     await wrapper.find('.reimport-btn').trigger('click')
     expect(wrapper.find('.reimport-panel').exists()).toBe(false)
+  })
+
+  it("prefills the reimport panel's username from the profile's saved bgg_username", async () => {
+    const { wrapper, store } = await mountPlays('odei_bgg')
+    store.loaded = true
+    store.entries = [makePlay()]
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('.reimport-btn').trigger('click')
+
+    expect((wrapper.find('#reimport-username').element as HTMLInputElement).value).toBe('odei_bgg')
+  })
+
+  it('still lets the reimport panel\'s prefilled username be cleared', async () => {
+    const { wrapper, store } = await mountPlays('odei_bgg')
+    store.loaded = true
+    store.entries = [makePlay()]
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('.reimport-btn').trigger('click')
+    await wrapper.find('#reimport-username').setValue('')
+
+    expect((wrapper.find('#reimport-username').element as HTMLInputElement).value).toBe('')
+  })
+
+  it('leaves the reimport panel\'s username blank when the profile has none saved', async () => {
+    const { wrapper, store } = await mountPlays(null)
+    store.loaded = true
+    store.entries = [makePlay()]
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('.reimport-btn').trigger('click')
+
+    expect((wrapper.find('#reimport-username').element as HTMLInputElement).value).toBe('')
   })
 
   it('reimports plays for the typed username, refreshes the list and toasts the result', async () => {

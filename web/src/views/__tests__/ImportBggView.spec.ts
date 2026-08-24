@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import ImportBggView from '@/views/ImportBggView.vue'
+import { useAuthStore } from '@/stores/auth'
 import { useGamesStore, type BggCsvImportResult } from '@/stores/games'
 import { usePlaysStore } from '@/stores/plays'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
@@ -16,16 +17,20 @@ vi.mock('vue-router', async (importOriginal) => {
   return { ...actual, useRoute: () => ({ query: routeQuery }) }
 })
 
-function mountImport() {
+function mountImport(bggUsername?: string | null) {
   setActivePinia(createPinia())
   const store = useGamesStore()
   const playsStore = usePlaysStore()
+  const authStore = useAuthStore()
+  if (bggUsername !== undefined) {
+    authStore.user = { id: 1, name: 'Odei', email: 'odei@example.com', bgg_username: bggUsername, avatar_url: null }
+  }
 
   const wrapper = mount(ImportBggView, {
     global: { stubs: { RouterLink: true }, plugins: [i18n] },
   })
 
-  return { wrapper, store, playsStore }
+  return { wrapper, store, playsStore, authStore }
 }
 
 async function submitUsername(wrapper: ReturnType<typeof mountImport>['wrapper'], username = 'odei') {
@@ -451,6 +456,30 @@ describe('ImportBggView', () => {
 
     expect(wrapper.find('#plays_bgg_username').exists()).toBe(true)
     expect(wrapper.find('#bgg_username').exists()).toBe(false)
+  })
+
+  it("prefills both username fields from the profile's saved bgg_username", () => {
+    routeQuery = { tab: 'plays' }
+    const { wrapper } = mountImport('odei_bgg')
+
+    expect((wrapper.find('#plays_bgg_username').element as HTMLInputElement).value).toBe('odei_bgg')
+  })
+
+  it('still lets the prefilled username be cleared', async () => {
+    const { wrapper } = mountImport('odei_bgg')
+
+    expect((wrapper.find('#bgg_username').element as HTMLInputElement).value).toBe('odei_bgg')
+
+    await wrapper.find('#bgg_username').setValue('')
+
+    expect((wrapper.find('#bgg_username').element as HTMLInputElement).value).toBe('')
+  })
+
+  it('leaves both username fields blank when the profile has no saved bgg_username', () => {
+    routeQuery = { tab: 'plays' }
+    const { wrapper } = mountImport(null)
+
+    expect((wrapper.find('#plays_bgg_username').element as HTMLInputElement).value).toBe('')
   })
 
   // Neither import actually gets interrupted by in-app navigation (the

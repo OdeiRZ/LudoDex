@@ -56,13 +56,18 @@ npm run test:unit      # Vitest
   de dato: las dos primeras son dos métodos distintos de importar lo mismo
   (la colección), así que llamar a la primera "Colección" en vez de "Por
   usuario" daría a entender que la de CSV no lo es — Partidas no tiene ese
-  problema porque solo existe un método para ella.
+  problema porque solo existe un método para ella. Los campos de usuario de
+  BGG (aquí y en el panel de reimportar de `PlaysView.vue`) se rellenan de
+  entrada con `auth.user.bgg_username` si el perfil tiene uno guardado —
+  siguen siendo un `ref` local normal, así que se pueden editar o borrar
+  sin que eso toque el perfil.
 - `src/views/PlaysView.vue` — página "Partidas": lista el historial de
   partidas ya importado (paginado, con "cargar más" y numeración
   correlativa que no se reinicia por página); el formulario de
   importación inicial vive en `ImportBggView.vue`, no aquí. El botón junto
   al título despliega un panel para reimportar (mismo import incremental,
-  solo pide de nuevo el usuario de BGG) sin salir de la página — junto al
+  con el usuario de BGG ya prellenado si el perfil tiene uno guardado) sin
+  salir de la página — junto al
   título y no al buscador, ya que es una acción de página, no de
   búsqueda. El buscador por nombre de juego filtra en el backend (`GET
   /api/plays?search=`), no en el cliente como Colección/¿A qué jugamos? —
