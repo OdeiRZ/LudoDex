@@ -29,6 +29,13 @@ export interface PlaysStats {
   top_played: {
     game: { id: string; name: string; image_url: string | null }
     count: number
+    /**
+     * The same total split back out by the specific game (base or one of
+     * its expansions) each play was actually logged against - null when
+     * there's only one contributing game, so a plain entry with no
+     * expansions in the mix doesn't carry a redundant single-row array.
+     */
+    breakdown: { game: { id: string; name: string; image_url: string | null }; count: number }[] | null
   }[]
 }
 

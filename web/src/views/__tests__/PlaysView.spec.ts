@@ -475,8 +475,8 @@ describe('PlaysView', () => {
       total_minutes: 240,
       duration_known_plays: 8,
       top_played: [
-        { game: { id: 'game-1', name: 'Catan', image_url: null }, count: 5 },
-        { game: { id: 'game-2', name: '7 Wonders', image_url: null }, count: 1 },
+        { game: { id: 'game-1', name: 'Catan', image_url: null }, count: 5, breakdown: null },
+        { game: { id: 'game-2', name: '7 Wonders', image_url: null }, count: 1, breakdown: null },
       ],
     }
     await wrapper.vm.$nextTick()
@@ -491,6 +491,36 @@ describe('PlaysView', () => {
     expect(rows[1].find('.top-played-rank').text()).toBe('2')
     expect(rows[1].find('.top-played-name').text()).toBe('7 Wonders')
     expect(rows[1].find('.top-played-count').text()).toBe('1 vez')
+    expect(wrapper.find('.top-played-breakdown').exists()).toBe(false)
+  })
+
+  it('shows a breakdown by specific game under a rolled-up top-played entry', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loaded = true
+    store.stats = {
+      total_plays: 5,
+      distinct_games: 1,
+      total_minutes: 0,
+      duration_known_plays: 0,
+      top_played: [
+        {
+          game: { id: 'base-1', name: '7 Wonders Duel', image_url: null },
+          count: 5,
+          breakdown: [
+            { game: { id: 'expansion-1', name: '7 Wonders Duel: Agora', image_url: null }, count: 3 },
+            { game: { id: 'base-1', name: '7 Wonders Duel', image_url: null }, count: 2 },
+          ],
+        },
+      ],
+    }
+    await wrapper.vm.$nextTick()
+
+    const breakdownRows = wrapper.findAll('.top-played-breakdown-row')
+    expect(breakdownRows).toHaveLength(2)
+    expect(breakdownRows[0].find('.top-played-breakdown-name').text()).toBe('7 Wonders Duel: Agora')
+    expect(breakdownRows[0].find('.top-played-breakdown-count').text()).toBe('3 veces')
+    expect(breakdownRows[1].find('.top-played-breakdown-name').text()).toBe('7 Wonders Duel')
+    expect(breakdownRows[1].find('.top-played-breakdown-count').text()).toBe('2 veces')
   })
 
   it('hides the top played list when there is nothing to rank', async () => {

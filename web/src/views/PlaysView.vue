@@ -215,13 +215,29 @@ onMounted(() => {
         <li
           v-for="(entry, index) in plays.stats.top_played"
           :key="entry.game.id"
-          class="top-played-row"
+          class="top-played-item"
         >
-          <span class="top-played-rank">{{ index + 1 }}</span>
-          <span class="top-played-name">{{ entry.game.name }}</span>
-          <span class="top-played-count">
-            {{ $t('plays.statsMostPlayedCount', { count: entry.count }, entry.count) }}
-          </span>
+          <div class="top-played-row">
+            <span class="top-played-rank">{{ index + 1 }}</span>
+            <span class="top-played-name">{{ entry.game.name }}</span>
+            <span class="top-played-count">
+              {{ $t('plays.statsMostPlayedCount', { count: entry.count }, entry.count) }}
+            </span>
+          </div>
+          <!-- Prototype (asked for directly, to try out alongside the
+          rolled-up total rather than instead of it): only present when
+          more than one specific game (the base and/or one of its
+          expansions) contributed to this entry's total - see the
+          backend's own comment on why a single-contributor entry never
+          gets one. -->
+          <ul v-if="entry.breakdown" class="top-played-breakdown">
+            <li v-for="item in entry.breakdown" :key="item.game.id" class="top-played-breakdown-row">
+              <span class="top-played-breakdown-name">{{ item.game.name }}</span>
+              <span class="top-played-breakdown-count">
+                {{ $t('plays.statsMostPlayedCount', { count: item.count }, item.count) }}
+              </span>
+            </li>
+          </ul>
         </li>
       </ol>
     </div>
@@ -379,13 +395,20 @@ h1 {
   gap: var(--space-1);
 }
 
+/* Background/radius live here rather than on .top-played-row (asked for
+directly, once the breakdown list needed to sit inside the same card
+instead of floating below it on the bare page background) - .top-played-row
+itself is just the primary line's own flex layout now. */
+.top-played-item {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+}
+
 .top-played-row {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-1) var(--space-3);
-  background: var(--color-surface);
-  border-radius: var(--radius);
 }
 
 .top-played-rank {
@@ -408,6 +431,39 @@ h1 {
   flex-shrink: 0;
   color: var(--color-text-muted);
   font-size: 0.85rem;
+}
+
+.top-played-breakdown {
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--space-3) var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.top-played-breakdown-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  /* Lines up under .top-played-name, past .top-played-rank's own width
+  and gap, so the breakdown reads as nested under the game it belongs
+  to rather than starting flush with the row above it. */
+  padding-left: calc(1rem + var(--space-3));
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+}
+
+.top-played-breakdown-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.top-played-breakdown-count {
+  flex-shrink: 0;
 }
 
 .search-field {
