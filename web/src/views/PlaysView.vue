@@ -166,7 +166,15 @@ onMounted(() => {
           autocomplete="off"
           :disabled="reimporting"
         />
-        <button type="button" class="btn" :disabled="reimporting" @click="toggleReimportPanel">
+        <!-- Hidden rather than just disabled once reimporting starts
+        (reported directly): "Importando..." is longer than "Importar",
+        and .reimport-row input's own flex: 1 had to give up that extra
+        width to the growing button, clipping the typed username -
+        Cancelar is already irrelevant at this point (nothing left to
+        back out of), so removing it instead of graying it out gives
+        the input that room back instead of just wasting it on a button
+        nobody can use anyway. -->
+        <button v-if="!reimporting" type="button" class="btn" @click="toggleReimportPanel">
           {{ $t('dashboard.cancel') }}
         </button>
         <button

@@ -364,12 +364,22 @@ describe('PlaysView', () => {
     )
 
     await wrapper.find('.reimport-btn').trigger('click')
+    expect(
+      wrapper.findAll('.reimport-row .btn').filter((b) => !b.classes('btn-primary')),
+    ).toHaveLength(1)
+
     await wrapper.find('#reimport-username').setValue('odei1987')
     await wrapper.find('.reimport-panel .btn-primary').trigger('click')
     await wrapper.vm.$nextTick()
 
     expect(wrapper.find('.reimport-submitting').exists()).toBe(true)
     expect(wrapper.findComponent({ name: 'LoadingSpinner' }).exists()).toBe(true)
+    // Cancelar is removed rather than just disabled once the growing
+    // "Importando..." label starts squeezing the row (reported directly) -
+    // nothing left to back out of at this point anyway.
+    expect(
+      wrapper.findAll('.reimport-row .btn').filter((b) => !b.classes('btn-primary')),
+    ).toHaveLength(0)
 
     resolveImport({ imported_count: 1 })
     await flushPromises()
