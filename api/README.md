@@ -243,10 +243,11 @@ componentes del propio base (comentado directamente); sin este ajuste, un
 juego jugado a menudo repartido entre varias expansiones distintas podía
 salir peor rankeado que uno jugado menos veces pero siempre bajo el mismo
 `game_id`, cuando en la práctica es "el mismo juego" el que más mesa ha
-visto. Cada entrada de `top_played` lleva además un `breakdown` (prototipo,
-pedido directamente para probarlo junto al total en vez de en su lugar):
-el mismo total partido de vuelta por `game_id` concreto (el base y cada
-expansión que haya contribuido), ordenado de más a menos partidas, pero
+visto. Cada entrada de `top_played` lleva además un `breakdown` — el mismo
+total partido de vuelta por `game_id` concreto (el base y cada expansión
+que haya contribuido), ordenado de más a menos partidas, junto al total
+agregado en vez de en su lugar (mantenido tras probarlo en vivo contra un
+historial real con varias expansiones), pero
 solo cuando hay más de una fila contribuyendo — `null` si el total viene
 de un único juego, para no repetir en un array de una sola entrada lo que
 `count` ya dice. `POST /api/bgg-plays-imports` es incremental a partir del segundo

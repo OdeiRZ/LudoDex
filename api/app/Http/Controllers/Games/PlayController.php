@@ -73,9 +73,10 @@ class PlayController extends Controller
      *
      * Each top_played entry also carries a `breakdown` - the same total
      * split back out by the specific game_id each play was actually
-     * logged against (asked for directly, to try out alongside the
-     * rolled-up total rather than instead of it) - but only once there's
-     * more than one contributing row; null otherwise, so the common case
+     * logged against, alongside the rolled-up total rather than instead
+     * of it (kept after trying it out live against a real multi-
+     * expansion play history) - but only once there's more than one
+     * contributing row; null otherwise, so the common case
      * (a game with no expansions in the mix) doesn't carry a redundant
      * single-entry array repeating what `count` already says.
      */

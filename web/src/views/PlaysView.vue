@@ -232,12 +232,12 @@ onMounted(() => {
               {{ $t('plays.statsMostPlayedCount', { count: entry.count }, entry.count) }}
             </span>
           </div>
-          <!-- Prototype (asked for directly, to try out alongside the
-          rolled-up total rather than instead of it): only present when
-          more than one specific game (the base and/or one of its
-          expansions) contributed to this entry's total - see the
-          backend's own comment on why a single-contributor entry never
-          gets one. -->
+          <!-- Alongside the rolled-up total rather than instead of it
+          (kept after trying it out live against a real multi-expansion
+          play history): only present when more than one specific game
+          (the base and/or one of its expansions) contributed to this
+          entry's total - see the backend's own comment on why a
+          single-contributor entry never gets one. -->
           <ul v-if="entry.breakdown" class="top-played-breakdown">
             <li v-for="item in entry.breakdown" :key="item.game.id" class="top-played-breakdown-row">
               <span class="top-played-breakdown-name">{{ item.game.name }}</span>
