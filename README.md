@@ -143,8 +143,10 @@ Repo único con dos aplicaciones independientes, cada una con su propio
    borrado de un juego) tras el despliegue.
 
 Fuera de alcance por ahora, a propósito: amistades/interacción social,
-selector combinado con colecciones de amigos, historial de partidas. Puede
-revisarse más adelante si tiene sentido.
+selector combinado con colecciones de amigos, historial de partidas de
+amigos (el propio historial de partidas ya está implementado — ver
+`web/README.md`). Puede revisarse más adelante si tiene sentido —
+seguimiento en [#21](https://github.com/OdeiRZ/LudoDex/issues/21).
 
 ## Licencia
 
