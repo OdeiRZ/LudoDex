@@ -2,7 +2,7 @@
 {{-- Header --}}
 <x-slot:header>
 <x-mail::header :url="config('app.frontend_url')">
-{{ config('app.name') }}
+<img src="{{ config('app.url') }}/img/ludodex-logo-email.png" alt="LudoDex" class="brand-mark">{{ config('app.name') }}
 </x-mail::header>
 </x-slot:header>
 

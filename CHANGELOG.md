@@ -9,6 +9,16 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Añadido
 
+- El email de "restablece tu contraseña" lleva ahora el dado de LudoDex
+  (el mismo favicon, 32×32) a la izquierda del nombre de la app en la
+  cabecera, en vez del texto plano genérico que dejaba la plantilla de
+  Laravel sin tocar — mismo patrón que ya usa MIRA_MarketLens (imagen +
+  texto en línea, `class="brand-mark"` en el tema
+  `resources/views/vendor/mail/html/themes/default.css`, servida desde
+  `public/img/` de esta misma API, no del frontend). Verificado
+  renderizando la notificación real en local: el HTML generado trae el
+  `<img>` con el tamaño/margen correctos antes del texto.
+
 - Monitorización de errores en producción vía Sentry (plan gratuito,
   `sentry/sentry-laravel`), cableada en `bootstrap/app.php`
   (`Sentry\Laravel\Integration::handles()`) — motivado directamente por lo
