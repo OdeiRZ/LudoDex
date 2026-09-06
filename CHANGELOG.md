@@ -94,6 +94,23 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   Resend todavía, el remitente sigue siendo `onboarding@resend.dev` y
   solo llega a la cuenta de Resend usada — pendiente para cuando haya un
   dominio propio (ver README de la API).
+- En Colección y en "¿A qué jugamos?", el scrubber A-Z (franja flotante
+  para saltar de letra) se solapaba en un móvil estrecho con el botón
+  "ver detalle" de cada tarjeta — hasta un 45% de su área, lo bastante
+  para que un toque ahí a veces empezara a arrastrar el scrubber en vez
+  de abrir el detalle (confirmado con `elementFromPoint`/
+  `getBoundingClientRect`, no solo a ojo). La causa no era falta de
+  z-index en el botón, sino que `.cover-scrim` (GameCard.vue) ya
+  establecía su propio contexto de apilamiento — cualquier z-index dado
+  al botón quedaba atrapado dentro de él, sin llegar nunca a competir con
+  el del scrubber. Subir el z-index de `.cover-scrim` en su lugar
+  arreglaba el botón pero rompía el propio scrubber en casi todo su
+  recorrido (el cuerpo de cada tarjeta pasaba a ganarle también en las
+  zonas sin ningún control interactivo). Arreglo real: quitarle a
+  `.cover-scrim` su z-index explícito (ya no hacía falta - el orden del
+  DOM ya bastaba para pintarlo sobre la imagen) y dárselo solo al botón,
+  liberándolo para competir de verdad con el scrubber sin afectar al
+  resto de la tarjeta.
 
 ## [0.11.0] - 2026-08-23
 

@@ -317,7 +317,11 @@ async function onClearCollection() {
               :aria-label="$t('dashboard.searchLabel')"
               :placeholder="$t('dashboard.searchPlaceholder')"
             />
-            <select v-model="typeFilter" :aria-label="$t('dashboard.typeFilterLabel')" class="type-filter">
+            <select
+              v-model="typeFilter"
+              :aria-label="$t('dashboard.typeFilterLabel')"
+              class="type-filter"
+            >
               <option value="all">{{ $t('dashboard.typeAll') }}</option>
               <option value="base">{{ $t('dashboard.typeBase') }}</option>
               <option value="expansion">{{ $t('dashboard.typeExpansion') }}</option>
@@ -330,9 +334,15 @@ async function onClearCollection() {
             block instead of each stretching/spacing independently across
             whatever column they happen to land in. -->
             <div class="sort-criterion-group">
-              <select v-model="sortCriterion" :aria-label="$t('dashboard.sortByLabel')" class="sort-criterion">
+              <select
+                v-model="sortCriterion"
+                :aria-label="$t('dashboard.sortByLabel')"
+                class="sort-criterion"
+              >
                 <option value="name">{{ $t('dashboard.sortByName') }}</option>
-                <option value="rank" :disabled="typeFilter === 'expansion'">{{ $t('dashboard.sortByRank') }}</option>
+                <option value="rank" :disabled="typeFilter === 'expansion'">
+                  {{ $t('dashboard.sortByRank') }}
+                </option>
                 <option value="year">{{ $t('dashboard.sortByYear') }}</option>
               </select>
               <button
@@ -363,7 +373,13 @@ async function onClearCollection() {
                   :aria-expanded="clearConfirmOpen"
                   @click="toggleClearConfirm"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    aria-hidden="true"
+                  >
                     <path
                       stroke-linecap="round"
                       stroke-linejoin="round"
@@ -379,7 +395,13 @@ async function onClearCollection() {
                   :aria-label="$t('dashboard.addGame')"
                   :title="$t('dashboard.addGame')"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    aria-hidden="true"
+                  >
                     <path stroke-linecap="round" d="M12 5v14M5 12h14" />
                   </svg>
                 </RouterLink>
@@ -397,7 +419,13 @@ async function onClearCollection() {
             :aria-expanded="clearConfirmOpen"
             @click="toggleClearConfirm"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -414,7 +442,13 @@ async function onClearCollection() {
             :aria-label="$t('dashboard.addGame')"
             :title="$t('dashboard.addGame')"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
               <path stroke-linecap="round" d="M12 5v14M5 12h14" />
             </svg>
             <span class="btn-full-label">{{ $t('dashboard.addGame') }}</span>
@@ -430,7 +464,8 @@ async function onClearCollection() {
 
     <p v-else-if="games.loaded && games.collection.length === 0" class="empty-state">
       {{ $t('dashboard.empty') }}<br />
-      <RouterLink :to="{ name: 'add-game' }">{{ $t('dashboard.addFirst') }}</RouterLink>.
+      <RouterLink :to="{ name: 'add-game' }">{{ $t('dashboard.addFirst') }}</RouterLink
+      >.
     </p>
 
     <template v-else-if="games.loaded">
@@ -489,7 +524,13 @@ async function onClearCollection() {
               :title="$t('picker.viewDetails')"
               @click="detailEntry = entry"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -500,7 +541,10 @@ async function onClearCollection() {
             </button>
           </div>
           <div class="badge-row">
-            <span class="badge" :class="entry.status === 'owned' ? 'badge-primary' : 'badge-accent'">
+            <span
+              class="badge"
+              :class="entry.status === 'owned' ? 'badge-primary' : 'badge-accent'"
+            >
               <svg
                 v-if="entry.status === 'owned'"
                 class="badge-icon"
@@ -562,7 +606,12 @@ async function onClearCollection() {
           >
             <span v-if="entry.game.year_published">{{ entry.game.year_published }}</span>
             <span v-if="entry.game.min_players || entry.game.max_players">
-              {{ $t('dashboard.players', { min: entry.game.min_players, max: entry.game.max_players }) }}
+              {{
+                $t('dashboard.players', {
+                  min: entry.game.min_players,
+                  max: entry.game.max_players,
+                })
+              }}
             </span>
             <span v-if="entry.game.min_playtime_minutes || entry.game.max_playtime_minutes">
               {{
@@ -586,7 +635,11 @@ async function onClearCollection() {
               :class="{ 'btn-danger-confirm': confirmingDeleteId === entry.id }"
               @click="onDeleteClick(entry.id)"
             >
-              {{ confirmingDeleteId === entry.id ? $t('dashboard.removeConfirm') : $t('dashboard.remove') }}
+              {{
+                confirmingDeleteId === entry.id
+                  ? $t('dashboard.removeConfirm')
+                  : $t('dashboard.remove')
+              }}
             </button>
           </div>
         </GameCard>
@@ -644,7 +697,11 @@ async function onClearCollection() {
     <div
       v-if="scrubbing && scrubLetter"
       class="az-scrubber-bubble"
-      :style="{ top: `${scrubBubbleTop}px`, right: `${scrubBubbleRight}px`, transform: 'translateY(-50%)' }"
+      :style="{
+        top: `${scrubBubbleTop}px`,
+        right: `${scrubBubbleRight}px`,
+        transform: 'translateY(-50%)',
+      }"
     >
       {{ scrubLetter }}
     </div>
@@ -1360,6 +1417,18 @@ are unrelated primary actions, not a style this needs to follow). */
   border-radius: var(--radius-pill);
   background: var(--color-surface);
   color: var(--color-text-muted);
+  /* .az-scrubber (scrubber.css) is `position: fixed; z-index: 20`, and on
+  a narrow phone width it visually overlaps this button's own corner by
+  ~13px (measured via getBoundingClientRect) - without its own stacking
+  level this static-flow button loses to that fixed one regardless of DOM
+  order, so a tap in the overlap can land on the scrubber instead
+  (confirmed directly: elementFromPoint at the button's real on-screen
+  position returned .az-scrubber, not this button, before this fix).
+  Relies on .cover-scrim (GameCard.vue) NOT setting its own z-index - see
+  that comment for why raising the button's z-index alone doesn't work
+  otherwise. */
+  position: relative;
+  z-index: 21;
 }
 
 .games :deep(.details-icon-button:hover) {
