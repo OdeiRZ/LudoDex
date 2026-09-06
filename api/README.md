@@ -77,6 +77,15 @@ hasta que se verifique un dominio. `DEEPL_API_KEY` sí está configurada en
 Render, así que el botón de traducir funciona igual en producción que en
 local.
 
+`SENTRY_LARAVEL_DSN` (opcional, vacía por defecto — sin ella el SDK no hace
+nada): monitorización de errores en producción vía
+[Sentry](https://sentry.io) (plan gratuito), cableada en `bootstrap/app.php`
+(`Sentry\Laravel\Integration::handles()`) — motivado directamente por lo que
+costó diagnosticar el fallo de SMTP de arriba a base de copiar y pegar a
+mano la línea de log correcta del panel de Render, varias veces seguidas.
+`traces_sample_rate` se deja sin definir a propósito (`config/sentry.php`
+cae a `null`, sin tracing de rendimiento) — solo interesan los errores.
+
 ## Sincronizar traducciones entre local y producción
 
 ```bash
