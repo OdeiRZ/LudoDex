@@ -13,15 +13,22 @@ use Illuminate\Validation\ValidationException;
 
 class PasswordResetController extends Controller
 {
+    /**
+     * Misma respuesta exista o no ese email (Password::INVALID_USER) o
+     * aunque se haya pedido hace muy poco (Password::RESET_THROTTLED) -
+     * hallazgo de una auditoría de seguridad: devolver un mensaje distinto
+     * según el estado permitía enumerar qué emails están registrados
+     * probando este endpoint repetidamente. Password::sendResetLink() ya
+     * se encarga por su cuenta de no enviar nada cuando el usuario no
+     * existe, así que ignorar aquí su estado no cambia el comportamiento
+     * real, solo lo que ve quien hace la petición. Mismo arreglo ya
+     * aplicado en MIRA_MarketLens.
+     */
     public function sendResetLink(ForgotPasswordRequest $request): JsonResponse
     {
-        $status = Password::sendResetLink($request->only('email'));
+        Password::sendResetLink($request->only('email'));
 
-        if ($status !== Password::RESET_LINK_SENT) {
-            throw ValidationException::withMessages(['email' => [__($status)]]);
-        }
-
-        return response()->json(['message' => __($status)]);
+        return response()->json(['message' => __(Password::RESET_LINK_SENT)]);
     }
 
     public function reset(ResetPasswordRequest $request): JsonResponse

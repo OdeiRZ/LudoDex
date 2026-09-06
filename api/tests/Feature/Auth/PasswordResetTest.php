@@ -46,15 +46,35 @@ it('points the reset link at the frontend, not a server-rendered route', functio
     );
 });
 
-it('rejects a reset link request for an email that does not exist', function () {
+it('responds the same way for an email that does not exist, to avoid leaking which emails are registered', function () {
     Notification::fake();
 
     $this->withHeader('Accept-Language', 'es')
         ->postJson('/api/forgot-password', ['email' => 'nobody@example.com'])
-        ->assertUnprocessable()
-        ->assertJsonPath('errors.email.0', 'No encontramos ningún usuario con ese email.');
+        ->assertOk()
+        ->assertJsonPath('message', 'Te hemos enviado por email el enlace para restablecer la contraseña.');
 
+    // La respuesta es idéntica a la de un email real, pero por debajo
+    // Password::sendResetLink() no envía nada - nadie recibe un email para
+    // una cuenta que no existe, solo cambia lo que ve quien hace la petición.
     Notification::assertNothingSent();
+});
+
+it('responds the same way when a reset was already requested moments ago, not a distinct throttled message', function () {
+    Notification::fake();
+
+    User::factory()->create(['email' => 'odei@example.com']);
+
+    $this->postJson('/api/forgot-password', ['email' => 'odei@example.com'])->assertOk();
+
+    // Pedirlo de nuevo enseguida entra en el throttle interno de Laravel
+    // (Password::RESET_THROTTLED) - antes de esta corrección, ese estado
+    // también generaba un mensaje propio, otra forma sutil de distinguir
+    // un email registrado de uno que no lo está.
+    $this->withHeader('Accept-Language', 'es')
+        ->postJson('/api/forgot-password', ['email' => 'odei@example.com'])
+        ->assertOk()
+        ->assertJsonPath('message', 'Te hemos enviado por email el enlace para restablecer la contraseña.');
 });
 
 it('resets the password with a valid token and lets the user log in with it', function () {
@@ -105,15 +125,6 @@ it('rejects an invalid reset token', function () {
         ])
         ->assertUnprocessable()
         ->assertJsonPath('errors.email.0', 'Ese enlace para restablecer la contraseña no es válido.');
-});
-
-it('returns password reset messages in English when Accept-Language: en is sent', function () {
-    Notification::fake();
-
-    $this->withHeader('Accept-Language', 'en')
-        ->postJson('/api/forgot-password', ['email' => 'nobody@example.com'])
-        ->assertUnprocessable()
-        ->assertJsonPath('errors.email.0', "We can't find a user with that email address.");
 });
 
 it('sends the reset email branded as LudoDex, in Spanish', function () {

@@ -67,6 +67,13 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Corregido
 
+- Hallazgo de una auditoría de seguridad: `POST /forgot-password` devolvía un mensaje
+  distinto según si el email existía o no (`Password::INVALID_USER`) o si se había
+  pedido hace muy poco (`Password::RESET_THROTTLED`), permitiendo enumerar qué emails
+  están registrados probando el endpoint repetidamente. Mismo arreglo ya aplicado en
+  MIRA_MarketLens: la respuesta es siempre la misma exista o no la cuenta, sin cambiar
+  el comportamiento real (`Password::sendResetLink()` ya no envía nada por su cuenta
+  cuando el usuario no existe).
 - Hallazgo de una auditoría de seguridad: cualquier usuario con un solo juego en su
   colección podía reescribir los datos del catálogo compartido (`Game` — nombre,
   puntuación, jugadores, mecánicas...) de cualquier juego que también tuviera en su
