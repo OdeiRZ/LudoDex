@@ -136,10 +136,17 @@ const playable = computed(() =>
 // value the base game itself has, so a game not in this collection at all
 // (an expansion's own base_game_id pointing outside it) is never touched.
 const effectiveStatsByGameId = computed(() => {
-  const stats: Record<string, { minPlayers: number | null; maxPlayers: number | null; hasCampaign: boolean }> = {}
+  const stats: Record<
+    string,
+    { minPlayers: number | null; maxPlayers: number | null; hasCampaign: boolean }
+  > = {}
 
   for (const { game } of playable.value) {
-    stats[game.id] = { minPlayers: game.min_players, maxPlayers: game.max_players, hasCampaign: game.has_campaign }
+    stats[game.id] = {
+      minPlayers: game.min_players,
+      maxPlayers: game.max_players,
+      hasCampaign: game.has_campaign,
+    }
   }
 
   for (const entry of games.collection) {
@@ -152,11 +159,17 @@ const effectiveStatsByGameId = computed(() => {
 
     const expansion = entry.game
 
-    if (expansion.min_players !== null && (current.minPlayers === null || expansion.min_players < current.minPlayers)) {
+    if (
+      expansion.min_players !== null &&
+      (current.minPlayers === null || expansion.min_players < current.minPlayers)
+    ) {
       current.minPlayers = expansion.min_players
     }
 
-    if (expansion.max_players !== null && (current.maxPlayers === null || expansion.max_players > current.maxPlayers)) {
+    if (
+      expansion.max_players !== null &&
+      (current.maxPlayers === null || expansion.max_players > current.maxPlayers)
+    ) {
       current.maxPlayers = expansion.max_players
     }
 
@@ -195,7 +208,9 @@ const filterSummary = computed(() => {
     parts.push(`"${search.value.trim()}"`)
   }
 
-  parts.push(isSoloPlayer.value ? t('picker.solo') : t('picker.playersCount', { count: players.value }))
+  parts.push(
+    isSoloPlayer.value ? t('picker.solo') : t('picker.playersCount', { count: players.value }),
+  )
 
   if (durationBucket.value !== 'any') {
     const durationLabel =
@@ -210,7 +225,9 @@ const filterSummary = computed(() => {
   }
 
   if (!isSoloPlayer.value && modeFilter.value !== 'any') {
-    parts.push(modeFilter.value === 'cooperative' ? t('picker.cooperative') : t('picker.competitive'))
+    parts.push(
+      modeFilter.value === 'cooperative' ? t('picker.cooperative') : t('picker.competitive'),
+    )
   }
 
   if (onlyCampaign.value) {
@@ -373,7 +390,14 @@ const {
         :title="$t('picker.showFilters')"
         @click="filtersCollapsed = false"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
           <line x1="21" x2="14" y1="4" y2="4" />
           <line x1="10" x2="3" y1="4" y2="4" />
           <line x1="21" x2="12" y1="12" y2="12" />
@@ -384,13 +408,24 @@ const {
           <line x1="8" x2="8" y1="10" y2="14" />
           <line x1="16" x2="16" y1="18" y2="22" />
         </svg>
-        <svg class="filters-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <svg
+          class="filters-toggle-chevron"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
           <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" />
         </svg>
       </button>
     </div>
 
-    <form v-if="games.loaded && playable.length && !filtersCollapsed" class="filters card" @submit.prevent>
+    <form
+      v-if="games.loaded && playable.length && !filtersCollapsed"
+      class="filters card"
+      @submit.prevent
+    >
       <button
         type="button"
         class="btn filters-toggle filters-toggle-open filters-toggle-floating"
@@ -399,7 +434,14 @@ const {
         :title="$t('picker.hideFilters')"
         @click="filtersCollapsed = true"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
           <line x1="21" x2="14" y1="4" y2="4" />
           <line x1="10" x2="3" y1="4" y2="4" />
           <line x1="21" x2="12" y1="12" y2="12" />
@@ -410,7 +452,14 @@ const {
           <line x1="8" x2="8" y1="10" y2="14" />
           <line x1="16" x2="16" y1="18" y2="22" />
         </svg>
-        <svg class="filters-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <svg
+          class="filters-toggle-chevron"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
           <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" />
         </svg>
       </button>
@@ -428,13 +477,7 @@ const {
       <div>
         <label for="players">{{ $t('picker.players') }}</label>
         <div class="players-row">
-          <input
-            id="players"
-            v-model.number="players"
-            type="number"
-            min="1"
-            placeholder="Nº"
-          />
+          <input id="players" v-model.number="players" type="number" min="1" placeholder="Nº" />
           <button
             type="button"
             class="btn"
@@ -487,18 +530,40 @@ const {
 
       <fieldset class="duration-field">
         <legend>{{ $t('picker.duration') }}</legend>
-        <label><input v-model="durationBucket" type="radio" value="any" /> {{ $t('picker.any') }}</label>
-        <label><input v-model="durationBucket" type="radio" value="30" /> {{ $t('picker.upTo30') }}</label>
-        <label><input v-model="durationBucket" type="radio" value="60" /> {{ $t('picker.upTo1h') }}</label>
-        <label><input v-model="durationBucket" type="radio" value="90" /> {{ $t('picker.upTo1h30') }}</label>
-        <label><input v-model="durationBucket" type="radio" value="120" /> {{ $t('picker.upTo2h') }}</label>
+        <label
+          ><input v-model="durationBucket" type="radio" value="any" /> {{ $t('picker.any') }}</label
+        >
+        <label
+          ><input v-model="durationBucket" type="radio" value="30" />
+          {{ $t('picker.upTo30') }}</label
+        >
+        <label
+          ><input v-model="durationBucket" type="radio" value="60" />
+          {{ $t('picker.upTo1h') }}</label
+        >
+        <label
+          ><input v-model="durationBucket" type="radio" value="90" />
+          {{ $t('picker.upTo1h30') }}</label
+        >
+        <label
+          ><input v-model="durationBucket" type="radio" value="120" />
+          {{ $t('picker.upTo2h') }}</label
+        >
       </fieldset>
 
       <fieldset v-if="!isSoloPlayer" class="mode-fieldset">
         <legend>{{ $t('picker.mode') }}</legend>
-        <label><input v-model="modeFilter" type="radio" value="any" /> {{ $t('picker.any') }}</label>
-        <label><input v-model="modeFilter" type="radio" value="cooperative" /> {{ $t('picker.cooperative') }}</label>
-        <label><input v-model="modeFilter" type="radio" value="competitive" /> {{ $t('picker.competitive') }}</label>
+        <label
+          ><input v-model="modeFilter" type="radio" value="any" /> {{ $t('picker.any') }}</label
+        >
+        <label
+          ><input v-model="modeFilter" type="radio" value="cooperative" />
+          {{ $t('picker.cooperative') }}</label
+        >
+        <label
+          ><input v-model="modeFilter" type="radio" value="competitive" />
+          {{ $t('picker.competitive') }}</label
+        >
       </fieldset>
 
       <div v-if="games.loaded && playable.length" class="density-toggle-slot">
@@ -513,7 +578,8 @@ const {
     </p>
     <p v-else-if="playable.length === 0" class="empty-state">
       {{ $t('picker.emptyOwned') }}<br />
-      <RouterLink :to="{ name: 'add-game' }">{{ $t('picker.addOne') }}</RouterLink>.
+      <RouterLink :to="{ name: 'add-game' }">{{ $t('picker.addOne') }}</RouterLink
+      >.
     </p>
     <p v-else-if="filtered.length === 0" class="empty-state">
       {{ $t('picker.noMatches') }}
@@ -538,7 +604,13 @@ const {
               :title="$t('picker.viewDetails')"
               @click="detailEntry = entry"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -560,7 +632,10 @@ const {
           >
             <span v-if="entry.game.year_published">{{ entry.game.year_published }}</span>
             <span
-              v-if="effectiveStatsByGameId[entry.game.id]?.minPlayers || effectiveStatsByGameId[entry.game.id]?.maxPlayers"
+              v-if="
+                effectiveStatsByGameId[entry.game.id]?.minPlayers ||
+                effectiveStatsByGameId[entry.game.id]?.maxPlayers
+              "
             >
               {{
                 $t('dashboard.players', {
@@ -588,11 +663,17 @@ const {
             "
             class="tags"
           >
-            <span v-if="entry.game.is_cooperative" class="badge badge-primary">{{ $t('picker.cooperative') }}</span>
-            <span v-if="entry.game.is_competitive" class="badge badge-primary">{{ $t('picker.competitive') }}</span>
-            <span v-if="effectiveStatsByGameId[entry.game.id]?.hasCampaign" class="badge badge-accent">{{
-              $t('picker.campaign')
+            <span v-if="entry.game.is_cooperative" class="badge badge-primary">{{
+              $t('picker.cooperative')
             }}</span>
+            <span v-if="entry.game.is_competitive" class="badge badge-primary">{{
+              $t('picker.competitive')
+            }}</span>
+            <span
+              v-if="effectiveStatsByGameId[entry.game.id]?.hasCampaign"
+              class="badge badge-accent"
+              >{{ $t('picker.campaign') }}</span
+            >
             <span v-if="entry.game.bgg_id !== null" class="badge badge-rank">
               {{
                 entry.game.bgg_rank !== null
@@ -659,7 +740,11 @@ const {
     <div
       v-if="scrubbing && scrubLetter"
       class="az-scrubber-bubble"
-      :style="{ top: `${scrubBubbleTop}px`, right: `${scrubBubbleRight}px`, transform: 'translateY(-50%)' }"
+      :style="{
+        top: `${scrubBubbleTop}px`,
+        right: `${scrubBubbleRight}px`,
+        transform: 'translateY(-50%)',
+      }"
     >
       {{ scrubLetter }}
     </div>
@@ -1546,6 +1631,18 @@ this again with its own fixed 9rem, tuned separately for that tier. */
   border-radius: var(--radius-pill);
   background: var(--color-surface);
   color: var(--color-text-muted);
+  /* .az-scrubber (scrubber.css) is `position: fixed; z-index: 20`, and on
+  a narrow phone width it visually overlaps this button's own corner by
+  ~13px (measured via getBoundingClientRect) - without its own stacking
+  level this static-flow button loses to that fixed one regardless of DOM
+  order, so a tap in the overlap can land on the scrubber instead
+  (confirmed directly: elementFromPoint at the button's real on-screen
+  position returned .az-scrubber, not this button, before this fix).
+  Relies on .cover-scrim (GameCard.vue) NOT setting its own z-index - see
+  that comment for why raising the button's z-index alone doesn't work
+  otherwise. */
+  position: relative;
+  z-index: 21;
 }
 
 .results :deep(.details-icon-button:hover) {

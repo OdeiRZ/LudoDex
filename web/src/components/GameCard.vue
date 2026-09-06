@@ -110,7 +110,23 @@ part of the source photo right behind the text), independent of the
 gradient or how tall the scrim ends up being. */
 .cover-scrim {
   position: relative;
-  z-index: 1;
+  /* No explicit z-index (was 1) - deliberately, so this never establishes
+  its own stacking context: .cover-image/.cover-fallback (both z-index:
+  auto, earlier in the DOM) still paint underneath purely from DOM order,
+  which needs no z-index at all. An explicit z-index here would trap any
+  z-index given to .details-icon-button inside it (see that button's own
+  comment in DashboardView.vue/PickerView.vue) - confirmed directly: with
+  z-index: 1 here, that button's own z-index: 21 was silently capped at
+  this element's "1", still losing to .az-scrubber's 20 on a narrow phone
+  where the two visually overlap by ~13px (measured via
+  getBoundingClientRect). Raising this z-index instead (tried first) does
+  free the button, but also raises the ENTIRE card body - including all
+  the plain (non-interactive) space the scrubber passes over on its way
+  down the list - above the scrubber, breaking its own tap/drag targets
+  almost everywhere except the gaps between cards (confirmed directly by
+  sampling elementFromPoint down the scrubber's full height: only 2 of 9
+  points still hit the scrubber afterward, the other 7 hit card content
+  instead). */
   padding: var(--space-3);
   display: flex;
   flex-direction: column;
