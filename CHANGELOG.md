@@ -9,6 +9,16 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Añadido
 
+- Monitorización de errores en producción vía Sentry (plan gratuito,
+  `sentry/sentry-laravel`), cableada en `bootstrap/app.php`
+  (`Sentry\Laravel\Integration::handles()`) — motivado directamente por lo
+  que costó diagnosticar el fallo de SMTP de más abajo: varias rondas de
+  pedir al usuario que copiara y pegara a mano la línea de log correcta
+  desde el panel de Render. Sin `SENTRY_LARAVEL_DSN` puesta (vacía por
+  defecto) el SDK no hace nada, en ningún entorno. `traces_sample_rate` se
+  deja sin definir a propósito — solo errores, sin gastar cuota del plan
+  gratuito en tracing de rendimiento.
+
 - Ping periódico contra `/up` cada 10 minutos vía GitHub Actions
   (`.github/workflows/keep-alive.yml`) para evitar que Render duerma la
   API en el plan Free tras un rato de inactividad — el primer request real
