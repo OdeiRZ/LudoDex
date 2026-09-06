@@ -19,18 +19,6 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   deja sin definir a propósito — solo errores, sin gastar cuota del plan
   gratuito en tracing de rendimiento.
 
-- Ping periódico contra `/up` cada 10 minutos vía GitHub Actions
-  (`.github/workflows/keep-alive.yml`) para evitar que Render duerma la
-  API en el plan Free tras un rato de inactividad — el primer request real
-  del día pagaba entonces un arranque en frío de casi 1 minuto, sin que
-  nadie supiera por qué. Gratis (los workflows programados de GitHub
-  Actions no tienen coste para un job tan corto e infrecuente, en un repo
-  público o privado) y sin crear ninguna cuenta de terceros (UptimeRobot y
-  similares quedaban descartados solo por eso). `/up` es la ruta de
-  health-check propia de Laravel (`bootstrap/app.php`, `health: '/up'`) —
-  sin consulta a la base de datos, solo confirma que la app arrancó.
-  Mismo patrón aplicado también a MIRA_MarketLens.
-
 - Los tres formularios que piden un usuario de BGG (las dos pestañas de
   "Importar BGG" y el panel de reimportar de "Tus partidas") se rellenan
   ya con el usuario guardado en el perfil, si lo hay — sigue siendo un
@@ -69,6 +57,23 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Corregido
 
+- Se probó (y se revirtió en el mismo `Unreleased`, sin llegar a una
+  versión etiquetada) un ping periódico contra `/up` para evitar que
+  Render duerma esta API en el plan Free. El motivo del reverso: las 750
+  horas de instancia gratuitas de Render son por *workspace*, no por
+  servicio (confirmado en vivo en la propia página de Billing — este
+  workspace tiene 4 servicios, incluidos `mira-marketlens-api` y
+  PequeDex, compartiendo ese mismo cupo), y Render **suspende todos los
+  servicios Free del workspace**, no solo el que se pasa, en cuanto ese
+  cupo compartido se agota en el mes (confirmado en la documentación
+  oficial de Render). Mantener despiertas dos apps a la vez, 24/7, se
+  habría comido casi 1.150h/mes entre las dos - muy por encima de las
+  750h totales, con riesgo real de tumbar PequeDex también. Un ping
+  acotado a horario activo en una sola app (`mira-marketlens-api`, ver su
+  propio CHANGELOG) se queda en su lugar; esta API vuelve a dormir
+  normal, con el arranque en frío ocasional aceptado a propósito - ya
+  documentado antes en este mismo archivo (ver la entrada de agosto sobre
+  por qué no había ping).
 - `POST /api/games/backfill-translations` (el catálogo compartido, no
   algo propio de quien llama) aceptaba cualquier cuenta autenticada, no
   solo la propietaria de este despliegue. Ahora exige que el email del
