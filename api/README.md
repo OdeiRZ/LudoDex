@@ -47,6 +47,14 @@ reales de la app (ver README raíz, sección "Requisitos externos"). El
 contenido del email vive en `App\Notifications\ResetPasswordNotification` y
 `lang/{es,en}/mail.php`, no en el texto genérico por defecto de Laravel.
 
+**Por qué Resend y no SMTP directo (ni Gmail ni ningún otro):** probado en
+vivo contra producción — Render bloquea las conexiones salientes por SMTP
+por completo (confirmado con timeouts idénticos en los puertos 587 y 465
+contra `smtp.gmail.com`, con las credenciales correctas), algo habitual en
+plataformas cloud para evitar abuso de spam desde cuentas gratuitas. Resend
+funciona porque su SDK (`resend/resend-php`, ya en `composer.json`) usa su
+API HTTPS, no SMTP, así que nunca tropieza con ese bloqueo.
+
 ## Despliegue
 
 En producción ([ludodex-api.onrender.com](https://ludodex-api.onrender.com)):
@@ -58,12 +66,16 @@ de Neon. **Usar el host directo de Neon, no el "pooled" (sin el sufijo
 `-pooler`)**: con el pooler (PgBouncer en modo transacción) las migraciones
 fallan de forma intermitente con `SQLSTATE[25P02]` en vez de mostrar el error
 real — ver CHANGELOG. `SESSION_DRIVER`/`CACHE_STORE`/`QUEUE_CONNECTION` van a
-`database` (no hay Redis ni *worker* en el plan Free). `MAIL_MAILER`/
-`RESEND_API_KEY` no están configuradas todavía en producción (pendiente de
-un dominio propio que verificar en Resend — ver "Instalación" más arriba),
-así que ahí el mailer cae en `log` y `/api/forgot-password` no envía ningún
-email real por ahora. `DEEPL_API_KEY` sí está configurada en Render, así
-que el botón de traducir funciona igual en producción que en local.
+`database` (no hay Redis ni *worker* en el plan Free). `MAIL_MAILER=resend` y
+`RESEND_API_KEY` sí están configuradas en producción — probado en vivo
+(`/api/forgot-password` real, entrega confirmada en el panel de Resend y en
+la bandeja de entrada) — pero, sin un dominio propio verificado todavía, el
+remitente sigue siendo `onboarding@resend.dev` y solo llega a la dirección
+de email de la propia cuenta de Resend (ver "Instalación" más arriba); un
+usuario real de la app que pida restablecer su contraseña no recibirá nada
+hasta que se verifique un dominio. `DEEPL_API_KEY` sí está configurada en
+Render, así que el botón de traducir funciona igual en producción que en
+local.
 
 ## Sincronizar traducciones entre local y producción
 

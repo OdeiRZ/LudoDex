@@ -79,6 +79,21 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   fila) cedía ese espacio extra encogiéndose. Ahora el botón "Cancelar"
   de esa misma fila desaparece mientras se importa (ya es irrelevante
   en ese momento), liberando ese espacio para el input.
+- `/api/forgot-password` nunca enviaba el email de verdad en producción —
+  `MAIL_MAILER` no estaba configurada, así que caía en `log` (escribe el
+  correo en `storage/logs/laravel.log` en vez de enviarlo). Probado en
+  vivo que SMTP directo no es viable en Render: mismo timeout de conexión
+  contra `smtp.gmail.com` en los puertos 587 y 465, con credenciales
+  correctas — la plataforma bloquea SMTP saliente por completo, algo
+  habitual para evitar abuso de spam desde cuentas gratuitas.
+  `MAIL_MAILER=resend` en su lugar (su SDK ya estaba en `composer.json`,
+  sin cambios de código) funciona porque envía por API HTTPS, no SMTP.
+  Verificado en producción de extremo a extremo: petición real, entrega
+  confirmada en el panel de Resend y en la bandeja de entrada, enlace de
+  restablecimiento funcionando. Sin un dominio propio verificado en
+  Resend todavía, el remitente sigue siendo `onboarding@resend.dev` y
+  solo llega a la cuenta de Resend usada — pendiente para cuando haya un
+  dominio propio (ver README de la API).
 
 ## [0.11.0] - 2026-08-23
 
