@@ -9,6 +9,18 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Añadido
 
+- Ping periódico contra `/up` cada 10 minutos vía GitHub Actions
+  (`.github/workflows/keep-alive.yml`) para evitar que Render duerma la
+  API en el plan Free tras un rato de inactividad — el primer request real
+  del día pagaba entonces un arranque en frío de casi 1 minuto, sin que
+  nadie supiera por qué. Gratis (los workflows programados de GitHub
+  Actions no tienen coste para un job tan corto e infrecuente, en un repo
+  público o privado) y sin crear ninguna cuenta de terceros (UptimeRobot y
+  similares quedaban descartados solo por eso). `/up` es la ruta de
+  health-check propia de Laravel (`bootstrap/app.php`, `health: '/up'`) —
+  sin consulta a la base de datos, solo confirma que la app arrancó.
+  Mismo patrón aplicado también a MIRA_MarketLens.
+
 - Los tres formularios que piden un usuario de BGG (las dos pestañas de
   "Importar BGG" y el panel de reimportar de "Tus partidas") se rellenan
   ya con el usuario guardado en el perfil, si lo hay — sigue siendo un
