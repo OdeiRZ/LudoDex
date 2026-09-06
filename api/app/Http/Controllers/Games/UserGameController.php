@@ -71,6 +71,11 @@ class UserGameController extends Controller
 
         DB::transaction(function () use ($request, $userGame) {
             $gameAttributes = $request->safe()->except(['mechanics', 'categories', 'status']);
+            $touchesGame = $gameAttributes !== [] || $request->has('mechanics') || $request->has('categories');
+
+            if ($touchesGame) {
+                $this->authorize('updateGame', $userGame);
+            }
 
             if ($gameAttributes !== []) {
                 $userGame->game->update($gameAttributes);

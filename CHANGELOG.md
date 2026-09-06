@@ -67,6 +67,16 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Corregido
 
+- Hallazgo de una auditoría de seguridad: cualquier usuario con un solo juego en su
+  colección podía reescribir los datos del catálogo compartido (`Game` — nombre,
+  puntuación, jugadores, mecánicas...) de cualquier juego que también tuviera en su
+  colección, sin más comprobación que ser dueño de su propia fila de colección
+  (`UserGamePolicy::update()` solo mira eso, pero `UserGameController::update()` la
+  reutilizaba para autorizar también la edición del `Game` subyacente, compartido por
+  todos). Ahora una nueva comprobación (`UserGamePolicy::updateGame()`) solo permite
+  editar los campos del juego en sí mientras nadie más lo tenga todavía en su propia
+  colección — en cuanto un segundo usuario añade el mismo juego, esa edición pasa a
+  rechazarse con 403 (cambiar solo el `status` personal sigue funcionando siempre).
 - Se probó (y se revirtió en el mismo `Unreleased`, sin llegar a una
   versión etiquetada) un ping periódico contra `/up` para evitar que
   Render duerma esta API en el plan Free. El motivo del reverso: las 750

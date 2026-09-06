@@ -151,6 +151,39 @@ it('updates the underlying game fields and taxonomies', function () {
         ->assertJsonPath('data.game.mechanics', ['Deck Building']);
 });
 
+it('forbids editing the underlying game once another user also has it in their collection', function () {
+    $user = actingAsUser();
+    $game = Game::factory()->create(['name' => 'Catan']);
+    $userGame = UserGame::factory()->for($user)->for($game)->create();
+    UserGame::factory()->for($game)->create(); // another user, same shared game
+
+    $this->putJson("/api/games/{$userGame->id}", ['name' => 'Renamed'])
+        ->assertForbidden();
+
+    expect($game->fresh()->name)->toBe('Catan');
+});
+
+it('forbids changing taxonomies on a game shared with another user', function () {
+    $user = actingAsUser();
+    $game = Game::factory()->create();
+    $userGame = UserGame::factory()->for($user)->for($game)->create();
+    UserGame::factory()->for($game)->create();
+
+    $this->putJson("/api/games/{$userGame->id}", ['mechanics' => ['Drafting']])
+        ->assertForbidden();
+});
+
+it('still allows changing only the status on a game shared with another user', function () {
+    $user = actingAsUser();
+    $game = Game::factory()->create();
+    $userGame = UserGame::factory()->for($user)->for($game)->create(['status' => 'wishlist']);
+    UserGame::factory()->for($game)->create();
+
+    $this->putJson("/api/games/{$userGame->id}", ['status' => 'owned'])
+        ->assertOk()
+        ->assertJsonPath('data.status', 'owned');
+});
+
 it('rejects changing a game\'s bgg_id to one that already belongs to another game', function () {
     $user = actingAsUser();
     Game::factory()->create(['bgg_id' => 13]);
