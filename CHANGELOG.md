@@ -9,6 +9,35 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Añadido
 
+- Verificación de email en `/register` — mismo hallazgo de auditoría de
+  seguridad que en MIRA_MarketLens: cualquiera podía registrarse con
+  cualquier email, sin comprobar que su dueño lo pidió
+  (`MustVerifyEmail` llevaba comentado desde el principio). `register()`
+  sigue logueando al usuario al instante igual que siempre (higiene, no
+  una puerta de acceso), pero ahora también le manda el email de
+  verificación — vía el driver `gmail_api` de arriba, entrega real sin
+  necesitar SMTP. Sigue el mismo patrón ya usado para el email de
+  restablecer contraseña: `App\Notifications\VerifyEmailNotification`
+  extiende la notificación de serie de Laravel y solo sobreescribe
+  `buildMailMessage()`, con el copy en `lang/{es,en}/mail.php` (no
+  hardcoded) — así sale traducido de verdad según el `Accept-Language`
+  de quien se registra, no siempre en un idioma fijo. El enlace usa una
+  URL firmada de Laravel apuntando a la propia API
+  (`GET /email/verify/{id}/{hash}`, `EmailVerificationController::verify()`)
+  — a diferencia del enlace de restablecer contraseña, que apunta al
+  frontend, aquí la firma tiene que comprobarse contra la URL exacta que
+  se firmó; no usa el middleware `signed` (mostraría la página de error
+  por defecto de Laravel) sino que se comprueba a mano para poder
+  redirigir siempre a `{frontend}/verify-email?ok=0/1`.
+  `POST /email/verification-notification` reenvía el enlace. Sin
+  middleware `verified` en ninguna ruta a propósito — igual que en
+  MIRA_MarketLens, esto es confirmación de email, no una puerta de
+  acceso. Aviso corto en el header con botón "Reenviar" mientras el
+  email siga sin confirmar. 18 tests nuevos entre backend y frontend
+  (incluye dos tests de branding en español e inglés), 204 tests
+  backend + 332 tests frontend en verde, Pint/PHPStan/ESLint/vue-tsc
+  limpios. Verificado en vivo end-to-end en local.
+
 - Mailer alternativo `gmail_api` (`App\Mail\Transport\GmailApiTransport`,
   `MAIL_MAILER=gmail_api`) para poder entregar el email de recuperar
   contraseña a cualquier usuario real sin comprar/verificar un dominio

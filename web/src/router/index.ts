@@ -96,6 +96,14 @@ const router = createRouter({
       component: () => import('@/views/ResetPasswordView.vue'),
     },
     {
+      // Same reasoning as reset-password above: the verification link the
+      // API redirects to (EmailVerificationController::verify()) has to
+      // land here regardless of whether this browser still has a session.
+      path: '/verify-email',
+      name: 'verify-email',
+      component: () => import('@/views/VerifyEmailView.vue'),
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('@/views/NotFoundView.vue'),

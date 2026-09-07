@@ -60,11 +60,91 @@ describe('App', () => {
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
+  it('shows a reminder to verify the email for an authenticated user who has not verified yet', async () => {
+    setActivePinia(createPinia())
+    const auth = useAuthStore()
+    auth.token = 'a-token'
+    auth.user = {
+      id: 1,
+      name: 'Odei',
+      email: 'odei@example.com',
+      bgg_username: null,
+      avatar_url: null,
+      email_verified_at: null,
+    }
+
+    const router = makeRouter('/')
+    await router.isReady()
+    const wrapper = mount(App, { global: { plugins: [router, i18n] } })
+    await flushPromises()
+
+    expect(wrapper.find('.verify-banner').exists()).toBe(true)
+    expect(wrapper.find('.verify-banner').text()).toContain('odei@example.com')
+  })
+
+  it('hides the verification reminder once the email is verified', async () => {
+    setActivePinia(createPinia())
+    const auth = useAuthStore()
+    auth.token = 'a-token'
+    auth.user = {
+      id: 1,
+      name: 'Odei',
+      email: 'odei@example.com',
+      bgg_username: null,
+      avatar_url: null,
+      email_verified_at: '2026-09-08T00:00:00.000000Z',
+    }
+
+    const router = makeRouter('/')
+    await router.isReady()
+    const wrapper = mount(App, { global: { plugins: [router, i18n] } })
+    await flushPromises()
+
+    expect(wrapper.find('.verify-banner').exists()).toBe(false)
+  })
+
+  it('resends the verification email and shows the backend message', async () => {
+    setActivePinia(createPinia())
+    const auth = useAuthStore()
+    auth.token = 'a-token'
+    auth.user = {
+      id: 1,
+      name: 'Odei',
+      email: 'odei@example.com',
+      bgg_username: null,
+      avatar_url: null,
+      email_verified_at: null,
+    }
+    const resendSpy = vi
+      .spyOn(auth, 'resendVerificationEmail')
+      .mockResolvedValue('Te hemos enviado un nuevo enlace de verificación.')
+
+    const router = makeRouter('/')
+    await router.isReady()
+    const wrapper = mount(App, { global: { plugins: [router, i18n] } })
+    await flushPromises()
+
+    await wrapper.find('.verify-banner button').trigger('click')
+    await flushPromises()
+
+    expect(resendSpy).toHaveBeenCalled()
+    expect(wrapper.find('.verify-banner').text()).toContain(
+      'Te hemos enviado un nuevo enlace de verificación.',
+    )
+  })
+
   it('does not re-fetch a user the store already has', async () => {
     setActivePinia(createPinia())
     const auth = useAuthStore()
     auth.token = 'a-token'
-    auth.user = { id: 1, name: 'Odei', email: 'odei@example.com', bgg_username: null, avatar_url: null }
+    auth.user = {
+      id: 1,
+      name: 'Odei',
+      email: 'odei@example.com',
+      bgg_username: null,
+      avatar_url: null,
+      email_verified_at: null,
+    }
     const fetchSpy = vi.spyOn(auth, 'fetchCurrentUser')
 
     const router = makeRouter('/picker')
@@ -80,7 +160,14 @@ describe('App', () => {
     const auth = useAuthStore()
     auth.token = 'a-token'
     vi.spyOn(auth, 'fetchCurrentUser').mockImplementation(async () => {
-      auth.user = { id: 1, name: 'Odei', email: 'odei@example.com', bgg_username: null, avatar_url: null }
+      auth.user = {
+        id: 1,
+        name: 'Odei',
+        email: 'odei@example.com',
+        bgg_username: null,
+        avatar_url: null,
+        email_verified_at: null,
+      }
     })
 
     const router = makeRouter('/picker')

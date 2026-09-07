@@ -49,7 +49,14 @@ async function mountPlays(bggUsername?: string | null) {
 
   const authStore = useAuthStore()
   if (bggUsername !== undefined) {
-    authStore.user = { id: 1, name: 'Odei', email: 'odei@example.com', bgg_username: bggUsername, avatar_url: null }
+    authStore.user = {
+      id: 1,
+      name: 'Odei',
+      email: 'odei@example.com',
+      bgg_username: bggUsername,
+      avatar_url: null,
+      email_verified_at: null,
+    }
   }
 
   const router = makeRouter()
@@ -191,11 +198,14 @@ describe('PlaysView', () => {
     expect(wrapper.findAll('.play-index').map((el) => el.text())).toEqual(['1', '2', '3'])
   })
 
-  it('shows the base game\'s name under a play logged against an expansion', async () => {
+  it("shows the base game's name under a play logged against an expansion", async () => {
     const { wrapper, store } = await mountPlays()
     store.loaded = true
     store.entries = [
-      makePlay({ id: 'play-1', game: { ...makePlay().game, name: 'Agora', base_game_name: '7 Wonders Duel' } }),
+      makePlay({
+        id: 'play-1',
+        game: { ...makePlay().game, name: 'Agora', base_game_name: '7 Wonders Duel' },
+      }),
       makePlay({ id: 'play-2' }),
     ]
     await wrapper.vm.$nextTick()
@@ -243,16 +253,21 @@ describe('PlaysView', () => {
     expect(wrapper.findComponent({ name: 'GameDetailModal' }).exists()).toBe(false)
   })
 
-  it('keeps a translation after closing and reopening the same play\'s modal', async () => {
+  it("keeps a translation after closing and reopening the same play's modal", async () => {
     const { wrapper, store } = await mountPlays()
     store.loaded = true
     store.entries = [makePlay()]
     await wrapper.vm.$nextTick()
     const games = useGamesStore()
-    vi.spyOn(games, 'translateDescription').mockResolvedValue('Comercia y construye en la isla de Catan.')
+    vi.spyOn(games, 'translateDescription').mockResolvedValue(
+      'Comercia y construye en la isla de Catan.',
+    )
 
     await wrapper.find('.play-cover-button').trigger('click')
-    await wrapper.findComponent({ name: 'GameDetailModal' }).find('.modal-translate').trigger('click')
+    await wrapper
+      .findComponent({ name: 'GameDetailModal' })
+      .find('.modal-translate')
+      .trigger('click')
     await wrapper.vm.$nextTick()
     await wrapper.vm.$nextTick()
     await wrapper.findComponent({ name: 'GameDetailModal' }).find('.modal-close').trigger('click')
@@ -262,7 +277,9 @@ describe('PlaysView', () => {
     // not fall back to English again waiting on a translate click.
     await wrapper.find('.play-cover-button').trigger('click')
     const reopened = wrapper.findComponent({ name: 'GameDetailModal' })
-    expect(reopened.find('.modal-description').text()).toBe('Comercia y construye en la isla de Catan.')
+    expect(reopened.find('.modal-description').text()).toBe(
+      'Comercia y construye en la isla de Catan.',
+    )
     expect(reopened.find('.modal-translate').exists()).toBe(false)
   })
 
@@ -292,7 +309,7 @@ describe('PlaysView', () => {
     expect((wrapper.find('#reimport-username').element as HTMLInputElement).value).toBe('odei_bgg')
   })
 
-  it('still lets the reimport panel\'s prefilled username be cleared', async () => {
+  it("still lets the reimport panel's prefilled username be cleared", async () => {
     const { wrapper, store } = await mountPlays('odei_bgg')
     store.loaded = true
     store.entries = [makePlay()]
@@ -304,7 +321,7 @@ describe('PlaysView', () => {
     expect((wrapper.find('#reimport-username').element as HTMLInputElement).value).toBe('')
   })
 
-  it('leaves the reimport panel\'s username blank when the profile has none saved', async () => {
+  it("leaves the reimport panel's username blank when the profile has none saved", async () => {
     const { wrapper, store } = await mountPlays(null)
     store.loaded = true
     store.entries = [makePlay()]
@@ -320,9 +337,7 @@ describe('PlaysView', () => {
     store.loaded = true
     store.entries = [makePlay()]
     await wrapper.vm.$nextTick()
-    const importSpy = vi
-      .spyOn(store, 'importPlays')
-      .mockResolvedValue({ imported_count: 2 })
+    const importSpy = vi.spyOn(store, 'importPlays').mockResolvedValue({ imported_count: 2 })
 
     await wrapper.find('.reimport-btn').trigger('click')
     await wrapper.find('#reimport-username').setValue('odei1987')
@@ -341,9 +356,7 @@ describe('PlaysView', () => {
     store.loaded = true
     store.entries = [makePlay()]
     await wrapper.vm.$nextTick()
-    const importSpy = vi
-      .spyOn(store, 'importPlays')
-      .mockResolvedValue({ imported_count: 2 })
+    const importSpy = vi.spyOn(store, 'importPlays').mockResolvedValue({ imported_count: 2 })
 
     await wrapper.find('.reimport-btn').trigger('click')
     await wrapper.find('#reimport-username').setValue('odei1987')
@@ -576,7 +589,10 @@ describe('PlaysView', () => {
           game: { id: 'base-1', name: '7 Wonders Duel', image_url: null },
           count: 5,
           breakdown: [
-            { game: { id: 'expansion-1', name: '7 Wonders Duel: Agora', image_url: null }, count: 3 },
+            {
+              game: { id: 'expansion-1', name: '7 Wonders Duel: Agora', image_url: null },
+              count: 3,
+            },
             { game: { id: 'base-1', name: '7 Wonders Duel', image_url: null }, count: 2 },
           ],
         },

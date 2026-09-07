@@ -11,6 +11,7 @@ const user = {
   email: 'odei@example.com',
   bgg_username: 'odei_bgg',
   avatar_url: null,
+  email_verified_at: null,
 }
 
 // Pre-seeding auth.user keeps onMounted from calling fetchCurrentUser()
@@ -143,6 +144,8 @@ describe('ProfileView change password form', () => {
     await passwordForm(wrapper).trigger('submit')
     await flushPromises()
 
-    expect((wrapper.find('#current_password').element as HTMLInputElement).value).toBe('old-password')
+    expect((wrapper.find('#current_password').element as HTMLInputElement).value).toBe(
+      'old-password',
+    )
   })
 })

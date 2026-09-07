@@ -3,7 +3,7 @@ export default {
     save: 'Save',
     saving: 'Saving…',
     loading: 'Loading…',
-    coldStartHint: "Server was asleep: this might take a few seconds.",
+    coldStartHint: 'Server was asleep: this might take a few seconds.',
     genericGameSaveError: "Couldn't save the game. Check the details.",
     loadingCollection: 'Loading your collection…',
     loadingAriaLabel: 'Loading',
@@ -34,6 +34,20 @@ export default {
   },
   auth: {
     sessionExpired: 'Your session has expired. Please log in again.',
+    verifyEmailBanner: {
+      notice: 'Verify your email ({email}) to confirm your account.',
+      resend: 'Resend',
+      sending: 'Sending…',
+    },
+    verifyEmail: {
+      successTitle: 'Email verified',
+      successBody: 'Your email address has been confirmed.',
+      failureTitle: 'Invalid link',
+      failureBody:
+        'This verification link is invalid or has expired. Request a new one from your account.',
+      goToDashboard: 'Go to your collection',
+      goToLogin: 'Go to login',
+    },
     login: {
       title: 'Log in',
       email: 'Email',
@@ -216,7 +230,7 @@ export default {
     noMatches: 'No game in your collection matches these filters.',
     viewDetails: 'View details',
     noDescription: "This game doesn't have a description yet.",
-    descriptionUntranslated: "Not translated yet - showing the English text.",
+    descriptionUntranslated: 'Not translated yet - showing the English text.',
     descriptionUntranslatedShort: 'EN',
     translateButton: 'Translate to Spanish',
     translating: 'Translating…',
@@ -228,7 +242,8 @@ export default {
   profile: {
     title: 'My profile',
     personalData: 'Personal details',
-    avatarHint: 'Your avatar is pulled from your BoardGameGeek account if you set your username below.',
+    avatarHint:
+      'Your avatar is pulled from your BoardGameGeek account if you set your username below.',
     name: 'Name',
     email: 'Email',
     bggUsername: 'BoardGameGeek username (optional)',
@@ -249,8 +264,9 @@ export default {
     tabPlays: 'Plays',
     username: 'BGG username',
     usernameHint:
-      "Bring in your game collection from BoardGameGeek. Your BGG collection is only ever read, never written back to - nothing you edit here is sent to BGG.",
-    readOnlyNotice: "Your BGG collection is only ever read, never written back to - nothing you edit here is sent to BGG.",
+      'Bring in your game collection from BoardGameGeek. Your BGG collection is only ever read, never written back to - nothing you edit here is sent to BGG.',
+    readOnlyNotice:
+      'Your BGG collection is only ever read, never written back to - nothing you edit here is sent to BGG.',
     submit: 'Import',
     genericStartError: "Couldn't start the import.",
     genericFailedError: "Couldn't import the collection.",
@@ -269,7 +285,7 @@ export default {
     dontCloseTab: "Don't close or reload this tab while it's importing.",
     viewCollection: 'View your collection',
     playsHint:
-      "Bring in your play history from BoardGameGeek. This only reads from BGG - nothing you see here is ever sent back.",
+      'Bring in your play history from BoardGameGeek. This only reads from BGG - nothing you see here is ever sent back.',
     playsSubmit: 'Reimport plays',
     playsSubmitting: 'Importing…',
     playsGenericError: "Couldn't import your plays.",

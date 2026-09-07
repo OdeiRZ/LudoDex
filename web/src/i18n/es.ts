@@ -34,6 +34,20 @@ export default {
   },
   auth: {
     sessionExpired: 'Tu sesión ha caducado. Inicia sesión de nuevo.',
+    verifyEmailBanner: {
+      notice: 'Verifica tu email ({email}) para confirmar tu cuenta.',
+      resend: 'Reenviar',
+      sending: 'Enviando…',
+    },
+    verifyEmail: {
+      successTitle: 'Email verificado',
+      successBody: 'Tu dirección de email ha quedado confirmada.',
+      failureTitle: 'Enlace no válido',
+      failureBody:
+        'Este enlace de verificación no es válido o ha caducado. Pide uno nuevo desde tu cuenta.',
+      goToDashboard: 'Ir a tu colección',
+      goToLogin: 'Ir a iniciar sesión',
+    },
     login: {
       title: 'Iniciar sesión',
       email: 'Email',
@@ -250,7 +264,8 @@ export default {
     username: 'Usuario de BGG',
     usernameHint:
       'Trae tu colección de juegos desde BoardGameGeek. Solo se lee tu colección; nada de lo que edites aquí se envía de vuelta a BGG.',
-    readOnlyNotice: 'Solo se lee tu colección de BGG; nada de lo que edites aquí se envía de vuelta a BGG.',
+    readOnlyNotice:
+      'Solo se lee tu colección de BGG; nada de lo que edites aquí se envía de vuelta a BGG.',
     submit: 'Importar colección',
     genericStartError: 'No se ha podido iniciar la importación.',
     genericFailedError: 'No se ha podido importar la colección.',
@@ -264,7 +279,8 @@ export default {
     csvSubmitting: 'Importando…',
     csvGenericError: 'No se ha podido importar el archivo.',
     csvCompleted: 'Importados {count} juegos.',
-    csvCompletedWithSkipped: 'Importados {count} juegos ({skipped} expansiones omitidas por ahora).',
+    csvCompletedWithSkipped:
+      'Importados {count} juegos ({skipped} expansiones omitidas por ahora).',
     csvWarningsTitle: 'Avisos:',
     dontCloseTab: 'No cierres ni recargues esta pestaña mientras se importa.',
     viewCollection: 'Ver tu colección',

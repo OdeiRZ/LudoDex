@@ -9,6 +9,7 @@ export interface User {
   email: string
   bgg_username: string | null
   avatar_url: string | null
+  email_verified_at: string | null
 }
 
 interface RegisterPayload {
@@ -106,6 +107,12 @@ export const useAuthStore = defineStore('auth', {
 
     async resetPassword(payload: ResetPasswordPayload): Promise<string> {
       const { data } = await apiClient.post('/reset-password', payload)
+      return data.message
+    },
+
+    /** Returns the backend's own status message, so the view can show it as is. */
+    async resendVerificationEmail(): Promise<string> {
+      const { data } = await apiClient.post('/email/verification-notification')
       return data.message
     },
 

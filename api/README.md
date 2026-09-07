@@ -194,6 +194,8 @@ La suite usa Pest y `RefreshDatabase` (SQLite en memoria durante los tests).
 | PUT    | `/api/user/password` | Sí | Cambia la contraseña (exige `current_password`; limitado a 6/minuto) |
 | POST   | `/api/forgot-password` | No | Envía el email de recuperación de contraseña (limitado a 6/minuto) |
 | POST   | `/api/reset-password` | No | Cambia la contraseña dado un `token` y `email` válidos (limitado a 6/minuto) |
+| GET    | `/api/email/verify/{id}/{hash}` | No (URL firmada) | Confirma el email y redirige a `{frontend}/verify-email?ok=0/1` — ver "Verificación de email" más abajo |
+| POST   | `/api/email/verification-notification` | Sí | Reenvía el email de verificación (no hace nada si ya está verificado; limitado a 6/minuto) |
 
 `register` y `login` piden un campo `device_name` (etiqueta libre para el
 token, pensada para una futura pantalla de "sesiones activas"). `PUT
@@ -202,6 +204,36 @@ respecto al guardado, intenta rellenar `avatar_url` desde esa cuenta de BGG
 (`App\Services\Bgg\BggClient::fetchUserAvatar`) de forma *best-effort* — un
 fallo ahí (sin token, usuario inexistente, BGG caído) nunca bloquea el resto
 del guardado.
+
+### Verificación de email
+
+`/register` deja crear una cuenta con cualquier email, sin comprobar que
+su dueño la pidió — mismo hallazgo de auditoría de seguridad que en
+MIRA_MarketLens. `register()` sigue logueando al usuario al instante,
+igual que siempre — esto es confirmación de email, no una puerta de
+acceso, así que no hay middleware `verified` en ninguna ruta.
+
+`User` implementa `Illuminate\Contracts\Auth\MustVerifyEmail` (trait
+`Illuminate\Auth\MustVerifyEmail`, sin código propio) y `register()` llama
+a `sendEmailVerificationNotification()` tras crear la cuenta. El modelo la
+sobreescribe (mismo patrón ya usado para `sendPasswordResetNotification()`)
+para mandar `App\Notifications\VerifyEmailNotification` — una subclase de
+la notificación de serie de Laravel que solo sobreescribe
+`buildMailMessage()`, con el copy en `lang/{es,en}/mail.php` en vez de
+hardcodeado, así que sale traducido de verdad según el `Accept-Language`
+de quien se registra (ver `SetLocaleFromHeader`).
+
+A diferencia del enlace de restablecer contraseña (token guardado en BD,
+apunta directo al frontend), la verificación de email en Laravel usa una
+**URL firmada** que el propio framework construye a partir de la ruta
+`verification.verify` — por eso el enlace apunta a esta misma API
+(`GET /email/verify/{id}/{hash}`), no al frontend: la firma tiene que
+comprobarse contra la URL exacta que se firmó.
+`EmailVerificationController::verify()` no usa el middleware `signed`
+(abortaría con la página de error por defecto de Laravel antes de llegar
+al controlador) — comprueba la firma a mano con
+`$request->hasValidSignature()` para poder redirigir siempre a
+`{frontend}/verify-email?ok=0` o `?ok=1`, tanto si falla como si acierta.
 
 | Método | Ruta                     | Auth | Descripción                              |
 |--------|--------------------------|------|-------------------------------------------|

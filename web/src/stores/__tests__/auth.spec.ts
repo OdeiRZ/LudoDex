@@ -19,6 +19,7 @@ const user = {
   email: 'odei@example.com',
   bgg_username: null,
   avatar_url: null,
+  email_verified_at: null,
 }
 
 describe('useAuthStore', () => {
@@ -123,6 +124,18 @@ describe('useAuthStore', () => {
     const message = await store.forgotPassword(user.email)
 
     expect(message).toBe('Enviado.')
+  })
+
+  it('returns the backend message from resendVerificationEmail', async () => {
+    const store = useAuthStore()
+    vi.mocked(apiClient.post).mockResolvedValue({
+      data: { message: 'Te hemos enviado un nuevo enlace de verificación.' },
+    })
+
+    const message = await store.resendVerificationEmail()
+
+    expect(message).toBe('Te hemos enviado un nuevo enlace de verificación.')
+    expect(apiClient.post).toHaveBeenCalledWith('/email/verification-notification')
   })
 
   describe('fetchCurrentUser', () => {

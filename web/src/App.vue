@@ -37,11 +37,28 @@ onMounted(() => {
     auth.fetchCurrentUser()
   }
 })
+
+// Solo higiene/confirmación de email, no una puerta de acceso - un aviso
+// corto en vez de bloquear nada. Un único sitio para toda la app, no por
+// vista. Mismo patrón ya aplicado en MIRA_MarketLens.
+const resendSubmitting = ref(false)
+const resendMessage = ref<string | null>(null)
+
+async function onResendVerification() {
+  resendSubmitting.value = true
+  try {
+    resendMessage.value = await auth.resendVerificationEmail()
+  } finally {
+    resendSubmitting.value = false
+  }
+}
 </script>
 
 <template>
   <header>
-    <RouterLink :to="{ name: 'dashboard' }" class="brand">🎲 <span class="brand-name">LudoDex</span></RouterLink>
+    <RouterLink :to="{ name: 'dashboard' }" class="brand"
+      >🎲 <span class="brand-name">LudoDex</span></RouterLink
+    >
 
     <RouterLink
       v-if="auth.isAuthenticated && auth.user"
@@ -66,7 +83,13 @@ onMounted(() => {
       :aria-label="$t('common.menu')"
       @click="mobileMenuOpen = !mobileMenuOpen"
     >
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        aria-hidden="true"
+      >
         <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16" />
       </svg>
     </button>
@@ -86,9 +109,25 @@ onMounted(() => {
           <UserAvatar :name="auth.user.name" :avatar-url="auth.user.avatar_url" :size="24" />
           <span class="user-name-text">{{ auth.user.name }}</span>
         </RouterLink>
-        <button type="button" class="btn logout-btn" :aria-label="$t('nav.logout')" @click="onLogout">
-          <svg class="logout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+        <button
+          type="button"
+          class="btn logout-btn"
+          :aria-label="$t('nav.logout')"
+          @click="onLogout"
+        >
+          <svg
+            class="logout-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+            />
             <path stroke-linecap="round" stroke-linejoin="round" d="M16 17l5-5-5-5" />
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 12H9" />
           </svg>
@@ -97,10 +136,33 @@ onMounted(() => {
       </template>
       <template v-else>
         <RouterLink :to="{ name: 'login' }" class="btn">{{ $t('nav.login') }}</RouterLink>
-        <RouterLink :to="{ name: 'register' }" class="btn btn-primary">{{ $t('nav.register') }}</RouterLink>
+        <RouterLink :to="{ name: 'register' }" class="btn btn-primary">{{
+          $t('nav.register')
+        }}</RouterLink>
       </template>
     </div>
   </header>
+
+  <div
+    v-if="auth.isAuthenticated && auth.user && !auth.user.email_verified_at"
+    class="verify-banner alert alert-info"
+  >
+    <p v-if="resendMessage" role="status">{{ resendMessage }}</p>
+    <p v-else>{{ $t('auth.verifyEmailBanner.notice', { email: auth.user.email }) }}</p>
+    <button
+      v-if="!resendMessage"
+      type="button"
+      class="btn"
+      :disabled="resendSubmitting"
+      @click="onResendVerification"
+    >
+      {{
+        resendSubmitting
+          ? $t('auth.verifyEmailBanner.sending')
+          : $t('auth.verifyEmailBanner.resend')
+      }}
+    </button>
+  </div>
 
   <main>
     <RouterView />
@@ -124,6 +186,19 @@ header {
   padding-bottom: var(--space-4);
   margin-bottom: var(--space-6);
   border-bottom: 1px solid var(--color-border);
+}
+
+.verify-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.verify-banner p {
+  margin: 0;
 }
 
 .brand {

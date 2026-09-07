@@ -23,7 +23,14 @@ function mountImport(bggUsername?: string | null) {
   const playsStore = usePlaysStore()
   const authStore = useAuthStore()
   if (bggUsername !== undefined) {
-    authStore.user = { id: 1, name: 'Odei', email: 'odei@example.com', bgg_username: bggUsername, avatar_url: null }
+    authStore.user = {
+      id: 1,
+      name: 'Odei',
+      email: 'odei@example.com',
+      bgg_username: bggUsername,
+      avatar_url: null,
+      email_verified_at: null,
+    }
   }
 
   const wrapper = mount(ImportBggView, {
@@ -33,7 +40,10 @@ function mountImport(bggUsername?: string | null) {
   return { wrapper, store, playsStore, authStore }
 }
 
-async function submitUsername(wrapper: ReturnType<typeof mountImport>['wrapper'], username = 'odei') {
+async function submitUsername(
+  wrapper: ReturnType<typeof mountImport>['wrapper'],
+  username = 'odei',
+) {
   await wrapper.find('#bgg_username').setValue(username)
   await wrapper.find('form').trigger('submit')
   await flushPromises()
@@ -51,7 +61,10 @@ async function submitCsv(wrapper: ReturnType<typeof mountImport>['wrapper']) {
   await flushPromises()
 }
 
-async function submitPlaysUsername(wrapper: ReturnType<typeof mountImport>['wrapper'], username = 'odei') {
+async function submitPlaysUsername(
+  wrapper: ReturnType<typeof mountImport>['wrapper'],
+  username = 'odei',
+) {
   await wrapper.find('[role="tab"]:nth-of-type(3)').trigger('click')
   await wrapper.find('#plays_bgg_username').setValue(username)
   await wrapper.find('form').trigger('submit')
@@ -222,7 +235,11 @@ describe('ImportBggView', () => {
     function mountWithPendingImport() {
       setActivePinia(createPinia())
       const store = useGamesStore()
-      return { store, mount: () => mount(ImportBggView, { global: { stubs: { RouterLink: true }, plugins: [i18n] } }) }
+      return {
+        store,
+        mount: () =>
+          mount(ImportBggView, { global: { stubs: { RouterLink: true }, plugins: [i18n] } }),
+      }
     }
 
     it('picks the import back up on mount instead of showing a blank form', async () => {
@@ -379,14 +396,16 @@ describe('ImportBggView', () => {
       imported_count: 1,
       skipped_expansions_count: 0,
       skipped_no_status_count: 0,
-      warnings: ['Aeon\'s End: no se ha reconocido el modo/jugadores en el comentario privado.'],
+      warnings: ["Aeon's End: no se ha reconocido el modo/jugadores en el comentario privado."],
     })
     vi.spyOn(store, 'fetchAll').mockResolvedValue()
 
     await submitCsv(wrapper)
 
     expect(wrapper.text()).toContain('Avisos:')
-    expect(wrapper.text()).toContain("Aeon's End: no se ha reconocido el modo/jugadores en el comentario privado.")
+    expect(wrapper.text()).toContain(
+      "Aeon's End: no se ha reconocido el modo/jugadores en el comentario privado.",
+    )
   })
 
   it('shows a generic error when the CSV import fails', async () => {
@@ -446,7 +465,9 @@ describe('ImportBggView', () => {
 
     await submitPlaysUsername(wrapper)
 
-    expect(wrapper.find('[role="alert"]').text()).toContain('No se han podido importar las partidas.')
+    expect(wrapper.find('[role="alert"]').text()).toContain(
+      'No se han podido importar las partidas.',
+    )
     expect(wrapper.find('#plays_bgg_username').exists()).toBe(true)
   })
 
@@ -533,7 +554,10 @@ describe('ImportBggView', () => {
       const { wrapper, store } = mountImport()
       let resolveImport: (value: BggCsvImportResult) => void = () => {}
       vi.spyOn(store, 'importBggCsv').mockImplementation(
-        () => new Promise<BggCsvImportResult>((resolve) => { resolveImport = resolve }),
+        () =>
+          new Promise<BggCsvImportResult>((resolve) => {
+            resolveImport = resolve
+          }),
       )
       // A successful import triggers a real (unmocked) games.fetchAll()
       // call further down in this test - without stubbing it too, that
@@ -554,7 +578,12 @@ describe('ImportBggView', () => {
       expect(wrapper.find('.csv-submitting').findComponent(LoadingSpinner).exists()).toBe(true)
       expect(dispatchBeforeUnload().defaultPrevented).toBe(true)
 
-      resolveImport({ imported_count: 1, skipped_expansions_count: 0, skipped_no_status_count: 0, warnings: [] })
+      resolveImport({
+        imported_count: 1,
+        skipped_expansions_count: 0,
+        skipped_no_status_count: 0,
+        warnings: [],
+      })
       await flushPromises()
       wrapper.unmount()
     })
@@ -563,7 +592,10 @@ describe('ImportBggView', () => {
       const { wrapper, playsStore } = mountImport()
       let resolveImport: (value: { imported_count: number }) => void = () => {}
       vi.spyOn(playsStore, 'importPlays').mockImplementation(
-        () => new Promise((resolve) => { resolveImport = resolve }),
+        () =>
+          new Promise((resolve) => {
+            resolveImport = resolve
+          }),
       )
       vi.spyOn(playsStore, 'fetchPage').mockResolvedValue()
       vi.spyOn(playsStore, 'fetchStats').mockResolvedValue()

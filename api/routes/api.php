@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\Bgg\BggCsvImportController;
@@ -20,9 +21,13 @@ Route::post('/register', [AuthController::class, 'register'])->middleware('throt
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:6,1');
 Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])->middleware('throttle:6,1');
 Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:6,1');
+Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+    ->middleware('throttle:6,1')
+    ->name('verification.verify');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])->middleware('throttle:6,1');
     Route::get('/user', fn (Request $request) => $request->user());
     Route::put('/user', [ProfileController::class, 'update']);
     Route::put('/user/password', [ProfileController::class, 'updatePassword'])->middleware('throttle:6,1');

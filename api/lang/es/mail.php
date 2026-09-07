@@ -16,4 +16,13 @@ return [
         'salutation' => "Un saludo,\nEl equipo de LudoDex",
     ],
 
+    'verify_email' => [
+        'subject' => 'Verifica tu email de LudoDex',
+        'greeting' => '¡Hola!',
+        'intro' => 'Gracias por registrarte en LudoDex. Confirma que esta es tu dirección de email.',
+        'action' => 'Verificar email',
+        'outro' => 'Si no has creado esta cuenta, no es necesario que hagas nada.',
+        'salutation' => "Un saludo,\nEl equipo de LudoDex",
+    ],
+
 ];
