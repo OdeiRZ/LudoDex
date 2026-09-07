@@ -13,8 +13,11 @@ use Symfony\Component\Mailer\Transport\AbstractTransport;
  * no SMTP directo") - confirmed with identical connection timeouts against
  * smtp.gmail.com on ports 587 and 465 with correct credentials. The Gmail
  * API sidesteps that: it's a plain HTTPS POST to gmail.googleapis.com,
- * authenticated with an OAuth2 access token minted from a long-lived
- * refresh token (GMAIL_REFRESH_TOKEN), not a password of any kind.
+ * authenticated with an OAuth2 access token minted from a refresh token
+ * (GMAIL_REFRESH_TOKEN), not a password of any kind. That refresh token
+ * expires after 7 days while the Google Cloud OAuth consent screen is in
+ * "Testing" mode (see api/README.md, "Alternativa a Resend sin dominio
+ * propio (API de Gmail)") - it needs manual renewal, it isn't long-lived.
  */
 class GmailApiTransport extends AbstractTransport
 {

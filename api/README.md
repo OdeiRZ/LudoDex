@@ -93,7 +93,15 @@ de una sola vez, en la cuenta de Gmail que va a enviar los correos:
    URL de redirección. Cambiarlo por un token con una petición POST a
    `https://oauth2.googleapis.com/token` (`grant_type=authorization_code`)
    — la respuesta trae el `refresh_token`, que va a `GMAIL_REFRESH_TOKEN`.
-   No expira salvo que se revoque manualmente desde la cuenta de Google.
+   **Ojo**: mientras la pantalla de consentimiento esté en modo "Prueba"
+   (el caso normal aquí, ver paso 3), Google expira ese refresh token a
+   los 7 días — no es de larga duración como en una app en modo
+   "Producción". Pasado ese plazo, `fetchAccessToken()` empieza a fallar
+   con `invalid_grant` y hay que repetir este paso 5 entero para sacar un
+   token nuevo. Pasar a "Producción" evitaría la caducidad, pero exige la
+   revisión de seguridad de Google (CASA) por tratarse de un scope
+   restringido (`gmail.send`) — no vale la pena para el volumen de esta
+   app.
 6. Poner `MAIL_MAILER=gmail_api`, `MAIL_FROM_ADDRESS`/`MAIL_FROM_NAME` con
    esa misma cuenta, y las tres `GMAIL_*` de arriba.
 
