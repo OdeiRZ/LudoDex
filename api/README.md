@@ -55,6 +55,48 @@ plataformas cloud para evitar abuso de spam desde cuentas gratuitas. Resend
 funciona porque su SDK (`resend/resend-php`, ya en `composer.json`) usa su
 API HTTPS, no SMTP, así que nunca tropieza con ese bloqueo.
 
+### Alternativa a Resend sin dominio propio (API de Gmail)
+
+Resend sin dominio verificado solo entrega al dueño de la cuenta — no vale
+para usuarios reales. Comprar y verificar un dominio es la vía "normal",
+pero `MAIL_MAILER=gmail_api` (`App\Mail\Transport\GmailApiTransport`) es una
+alternativa gratuita que sí entrega a cualquier destinatario real, sin
+dominio propio: envía como una dirección de Gmail de verdad, por la API REST
+de Gmail (HTTPS, `gmail.googleapis.com`) en vez de SMTP — así tampoco
+tropieza con el bloqueo de Render de más arriba. Enviar "como" una dirección
+`@gmail.com` desde un tercero por SMTP normalmente fracasa la política
+DMARC estricta de Gmail (se rechaza o va a spam) salvo que el envío pase de
+verdad por los servidores de Google, que es justo lo que hace la API.
+
+La autenticación es OAuth2 (nunca una contraseña, ni siquiera una
+"contraseña de aplicación"): un *refresh token* de larga duración que la
+propia app usa para renovar un token de acceso en cada envío
+(`GmailApiTransport::fetchAccessToken()`). Conseguirlo es un proceso manual,
+de una sola vez, en la cuenta de Gmail que va a enviar los correos:
+
+1. Crear un proyecto en [Google Cloud Console](https://console.cloud.google.com/)
+   (gratis) con esa cuenta.
+2. Habilitar la **Gmail API** para ese proyecto (buscarla en "APIs y
+   servicios" → "Biblioteca").
+3. Configurar la pantalla de consentimiento OAuth: tipo "Externo", en modo
+   "Prueba" — así no hace falta pasar la revisión de Google, solo funciona
+   para las cuentas que se añadan como "usuarios de prueba" (añadir la
+   propia cuenta que va a enviar los correos).
+4. Crear credenciales OAuth 2.0 (tipo "Aplicación de escritorio") — da un
+   `client_id` y un `client_secret`. Esos dos valores van directos a
+   `GMAIL_CLIENT_ID`/`GMAIL_CLIENT_SECRET`, no son secretos de un solo uso.
+5. Conseguir el `refresh_token` (esto sí es un paso manual con el navegador,
+   una única vez): visitar una URL de autorización de Google con el scope
+   `https://www.googleapis.com/auth/gmail.send`,
+   `access_type=offline` y `prompt=consent`, iniciar sesión con la cuenta
+   que va a enviar los correos, aceptar, y coger el parámetro `code` de la
+   URL de redirección. Cambiarlo por un token con una petición POST a
+   `https://oauth2.googleapis.com/token` (`grant_type=authorization_code`)
+   — la respuesta trae el `refresh_token`, que va a `GMAIL_REFRESH_TOKEN`.
+   No expira salvo que se revoque manualmente desde la cuenta de Google.
+6. Poner `MAIL_MAILER=gmail_api`, `MAIL_FROM_ADDRESS`/`MAIL_FROM_NAME` con
+   esa misma cuenta, y las tres `GMAIL_*` de arriba.
+
 ## Despliegue
 
 En producción ([ludodex-api.onrender.com](https://ludodex-api.onrender.com)):

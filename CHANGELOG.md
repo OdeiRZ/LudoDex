@@ -9,6 +9,23 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Añadido
 
+- Mailer alternativo `gmail_api` (`App\Mail\Transport\GmailApiTransport`,
+  `MAIL_MAILER=gmail_api`) para poder entregar el email de recuperar
+  contraseña a cualquier usuario real sin comprar/verificar un dominio
+  propio — la limitación real de Resend sin dominio, que hasta ahora solo
+  entregaba al dueño de la propia cuenta de Resend. Envía por la API REST
+  de Gmail (HTTPS) en vez de SMTP, así no tropieza con el bloqueo de SMTP
+  saliente de Render documentado más abajo — y a diferencia de intentar
+  enviar "como" una dirección `@gmail.com` por SMTP desde un tercero
+  (fracasa la política DMARC estricta de Gmail salvo que el envío pase de
+  verdad por los servidores de Google), esta sí es una entrega real de
+  Google. Autenticación por OAuth2 (`GMAIL_CLIENT_ID`/`GMAIL_CLIENT_SECRET`/
+  `GMAIL_REFRESH_TOKEN`), nunca una contraseña — ver `api/README.md`,
+  "Alternativa a Resend sin dominio propio (API de Gmail)", para la
+  configuración manual de una sola vez. 4 tests nuevos
+  (`GmailApiTransportTest`) con `Http::fake()`, sin llamadas reales a
+  Google; 194 tests backend en verde, Pint/PHPStan limpios.
+
 - El email de "restablece tu contraseña" lleva ahora el dado de LudoDex
   (el mismo favicon, 32×32) a la izquierda del nombre de la app en la
   cabecera, en vez del texto plano genérico que dejaba la plantilla de

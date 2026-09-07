@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Mail\Transport\GmailApiTransport;
 use App\Models\User;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -51,5 +53,16 @@ class AppServiceProvider extends ServiceProvider
         // override to ever see it. Skipping the redirect attempt entirely
         // is what lets that override run at all.
         Authenticate::redirectUsing(fn () => null);
+
+        // Render bloquea SMTP saliente por completo (ver GmailApiTransport):
+        // este driver envía por la API HTTPS de Gmail en su lugar, mismo
+        // remitente (soporteludodex@gmail.com) que un dominio propio pero
+        // sin necesitar uno - a diferencia de Resend en sandbox, entrega a
+        // cualquier destinatario real, no solo al dueño de la cuenta.
+        Mail::extend('gmail_api', fn () => new GmailApiTransport(
+            (string) config('services.gmail.client_id'),
+            (string) config('services.gmail.client_secret'),
+            (string) config('services.gmail.refresh_token'),
+        ));
     }
 }
