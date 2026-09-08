@@ -1,8 +1,10 @@
 <?php
 
 use App\Models\User;
+use App\Notifications\VerifyEmailNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 
 it('registers a new user and returns a usable token', function () {
     $response = $this->postJson('/api/register', [
@@ -216,6 +218,36 @@ it('allows a profile update that keeps the user\'s own current email', function 
     ]);
 
     $response->assertOk();
+});
+
+it('resets email verification and sends a new verification email when the email actually changes', function () {
+    Notification::fake();
+    $user = User::factory()->create(['email' => 'viejo@example.com']);
+    expect($user->email_verified_at)->not->toBeNull();
+    $this->actingAs($user, 'sanctum');
+
+    $this->putJson('/api/user', [
+        'name' => $user->name,
+        'email' => 'nuevo@example.com',
+    ])->assertOk();
+
+    expect($user->fresh()->email_verified_at)->toBeNull();
+    Notification::assertSentTo($user, VerifyEmailNotification::class);
+});
+
+it('does not reset email verification or send anything when the email is unchanged', function () {
+    Notification::fake();
+    $user = User::factory()->create(['email' => 'mismo@example.com']);
+    expect($user->email_verified_at)->not->toBeNull();
+    $this->actingAs($user, 'sanctum');
+
+    $this->putJson('/api/user', [
+        'name' => 'Nuevo Nombre',
+        'email' => 'mismo@example.com',
+    ])->assertOk();
+
+    expect($user->fresh()->email_verified_at)->not->toBeNull();
+    Notification::assertNothingSent();
 });
 
 it('persists the discoverable flag via the profile update endpoint', function () {

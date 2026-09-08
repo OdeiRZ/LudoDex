@@ -20,9 +20,12 @@ class ProfileController extends Controller
         $user = $request->user();
 
         $bggUsername = $request->validated('bgg_username');
+        $newEmail = $request->validated('email');
+        $emailChanged = $newEmail !== $user->email;
+
         $attributes = [
             'name' => $request->validated('name'),
-            'email' => $request->validated('email'),
+            'email' => $newEmail,
             'bgg_username' => $bggUsername,
             // ?? false (not just $user->discoverable) because a model
             // instance that never got the DB default re-fetched into its
@@ -49,6 +52,21 @@ class ProfileController extends Controller
         }
 
         $user->update($attributes);
+
+        // Hallazgo de una auditoría de seguridad: cambiar el email dejaba
+        // email_verified_at intacto, así que la cuenta quedaba con una
+        // dirección nueva marcada como "verificada" sin haberla confirmado
+        // nunca - la nueva dirección podría ni siquiera pertenecer a quien
+        // hizo el cambio. Laravel resetea esto por convención al cambiar
+        // el email (ver MustVerifyEmail), pero email_verified_at no está
+        // (ni debe estar) en $fillable, así que no basta con meterlo en
+        // $attributes de arriba - update() lo ignoraría en silencio.
+        // forceFill() lo salta explícitamente, sin abrir esa columna a
+        // asignación en masa desde ningún otro sitio.
+        if ($emailChanged) {
+            $user->forceFill(['email_verified_at' => null])->save();
+            $user->sendEmailVerificationNotification();
+        }
 
         return response()->json(['user' => $user]);
     }
