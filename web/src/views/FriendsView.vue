@@ -32,8 +32,16 @@ async function onSearch() {
       searchForm.type === 'email'
         ? await friends.searchByEmail(searchForm.value)
         : await friends.searchByBggUsername(searchForm.value)
-  } catch {
-    searchError.value = t('friends.search.genericError')
+  } catch (err) {
+    // A malformed email (or any other 422, e.g. neither field's format
+    // rule passing) is a problem with what was typed, not a generic
+    // failure - showing the backend's own validation message instead of
+    // "algo ha ido mal" tells the user what to actually fix, same pattern
+    // already used in onSendRequest() below.
+    searchError.value =
+      isAxiosError(err) && err.response?.status === 422
+        ? Object.values(err.response.data.errors).flat().join(' ')
+        : t('friends.search.genericError')
   } finally {
     searching.value = false
     searched.value = true
@@ -113,7 +121,7 @@ async function onRemove(friendshipId: number) {
       <p v-if="searchError" role="alert" class="alert alert-error">{{ searchError }}</p>
       <p v-if="requestError" role="alert" class="alert alert-error">{{ requestError }}</p>
 
-      <div v-if="searched && !searching" class="search-result">
+      <div v-if="searched && !searching && !searchError" class="search-result">
         <p v-if="!searchResult" role="status">{{ $t('friends.search.notFound') }}</p>
         <div v-else class="friend-row">
           <UserAvatar :name="searchResult.name" :avatar-url="searchResult.avatar_url" :size="40" />

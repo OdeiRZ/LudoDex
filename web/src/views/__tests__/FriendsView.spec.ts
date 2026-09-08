@@ -109,6 +109,28 @@ describe('FriendsView', () => {
     expect(wrapper.text()).toContain('No se ha encontrado ningún usuario buscable con esos datos.')
   })
 
+  it('shows the backend validation message, not the generic error, when the search itself fails with a 422', async () => {
+    const { wrapper, store } = mountFriends()
+    await flushPromises()
+    vi.spyOn(store, 'searchByEmail').mockRejectedValue({
+      isAxiosError: true,
+      response: {
+        status: 422,
+        data: { errors: { email: ['El campo email debe ser una dirección de correo válida.'] } },
+      },
+    })
+
+    await wrapper.find('input[type="text"]').setValue('no-es-un-email')
+    await wrapper.find('.search-form').trigger('submit')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('El campo email debe ser una dirección de correo válida.')
+    expect(wrapper.text()).not.toContain('Algo ha ido mal')
+    // The search never actually ran - showing "not found" alongside the
+    // validation error would wrongly imply it did.
+    expect(wrapper.find('.search-result').exists()).toBe(false)
+  })
+
   it('sends a friend request and clears the search result on success', async () => {
     const { wrapper, store } = mountFriends()
     await flushPromises()
