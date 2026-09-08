@@ -230,4 +230,61 @@ describe('FriendsView', () => {
     expect(link.exists()).toBe(true)
     expect(link.text()).toBe('Ver perfil')
   })
+
+  it('blocks a friend from the friends list', async () => {
+    const { wrapper, store } = mountFriends()
+    await flushPromises()
+    const target = makeFriend({ id: 42, name: 'Amigo Uno' })
+    store.friends = [{ id: 1, user: target }]
+    await flushPromises()
+    vi.spyOn(store, 'blockUser').mockResolvedValue()
+
+    const buttons = wrapper.findAll('.friend-row button')
+    await buttons[buttons.length - 1]!.trigger('click')
+    await flushPromises()
+
+    expect(store.blockUser).toHaveBeenCalledWith(target)
+  })
+
+  it('blocks a user from an incoming request', async () => {
+    const { wrapper, store } = mountFriends()
+    await flushPromises()
+    const target = makeFriend({ id: 2, name: 'Pide Amistad' })
+    store.incomingRequests = [{ id: 2, user: target }]
+    await flushPromises()
+    vi.spyOn(store, 'blockUser').mockResolvedValue()
+
+    const buttons = wrapper.findAll('.friend-row button')
+    await buttons[buttons.length - 1]!.trigger('click')
+    await flushPromises()
+
+    expect(store.blockUser).toHaveBeenCalledWith(target)
+  })
+
+  it('shows the blocked-users section only when there is at least one', async () => {
+    const { wrapper, store } = mountFriends()
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('Usuarios bloqueados')
+
+    store.blockedUsers = [{ id: 50, user: makeFriend({ id: 9, name: 'Bloqueado' }) }]
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Usuarios bloqueados')
+    expect(wrapper.text()).toContain('Bloqueado')
+  })
+
+  it('unblocks a user', async () => {
+    const { wrapper, store } = mountFriends()
+    await flushPromises()
+    store.blockedUsers = [{ id: 50, user: makeFriend({ id: 9, name: 'Bloqueado' }) }]
+    await flushPromises()
+    vi.spyOn(store, 'unblockUser').mockResolvedValue()
+
+    const section = wrapper.findAll('.card').find((card) => card.text().includes('Bloqueado'))!
+    await section.find('button').trigger('click')
+    await flushPromises()
+
+    expect(store.unblockUser).toHaveBeenCalledWith(50)
+  })
 })

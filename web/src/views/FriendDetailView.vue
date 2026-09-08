@@ -205,7 +205,11 @@ function loadMore() {
       </div>
 
       <template v-if="activeTab === 'collection'">
-        <p v-if="!friendDetail.collectionLoaded" class="loading-state">
+        <p v-if="friendDetail.collectionHidden" class="empty-state">
+          {{ $t('friends.detail.collectionNotShared') }}
+        </p>
+
+        <p v-else-if="!friendDetail.collectionLoaded" class="loading-state">
           <LoadingSpinner :size="36" />
           {{ $t('friends.detail.collection.loading') }}
         </p>
@@ -285,6 +289,11 @@ function loadMore() {
       </template>
 
       <template v-else>
+        <p v-if="friendDetail.playsHidden" class="empty-state">
+          {{ $t('friends.detail.playsNotShared') }}
+        </p>
+
+        <template v-else>
         <div
           v-if="friendDetail.playsStats && friendDetail.playsStats.total_plays > 0"
           class="stats-bar"
@@ -360,6 +369,7 @@ function loadMore() {
         >
           {{ $t('plays.loadMore') }}
         </button>
+        </template>
       </template>
     </template>
 

@@ -27,6 +27,7 @@ interface FriendsState {
   friends: FriendEntry[]
   incomingRequests: FriendEntry[]
   outgoingRequests: FriendEntry[]
+  blockedUsers: FriendEntry[]
   loaded: boolean
   loading: boolean
 }
@@ -36,6 +37,7 @@ export const useFriendsStore = defineStore('friends', {
     friends: [],
     incomingRequests: [],
     outgoingRequests: [],
+    blockedUsers: [],
     loaded: false,
     loading: false,
   }),
@@ -46,14 +48,16 @@ export const useFriendsStore = defineStore('friends', {
       this.loading = true
 
       try {
-        const [friendsResponse, requestsResponse] = await Promise.all([
+        const [friendsResponse, requestsResponse, blocksResponse] = await Promise.all([
           apiClient.get('/friends'),
           apiClient.get('/friends/requests'),
+          apiClient.get('/friends/blocks'),
         ])
 
         this.friends = friendsResponse.data.data
         this.incomingRequests = requestsResponse.data.data.incoming
         this.outgoingRequests = requestsResponse.data.data.outgoing
+        this.blockedUsers = blocksResponse.data.data
         this.loaded = true
       } finally {
         this.loading = false
@@ -133,6 +137,26 @@ export const useFriendsStore = defineStore('friends', {
       this.incomingRequests = this.incomingRequests.filter((entry) => entry.id !== friendshipId)
       this.outgoingRequests = this.outgoingRequests.filter((entry) => entry.id !== friendshipId)
       this.friends = this.friends.filter((entry) => entry.id !== friendshipId)
+    },
+
+    /** The backend already deletes any friendship/pending request between
+     * the two on block (see BlockService::block()) - `target` (already in
+     * hand, same pattern as sendRequest()) is stripped from all three
+     * relationship arrays here too, so the UI reflects that immediately
+     * instead of waiting on a refetch. */
+    async blockUser(target: Friend): Promise<void> {
+      const { data } = await apiClient.post('/friends/blocks', { user_id: target.id })
+
+      this.friends = this.friends.filter((entry) => entry.user.id !== target.id)
+      this.incomingRequests = this.incomingRequests.filter((entry) => entry.user.id !== target.id)
+      this.outgoingRequests = this.outgoingRequests.filter((entry) => entry.user.id !== target.id)
+      this.blockedUsers.push({ id: data.data.id, user: target })
+    },
+
+    async unblockUser(blockId: number): Promise<void> {
+      await apiClient.delete(`/friends/blocks/${blockId}`)
+
+      this.blockedUsers = this.blockedUsers.filter((entry) => entry.id !== blockId)
     },
   },
 })

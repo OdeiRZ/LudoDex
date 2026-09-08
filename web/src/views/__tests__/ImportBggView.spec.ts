@@ -31,6 +31,8 @@ function mountImport(bggUsername?: string | null) {
       avatar_url: null,
       email_verified_at: null,
       discoverable: false,
+      share_collection: true,
+      share_plays: true,
     }
   }
 

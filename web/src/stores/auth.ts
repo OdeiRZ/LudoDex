@@ -12,6 +12,8 @@ export interface User {
   avatar_url: string | null
   email_verified_at: string | null
   discoverable: boolean
+  share_collection: boolean
+  share_plays: boolean
 }
 
 interface RegisterPayload {
@@ -31,6 +33,8 @@ interface UpdateProfilePayload {
   email: string
   bgg_username?: string | null
   discoverable: boolean
+  share_collection: boolean
+  share_plays: boolean
 }
 
 interface UpdatePasswordPayload {

@@ -62,6 +62,24 @@ it('paginates at 20 per page', function () {
         ->assertJsonPath('meta.total', 25);
 });
 
+it('rejects (403) with a specific message when the friend has turned off plays sharing', function () {
+    $me = actingAsUser();
+    $friend = User::factory()->create(['share_plays' => false]);
+    Friendship::factory()->accepted()->create(['requester_id' => $me->id, 'recipient_id' => $friend->id]);
+
+    $this->getJson("/api/friends/{$friend->id}/plays")
+        ->assertForbidden()
+        ->assertJsonPath('message', __('friends.plays_not_shared'));
+});
+
+it('allows listing plays by default, since share_plays defaults to true', function () {
+    $me = actingAsUser();
+    $friend = User::factory()->create();
+    Friendship::factory()->accepted()->create(['requester_id' => $me->id, 'recipient_id' => $friend->id]);
+
+    $this->getJson("/api/friends/{$friend->id}/plays")->assertOk();
+});
+
 it('responds identically (status and body) for a non-existent friend id, a pending friend, and someone else\'s accepted friend', function () {
     // See the same-named test in FriendCollectionTest.php for why this is
     // needed: with APP_DEBUG on, each abort(404) carries its own call-site

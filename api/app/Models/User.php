@@ -30,6 +30,8 @@ class User extends Authenticatable implements MustVerifyEmailContract
         'bgg_username',
         'avatar_url',
         'discoverable',
+        'share_collection',
+        'share_plays',
     ];
 
     /**
@@ -53,6 +55,8 @@ class User extends Authenticatable implements MustVerifyEmailContract
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'discoverable' => 'boolean',
+            'share_collection' => 'boolean',
+            'share_plays' => 'boolean',
         ];
     }
 

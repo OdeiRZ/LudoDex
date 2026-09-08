@@ -18,6 +18,8 @@ const profileForm = reactive({
   email: '',
   bgg_username: '' as string | null,
   discoverable: false,
+  share_collection: true,
+  share_plays: true,
 })
 const profileErrors = ref<Record<string, string[]>>({})
 const profileSubmitting = ref(false)
@@ -42,6 +44,8 @@ onMounted(async () => {
     profileForm.email = auth.user.email
     profileForm.bgg_username = auth.user.bgg_username
     profileForm.discoverable = auth.user.discoverable
+    profileForm.share_collection = auth.user.share_collection
+    profileForm.share_plays = auth.user.share_plays
   }
 })
 
@@ -157,6 +161,22 @@ async function onSubmitPassword() {
             {{ $t('profile.discoverable') }}
           </label>
           <p class="discoverable-hint">{{ $t('profile.discoverableHint') }}</p>
+        </div>
+
+        <div>
+          <label class="checkbox-label" for="share_collection">
+            <input id="share_collection" v-model="profileForm.share_collection" type="checkbox" />
+            {{ $t('profile.shareCollection') }}
+          </label>
+          <p class="discoverable-hint">{{ $t('profile.shareCollectionHint') }}</p>
+        </div>
+
+        <div>
+          <label class="checkbox-label" for="share_plays">
+            <input id="share_plays" v-model="profileForm.share_plays" type="checkbox" />
+            {{ $t('profile.sharePlays') }}
+          </label>
+          <p class="discoverable-hint">{{ $t('profile.sharePlaysHint') }}</p>
         </div>
 
         <p

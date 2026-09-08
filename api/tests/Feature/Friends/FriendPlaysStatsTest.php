@@ -24,6 +24,16 @@ it('aggregates totals scoped to the friend\'s plays only', function () {
     expect($response->json('friend.id'))->toBe($friend->id);
 });
 
+it('rejects (403) with a specific message when the friend has turned off plays sharing', function () {
+    $me = actingAsUser();
+    $friend = User::factory()->create(['share_plays' => false]);
+    Friendship::factory()->accepted()->create(['requester_id' => $me->id, 'recipient_id' => $friend->id]);
+
+    $this->getJson("/api/friends/{$friend->id}/plays/stats")
+        ->assertForbidden()
+        ->assertJsonPath('message', __('friends.plays_not_shared'));
+});
+
 it('responds identically (status and body) for a non-existent friend id, a pending friend, and someone else\'s accepted friend', function () {
     // See the same-named test in FriendCollectionTest.php for why this is
     // needed: with APP_DEBUG on, each abort(404) carries its own call-site

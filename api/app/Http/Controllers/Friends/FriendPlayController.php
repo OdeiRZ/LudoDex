@@ -30,6 +30,10 @@ class FriendPlayController extends Controller
     {
         $friendUser = $this->friendshipService->resolveAcceptedFriend($request->user(), $friend);
 
+        // See FriendCollectionController::index()'s own comment for why
+        // this is a 403, not a 404.
+        abort_if(! $friendUser->share_plays, 403, __('friends.plays_not_shared'));
+
         $plays = $friendUser->plays()
             ->with('game.baseGame')
             ->when(
@@ -51,6 +55,8 @@ class FriendPlayController extends Controller
     public function stats(Request $request, int $friend): JsonResponse
     {
         $friendUser = $this->friendshipService->resolveAcceptedFriend($request->user(), $friend);
+
+        abort_if(! $friendUser->share_plays, 403, __('friends.plays_not_shared'));
 
         return response()->json([
             'data' => $this->playStatsCalculator->calculate($friendUser),

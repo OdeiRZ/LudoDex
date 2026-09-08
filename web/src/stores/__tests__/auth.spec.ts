@@ -22,6 +22,8 @@ const user = {
   avatar_url: null,
   email_verified_at: null,
   discoverable: false,
+  share_collection: true,
+  share_plays: true,
 }
 
 describe('useAuthStore', () => {
@@ -120,7 +122,13 @@ describe('useAuthStore', () => {
     const updated = { ...user, name: 'Nuevo nombre' }
     vi.mocked(apiClient.put).mockResolvedValue({ data: { user: updated } })
 
-    await store.updateProfile({ name: 'Nuevo nombre', email: user.email, discoverable: false })
+    await store.updateProfile({
+      name: 'Nuevo nombre',
+      email: user.email,
+      discoverable: false,
+      share_collection: true,
+      share_plays: true,
+    })
 
     expect(store.user).toEqual(updated)
   })

@@ -30,6 +30,11 @@ class ProfileController extends Controller
             // User::factory()->create() with no explicit value) reads as
             // null here, not false - and this column is NOT NULL.
             'discoverable' => $request->validated('discoverable', $user->discoverable ?? false),
+            // Same ?? fallback reasoning as discoverable above, but ??
+            // true - these two default to true (see the users migration),
+            // not false.
+            'share_collection' => $request->validated('share_collection', $user->share_collection ?? true),
+            'share_plays' => $request->validated('share_plays', $user->share_plays ?? true),
         ];
 
         // Best-effort: a BGG lookup failure (no token yet, unknown username,

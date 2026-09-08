@@ -256,6 +256,12 @@ export default {
     discoverable: 'Permitir que otros usuarios me encuentren',
     discoverableHint:
       'Con esto activado, otros usuarios podrán encontrarte por tu email o tu usuario de BGG para enviarte una solicitud de amistad.',
+    shareCollection: 'Permitir que mis amigos vean mi colección',
+    shareCollectionHint:
+      'Con esto desactivado, tus amigos ya aceptados no podrán ver tu colección al comparar con la suya ni en su Picker en grupo contigo.',
+    sharePlays: 'Permitir que mis amigos vean mis partidas',
+    sharePlaysHint:
+      'Con esto desactivado, tus amigos ya aceptados no podrán ver tu historial de partidas.',
     saved: 'Cambios guardados.',
     save: 'Guardar cambios',
     genericError: 'No se han podido guardar los cambios.',
@@ -346,6 +352,7 @@ export default {
       title: 'Solicitudes recibidas',
       accept: 'Aceptar',
       decline: 'Rechazar',
+      block: 'Bloquear',
     },
     outgoing: {
       title: 'Solicitudes enviadas',
@@ -356,9 +363,16 @@ export default {
       empty: 'Todavía no tienes amigos añadidos.',
       remove: 'Quitar amigo',
       viewProfile: 'Ver perfil',
+      block: 'Bloquear',
+    },
+    blocked: {
+      title: 'Usuarios bloqueados',
+      unblock: 'Desbloquear',
     },
     detail: {
       notFound: 'No se ha podido encontrar a este amigo.',
+      collectionNotShared: 'Este usuario no comparte su colección contigo.',
+      playsNotShared: 'Este usuario no comparte sus partidas contigo.',
       backToList: '← Volver',
       tabs: {
         collection: 'Colección compartida',

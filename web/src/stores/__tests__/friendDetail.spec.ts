@@ -15,6 +15,10 @@ function notFoundError() {
   return { isAxiosError: true, response: { status: 404 } }
 }
 
+function forbiddenError() {
+  return { isAxiosError: true, response: { status: 403 } }
+}
+
 describe('useFriendDetailStore', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -53,11 +57,21 @@ describe('useFriendDetailStore', () => {
       expect(store.collectionLoading).toBe(false)
     })
 
-    it('rethrows any error that is not a 404', async () => {
+    it('rethrows any error that is not a 404 or 403', async () => {
       vi.mocked(apiClient.get).mockRejectedValue(new Error('network error'))
       const store = useFriendDetailStore()
 
       await expect(store.fetchCollection(2)).rejects.toThrow('network error')
+      expect(store.notFound).toBe(false)
+    })
+
+    it('marks collectionHidden (not notFound) on a 403 - the friend simply does not share their collection', async () => {
+      vi.mocked(apiClient.get).mockRejectedValue(forbiddenError())
+      const store = useFriendDetailStore()
+
+      await store.fetchCollection(2)
+
+      expect(store.collectionHidden).toBe(true)
       expect(store.notFound).toBe(false)
     })
   })
@@ -134,6 +148,16 @@ describe('useFriendDetailStore', () => {
       expect(store.notFound).toBe(true)
     })
 
+    it('marks playsHidden (not notFound) on a 403 - the friend simply does not share their plays', async () => {
+      vi.mocked(apiClient.get).mockRejectedValue(forbiddenError())
+      const store = useFriendDetailStore()
+
+      await store.fetchPlays(2, 1)
+
+      expect(store.playsHidden).toBe(true)
+      expect(store.notFound).toBe(false)
+    })
+
     it('ignores a second fetchPlays call while the first is still in flight', async () => {
       let resolveFirst: (value: unknown) => void = () => {}
       vi.mocked(apiClient.get).mockImplementation(
@@ -195,6 +219,33 @@ describe('useFriendDetailStore', () => {
       await store.fetchPlaysStats(999)
 
       expect(store.notFound).toBe(true)
+    })
+
+    it('marks playsHidden (not notFound) on a 403', async () => {
+      vi.mocked(apiClient.get).mockRejectedValue(forbiddenError())
+      const store = useFriendDetailStore()
+
+      await store.fetchPlaysStats(2)
+
+      expect(store.playsHidden).toBe(true)
+      expect(store.notFound).toBe(false)
+    })
+  })
+
+  describe('collectionHidden and playsHidden are independent', () => {
+    it('a 403 on the collection does not hide plays, and vice versa - the real bug this guards against', async () => {
+      const store = useFriendDetailStore()
+      vi.mocked(apiClient.get).mockRejectedValueOnce(forbiddenError())
+      await store.fetchCollection(2)
+
+      vi.mocked(apiClient.get).mockResolvedValueOnce({
+        data: { data: [], friend: {}, meta: { current_page: 1, last_page: 1 } },
+      })
+      await store.fetchPlays(2, 1)
+
+      expect(store.collectionHidden).toBe(true)
+      expect(store.playsHidden).toBe(false)
+      expect(store.playsLoaded).toBe(true)
     })
   })
 })

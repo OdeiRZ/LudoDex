@@ -30,6 +30,10 @@ class UpdateProfileRequest extends FormRequest
             // Off by default (see the users migration) - lets other users
             // find this account via friend search (email/bgg_username).
             'discoverable' => ['boolean'],
+            // On by default (see the users migration) - gates what an
+            // already-accepted friend can see, not who can find you.
+            'share_collection' => ['boolean'],
+            'share_plays' => ['boolean'],
         ];
     }
 }

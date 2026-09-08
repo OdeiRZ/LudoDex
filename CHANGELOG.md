@@ -9,6 +9,44 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Añadido
 
+- **Bloqueo de usuario y visibilidad de colección/partidas** — los dos
+  puntos que quedaron fuera de alcance a propósito al planificar la
+  comparación de colección (issue #21 original, ya desaparecido al
+  recrear el repo). Dos piezas independientes:
+  - **Bloqueo**: nueva tabla `user_blocks` (unidireccional, separada de
+    `friendships` porque puede existir sin que haya habido nunca una
+    amistad). Bloquear borra cualquier amistad/solicitud pendiente entre
+    ambos y evita que la persona bloqueada vuelva a encontrarte por
+    búsqueda o a enviarte una solicitud — en ambos casos con el mismo
+    mensaje genérico que ya usa "no descubrible"
+    (`FriendshipService::search()`/`sendRequest()`), para no convertir
+    el bloqueo en un oráculo de quién te ha bloqueado. Botón "Bloquear"
+    en "Tus amigos" y en "Solicitudes recibidas", sección nueva
+    "Usuarios bloqueados" con "Desbloquear".
+  - **Visibilidad**: dos interruptores globales nuevos en el perfil,
+    `share_collection`/`share_plays` (activados por defecto, a
+    diferencia de `discoverable` — para no romper de golpe ninguna
+    amistad ya aceptada), que controlan lo que ve un amigo ya aceptado,
+    no quién puede encontrarte. `FriendCollectionController`/
+    `FriendPlayController` devuelven `403` (no `404`) cuando el amigo
+    los tiene desactivados — a diferencia del `404` de
+    `resolveAcceptedFriend()`, aquí no hay nada que ocultar (el viewer
+    ya sabe que sois amigos), así que un código distinto permite que
+    `FriendDetailView` muestre el aviso solo en la pestaña afectada. De
+    paso corregido un bug real: antes de esta pieza, `friendDetail.ts`
+    compartía un único flag `notFound` para cualquier error — reutilizar
+    ese mismo flag para "no compartido" habría ocultado la página entera
+    (incluida la pestaña que sí funciona) por un fallo en una sola
+    sección; ahora `collectionHidden`/`playsHidden` son independientes
+    de `notFound` y entre sí.
+
+  Verificado en vivo en local con las dos cuentas de prueba: tras
+  bloquear, la otra cuenta no puede reenviar solicitud y la búsqueda por
+  email da "no encontrado"; al desactivar `share_collection`, la otra
+  cuenta ve el aviso solo en la pestaña de Colección mientras que
+  Partidas sigue funcionando con normalidad. 263 tests backend + 409
+  tests frontend en verde, Pint/PHPStan/ESLint/vue-tsc limpios.
+
 - **Función de amigos**, cerrando el área que el README dejaba fuera de
   alcance a propósito. Tres piezas:
   - **Relación y descubrimiento**: buscar a alguien por email

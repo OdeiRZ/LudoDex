@@ -31,6 +31,16 @@ class FriendCollectionController extends Controller
         $me = $request->user();
         $friendUser = $this->friendshipService->resolveAcceptedFriend($me, $friend);
 
+        // A 403 here, not a 404: unlike resolveAcceptedFriend()'s 404
+        // (which protects whether you're even friends at all), reaching
+        // this point already means you are - something the viewer already
+        // knows independently (this friend is in their own friends list),
+        // so there's no oracle to protect by hiding it behind a generic
+        // not-found. A distinguishable error also lets the frontend show
+        // "not shared" on just this data type without hiding the rest of
+        // the friend's page (see FriendDetailView.vue / friendDetail.ts).
+        abort_if(! $friendUser->share_collection, 403, __('friends.collection_not_shared'));
+
         $myGameIds = $me->games()->where('status', 'owned')->pluck('game_id');
         $theirGameIds = $friendUser->games()->where('status', 'owned')->pluck('game_id');
 

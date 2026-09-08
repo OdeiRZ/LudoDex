@@ -34,12 +34,14 @@ describe('useFriendsStore', () => {
   })
 
   describe('fetchAll', () => {
-    it('loads friends and split requests in parallel, marking itself loaded', async () => {
+    it('loads friends, split requests and blocked users in parallel, marking itself loaded', async () => {
       const friend = makeEntry()
       const incoming = makeEntry({ id: 11, user: makeFriend({ id: 2, name: 'Incoming' }) })
       const outgoing = makeEntry({ id: 12, user: makeFriend({ id: 3, name: 'Outgoing' }) })
+      const blocked = makeEntry({ id: 13, user: makeFriend({ id: 4, name: 'Blocked' }) })
       vi.mocked(apiClient.get).mockImplementation((url: string) => {
         if (url === '/friends') return Promise.resolve({ data: { data: [friend] } })
+        if (url === '/friends/blocks') return Promise.resolve({ data: { data: [blocked] } })
         return Promise.resolve({ data: { data: { incoming: [incoming], outgoing: [outgoing] } } })
       })
       const store = useFriendsStore()
@@ -49,6 +51,7 @@ describe('useFriendsStore', () => {
       expect(store.friends).toEqual([friend])
       expect(store.incomingRequests).toEqual([incoming])
       expect(store.outgoingRequests).toEqual([outgoing])
+      expect(store.blockedUsers).toEqual([blocked])
       expect(store.loaded).toBe(true)
       expect(store.loading).toBe(false)
     })
@@ -61,6 +64,7 @@ describe('useFriendsStore', () => {
             resolveFriends = resolve
           })
         }
+        if (url === '/friends/blocks') return Promise.resolve({ data: { data: [] } })
         return Promise.resolve({ data: { data: { incoming: [], outgoing: [] } } })
       })
       const store = useFriendsStore()
@@ -71,7 +75,7 @@ describe('useFriendsStore', () => {
       resolveFriends({ data: { data: [] } })
       await Promise.all([first, second])
 
-      expect(apiClient.get).toHaveBeenCalledTimes(2)
+      expect(apiClient.get).toHaveBeenCalledTimes(3)
     })
 
     it('turns loading off even when fetchAll fails', async () => {
@@ -216,6 +220,50 @@ describe('useFriendsStore', () => {
       expect(store.friends).toEqual([makeEntry({ id: 1 })])
       expect(store.incomingRequests).toEqual([])
       expect(store.outgoingRequests).toEqual([makeEntry({ id: 3 })])
+    })
+  })
+
+  describe('blockUser', () => {
+    it('strips the target from friends, incoming and outgoing, and adds them to blockedUsers', async () => {
+      const target = makeFriend({ id: 9, name: 'Target' })
+      const store = useFriendsStore()
+      store.friends = [makeEntry({ id: 1, user: target })]
+      store.incomingRequests = [makeEntry({ id: 2, user: target })]
+      store.outgoingRequests = [makeEntry({ id: 3, user: target })]
+      vi.mocked(apiClient.post).mockResolvedValue({ data: { data: { id: 50 } } })
+
+      await store.blockUser(target)
+
+      expect(apiClient.post).toHaveBeenCalledWith('/friends/blocks', { user_id: target.id })
+      expect(store.friends).toEqual([])
+      expect(store.incomingRequests).toEqual([])
+      expect(store.outgoingRequests).toEqual([])
+      expect(store.blockedUsers).toEqual([{ id: 50, user: target }])
+    })
+
+    it('only removes entries for the blocked target, not other relationships', async () => {
+      const target = makeFriend({ id: 9, name: 'Target' })
+      const other = makeFriend({ id: 8, name: 'Other' })
+      const store = useFriendsStore()
+      store.friends = [makeEntry({ id: 1, user: target }), makeEntry({ id: 2, user: other })]
+      vi.mocked(apiClient.post).mockResolvedValue({ data: { data: { id: 50 } } })
+
+      await store.blockUser(target)
+
+      expect(store.friends).toEqual([makeEntry({ id: 2, user: other })])
+    })
+  })
+
+  describe('unblockUser', () => {
+    it('removes the entry from blockedUsers', async () => {
+      const store = useFriendsStore()
+      store.blockedUsers = [makeEntry({ id: 50 })]
+      vi.mocked(apiClient.delete).mockResolvedValue({})
+
+      await store.unblockUser(50)
+
+      expect(apiClient.delete).toHaveBeenCalledWith('/friends/blocks/50')
+      expect(store.blockedUsers).toEqual([])
     })
   })
 })

@@ -89,6 +89,26 @@ async function onRemove(friendshipId: number) {
     removingId.value = null
   }
 }
+
+const blockingUserId = ref<number | null>(null)
+async function onBlock(target: Friend) {
+  blockingUserId.value = target.id
+  try {
+    await friends.blockUser(target)
+  } finally {
+    blockingUserId.value = null
+  }
+}
+
+const unblockingId = ref<number | null>(null)
+async function onUnblock(blockId: number) {
+  unblockingId.value = blockId
+  try {
+    await friends.unblockUser(blockId)
+  } finally {
+    unblockingId.value = null
+  }
+}
 </script>
 
 <template>
@@ -162,6 +182,14 @@ async function onRemove(friendshipId: number) {
           >
             {{ $t('friends.incoming.decline') }}
           </button>
+          <button
+            type="button"
+            class="btn"
+            :disabled="blockingUserId === entry.user.id"
+            @click="onBlock(entry.user)"
+          >
+            {{ $t('friends.incoming.block') }}
+          </button>
         </div>
       </section>
 
@@ -202,6 +230,30 @@ async function onRemove(friendshipId: number) {
             @click="onRemove(entry.id)"
           >
             {{ $t('friends.list.remove') }}
+          </button>
+          <button
+            type="button"
+            class="btn"
+            :disabled="blockingUserId === entry.user.id"
+            @click="onBlock(entry.user)"
+          >
+            {{ $t('friends.list.block') }}
+          </button>
+        </div>
+      </section>
+
+      <section v-if="friends.blockedUsers.length > 0" class="card">
+        <h2>{{ $t('friends.blocked.title') }}</h2>
+        <div v-for="entry in friends.blockedUsers" :key="entry.id" class="friend-row">
+          <UserAvatar :name="entry.user.name" :avatar-url="entry.user.avatar_url" :size="40" />
+          <span class="friend-name">{{ entry.user.name }}</span>
+          <button
+            type="button"
+            class="btn"
+            :disabled="unblockingId === entry.id"
+            @click="onUnblock(entry.id)"
+          >
+            {{ $t('friends.blocked.unblock') }}
           </button>
         </div>
       </section>

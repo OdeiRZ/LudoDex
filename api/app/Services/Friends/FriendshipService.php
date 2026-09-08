@@ -11,13 +11,19 @@ use Illuminate\Validation\ValidationException;
 
 class FriendshipService
 {
+    public function __construct(private readonly BlockService $blockService) {}
+
     /**
      * A single match, `discoverable` only, never `$me` themselves. Returns
      * null both when nothing matches AND when a real account exists but
      * isn't discoverable - the caller (FriendshipController::search()) must
      * never be able to tell those two cases apart, or this becomes an
      * oracle for which emails are registered (same class of issue already
-     * hardened against on `/forgot-password`).
+     * hardened against on `/forgot-password`). A blocked match (in either
+     * direction) is folded into that same null outcome for the same
+     * reason - if a block produced a different result than "not
+     * discoverable", that difference would itself tell the blocked user
+     * they've been blocked specifically, rather than just not found.
      */
     public function search(User $me, ?string $email, ?string $bggUsername): ?User
     {
@@ -31,12 +37,19 @@ class FriendshipService
             $query->where('bgg_username', $bggUsername);
         }
 
-        return $query->first();
+        $result = $query->first();
+
+        if ($result !== null && $this->blockService->isBlocked($me, $result)) {
+            return null;
+        }
+
+        return $result;
     }
 
     /**
-     * `$targetId` not existing at all and existing-but-not-discoverable are
-     * deliberately the same error (`not_discoverable`) - user ids are
+     * `$targetId` not existing at all, existing-but-not-discoverable, and
+     * existing-but-blocked (in either direction) are all deliberately the
+     * same error (`not_discoverable`) - user ids are
      * sequential integers, trivial to guess/scan, so a 404 on a missing one
      * vs. a validation error on a real-but-private one would itself be an
      * oracle for which ids are in use, same reasoning as `search()` above
@@ -60,7 +73,7 @@ class FriendshipService
 
         $target = User::where('id', $targetId)->where('discoverable', true)->first();
 
-        if ($target === null) {
+        if ($target === null || $this->blockService->isBlocked($me, $target)) {
             throw ValidationException::withMessages([
                 'user_id' => [__('friends.not_discoverable')],
             ]);
