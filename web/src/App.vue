@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { RouterLink, RouterView, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useFriendsStore } from '@/stores/friends'
 import UserAvatar from '@/components/UserAvatar.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 import LanguageToggle from '@/components/LanguageToggle.vue'
@@ -10,6 +11,7 @@ import PoweredByBgg from '@/components/PoweredByBgg.vue'
 import ScrollToTopButton from '@/components/ScrollToTopButton.vue'
 
 const auth = useAuthStore()
+const friends = useFriendsStore()
 const router = useRouter()
 
 async function onLogout() {
@@ -37,6 +39,31 @@ onMounted(() => {
     auth.fetchCurrentUser()
   }
 })
+
+// Loaded here, not lazily in FriendsView.vue's own onMounted, so the nav
+// badge below reflects pending incoming requests everywhere in the app -
+// not just after having visited Amigos once already this session.
+// FriendsView's own `if (!friends.loaded)` guard already skips a
+// redundant second fetch once this has run.
+//
+// A watcher, not just the onMounted above: this component only ever
+// mounts once for the whole app's lifetime, so onMounted alone would
+// only cover a session that already had a token on page load (a reload,
+// or a deep link) - a fresh login within the same session flips
+// isAuthenticated from false to true without a remount, and would
+// otherwise never trigger this at all (found testing live: the badge
+// never appeared for an account logged into fresh, only after a reload).
+// immediate: true folds the onMounted-equivalent initial check into the
+// same watcher instead of needing both.
+watch(
+  () => auth.isAuthenticated,
+  (isAuthenticated) => {
+    if (isAuthenticated && !friends.loaded) {
+      friends.fetchAll()
+    }
+  },
+  { immediate: true },
+)
 
 // Solo higiene/confirmación de email, no una puerta de acceso - un aviso
 // corto en vez de bloquear nada. Un único sitio para toda la app, no por
@@ -73,7 +100,10 @@ async function onResendVerification() {
       <RouterLink :to="{ name: 'picker' }">{{ $t('nav.picker') }}</RouterLink>
       <RouterLink :to="{ name: 'plays' }">{{ $t('nav.plays') }}</RouterLink>
       <RouterLink :to="{ name: 'import-bgg' }">{{ $t('nav.importBgg') }}</RouterLink>
-      <RouterLink :to="{ name: 'friends' }">{{ $t('nav.friends') }}</RouterLink>
+      <RouterLink :to="{ name: 'friends' }" class="nav-link-with-badge">
+        {{ $t('nav.friends') }}
+        <span v-if="friends.incomingRequests.length > 0" class="nav-badge" aria-hidden="true" />
+      </RouterLink>
     </nav>
 
     <button
@@ -100,7 +130,10 @@ async function onResendVerification() {
       <RouterLink :to="{ name: 'picker' }">{{ $t('nav.picker') }}</RouterLink>
       <RouterLink :to="{ name: 'plays' }">{{ $t('nav.plays') }}</RouterLink>
       <RouterLink :to="{ name: 'import-bgg' }">{{ $t('nav.importBgg') }}</RouterLink>
-      <RouterLink :to="{ name: 'friends' }">{{ $t('nav.friends') }}</RouterLink>
+      <RouterLink :to="{ name: 'friends' }" class="nav-link-with-badge">
+        {{ $t('nav.friends') }}
+        <span v-if="friends.incomingRequests.length > 0" class="nav-badge" aria-hidden="true" />
+      </RouterLink>
     </nav>
 
     <div class="session">
@@ -257,6 +290,23 @@ wrapping mid-phrase inside its box. */
 
 .primary-nav a.router-link-exact-active {
   color: var(--color-primary-hover);
+}
+
+/* Shared between .primary-nav and .mobile-nav's own "Amigos" link -
+position: relative here, not on the nav itself, so the badge anchors to
+just this one link's own box instead of the whole nav row. */
+.nav-link-with-badge {
+  position: relative;
+}
+
+.nav-badge {
+  position: absolute;
+  top: -2px;
+  right: -8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
 }
 
 /* margin-left: auto (rather than relying on the header's own

@@ -2,6 +2,9 @@
 
 use App\Models\Friendship;
 use App\Models\User;
+use App\Notifications\FriendRequestReceivedNotification;
+use Illuminate\Notifications\ChannelManager;
+use Illuminate\Support\Facades\Notification;
 
 it('finds a discoverable user by email', function () {
     actingAsUser();
@@ -55,6 +58,77 @@ it('creates a pending friend request', function () {
         'recipient_id' => $target->id,
         'status' => 'pending',
     ]);
+});
+
+it('still creates the friend request even if the notification email fails to send', function () {
+    // Reproduces a real failure found testing this live: a mail transport
+    // error (Resend rejecting a @example.com recipient locally) turned an
+    // already-successful request into a 500, with the row still saved but
+    // no way for the user to tell it had actually gone through. Binding a
+    // ChannelManager that always throws (rather than mailing for real,
+    // which the test mailer - MAIL_MAILER=array in phpunit.xml - never
+    // fails at) reproduces that same failure path directly.
+    $me = actingAsUser();
+    $target = User::factory()->create(['discoverable' => true]);
+
+    app()->bind(ChannelManager::class, fn () => new class
+    {
+        public function send($notifiables, $notification): void
+        {
+            throw new RuntimeException('mail transport down');
+        }
+    });
+
+    $this->postJson('/api/friends/requests', ['user_id' => $target->id])
+        ->assertCreated()
+        ->assertJsonPath('data.status', 'pending');
+
+    $this->assertDatabaseHas('friendships', [
+        'requester_id' => $me->id,
+        'recipient_id' => $target->id,
+        'status' => 'pending',
+    ]);
+});
+
+it('emails the recipient when a new pending request is created', function () {
+    Notification::fake();
+    $me = actingAsUser();
+    $target = User::factory()->create(['discoverable' => true]);
+
+    $this->postJson('/api/friends/requests', ['user_id' => $target->id])->assertCreated();
+
+    Notification::assertSentTo($target, FriendRequestReceivedNotification::class);
+});
+
+it('points the friend request email at the frontend friends page', function () {
+    Notification::fake();
+    $me = actingAsUser();
+    $target = User::factory()->create(['discoverable' => true]);
+
+    $this->postJson('/api/friends/requests', ['user_id' => $target->id]);
+
+    Notification::assertSentTo(
+        $target,
+        FriendRequestReceivedNotification::class,
+        function (FriendRequestReceivedNotification $notification) use ($target) {
+            $mail = $notification->toMail($target);
+
+            expect($mail->actionUrl)->toBe('http://localhost:5173/friends');
+
+            return true;
+        }
+    );
+});
+
+it('does not email anyone when a request auto-accepts a mutual pending one', function () {
+    Notification::fake();
+    $me = actingAsUser();
+    $other = User::factory()->create(['discoverable' => true]);
+    Friendship::factory()->create(['requester_id' => $other->id, 'recipient_id' => $me->id]);
+
+    $this->postJson('/api/friends/requests', ['user_id' => $other->id])->assertCreated();
+
+    Notification::assertNothingSent();
 });
 
 it('rejects sending yourself a friend request', function () {

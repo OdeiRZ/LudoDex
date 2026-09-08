@@ -4,7 +4,9 @@ namespace App\Services\Friends;
 
 use App\Models\Friendship;
 use App\Models\User;
+use App\Notifications\FriendRequestReceivedNotification;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class FriendshipService
@@ -90,11 +92,31 @@ class FriendshipService
             throw ValidationException::withMessages(['user_id' => [__($message)]]);
         }
 
-        return Friendship::create([
+        $friendship = Friendship::create([
             'requester_id' => $me->id,
             'recipient_id' => $target->id,
             'status' => 'pending',
         ]);
+
+        // Only reached for a genuinely new pending row - the auto-accept
+        // branch above (a mutual request) returns before this, since
+        // there's nothing "pending" left to notify about there.
+        //
+        // Caught broadly and only logged, not left to propagate: the
+        // request itself is already saved at this point (found the hard
+        // way testing locally - a mail transport failure otherwise turned
+        // an already-successful request into a 500, with no way for the
+        // user to tell their request had actually gone through).
+        try {
+            $target->notify(new FriendRequestReceivedNotification($me));
+        } catch (\Throwable $e) {
+            Log::warning('Friend request notification email failed to send', [
+                'recipient_id' => $target->id,
+                'exception' => $e->getMessage(),
+            ]);
+        }
+
+        return $friendship;
     }
 
     /**

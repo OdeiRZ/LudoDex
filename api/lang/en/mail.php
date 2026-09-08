@@ -25,4 +25,13 @@ return [
         'salutation' => "Best,\nThe LudoDex team",
     ],
 
+    'friend_request' => [
+        'subject' => ':name sent you a friend request',
+        'greeting' => 'Hello!',
+        'intro' => ':name wants to be your friend on LudoDex.',
+        'action' => 'View request',
+        'outro' => 'You can accept or decline it from your friends page.',
+        'salutation' => "Best,\nThe LudoDex team",
+    ],
+
 ];

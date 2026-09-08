@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import App from '@/App.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useFriendsStore } from '@/stores/friends'
 import { i18n } from '@/i18n'
 
 // Only the routes App.vue itself links to need to exist here - the routed
@@ -220,5 +221,71 @@ describe('App', () => {
     await flushPromises()
 
     expect(wrapper.find('.primary-nav').exists()).toBe(false)
+  })
+
+  it('loads incoming friend requests on mount when authenticated', async () => {
+    setActivePinia(createPinia())
+    const auth = useAuthStore()
+    auth.token = 'a-token'
+    const friends = useFriendsStore()
+    const fetchSpy = vi.spyOn(friends, 'fetchAll').mockResolvedValue()
+
+    const router = makeRouter('/')
+    await router.isReady()
+    mount(App, { global: { plugins: [router, i18n] } })
+    await flushPromises()
+
+    expect(fetchSpy).toHaveBeenCalled()
+  })
+
+  it('does not load friend requests when not authenticated', async () => {
+    setActivePinia(createPinia())
+    const friends = useFriendsStore()
+    const fetchSpy = vi.spyOn(friends, 'fetchAll')
+
+    const router = makeRouter('/login')
+    await router.isReady()
+    mount(App, { global: { plugins: [router, i18n] } })
+    await flushPromises()
+
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  it('shows a notification dot on the friends nav link when there are incoming requests', async () => {
+    setActivePinia(createPinia())
+    const auth = useAuthStore()
+    auth.token = 'a-token'
+    const friends = useFriendsStore()
+    vi.spyOn(friends, 'fetchAll').mockImplementation(async () => {
+      friends.incomingRequests = [
+        { id: 1, user: { id: 2, name: 'Friend One', bgg_username: null, avatar_url: null } },
+      ]
+    })
+
+    const router = makeRouter('/')
+    await router.isReady()
+    const wrapper = mount(App, { global: { plugins: [router, i18n] } })
+    await flushPromises()
+
+    expect(wrapper.find('.primary-nav .nav-badge').exists()).toBe(true)
+
+    await wrapper.find('.hamburger-btn').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.mobile-nav .nav-badge').exists()).toBe(true)
+  })
+
+  it('does not show a notification dot when there are no incoming requests', async () => {
+    setActivePinia(createPinia())
+    const auth = useAuthStore()
+    auth.token = 'a-token'
+    const friends = useFriendsStore()
+    vi.spyOn(friends, 'fetchAll').mockResolvedValue()
+
+    const router = makeRouter('/')
+    await router.isReady()
+    const wrapper = mount(App, { global: { plugins: [router, i18n] } })
+    await flushPromises()
+
+    expect(wrapper.find('.nav-badge').exists()).toBe(false)
   })
 })
