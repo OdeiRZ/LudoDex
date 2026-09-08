@@ -1,19 +1,27 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import PickerView from '@/views/PickerView.vue'
 import { useGamesStore, type UserGame } from '@/stores/games'
-import { makeEntry } from '@/stores/__tests__/gameFixtures'
+import { useFriendsStore, type FriendEntry } from '@/stores/friends'
+import { makeEntry, makeGame } from '@/stores/__tests__/gameFixtures'
 import { i18n } from '@/i18n'
 
-// PickerView calls games.fetchAll() on mount unless the store already
-// reports itself as loaded - marking it loaded upfront keeps these tests
-// from making a real HTTP request through the store's axios client.
-function mountPicker(entries: UserGame[]) {
+// PickerView calls games.fetchAll()/friends.fetchAll() on mount unless
+// each store already reports itself as loaded - marking both loaded
+// upfront keeps these tests from making real HTTP requests through the
+// stores' axios client (an unmocked one of these is exactly what broke
+// CI for App.spec.ts: an unhandled network-error rejection that Vitest
+// counts as a run failure even though every individual test still passes).
+function mountPicker(entries: UserGame[], friendEntries: FriendEntry[] = []) {
   setActivePinia(createPinia())
-  const store = useGamesStore()
-  store.collection = entries
-  store.loaded = true
+  const games = useGamesStore()
+  games.collection = entries
+  games.loaded = true
+
+  const friends = useFriendsStore()
+  friends.friends = friendEntries
+  friends.loaded = true
 
   return mount(PickerView, {
     global: { stubs: { RouterLink: true }, plugins: [i18n] },
@@ -433,6 +441,131 @@ describe('PickerView', () => {
       const wrapper = mountPicker([makeEntry({ name: 'Root' }, 'owned')])
 
       expect(wrapper.find('.game-card').text()).not.toContain('expansi')
+    })
+  })
+
+  describe('jugar con un amigo', () => {
+    const friendEntry: FriendEntry = {
+      id: 10,
+      user: { id: 2, name: 'Ana', bgg_username: null, avatar_url: null },
+    }
+
+    it('only shows the friend selector when there is at least one accepted friend', () => {
+      const withoutFriends = mountPicker([makeEntry({ name: 'Root' }, 'owned')])
+      expect(withoutFriends.find('#play-with').exists()).toBe(false)
+
+      const withFriends = mountPicker([makeEntry({ name: 'Root' }, 'owned')], [friendEntry])
+      expect(withFriends.find('#play-with').exists()).toBe(true)
+    })
+
+    it("mixes both collections once a friend is selected, tagging who owns what", async () => {
+      const wrapper = mountPicker([makeEntry({ name: 'Root' }, 'owned')], [friendEntry])
+      const friends = useFriendsStore()
+      vi.spyOn(friends, 'fetchCollectionComparison').mockResolvedValue({
+        friend: friendEntry.user,
+        shared: [makeGame({ name: 'Catan' })],
+        mineOnly: [makeGame({ name: 'Root' })],
+        theirsOnly: [makeGame({ name: 'Wingspan' })],
+      })
+
+      await wrapper.find('#play-with').setValue('2')
+      await flushPromises()
+      await wrapper.find('#players').setValue('')
+
+      const names = wrapper.findAll('.game-card h2').map((h2) => h2.text())
+      expect(names).toEqual(['Catan', 'Root', 'Wingspan'])
+
+      const cards = wrapper.findAll('.game-card')
+      const catanCard = cards.find((card) => card.text().includes('Catan'))
+      const rootCard = cards.find((card) => card.text().includes('Root'))
+      const wingspanCard = cards.find((card) => card.text().includes('Wingspan'))
+
+      expect(catanCard?.text()).toContain('Compartido')
+      expect(wingspanCard?.text()).toContain('De Ana')
+      // Yours alone is left unbadged on purpose - no "De ti" clutter.
+      expect(rootCard?.text()).not.toContain('Compartido')
+      expect(rootCard?.text()).not.toContain('De Ana')
+    })
+
+    it('goes back to only your own collection when the friend is deselected', async () => {
+      const wrapper = mountPicker([makeEntry({ name: 'Root' }, 'owned')], [friendEntry])
+      const friends = useFriendsStore()
+      vi.spyOn(friends, 'fetchCollectionComparison').mockResolvedValue({
+        friend: friendEntry.user,
+        shared: [],
+        mineOnly: [],
+        theirsOnly: [makeGame({ name: 'Wingspan' })],
+      })
+
+      await wrapper.find('#play-with').setValue('2')
+      await flushPromises()
+      await wrapper.find('#players').setValue('')
+      expect(wrapper.findAll('.game-card h2').map((h2) => h2.text())).toEqual(['Wingspan'])
+
+      // Not .setValue('') here: the "no friend" <option> is bound via
+      // :value="null" (not a string), so its round trip goes through
+      // Vue's own option._value rather than the DOM's stringified value
+      // attribute - selecting it by index is what actually exercises
+      // that, the same way a real click on it would.
+      const select = wrapper.find<HTMLSelectElement>('#play-with')
+      select.element.selectedIndex = 0
+      await select.trigger('change')
+      await flushPromises()
+
+      expect(wrapper.findAll('.game-card h2').map((h2) => h2.text())).toEqual(['Root'])
+    })
+
+    it('shows a dedicated empty state when you and your friend share nothing playable', async () => {
+      const wrapper = mountPicker([makeEntry({ name: 'Root' }, 'owned')], [friendEntry])
+      const friends = useFriendsStore()
+      vi.spyOn(friends, 'fetchCollectionComparison').mockResolvedValue({
+        friend: friendEntry.user,
+        shared: [],
+        mineOnly: [],
+        theirsOnly: [],
+      })
+
+      await wrapper.find('#play-with').setValue('2')
+      await flushPromises()
+
+      expect(wrapper.text()).toContain('No coincidís en ningún juego que podáis jugar juntos.')
+      expect(wrapper.text()).not.toContain('No tienes juegos marcados como "Lo tengo"')
+    })
+
+    it('shows an error state, not a crash, when the friend collection fails to load', async () => {
+      const wrapper = mountPicker([makeEntry({ name: 'Root' }, 'owned')], [friendEntry])
+      const friends = useFriendsStore()
+      vi.spyOn(friends, 'fetchCollectionComparison').mockRejectedValue(new Error('network'))
+
+      await wrapper.find('#play-with').setValue('2')
+      await flushPromises()
+
+      expect(wrapper.text()).toContain(
+        'No se ha podido cargar esta colección. Inténtalo de nuevo.',
+      )
+    })
+
+    it("keeps a translated description in the friend's game, not just the open modal", async () => {
+      const wrapper = mountPicker([makeEntry({ name: 'Root' }, 'owned')], [friendEntry])
+      const friends = useFriendsStore()
+      const wingspan = makeGame({ name: 'Wingspan', description: 'In English' })
+      vi.spyOn(friends, 'fetchCollectionComparison').mockResolvedValue({
+        friend: friendEntry.user,
+        shared: [],
+        mineOnly: [],
+        theirsOnly: [wingspan],
+      })
+
+      await wrapper.find('#play-with').setValue('2')
+      await flushPromises()
+      await wrapper.find('#players').setValue('')
+
+      await wrapper.find('.details-icon-button').trigger('click')
+      await flushPromises()
+      wrapper.findComponent({ name: 'GameDetailModal' }).vm.$emit('translated', 'En español')
+      await flushPromises()
+
+      expect(wingspan.description_es).toBe('En español')
     })
   })
 })

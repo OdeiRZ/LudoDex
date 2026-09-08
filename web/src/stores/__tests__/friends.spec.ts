@@ -122,6 +122,34 @@ describe('useFriendsStore', () => {
     })
   })
 
+  describe('fetchCollectionComparison', () => {
+    it('maps the snake_case response into shared/mineOnly/theirsOnly without touching the store', async () => {
+      const friend = makeFriend()
+      vi.mocked(apiClient.get).mockResolvedValue({
+        data: { data: { friend, shared: ['catan'], mine_only: ['root'], theirs_only: ['azul'] } },
+      })
+      const store = useFriendsStore()
+
+      const result = await store.fetchCollectionComparison(friend.id)
+
+      expect(apiClient.get).toHaveBeenCalledWith(`/friends/${friend.id}/games`)
+      expect(result).toEqual({
+        friend,
+        shared: ['catan'],
+        mineOnly: ['root'],
+        theirsOnly: ['azul'],
+      })
+      expect(store.friends).toEqual([])
+    })
+
+    it('propagates a failed request instead of swallowing it', async () => {
+      vi.mocked(apiClient.get).mockRejectedValue(new Error('network error'))
+      const store = useFriendsStore()
+
+      await expect(store.fetchCollectionComparison(2)).rejects.toThrow('network error')
+    })
+  })
+
   describe('sendRequest', () => {
     it('adds the target to outgoingRequests when the request stays pending', async () => {
       const target = makeFriend()

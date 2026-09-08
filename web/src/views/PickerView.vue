@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGamesStore, type UserGame } from '@/stores/games'
+import { useFriendsStore, type FriendCollectionComparison } from '@/stores/friends'
 import { useCollectionDensity } from '@/composables/useCollectionDensity'
 import { useExpansionCounts } from '@/composables/useExpansionCounts'
 import {
@@ -18,14 +19,68 @@ import GameDetailModal from '@/components/GameDetailModal.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const games = useGamesStore()
+const friends = useFriendsStore()
 const { t } = useI18n()
 
 // Which card's details modal (image/description) is open, if any - only
 // one at a time, so a single ref rather than per-card state is enough.
-const detailEntry = ref<UserGame | null>(null)
+interface PickerEntry extends UserGame {
+  owner?: 'me' | 'friend' | 'shared'
+}
+const detailEntry = ref<PickerEntry | null>(null)
 const { density, toggle: toggleDensity } = useCollectionDensity()
 const locale = computed(() => getLocale())
-const expansionCounts = useExpansionCounts(computed(() => games.collection))
+
+// "Jugar con" - factors a friend's collection into the pool below
+// instead of just your own. Union, not intersection: a game counts if
+// either of you owns it (see the `owner` tag on `pool` below), not only
+// what you'd both have to bring a copy of.
+const selectedFriendId = ref<number | null>(null)
+const friendCollection = ref<FriendCollectionComparison | null>(null)
+const loadingFriendCollection = ref(false)
+const friendCollectionError = ref(false)
+
+watch(selectedFriendId, async (friendId) => {
+  friendCollectionError.value = false
+  if (friendId === null) {
+    friendCollection.value = null
+    return
+  }
+
+  loadingFriendCollection.value = true
+  try {
+    friendCollection.value = await friends.fetchCollectionComparison(friendId)
+  } catch {
+    friendCollection.value = null
+    friendCollectionError.value = true
+  } finally {
+    loadingFriendCollection.value = false
+  }
+})
+
+const selectedFriendName = computed(
+  () =>
+    friends.friends.find((entry) => entry.user.id === selectedFriendId.value)?.user.name ?? null,
+)
+
+// The source `playable` and friends filter over. Own collection by
+// default; the friend's shared/mine-only/theirs-only union once one is
+// selected - `owner` is only meaningful in that second case (undefined,
+// i.e. "obviously yours", when browsing your own collection).
+const pool = computed<PickerEntry[]>(() => {
+  if (!friendCollection.value) return games.collection
+
+  const { shared, mineOnly, theirsOnly } = friendCollection.value
+  return [
+    ...shared.map((game): PickerEntry => ({ id: game.id, status: 'owned', game, owner: 'shared' })),
+    ...mineOnly.map((game): PickerEntry => ({ id: game.id, status: 'owned', game, owner: 'me' })),
+    ...theirsOnly.map(
+      (game): PickerEntry => ({ id: game.id, status: 'owned', game, owner: 'friend' }),
+    ),
+  ]
+})
+
+const expansionCounts = useExpansionCounts(pool)
 
 // Starts at 2 rather than empty: the placeholder text has no room to
 // display fully next to the "Solo" button at this width, and most groups
@@ -65,6 +120,17 @@ type SortCriterion = 'name' | 'rank' | 'year'
 const sortCriterion = ref<SortCriterion>('name')
 const sortOrder = ref<'asc' | 'desc'>('asc')
 
+// GameDetailModal's own translation only patches games.collection (see
+// its own docblock) - a friend's game never lives in that store, so
+// without this a translation there would revert to English on reopen.
+// Harmless no-op for your own games: the store already made the same
+// assignment on the same object reference.
+function onDetailGameTranslated(descriptionEs: string | null) {
+  if (detailEntry.value) {
+    detailEntry.value.game.description_es = descriptionEs
+  }
+}
+
 function toggleSort() {
   sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
 }
@@ -97,6 +163,9 @@ onMounted(() => {
   if (!games.loaded) {
     games.fetchAll()
   }
+  if (!friends.loaded) {
+    friends.fetchAll()
+  }
 })
 
 // With a single player there's no one to cooperate or compete with, so the
@@ -121,7 +190,7 @@ watch(isSoloPlayer, (solo) => {
 // Only games you actually own, and never a standalone expansion (it isn't
 // playable without its base game - see the README's expansions note).
 const playable = computed(() =>
-  games.collection.filter((entry) => entry.status === 'owned' && entry.game.base_game_id === null),
+  pool.value.filter((entry) => entry.status === 'owned' && entry.game.base_game_id === null),
 )
 
 // An owned expansion can extend the player count or add a campaign mode
@@ -149,7 +218,7 @@ const effectiveStatsByGameId = computed(() => {
     }
   }
 
-  for (const entry of games.collection) {
+  for (const entry of pool.value) {
     const baseId = entry.game.base_game_id
     const current = baseId !== null ? stats[baseId] : undefined
 
@@ -203,6 +272,10 @@ function asFilterNumber(value: number | null): number | null {
 // mode/category doesn't clutter it with "Cualquiera" three times over.
 const filterSummary = computed(() => {
   const parts: string[] = []
+
+  if (selectedFriendName.value !== null) {
+    parts.push(t('picker.playWithFriend', { name: selectedFriendName.value }))
+  }
 
   if (search.value.trim() !== '') {
     parts.push(`"${search.value.trim()}"`)
@@ -464,6 +537,16 @@ const {
         </svg>
       </button>
 
+      <div v-if="friends.friends.length" class="play-with-field">
+        <label for="play-with">{{ $t('picker.playWith') }}</label>
+        <select id="play-with" v-model="selectedFriendId">
+          <option :value="null">{{ $t('picker.playWithNoFriend') }}</option>
+          <option v-for="entry in friends.friends" :key="entry.user.id" :value="entry.user.id">
+            {{ entry.user.name }}
+          </option>
+        </select>
+      </div>
+
       <div class="search-field">
         <label for="search">{{ $t('picker.searchLabel') }}</label>
         <input
@@ -572,9 +655,19 @@ const {
       </div>
     </form>
 
-    <p v-if="games.loading" class="loading-state">
+    <p v-if="games.loading || loadingFriendCollection" class="loading-state">
       <LoadingSpinner :size="36" />
-      {{ $t('common.loadingCollection') }}
+      {{
+        loadingFriendCollection
+          ? $t('picker.loadingFriendCollection')
+          : $t('common.loadingCollection')
+      }}
+    </p>
+    <p v-else-if="friendCollectionError" class="empty-state">
+      {{ $t('picker.friendCollectionError') }}
+    </p>
+    <p v-else-if="playable.length === 0 && selectedFriendId !== null" class="empty-state">
+      {{ $t('picker.emptyFriendCollection') }}
     </p>
     <p v-else-if="playable.length === 0" class="empty-state">
       {{ $t('picker.emptyOwned') }}<br />
@@ -655,6 +748,8 @@ const {
           </p>
           <p
             v-if="
+              entry.owner === 'shared' ||
+              entry.owner === 'friend' ||
               entry.game.is_cooperative ||
               entry.game.is_competitive ||
               effectiveStatsByGameId[entry.game.id]?.hasCampaign ||
@@ -663,6 +758,12 @@ const {
             "
             class="tags"
           >
+            <span v-if="entry.owner === 'shared'" class="badge badge-primary">{{
+              $t('picker.ownerShared')
+            }}</span>
+            <span v-if="entry.owner === 'friend'" class="badge badge-accent">{{
+              $t('picker.ownerFriend', { name: selectedFriendName })
+            }}</span>
             <span v-if="entry.game.is_cooperative" class="badge badge-primary">{{
               $t('picker.cooperative')
             }}</span>
@@ -689,7 +790,12 @@ const {
       </li>
     </ul>
 
-    <GameDetailModal v-if="detailEntry" :game="detailEntry.game" @close="detailEntry = null" />
+    <GameDetailModal
+      v-if="detailEntry"
+      :game="detailEntry.game"
+      @close="detailEntry = null"
+      @translated="onDetailGameTranslated"
+    />
 
     <div
       v-if="showScrubber"
