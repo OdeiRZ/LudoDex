@@ -116,16 +116,24 @@ de Neon. **Usar el host directo de Neon, no el "pooled" (sin el sufijo
 `-pooler`)**: con el pooler (PgBouncer en modo transacción) las migraciones
 fallan de forma intermitente con `SQLSTATE[25P02]` en vez de mostrar el error
 real — ver CHANGELOG. `SESSION_DRIVER`/`CACHE_STORE`/`QUEUE_CONNECTION` van a
-`database` (no hay Redis ni *worker* en el plan Free). `MAIL_MAILER=resend` y
-`RESEND_API_KEY` sí están configuradas en producción — probado en vivo
-(`/api/forgot-password` real, entrega confirmada en el panel de Resend y en
-la bandeja de entrada) — pero, sin un dominio propio verificado todavía, el
-remitente sigue siendo `onboarding@resend.dev` y solo llega a la dirección
-de email de la propia cuenta de Resend (ver "Instalación" más arriba); un
-usuario real de la app que pida restablecer su contraseña no recibirá nada
-hasta que se verifique un dominio. `DEEPL_API_KEY` sí está configurada en
-Render, así que el botón de traducir funciona igual en producción que en
-local.
+`database` (no hay Redis ni *worker* en el plan Free). `MAIL_MAILER=gmail_api`
+está configurado en producción (no `resend` — Render bloquea SMTP saliente
+por completo, y sin dominio propio verificado Resend solo entregaría a la
+dirección de la propia cuenta de Resend; ver "Alternativa a Resend sin
+dominio propio" más arriba), junto con `MAIL_FROM_ADDRESS`/`MAIL_FROM_NAME`
+y las tres `GMAIL_CLIENT_ID`/`GMAIL_CLIENT_SECRET`/`GMAIL_REFRESH_TOKEN` —
+probado en vivo contra un destinatario real arbitrario, no solo la cuenta
+propia. **Ojo con `GMAIL_REFRESH_TOKEN`**: caduca cada 7 días mientras la
+pantalla de consentimiento de Google siga en modo "Prueba" (ver el paso 5
+de arriba) — si `/api/forgot-password` empieza a fallar en producción sin
+ningún cambio de código, revisar la edad del token antes que nada.
+`DEEPL_API_KEY` sí está configurada en Render, así que el botón de traducir
+funciona igual en producción que en local. `FRONTEND_URL` (la URL pública de
+la SPA en Cloudflare Pages) es la base de los enlaces que llevan los emails
+de verificación y de solicitud de amistad — sin ella en producción, esos
+enlaces apuntarían a `http://localhost:5173` (el valor por defecto de
+`config/app.php`). `OWNER_EMAIL` es obligatoria para
+`POST /api/games/backfill-translations` (ver más abajo).
 
 `SENTRY_LARAVEL_DSN` (opcional, vacía por defecto — sin ella el SDK no hace
 nada): monitorización de errores en producción vía
@@ -156,7 +164,8 @@ al endpoint de backfill a mano).
 Necesita `PROD_API_URL` y `PROD_API_TOKEN` en `.env` (ver
 `.env.example`) — el token es un token Sanctum normal de tu propia
 cuenta; al ser el mismo que usa tu sesión activa en el navegador, un
-logout ahí lo revocaría, con lo que el comando dejaría de funcionar
+logout ahí lo revocaría (o cambiar/resetear la contraseña de esa
+cuenta — ver CHANGELOG), con lo que el comando dejaría de funcionar
 hasta pegar uno nuevo. Se ejecuta siempre desde local (producción no
 tiene forma de alcanzar tu máquina), en las dos direcciones: hacia
 producción vía el propio `POST /api/games/backfill-translations`, y
