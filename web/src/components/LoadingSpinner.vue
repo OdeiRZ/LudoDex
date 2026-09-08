@@ -44,6 +44,10 @@ withDefaults(defineProps<{ size?: number }>(), { size: 32 })
 </template>
 
 <style scoped>
+/* No prefers-reduced-motion guard - same call already made in Poker_Dice
+(see its own CHANGELOG): this is the only feedback a loading state gives,
+so honoring that preference leaves a frozen icon with nothing else
+signaling progress, reading as hung rather than reduced-motion-friendly. */
 .loading-spinner {
   animation: spin 0.9s linear infinite;
 }
@@ -51,12 +55,6 @@ withDefaults(defineProps<{ size?: number }>(), { size: 32 })
 @keyframes spin {
   to {
     transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .loading-spinner {
-    animation: none;
   }
 }
 </style>
