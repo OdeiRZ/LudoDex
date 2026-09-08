@@ -2,9 +2,12 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useFriendDetailStore } from '@/stores/friendDetail'
+import { useCollectionScrubber, normalizeLetter } from '@/composables/useCollectionScrubber'
 import { FALLBACK_ICON_URL } from '@/lib/assets'
+import type { Game } from '@/stores/games'
 import UserAvatar from '@/components/UserAvatar.vue'
 import GameCard from '@/components/GameCard.vue'
+import GameDetailModal from '@/components/GameDetailModal.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const props = defineProps<{ friendId: number }>()
@@ -64,6 +67,79 @@ const collectionSections = computed(() => [
     empty: t('friends.detail.collection.emptyTheirsOnly', { name: friendName.value }),
   },
 ])
+
+const detailGame = ref<Game | null>(null)
+
+// GameDetailModal's own translation result only patches games.collection
+// (see its own docblock) - shared/mineOnly/theirsOnly aren't part of that
+// store, so without this a translation here would show in the modal but
+// revert to English the next time it's reopened. Mutates the same object
+// reference the v-for already holds, same pattern as PlaysView's own
+// onDetailGameTranslated - the list picks it up too, not just the modal.
+function onDetailGameTranslated(descriptionEs: string | null) {
+  if (detailGame.value) {
+    detailGame.value.description_es = descriptionEs
+  }
+}
+
+const gamesListRef = ref<HTMLElement | null>(null)
+
+// useCollectionScrubber reads entry.game.* and is typed for UserGame[] -
+// these three lists are plain Game[], so each entry is wrapped to match
+// that shape rather than changing the composable itself for one caller
+// with a different one. id/status are never read by the composable
+// itself (confirmed reading its source), only game.* is - id just
+// reuses the game's own (unique here, since a game can only appear in
+// one of the three sections) and status is always 'owned', matching
+// what the comparison itself already only ever includes.
+const scrubberPool = computed(() =>
+  [...friendDetail.shared, ...friendDetail.mineOnly, ...friendDetail.theirsOnly].map((game) => ({
+    id: game.id,
+    status: 'owned' as const,
+    game,
+  })),
+)
+
+// Fixed to name mode - this view has no sort/order controls of its own
+// (nothing asked for), unlike Dashboard's own switchable criterion.
+const sortCriterion = ref<'name'>('name')
+const sortOrder = ref<'asc'>('asc')
+
+const {
+  showScrubber,
+  displayBuckets,
+  availableBuckets,
+  scrubbing,
+  scrubLetter,
+  scrubBubbleTop,
+  scrubBubbleRight,
+  hovering,
+  scrubberAriaLabel,
+  scrubberRef,
+  scrubberStyle,
+  draggingHandle,
+  onScrubberEnter,
+  onScrubberLeave,
+  startScrub,
+  moveScrub,
+  endScrub,
+  startHandleDrag,
+  moveHandleDrag,
+  endHandleDrag,
+  resetHandlePosition,
+} = useCollectionScrubber({
+  sortCriterion,
+  sortOrder,
+  pool: scrubberPool,
+  filtered: scrubberPool, // no hay búsqueda/filtro propio en esta vista
+  listRef: gamesListRef,
+  hidden: computed(() => detailGame.value !== null),
+  labels: computed(() => ({
+    name: t('dashboard.azScrubberLabel'),
+    year: t('dashboard.yearScrubberLabel'),
+    rank: t('dashboard.rankScrubberLabel'),
+  })),
+})
 
 const searchInput = ref('')
 let searchDebounce: ReturnType<typeof setTimeout> | undefined
@@ -134,7 +210,7 @@ function loadMore() {
           {{ $t('friends.detail.collection.loading') }}
         </p>
 
-        <template v-else>
+        <div v-else ref="gamesListRef">
           <section
             v-for="section in collectionSections"
             :key="section.key"
@@ -143,9 +219,53 @@ function loadMore() {
             <h2>{{ section.title }}</h2>
             <p v-if="section.games.length === 0" class="empty-state">{{ section.empty }}</p>
             <ul v-else class="games">
-              <li v-for="game in section.games" :key="game.id" class="game-card">
+              <li
+                v-for="game in section.games"
+                :key="game.id"
+                class="game-card"
+                :data-letter="normalizeLetter(game.name)"
+              >
                 <GameCard :image-url="game.image_url" :is-expansion="game.base_game_id !== null">
-                  <h3>{{ game.name }}</h3>
+                  <div class="game-card-header">
+                    <h3>{{ game.name }}</h3>
+                    <button
+                      type="button"
+                      class="details-icon-button"
+                      :aria-label="$t('picker.viewDetails')"
+                      :title="$t('picker.viewDetails')"
+                      @click="detailGame = game"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        aria-hidden="true"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"
+                        />
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="3"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <div v-if="game.bgg_id !== null && game.base_game_id === null" class="badge-row">
+                    <span class="badge badge-rank">
+                      {{
+                        game.bgg_rank !== null
+                          ? $t('dashboard.rank', { rank: game.bgg_rank })
+                          : $t('dashboard.unranked')
+                      }}
+                    </span>
+                  </div>
                   <p
                     v-if="game.year_published || game.min_players || game.max_players"
                     class="meta"
@@ -161,7 +281,7 @@ function loadMore() {
               </li>
             </ul>
           </section>
-        </template>
+        </div>
       </template>
 
       <template v-else>
@@ -242,6 +362,71 @@ function loadMore() {
         </button>
       </template>
     </template>
+
+    <GameDetailModal
+      v-if="detailGame"
+      :game="detailGame"
+      @close="detailGame = null"
+      @translated="onDetailGameTranslated"
+    />
+
+    <div
+      v-if="showScrubber"
+      ref="scrubberRef"
+      class="az-scrubber"
+      :class="{ 'az-scrubber-visible': hovering || scrubbing || draggingHandle }"
+      role="navigation"
+      :aria-label="scrubberAriaLabel"
+      :style="scrubberStyle"
+      @pointerenter="onScrubberEnter"
+      @pointerleave="onScrubberLeave"
+    >
+      <div
+        class="az-scrubber-handle"
+        :aria-label="$t('dashboard.scrubberMoveLabel')"
+        :title="$t('dashboard.scrubberMoveLabel')"
+        @pointerdown="startHandleDrag"
+        @pointermove="moveHandleDrag"
+        @pointerup="endHandleDrag"
+        @pointercancel="endHandleDrag"
+        @dblclick="resetHandlePosition"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <circle cx="8" cy="8" r="1.5" />
+          <circle cx="16" cy="8" r="1.5" />
+          <circle cx="8" cy="16" r="1.5" />
+          <circle cx="16" cy="16" r="1.5" />
+        </svg>
+      </div>
+      <div
+        class="az-scrubber-buckets"
+        @pointerdown="startScrub"
+        @pointermove="moveScrub"
+        @pointerup="endScrub"
+        @pointercancel="endScrub"
+      >
+        <span
+          v-for="bucket in displayBuckets"
+          :key="bucket"
+          class="az-scrubber-letter"
+          :class="{ 'az-scrubber-letter-available': availableBuckets.has(bucket) }"
+        >
+          {{ bucket }}
+        </span>
+      </div>
+    </div>
+
+    <div
+      v-if="scrubbing && scrubLetter"
+      class="az-scrubber-bubble"
+      :style="{
+        top: `${scrubBubbleTop}px`,
+        right: `${scrubBubbleRight}px`,
+        transform: 'translateY(-50%)',
+      }"
+    >
+      {{ scrubLetter }}
+    </div>
   </div>
 </template>
 
@@ -340,9 +525,60 @@ instead of stacked above on its own line. */
   gap: var(--space-3);
 }
 
+.games :deep(.game-card-header) {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .games :deep(h3) {
   font-size: 0.95rem;
   overflow-wrap: anywhere;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Same size/style/z-index fix as Dashboard's own details button - see
+its own comment there for why z-index: 21 specifically: without it,
+.az-scrubber (scrubber.css, position: fixed; z-index: 20) wins the
+overlap with this button on a narrow phone regardless of DOM order. */
+.games :deep(.details-icon-button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  margin-right: var(--space-1);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  position: relative;
+  z-index: 21;
+}
+
+.games :deep(.details-icon-button:hover) {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.games :deep(.details-icon-button svg) {
+  width: 16px;
+  height: 16px;
+}
+
+.games :deep(.badge-row) {
+  display: flex;
+  align-self: flex-start;
+  max-width: 100%;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.games :deep(.badge-rank) {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
 }
 
 .games :deep(.meta) {
