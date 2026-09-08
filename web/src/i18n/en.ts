@@ -359,7 +359,7 @@ export default {
     },
     detail: {
       notFound: "This friend couldn't be found.",
-      backToList: '← Back to friends',
+      backToList: '← Back',
       tabs: {
         collection: 'Shared collection',
         plays: 'Plays',

@@ -359,7 +359,7 @@ export default {
     },
     detail: {
       notFound: 'No se ha podido encontrar a este amigo.',
-      backToList: '← Volver a amigos',
+      backToList: '← Volver',
       tabs: {
         collection: 'Colección compartida',
         plays: 'Partidas',
