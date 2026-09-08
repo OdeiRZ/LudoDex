@@ -85,22 +85,26 @@ function loadMore() {
 
 <template>
   <div class="friend-detail">
-    <RouterLink :to="{ name: 'friends' }" class="back-link">
-      {{ $t('friends.detail.backToList') }}
-    </RouterLink>
-
     <div v-if="friendDetail.notFound" class="card not-found">
+      <RouterLink :to="{ name: 'friends' }" class="back-link">
+        {{ $t('friends.detail.backToList') }}
+      </RouterLink>
       <p>{{ $t('friends.detail.notFound') }}</p>
     </div>
 
     <template v-else>
       <div v-if="friendDetail.friend" class="friend-header">
-        <UserAvatar
-          :name="friendDetail.friend.name"
-          :avatar-url="friendDetail.friend.avatar_url"
-          :size="48"
-        />
-        <h1>{{ friendDetail.friend.name }}</h1>
+        <div class="friend-identity">
+          <UserAvatar
+            :name="friendDetail.friend.name"
+            :avatar-url="friendDetail.friend.avatar_url"
+            :size="48"
+          />
+          <h1>{{ friendDetail.friend.name }}</h1>
+        </div>
+        <RouterLink :to="{ name: 'friends' }" class="back-link">
+          {{ $t('friends.detail.backToList') }}
+        </RouterLink>
       </div>
 
       <div class="tabs" role="tablist">
@@ -249,20 +253,36 @@ function loadMore() {
 
 .back-link {
   display: inline-block;
-  margin-bottom: var(--space-4);
   color: var(--color-text-muted);
   font-size: 0.9rem;
+  white-space: nowrap;
 }
 
+.not-found .back-link {
+  margin-bottom: var(--space-4);
+}
+
+/* justify-content: space-between puts .back-link flush against the
+block's own right edge, at the same height as the name next to it,
+instead of stacked above on its own line. */
 .friend-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-3);
   margin-bottom: var(--space-4);
 }
 
+.friend-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
 .friend-header h1 {
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .not-found {
