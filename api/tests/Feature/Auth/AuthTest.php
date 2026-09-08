@@ -334,3 +334,29 @@ it('rejects a password change with the wrong current password', function () {
 
     $response->assertUnprocessable()->assertJsonValidationErrors('current_password');
 });
+
+it('revokes every other token when changing the password, but keeps the one making the request', function () {
+    // Real Bearer tokens here, not actingAs('sanctum') (a session-guard
+    // bypass with no real PersonalAccessToken row) - the whole point is
+    // to prove the OTHER token stops working and THIS one still does.
+    $user = User::factory()->create(['password' => bcrypt('old-password')]);
+    $keptToken = $user->createToken('kept')->plainTextToken;
+    $otherToken = $user->createToken('stolen-or-elsewhere')->plainTextToken;
+
+    $this->withToken($keptToken)->putJson('/api/user/password', [
+        'current_password' => 'old-password',
+        'password' => 'new-password',
+        'password_confirmation' => 'new-password',
+    ])->assertNoContent();
+
+    // Sanctum's guard caches the resolved user for the lifetime of the
+    // test's app instance - without this, the next simulated request
+    // below would silently reuse the first request's resolution instead
+    // of genuinely re-checking the (now-deleted) token, same reason the
+    // password-change-then-relogin test above needs it too.
+    Auth::forgetGuards();
+    $this->withToken($otherToken)->getJson('/api/user')->assertUnauthorized();
+
+    Auth::forgetGuards();
+    $this->withToken($keptToken)->getJson('/api/user')->assertOk();
+});

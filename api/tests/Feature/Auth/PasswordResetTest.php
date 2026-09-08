@@ -113,6 +113,41 @@ it('resets the password with a valid token and lets the user log in with it', fu
     ])->assertOk();
 });
 
+it('revokes every existing token on a successful reset', function () {
+    Notification::fake();
+
+    $user = User::factory()->create([
+        'email' => 'odei@example.com',
+        'password' => bcrypt('old-password'),
+    ]);
+    $staleToken = $user->createToken('stolen-or-elsewhere')->plainTextToken;
+
+    $this->postJson('/api/forgot-password', ['email' => 'odei@example.com']);
+
+    $token = null;
+    Notification::assertSentTo(
+        $user,
+        ResetPasswordNotification::class,
+        function (ResetPasswordNotification $notification) use (&$token) {
+            $token = $notification->token;
+
+            return true;
+        }
+    );
+
+    $this->postJson('/api/reset-password', [
+        'token' => $token,
+        'email' => 'odei@example.com',
+        'password' => 'new-password',
+        'password_confirmation' => 'new-password',
+    ])->assertOk();
+
+    // Unlike the authenticated /user/password change, a reset has no
+    // "request I'm making right now" token to preserve - the reset
+    // itself isn't authenticated at all.
+    $this->withToken($staleToken)->getJson('/api/user')->assertUnauthorized();
+});
+
 it('rejects an invalid reset token', function () {
     User::factory()->create(['email' => 'odei@example.com']);
 
