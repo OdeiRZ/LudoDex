@@ -59,7 +59,13 @@ watch(
   () => auth.isAuthenticated,
   (isAuthenticated) => {
     if (isAuthenticated && !friends.loaded) {
-      friends.fetchAll()
+      // Fire-and-forget: nothing here surfaces a fetch failure to the user,
+      // and `loaded` stays false on failure - the next place that checks it
+      // (this same watcher won't re-fire, but FriendsView's own guard will)
+      // just retries. Without .catch(), a transient failure (offline, cold
+      // start) becomes an unhandled rejection - same pattern as the service
+      // worker registration in main.ts.
+      friends.fetchAll().catch(() => {})
     }
   },
   { immediate: true },

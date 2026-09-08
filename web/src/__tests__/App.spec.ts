@@ -40,6 +40,7 @@ describe('App', () => {
     const auth = useAuthStore()
     auth.token = 'a-token'
     const fetchSpy = vi.spyOn(auth, 'fetchCurrentUser').mockResolvedValue()
+    vi.spyOn(useFriendsStore(), 'fetchAll').mockResolvedValue()
 
     const router = makeRouter('/picker')
     await router.isReady()
@@ -75,6 +76,7 @@ describe('App', () => {
       email_verified_at: null,
       discoverable: false,
     }
+    vi.spyOn(useFriendsStore(), 'fetchAll').mockResolvedValue()
 
     const router = makeRouter('/')
     await router.isReady()
@@ -98,6 +100,7 @@ describe('App', () => {
       email_verified_at: '2026-09-08T00:00:00.000000Z',
       discoverable: false,
     }
+    vi.spyOn(useFriendsStore(), 'fetchAll').mockResolvedValue()
 
     const router = makeRouter('/')
     await router.isReady()
@@ -123,6 +126,7 @@ describe('App', () => {
     const resendSpy = vi
       .spyOn(auth, 'resendVerificationEmail')
       .mockResolvedValue('Te hemos enviado un nuevo enlace de verificación.')
+    vi.spyOn(useFriendsStore(), 'fetchAll').mockResolvedValue()
 
     const router = makeRouter('/')
     await router.isReady()
@@ -152,6 +156,7 @@ describe('App', () => {
       discoverable: false,
     }
     const fetchSpy = vi.spyOn(auth, 'fetchCurrentUser')
+    vi.spyOn(useFriendsStore(), 'fetchAll').mockResolvedValue()
 
     const router = makeRouter('/picker')
     await router.isReady()
@@ -176,6 +181,7 @@ describe('App', () => {
         discoverable: false,
       }
     })
+    vi.spyOn(useFriendsStore(), 'fetchAll').mockResolvedValue()
 
     const router = makeRouter('/picker')
     await router.isReady()
@@ -198,6 +204,7 @@ describe('App', () => {
       email_verified_at: null,
       discoverable: false,
     }
+    vi.spyOn(useFriendsStore(), 'fetchAll').mockResolvedValue()
 
     const router = makeRouter('/')
     await router.isReady()
