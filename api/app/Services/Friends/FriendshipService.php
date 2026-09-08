@@ -5,6 +5,7 @@ namespace App\Services\Friends;
 use App\Models\Friendship;
 use App\Models\User;
 use App\Notifications\FriendRequestReceivedNotification;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -105,11 +106,30 @@ class FriendshipService
             throw ValidationException::withMessages(['user_id' => [__($message)]]);
         }
 
-        $friendship = Friendship::create([
-            'requester_id' => $me->id,
-            'recipient_id' => $target->id,
-            'status' => 'pending',
-        ]);
+        try {
+            $friendship = Friendship::create([
+                'requester_id' => $me->id,
+                'recipient_id' => $target->id,
+                'status' => 'pending',
+                'pair_key' => Friendship::pairKey($me->id, $target->id),
+            ]);
+        } catch (QueryException $e) {
+            if (! $this->isPairKeyConflict($e)) {
+                throw $e;
+            }
+
+            // The SELECT checks above only protect against sequential
+            // requests, not two genuinely concurrent ones (separate
+            // processes/workers) landing between those SELECTs and this
+            // INSERT - the unique index on pair_key is what actually
+            // makes this safe, by rejecting whichever of the two INSERTs
+            // loses the race. The other request already created (or is
+            // about to finish creating) the real row for this pair, in
+            // whichever direction won - re-running from the top resolves
+            // against it exactly like the checks above would have,
+            // rather than trying to reconstruct its outcome by hand here.
+            return $this->sendRequest($me, $targetId);
+        }
 
         // Only reached for a genuinely new pending row - the auto-accept
         // branch above (a mutual request) returns before this, since
@@ -194,5 +214,19 @@ class FriendshipService
         abort_unless($friend !== null && $this->areFriends($me, $friend), 404);
 
         return $friend;
+    }
+
+    /**
+     * SQLSTATE class 23 ("Integrity Constraint Violation") covers unique
+     * violations on both drivers this app runs on - sqlite (tests) and
+     * postgres (production) - without needing to special-case a
+     * driver-specific error code. `pair_key` is the only unique
+     * constraint this particular INSERT could ever hit, so no further
+     * narrowing (e.g. checking the column name in the error message) is
+     * needed here.
+     */
+    private function isPairKeyConflict(QueryException $e): bool
+    {
+        return str_starts_with((string) $e->getCode(), '23');
     }
 }

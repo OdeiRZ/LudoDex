@@ -3,7 +3,9 @@
 use App\Models\Friendship;
 use App\Models\User;
 use App\Notifications\FriendRequestReceivedNotification;
+use App\Services\Friends\FriendshipService;
 use Illuminate\Notifications\ChannelManager;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
 it('finds a discoverable user by email', function () {
@@ -187,6 +189,50 @@ it('auto-accepts instead of duplicating when the target already sent a pending r
         ->assertJsonPath('data.status', 'accepted');
 
     expect($reverse->fresh()->status)->toBe('accepted');
+    expect(Friendship::count())->toBe(1);
+});
+
+it('resolves via the pair_key unique index, not just the SELECT checks, when two concurrent requests race for the same pair', function () {
+    // The SELECT-then-INSERT checks in sendRequest() only protect against
+    // sequential requests - to prove the DB-level unique index is what
+    // actually closes the race between two genuinely concurrent
+    // processes, this simulates the other process's INSERT landing in
+    // the gap between our own SELECT checks (which find nothing) and our
+    // own INSERT, via the model's creating() event - the earliest point
+    // this test can intervene without duplicating sendRequest()'s
+    // internals by hand.
+    $me = actingAsUser();
+    $other = User::factory()->create(['discoverable' => true]);
+
+    Friendship::creating(function () use ($other, $me) {
+        DB::table('friendships')->insert([
+            'requester_id' => $other->id,
+            'recipient_id' => $me->id,
+            'status' => 'pending',
+            'pair_key' => Friendship::pairKey($me->id, $other->id),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    });
+
+    try {
+        $result = app(FriendshipService::class)->sendRequest($me, $other->id);
+    } finally {
+        // Model event listeners registered via the static creating()
+        // method live on Eloquent's dispatcher for the rest of the test
+        // process, not just this test - without this, every Friendship
+        // created afterwards (including by other test files) would keep
+        // inserting this same row a second time.
+        Friendship::flushEventListeners();
+    }
+
+    // The race is won by whichever INSERT the database serializes first -
+    // here, that's the hooked one (recipient_id => $me->id), so this
+    // resolves as an auto-accept of that row, exactly like the
+    // already-covered non-racing case above. What this test actually
+    // proves is the important part: no unhandled QueryException, and
+    // never two rows for the same pair.
+    expect($result->status)->toBe('accepted');
     expect(Friendship::count())->toBe(1);
 });
 

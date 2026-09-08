@@ -15,7 +15,18 @@ class Friendship extends Model
         'requester_id',
         'recipient_id',
         'status',
+        'pair_key',
     ];
+
+    /**
+     * Direction-independent key for a pair of user ids - the same value
+     * regardless of who's requester/recipient. See the migration that
+     * added the `pair_key` column/unique index for why this exists.
+     */
+    public static function pairKey(int $userIdA, int $userIdB): string
+    {
+        return min($userIdA, $userIdB).'_'.max($userIdA, $userIdB);
+    }
 
     /**
      * @return BelongsTo<User, $this>
