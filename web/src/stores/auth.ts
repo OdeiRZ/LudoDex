@@ -10,6 +10,7 @@ export interface User {
   bgg_username: string | null
   avatar_url: string | null
   email_verified_at: string | null
+  discoverable: boolean
 }
 
 interface RegisterPayload {
@@ -28,6 +29,7 @@ interface UpdateProfilePayload {
   name: string
   email: string
   bgg_username?: string | null
+  discoverable: boolean
 }
 
 interface UpdatePasswordPayload {

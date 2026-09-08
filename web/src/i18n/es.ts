@@ -24,6 +24,7 @@ export default {
     picker: '¿A qué jugamos?',
     plays: 'Partidas',
     importBgg: 'Importar BGG',
+    friends: 'Amigos',
     login: 'Entrar',
     register: 'Crear cuenta',
     logout: 'Cerrar sesión',
@@ -244,6 +245,9 @@ export default {
     name: 'Nombre',
     email: 'Email',
     bggUsername: 'Usuario de BoardGameGeek (opcional)',
+    discoverable: 'Permitir que otros usuarios me encuentren',
+    discoverableHint:
+      'Con esto activado, otros usuarios podrán encontrarte por tu email o tu usuario de BGG para enviarte una solicitud de amistad.',
     saved: 'Cambios guardados.',
     save: 'Guardar cambios',
     genericError: 'No se han podido guardar los cambios.',
@@ -315,5 +319,34 @@ export default {
     statsHoursMinutes: '{hours} h {minutes} min',
     statsMostPlayed: 'Más jugados',
     statsMostPlayedCount: '{count} vez | {count} veces',
+  },
+  friends: {
+    title: 'Amigos',
+    search: {
+      title: 'Buscar amigos',
+      byEmail: 'Por email',
+      byBggUsername: 'Por usuario de BGG',
+      emailPlaceholder: 'email\\@ejemplo.com',
+      bggUsernamePlaceholder: 'Usuario de BGG',
+      submit: 'Buscar',
+      searching: 'Buscando…',
+      notFound: 'No se ha encontrado ningún usuario buscable con esos datos.',
+      sendRequest: 'Enviar solicitud',
+      genericError: 'Algo ha ido mal. Inténtalo de nuevo.',
+    },
+    incoming: {
+      title: 'Solicitudes recibidas',
+      accept: 'Aceptar',
+      decline: 'Rechazar',
+    },
+    outgoing: {
+      title: 'Solicitudes enviadas',
+      cancel: 'Cancelar',
+    },
+    list: {
+      title: 'Tus amigos',
+      empty: 'Todavía no tienes amigos añadidos.',
+      remove: 'Quitar amigo',
+    },
   },
 }

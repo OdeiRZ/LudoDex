@@ -8,6 +8,7 @@ use App\Http\Controllers\Bgg\BggCsvImportController;
 use App\Http\Controllers\Bgg\BggImportController;
 use App\Http\Controllers\Bgg\BggLookupController;
 use App\Http\Controllers\Bgg\BggPlaysImportController;
+use App\Http\Controllers\Friends\FriendshipController;
 use App\Http\Controllers\Games\CategoryController;
 use App\Http\Controllers\Games\GameDescriptionController;
 use App\Http\Controllers\Games\GameTranslationBackfillController;
@@ -31,6 +32,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', fn (Request $request) => $request->user());
     Route::put('/user', [ProfileController::class, 'update']);
     Route::put('/user/password', [ProfileController::class, 'updatePassword'])->middleware('throttle:6,1');
+
+    Route::get('/friends', [FriendshipController::class, 'index']);
+    Route::get('/friends/search', [FriendshipController::class, 'search'])->middleware('throttle:6,1');
+    Route::get('/friends/requests', [FriendshipController::class, 'requests']);
+    Route::post('/friends/requests', [FriendshipController::class, 'store'])->middleware('throttle:6,1');
+    Route::post('/friends/requests/{friendship}/accept', [FriendshipController::class, 'accept']);
+    Route::delete('/friends/requests/{friendship}', [FriendshipController::class, 'destroy']);
 
     Route::get('/games', [UserGameController::class, 'index']);
     Route::post('/games', [UserGameController::class, 'store']);

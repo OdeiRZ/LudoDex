@@ -1,0 +1,193 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
+import { useFriendsStore, type Friend, type FriendEntry } from '@/stores/friends'
+import { apiClient } from '@/lib/api'
+
+vi.mock('@/lib/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/api')>()
+  return {
+    ...actual,
+    apiClient: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() },
+  }
+})
+
+function makeFriend(overrides: Partial<Friend> = {}): Friend {
+  return {
+    id: 1,
+    name: 'Friend One',
+    bgg_username: 'friend_one',
+    avatar_url: null,
+    ...overrides,
+  }
+}
+
+function makeEntry(overrides: Partial<FriendEntry> = {}): FriendEntry {
+  return { id: 10, user: makeFriend(), ...overrides }
+}
+
+describe('useFriendsStore', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    vi.mocked(apiClient.get).mockReset()
+    vi.mocked(apiClient.post).mockReset()
+    vi.mocked(apiClient.delete).mockReset()
+  })
+
+  describe('fetchAll', () => {
+    it('loads friends and split requests in parallel, marking itself loaded', async () => {
+      const friend = makeEntry()
+      const incoming = makeEntry({ id: 11, user: makeFriend({ id: 2, name: 'Incoming' }) })
+      const outgoing = makeEntry({ id: 12, user: makeFriend({ id: 3, name: 'Outgoing' }) })
+      vi.mocked(apiClient.get).mockImplementation((url: string) => {
+        if (url === '/friends') return Promise.resolve({ data: { data: [friend] } })
+        return Promise.resolve({ data: { data: { incoming: [incoming], outgoing: [outgoing] } } })
+      })
+      const store = useFriendsStore()
+
+      await store.fetchAll()
+
+      expect(store.friends).toEqual([friend])
+      expect(store.incomingRequests).toEqual([incoming])
+      expect(store.outgoingRequests).toEqual([outgoing])
+      expect(store.loaded).toBe(true)
+      expect(store.loading).toBe(false)
+    })
+
+    it('ignores a second fetchAll call while the first is still in flight', async () => {
+      let resolveFriends: (value: unknown) => void = () => {}
+      vi.mocked(apiClient.get).mockImplementation((url: string) => {
+        if (url === '/friends') {
+          return new Promise((resolve) => {
+            resolveFriends = resolve
+          })
+        }
+        return Promise.resolve({ data: { data: { incoming: [], outgoing: [] } } })
+      })
+      const store = useFriendsStore()
+
+      const first = store.fetchAll()
+      const second = store.fetchAll()
+
+      resolveFriends({ data: { data: [] } })
+      await Promise.all([first, second])
+
+      expect(apiClient.get).toHaveBeenCalledTimes(2)
+    })
+
+    it('turns loading off even when fetchAll fails', async () => {
+      vi.mocked(apiClient.get).mockRejectedValue(new Error('network error'))
+      const store = useFriendsStore()
+
+      await expect(store.fetchAll()).rejects.toThrow('network error')
+
+      expect(store.loading).toBe(false)
+      expect(store.loaded).toBe(false)
+    })
+  })
+
+  describe('search', () => {
+    it('searchByEmail sends the email param and returns the match', async () => {
+      const friend = makeFriend()
+      vi.mocked(apiClient.get).mockResolvedValue({ data: { data: friend } })
+      const store = useFriendsStore()
+
+      const result = await store.searchByEmail('friend@example.com')
+
+      expect(apiClient.get).toHaveBeenCalledWith('/friends/search', {
+        params: { email: 'friend@example.com' },
+      })
+      expect(result).toEqual(friend)
+    })
+
+    it('searchByBggUsername sends the bgg_username param and returns the match', async () => {
+      const friend = makeFriend()
+      vi.mocked(apiClient.get).mockResolvedValue({ data: { data: friend } })
+      const store = useFriendsStore()
+
+      const result = await store.searchByBggUsername('friend_one')
+
+      expect(apiClient.get).toHaveBeenCalledWith('/friends/search', {
+        params: { bgg_username: 'friend_one' },
+      })
+      expect(result).toEqual(friend)
+    })
+
+    it('returns null when nobody matches (or the match is private - indistinguishable on purpose)', async () => {
+      vi.mocked(apiClient.get).mockResolvedValue({ data: { data: null } })
+      const store = useFriendsStore()
+
+      const result = await store.searchByEmail('nobody@example.com')
+
+      expect(result).toBeNull()
+    })
+  })
+
+  describe('sendRequest', () => {
+    it('adds the target to outgoingRequests when the request stays pending', async () => {
+      const target = makeFriend()
+      vi.mocked(apiClient.post).mockResolvedValue({ data: { data: { id: 99, status: 'pending' } } })
+      const store = useFriendsStore()
+
+      await store.sendRequest(target)
+
+      expect(apiClient.post).toHaveBeenCalledWith('/friends/requests', { user_id: target.id })
+      expect(store.outgoingRequests).toEqual([{ id: 99, user: target }])
+      expect(store.friends).toEqual([])
+    })
+
+    it('adds the target straight to friends and drops any matching incoming request when auto-accepted', async () => {
+      const target = makeFriend({ id: 5, name: 'Mutual' })
+      const store = useFriendsStore()
+      store.incomingRequests = [makeEntry({ id: 77, user: target })]
+      vi.mocked(apiClient.post).mockResolvedValue({
+        data: { data: { id: 77, status: 'accepted' } },
+      })
+
+      await store.sendRequest(target)
+
+      expect(store.friends).toEqual([{ id: 77, user: target }])
+      expect(store.incomingRequests).toEqual([])
+    })
+  })
+
+  describe('acceptRequest', () => {
+    it('moves the request from incomingRequests to friends', async () => {
+      const target = makeFriend()
+      const store = useFriendsStore()
+      store.incomingRequests = [makeEntry({ id: 30, user: target })]
+      vi.mocked(apiClient.post).mockResolvedValue({})
+
+      await store.acceptRequest(30)
+
+      expect(apiClient.post).toHaveBeenCalledWith('/friends/requests/30/accept')
+      expect(store.incomingRequests).toEqual([])
+      expect(store.friends).toEqual([{ id: 30, user: target }])
+    })
+
+    it('does nothing to friends if the request id is not found locally', async () => {
+      const store = useFriendsStore()
+      vi.mocked(apiClient.post).mockResolvedValue({})
+
+      await store.acceptRequest(404)
+
+      expect(store.friends).toEqual([])
+    })
+  })
+
+  describe('removeRelationship', () => {
+    it('removes the entry from whichever of the three arrays currently has it', async () => {
+      const store = useFriendsStore()
+      store.friends = [makeEntry({ id: 1 })]
+      store.incomingRequests = [makeEntry({ id: 2 })]
+      store.outgoingRequests = [makeEntry({ id: 3 })]
+      vi.mocked(apiClient.delete).mockResolvedValue({})
+
+      await store.removeRelationship(2)
+
+      expect(apiClient.delete).toHaveBeenCalledWith('/friends/requests/2')
+      expect(store.friends).toEqual([makeEntry({ id: 1 })])
+      expect(store.incomingRequests).toEqual([])
+      expect(store.outgoingRequests).toEqual([makeEntry({ id: 3 })])
+    })
+  })
+})

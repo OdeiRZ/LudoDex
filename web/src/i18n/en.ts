@@ -24,6 +24,7 @@ export default {
     picker: 'What should we play?',
     plays: 'Plays',
     importBgg: 'Import BGG',
+    friends: 'Friends',
     login: 'Log in',
     register: 'Sign up',
     logout: 'Log out',
@@ -245,6 +246,9 @@ export default {
     name: 'Name',
     email: 'Email',
     bggUsername: 'BoardGameGeek username (optional)',
+    discoverable: 'Let other users find me',
+    discoverableHint:
+      'With this on, other users can find you by your email or BGG username to send you a friend request.',
     saved: 'Changes saved.',
     save: 'Save changes',
     genericError: "Couldn't save the changes.",
@@ -315,5 +319,34 @@ export default {
     statsHoursMinutes: '{hours} h {minutes} min',
     statsMostPlayed: 'Most played',
     statsMostPlayedCount: '{count} time | {count} times',
+  },
+  friends: {
+    title: 'Friends',
+    search: {
+      title: 'Find friends',
+      byEmail: 'By email',
+      byBggUsername: 'By BGG username',
+      emailPlaceholder: 'email\\@example.com',
+      bggUsernamePlaceholder: 'BGG username',
+      submit: 'Search',
+      searching: 'Searching…',
+      notFound: 'No discoverable user was found with that.',
+      sendRequest: 'Send request',
+      genericError: 'Something went wrong. Please try again.',
+    },
+    incoming: {
+      title: 'Incoming requests',
+      accept: 'Accept',
+      decline: 'Decline',
+    },
+    outgoing: {
+      title: 'Sent requests',
+      cancel: 'Cancel',
+    },
+    list: {
+      title: 'Your friends',
+      empty: "You haven't added any friends yet.",
+      remove: 'Remove friend',
+    },
   },
 }

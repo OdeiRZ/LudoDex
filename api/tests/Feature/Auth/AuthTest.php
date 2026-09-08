@@ -218,6 +218,28 @@ it('allows a profile update that keeps the user\'s own current email', function 
     $response->assertOk();
 });
 
+it('persists the discoverable flag via the profile update endpoint', function () {
+    $user = User::factory()->create(['name' => 'Odei', 'email' => 'odei@example.com', 'discoverable' => false]);
+    $this->actingAs($user, 'sanctum');
+
+    $this->putJson('/api/user', [
+        'name' => 'Odei',
+        'email' => 'odei@example.com',
+        'discoverable' => true,
+    ])->assertOk()->assertJsonPath('user.discoverable', true);
+
+    expect($user->fresh()->discoverable)->toBeTrue();
+});
+
+it('keeps discoverable false by default when a profile update omits it', function () {
+    $user = User::factory()->create(['name' => 'Odei', 'email' => 'odei@example.com', 'discoverable' => false]);
+    $this->actingAs($user, 'sanctum');
+
+    $this->putJson('/api/user', ['name' => 'Odei', 'email' => 'odei@example.com'])->assertOk();
+
+    expect($user->fresh()->discoverable)->toBeFalse();
+});
+
 it('fetches and stores the BGG avatar when a bgg_username is set', function () {
     $user = actingAsUser();
 

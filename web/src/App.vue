@@ -73,6 +73,7 @@ async function onResendVerification() {
       <RouterLink :to="{ name: 'picker' }">{{ $t('nav.picker') }}</RouterLink>
       <RouterLink :to="{ name: 'plays' }">{{ $t('nav.plays') }}</RouterLink>
       <RouterLink :to="{ name: 'import-bgg' }">{{ $t('nav.importBgg') }}</RouterLink>
+      <RouterLink :to="{ name: 'friends' }">{{ $t('nav.friends') }}</RouterLink>
     </nav>
 
     <button
@@ -99,6 +100,7 @@ async function onResendVerification() {
       <RouterLink :to="{ name: 'picker' }">{{ $t('nav.picker') }}</RouterLink>
       <RouterLink :to="{ name: 'plays' }">{{ $t('nav.plays') }}</RouterLink>
       <RouterLink :to="{ name: 'import-bgg' }">{{ $t('nav.importBgg') }}</RouterLink>
+      <RouterLink :to="{ name: 'friends' }">{{ $t('nav.friends') }}</RouterLink>
     </nav>
 
     <div class="session">

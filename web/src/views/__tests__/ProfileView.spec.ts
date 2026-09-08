@@ -12,6 +12,7 @@ const user = {
   bgg_username: 'odei_bgg',
   avatar_url: null,
   email_verified_at: null,
+  discoverable: false,
 }
 
 // Pre-seeding auth.user keeps onMounted from calling fetchCurrentUser()
@@ -34,6 +35,7 @@ describe('ProfileView personal data form', () => {
     expect((wrapper.find('#name').element as HTMLInputElement).value).toBe('Odei')
     expect((wrapper.find('#email').element as HTMLInputElement).value).toBe('odei@example.com')
     expect((wrapper.find('#bgg_username').element as HTMLInputElement).value).toBe('odei_bgg')
+    expect((wrapper.find('#discoverable').element as HTMLInputElement).checked).toBe(false)
   })
 
   it('saves the profile and shows a success message', async () => {
@@ -49,8 +51,26 @@ describe('ProfileView personal data form', () => {
       name: 'Nuevo nombre',
       email: 'odei@example.com',
       bgg_username: 'odei_bgg',
+      discoverable: false,
     })
     expect(wrapper.find('[role="status"]').text()).toBe('Cambios guardados.')
+  })
+
+  it('includes the discoverable flag when the checkbox is toggled on', async () => {
+    const { wrapper, store } = mountProfile()
+    await flushPromises()
+    vi.spyOn(store, 'updateProfile').mockResolvedValue()
+
+    await wrapper.find('#discoverable').setValue(true)
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(store.updateProfile).toHaveBeenCalledWith({
+      name: 'Odei',
+      email: 'odei@example.com',
+      bgg_username: 'odei_bgg',
+      discoverable: true,
+    })
   })
 
   it('shows field errors from a 422 response instead of the success message', async () => {

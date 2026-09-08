@@ -20,6 +20,7 @@ const user = {
   bgg_username: null,
   avatar_url: null,
   email_verified_at: null,
+  discoverable: false,
 }
 
 describe('useAuthStore', () => {
@@ -112,7 +113,7 @@ describe('useAuthStore', () => {
     const updated = { ...user, name: 'Nuevo nombre' }
     vi.mocked(apiClient.put).mockResolvedValue({ data: { user: updated } })
 
-    await store.updateProfile({ name: 'Nuevo nombre', email: user.email })
+    await store.updateProfile({ name: 'Nuevo nombre', email: user.email, discoverable: false })
 
     expect(store.user).toEqual(updated)
   })

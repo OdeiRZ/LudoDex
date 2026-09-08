@@ -24,6 +24,12 @@ class ProfileController extends Controller
             'name' => $request->validated('name'),
             'email' => $request->validated('email'),
             'bgg_username' => $bggUsername,
+            // ?? false (not just $user->discoverable) because a model
+            // instance that never got the DB default re-fetched into its
+            // in-memory attributes (e.g. straight after
+            // User::factory()->create() with no explicit value) reads as
+            // null here, not false - and this column is NOT NULL.
+            'discoverable' => $request->validated('discoverable', $user->discoverable ?? false),
         ];
 
         // Best-effort: a BGG lookup failure (no token yet, unknown username,

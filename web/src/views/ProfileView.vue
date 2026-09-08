@@ -13,7 +13,12 @@ const { t } = useI18n()
 const { isSlow: isProfileSlow, wrap: wrapProfile } = useSlowRequestHint()
 const { isSlow: isPasswordSlow, wrap: wrapPassword } = useSlowRequestHint()
 
-const profileForm = reactive({ name: '', email: '', bgg_username: '' as string | null })
+const profileForm = reactive({
+  name: '',
+  email: '',
+  bgg_username: '' as string | null,
+  discoverable: false,
+})
 const profileErrors = ref<Record<string, string[]>>({})
 const profileSubmitting = ref(false)
 const profileSaved = ref(false)
@@ -36,6 +41,7 @@ onMounted(async () => {
     profileForm.name = auth.user.name
     profileForm.email = auth.user.email
     profileForm.bgg_username = auth.user.bgg_username
+    profileForm.discoverable = auth.user.discoverable
   }
 })
 
@@ -89,7 +95,11 @@ async function onSubmitPassword() {
       <h2>{{ $t('profile.personalData') }}</h2>
 
       <div class="avatar-preview">
-        <UserAvatar :name="profileForm.name || '?'" :avatar-url="auth.user?.avatar_url" :size="64" />
+        <UserAvatar
+          :name="profileForm.name || '?'"
+          :avatar-url="auth.user?.avatar_url"
+          :size="64"
+        />
         <p class="avatar-hint">
           {{ $t('profile.avatarHint') }}
         </p>
@@ -111,7 +121,13 @@ async function onSubmitPassword() {
 
         <div>
           <label for="email">{{ $t('profile.email') }}</label>
-          <input id="email" v-model="profileForm.email" type="email" required autocomplete="email" />
+          <input
+            id="email"
+            v-model="profileForm.email"
+            type="email"
+            required
+            autocomplete="email"
+          />
           <p
             v-for="message in profileErrors.email"
             :key="message"
@@ -135,6 +151,14 @@ async function onSubmitPassword() {
           </p>
         </div>
 
+        <div>
+          <label class="checkbox-label" for="discoverable">
+            <input id="discoverable" v-model="profileForm.discoverable" type="checkbox" />
+            {{ $t('profile.discoverable') }}
+          </label>
+          <p class="discoverable-hint">{{ $t('profile.discoverableHint') }}</p>
+        </div>
+
         <p
           v-for="message in profileErrors.general"
           :key="message"
@@ -143,7 +167,9 @@ async function onSubmitPassword() {
         >
           {{ message }}
         </p>
-        <p v-if="profileSaved" role="status" class="alert alert-success">{{ $t('profile.saved') }}</p>
+        <p v-if="profileSaved" role="status" class="alert alert-success">
+          {{ $t('profile.saved') }}
+        </p>
 
         <button type="submit" class="btn btn-primary" :disabled="profileSubmitting">
           {{ profileSubmitting ? $t('common.saving') : $t('profile.save') }}
@@ -180,7 +206,12 @@ async function onSubmitPassword() {
 
         <div>
           <label for="new_password">{{ $t('profile.newPassword') }}</label>
-          <PasswordInput id="new_password" v-model="passwordForm.password" required autocomplete="new-password" />
+          <PasswordInput
+            id="new_password"
+            v-model="passwordForm.password"
+            required
+            autocomplete="new-password"
+          />
         </div>
 
         <div>
@@ -247,6 +278,22 @@ h1 {
 }
 
 .avatar-hint {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.checkbox-label input {
+  width: auto;
+}
+
+.discoverable-hint {
+  margin-top: var(--space-1);
   font-size: 0.85rem;
   color: var(--color-text-muted);
 }

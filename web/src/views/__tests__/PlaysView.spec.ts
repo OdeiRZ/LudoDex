@@ -56,6 +56,7 @@ async function mountPlays(bggUsername?: string | null) {
       bgg_username: bggUsername,
       avatar_url: null,
       email_verified_at: null,
+      discoverable: false,
     }
   }
 

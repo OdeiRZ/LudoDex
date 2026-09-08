@@ -29,6 +29,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
         'password',
         'bgg_username',
         'avatar_url',
+        'discoverable',
     ];
 
     /**
@@ -51,6 +52,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'discoverable' => 'boolean',
         ];
     }
 

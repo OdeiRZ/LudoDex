@@ -27,6 +27,9 @@ class UpdateProfileRequest extends FormRequest
             // an avatar from this BGG account - best-effort, never blocks
             // saving the rest of the profile if BGG can't be reached.
             'bgg_username' => ['nullable', 'string', 'max:255'],
+            // Off by default (see the users migration) - lets other users
+            // find this account via friend search (email/bgg_username).
+            'discoverable' => ['boolean'],
         ];
     }
 }

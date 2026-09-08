@@ -16,6 +16,7 @@ function makeRouter(startPath: string) {
       { path: '/picker', name: 'picker', component: { template: '<div>Picker</div>' } },
       { path: '/plays', name: 'plays', component: { template: '<div>Plays</div>' } },
       { path: '/import', name: 'import-bgg', component: { template: '<div>Import</div>' } },
+      { path: '/friends', name: 'friends', component: { template: '<div>Friends</div>' } },
       { path: '/profile', name: 'profile', component: { template: '<div>Profile</div>' } },
       { path: '/login', name: 'login', component: { template: '<div>Login</div>' } },
       { path: '/register', name: 'register', component: { template: '<div>Register</div>' } },
@@ -71,6 +72,7 @@ describe('App', () => {
       bgg_username: null,
       avatar_url: null,
       email_verified_at: null,
+      discoverable: false,
     }
 
     const router = makeRouter('/')
@@ -93,6 +95,7 @@ describe('App', () => {
       bgg_username: null,
       avatar_url: null,
       email_verified_at: '2026-09-08T00:00:00.000000Z',
+      discoverable: false,
     }
 
     const router = makeRouter('/')
@@ -114,6 +117,7 @@ describe('App', () => {
       bgg_username: null,
       avatar_url: null,
       email_verified_at: null,
+      discoverable: false,
     }
     const resendSpy = vi
       .spyOn(auth, 'resendVerificationEmail')
@@ -144,6 +148,7 @@ describe('App', () => {
       bgg_username: null,
       avatar_url: null,
       email_verified_at: null,
+      discoverable: false,
     }
     const fetchSpy = vi.spyOn(auth, 'fetchCurrentUser')
 
@@ -167,6 +172,7 @@ describe('App', () => {
         bgg_username: null,
         avatar_url: null,
         email_verified_at: null,
+        discoverable: false,
       }
     })
 
@@ -176,5 +182,43 @@ describe('App', () => {
     await flushPromises()
 
     expect(wrapper.find('.user-name').text()).toContain('Odei')
+  })
+
+  it('shows a friends nav link (in both primary and mobile nav) when authenticated', async () => {
+    setActivePinia(createPinia())
+    const auth = useAuthStore()
+    auth.token = 'a-token'
+    auth.user = {
+      id: 1,
+      name: 'Odei',
+      email: 'odei@example.com',
+      bgg_username: null,
+      avatar_url: null,
+      email_verified_at: null,
+      discoverable: false,
+    }
+
+    const router = makeRouter('/')
+    await router.isReady()
+    const wrapper = mount(App, { global: { plugins: [router, i18n] } })
+    await flushPromises()
+
+    expect(wrapper.find('.primary-nav a[href="/friends"]').exists()).toBe(true)
+
+    // The mobile nav is only rendered once the burger menu is open.
+    await wrapper.find('.hamburger-btn').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.mobile-nav a[href="/friends"]').exists()).toBe(true)
+  })
+
+  it('does not show the friends nav link when not authenticated', async () => {
+    setActivePinia(createPinia())
+
+    const router = makeRouter('/login')
+    await router.isReady()
+    const wrapper = mount(App, { global: { plugins: [router, i18n] } })
+    await flushPromises()
+
+    expect(wrapper.find('.primary-nav').exists()).toBe(false)
   })
 })
