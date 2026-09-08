@@ -287,4 +287,24 @@ describe('FriendsView', () => {
 
     expect(store.unblockUser).toHaveBeenCalledWith(50)
   })
+
+  it('shows a retry option instead of an endless spinner when the initial fetch fails', async () => {
+    // Can't close over the outer `store` here - onMounted() (inside
+    // mountFriends()) invokes this callback synchronously as part of
+    // mounting, before mountFriends() has returned and assigned `store`
+    // below, so useFriendsStore() is used instead to reach the same
+    // (already-active-Pinia) instance.
+    const { wrapper, store } = mountFriends(async () => {
+      useFriendsStore().loadError = true
+    })
+    await flushPromises()
+
+    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
+    expect(wrapper.find('.loading-state').exists()).toBe(false)
+
+    vi.spyOn(store, 'fetchAll').mockResolvedValue()
+    await wrapper.find('.load-error button').trigger('click')
+
+    expect(store.fetchAll).toHaveBeenCalled()
+  })
 })

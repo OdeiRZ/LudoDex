@@ -462,6 +462,13 @@ async function onClearCollection() {
       {{ $t('common.loadingCollection') }}
     </p>
 
+    <div v-else-if="games.loadError" class="load-error">
+      <p role="alert" class="alert alert-error">{{ $t('common.loadError') }}</p>
+      <button type="button" class="btn" @click="games.fetchAll()">
+        {{ $t('common.retry') }}
+      </button>
+    </div>
+
     <p v-else-if="games.loaded && games.collection.length === 0" class="empty-state">
       {{ $t('dashboard.empty') }}<br />
       <RouterLink :to="{ name: 'add-game' }">{{ $t('dashboard.addFirst') }}</RouterLink

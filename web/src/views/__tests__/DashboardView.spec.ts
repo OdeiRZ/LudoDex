@@ -589,4 +589,25 @@ describe('DashboardView', () => {
 
     expect(wrapper.findComponent({ name: 'GameDetailModal' }).exists()).toBe(true)
   })
+
+  it('shows a retry option instead of a blank page when the initial fetch fails', async () => {
+    setActivePinia(createPinia())
+    const games = useGamesStore()
+    vi.spyOn(games, 'fetchAll').mockImplementation(async () => {
+      games.loadError = true
+    })
+
+    const wrapper = mount(DashboardView, {
+      global: { stubs: { RouterLink: true }, plugins: [i18n] },
+    })
+    await flushPromises()
+
+    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain('No se ha podido cargar')
+
+    vi.mocked(games.fetchAll).mockClear()
+    await wrapper.find('.load-error button').trigger('click')
+
+    expect(games.fetchAll).toHaveBeenCalled()
+  })
 })

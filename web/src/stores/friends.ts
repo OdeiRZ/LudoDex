@@ -30,6 +30,7 @@ interface FriendsState {
   blockedUsers: FriendEntry[]
   loaded: boolean
   loading: boolean
+  loadError: boolean
 }
 
 export const useFriendsStore = defineStore('friends', {
@@ -40,12 +41,14 @@ export const useFriendsStore = defineStore('friends', {
     blockedUsers: [],
     loaded: false,
     loading: false,
+    loadError: false,
   }),
 
   actions: {
     async fetchAll() {
       if (this.loading) return
       this.loading = true
+      this.loadError = false
 
       try {
         const [friendsResponse, requestsResponse, blocksResponse] = await Promise.all([
@@ -59,6 +62,13 @@ export const useFriendsStore = defineStore('friends', {
         this.outgoingRequests = requestsResponse.data.data.outgoing
         this.blockedUsers = blocksResponse.data.data
         this.loaded = true
+      } catch {
+        // Swallowed, not rethrown - see the identical comment in
+        // games.ts's fetchAll() for why (fire-and-forget call sites with
+        // no try/catch of their own). `loaded` stays false so
+        // FriendsView can distinguish "still loading" from "failed" via
+        // `loadError`; re-callable to retry.
+        this.loadError = true
       } finally {
         this.loading = false
       }

@@ -7,6 +7,8 @@ export default {
     genericGameSaveError: 'No se ha podido guardar el juego. Revisa los datos.',
     loadingCollection: 'Cargando tu colección…',
     loadingAriaLabel: 'Cargando',
+    loadError: 'No se ha podido cargar. Comprueba tu conexión e inténtalo de nuevo.',
+    retry: 'Reintentar',
     showPassword: 'Mostrar contraseña',
     hidePassword: 'Ocultar contraseña',
     gamesCount: '{count} juegos',

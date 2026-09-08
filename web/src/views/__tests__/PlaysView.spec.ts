@@ -656,4 +656,18 @@ describe('PlaysView', () => {
 
     expect(fetchStatsSpy).toHaveBeenCalled()
   })
+
+  it('shows a retry option instead of an endless spinner when the initial fetch fails', async () => {
+    const { wrapper, store } = await mountPlays()
+    store.loadError = true
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
+    expect(wrapper.find('.loading-state').exists()).toBe(false)
+
+    const fetchPageSpy = vi.spyOn(store, 'fetchPage').mockResolvedValue()
+    await wrapper.find('.load-error button').trigger('click')
+
+    expect(fetchPageSpy).toHaveBeenCalledWith(1)
+  })
 })

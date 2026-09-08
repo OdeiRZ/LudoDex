@@ -57,11 +57,13 @@ describe('useFriendDetailStore', () => {
       expect(store.collectionLoading).toBe(false)
     })
 
-    it('rethrows any error that is not a 404 or 403', async () => {
+    it('swallows any error that is not a 404 or 403, setting collectionError instead of rejecting', async () => {
       vi.mocked(apiClient.get).mockRejectedValue(new Error('network error'))
       const store = useFriendDetailStore()
 
-      await expect(store.fetchCollection(2)).rejects.toThrow('network error')
+      await expect(store.fetchCollection(2)).resolves.toBeUndefined()
+
+      expect(store.collectionError).toBe(true)
       expect(store.notFound).toBe(false)
     })
 

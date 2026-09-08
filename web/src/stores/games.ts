@@ -99,6 +99,7 @@ interface GamesState {
   categoryOptions: string[]
   loaded: boolean
   loading: boolean
+  loadError: boolean
 }
 
 export const useGamesStore = defineStore('games', {
@@ -108,6 +109,7 @@ export const useGamesStore = defineStore('games', {
     categoryOptions: [],
     loaded: false,
     loading: false,
+    loadError: false,
   }),
 
   actions: {
@@ -121,6 +123,7 @@ export const useGamesStore = defineStore('games', {
     async fetchAll() {
       if (this.loading) return
       this.loading = true
+      this.loadError = false
 
       try {
         const [gamesResponse, mechanicsResponse, categoriesResponse] = await Promise.all([
@@ -133,6 +136,17 @@ export const useGamesStore = defineStore('games', {
         this.mechanicOptions = mechanicsResponse.data.data.map((item: Catalog) => item.name)
         this.categoryOptions = categoriesResponse.data.data.map((item: Catalog) => item.name)
         this.loaded = true
+      } catch {
+        // Swallowed, not rethrown: several callers (AddGameView,
+        // EditGameView, PickerView) call this fire-and-forget or with a
+        // bare `await` with no surrounding try/catch - a rethrow here
+        // would turn a network hiccup into an unhandled promise
+        // rejection at each of those call sites. `loaded` deliberately
+        // stays false so DashboardView can tell "still loading" apart
+        // from "failed" via `loadError`, and `fetchAll()` is safely
+        // re-callable to retry (loading/loadError both reset at the top
+        // of this method).
+        this.loadError = true
       } finally {
         this.loading = false
       }

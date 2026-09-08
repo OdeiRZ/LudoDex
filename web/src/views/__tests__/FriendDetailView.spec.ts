@@ -273,4 +273,41 @@ describe('FriendDetailView', () => {
 
     expect(wrapper.text()).toContain('Catan')
   })
+
+  it('shows a retry option on the collection tab instead of an endless spinner when the fetch fails', async () => {
+    // Can't close over the outer `store` here - it runs as part of
+    // mounting, before mountDetail() has returned and assigned `store`
+    // below - see the identical note in FriendsView.spec.ts.
+    const { wrapper, store } = await mountDetail(async () => {
+      useFriendDetailStore().collectionError = true
+    })
+
+    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
+    expect(wrapper.find('.loading-state').exists()).toBe(false)
+
+    const retrySpy = vi.spyOn(store, 'fetchCollection').mockResolvedValue()
+    await wrapper.find('.load-error button').trigger('click')
+
+    expect(retrySpy).toHaveBeenCalledWith(2)
+  })
+
+  it('shows a retry option on the plays tab instead of an endless spinner when the fetch fails', async () => {
+    const { wrapper, store } = await mountDetail()
+    vi.spyOn(store, 'fetchPlays').mockImplementation(async () => {
+      store.playsError = true
+    })
+
+    await wrapper.findAll('.tab')[1]!.trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
+    expect(wrapper.find('.loading-state').exists()).toBe(false)
+
+    const retryPlaysSpy = vi.spyOn(store, 'fetchPlays').mockResolvedValue()
+    const retryStatsSpy = vi.spyOn(store, 'fetchPlaysStats').mockResolvedValue()
+    await wrapper.find('.load-error button').trigger('click')
+
+    expect(retryPlaysSpy).toHaveBeenCalledWith(2, 1)
+    expect(retryStatsSpy).toHaveBeenCalledWith(2)
+  })
 })

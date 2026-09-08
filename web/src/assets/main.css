@@ -171,6 +171,20 @@ fieldset input[type='radio'] {
   text-align: center;
 }
 
+/* A failed initial fetch (network/server error), not an empty result -
+kept visually distinct from .empty-state (that one is a legitimate "you
+have nothing here yet") so the two are never confused. Shared by every
+view with its own top-level fetch (Dashboard/Amigos/Partidas/Detalle de
+amigo), instead of each redefining its own version. */
+.load-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8) 0;
+  text-align: center;
+}
+
 .alert {
   border-radius: var(--radius-sm);
   padding: var(--space-3) var(--space-4);

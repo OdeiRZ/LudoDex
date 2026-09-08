@@ -113,14 +113,24 @@ describe('usePlaysStore', () => {
     expect(apiClient.get).toHaveBeenCalledTimes(1)
   })
 
-  it('turns loading off even when fetchPage fails', async () => {
+  it('swallows the error and sets loadError instead of rejecting, so fire-and-forget callers never see an unhandled rejection', async () => {
     vi.mocked(apiClient.get).mockRejectedValue(new Error('network error'))
     const store = usePlaysStore()
 
-    await expect(store.fetchPage(1)).rejects.toThrow('network error')
+    await expect(store.fetchPage(1)).resolves.toBeUndefined()
 
+    expect(store.loadError).toBe(true)
     expect(store.loading).toBe(false)
     expect(store.loaded).toBe(false)
+  })
+
+  it('fetchStats swallows a failure without rejecting', async () => {
+    vi.mocked(apiClient.get).mockRejectedValue(new Error('network error'))
+    const store = usePlaysStore()
+
+    await expect(store.fetchStats()).resolves.toBeUndefined()
+
+    expect(store.stats).toBeNull()
   })
 
   it('resolves importPlays with the final result directly, without touching entries', async () => {

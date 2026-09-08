@@ -78,12 +78,13 @@ describe('useFriendsStore', () => {
       expect(apiClient.get).toHaveBeenCalledTimes(3)
     })
 
-    it('turns loading off even when fetchAll fails', async () => {
+    it('swallows the error and sets loadError instead of rejecting, so fire-and-forget callers never see an unhandled rejection', async () => {
       vi.mocked(apiClient.get).mockRejectedValue(new Error('network error'))
       const store = useFriendsStore()
 
-      await expect(store.fetchAll()).rejects.toThrow('network error')
+      await expect(store.fetchAll()).resolves.toBeUndefined()
 
+      expect(store.loadError).toBe(true)
       expect(store.loading).toBe(false)
       expect(store.loaded).toBe(false)
     })

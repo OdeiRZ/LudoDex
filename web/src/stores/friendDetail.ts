@@ -11,6 +11,8 @@ interface FriendDetailState {
   notFound: boolean
   collectionHidden: boolean
   playsHidden: boolean
+  collectionError: boolean
+  playsError: boolean
   shared: Game[]
   mineOnly: Game[]
   theirsOnly: Game[]
@@ -32,6 +34,8 @@ export const useFriendDetailStore = defineStore('friendDetail', {
     notFound: false,
     collectionHidden: false,
     playsHidden: false,
+    collectionError: false,
+    playsError: false,
     shared: [],
     mineOnly: [],
     theirsOnly: [],
@@ -60,6 +64,7 @@ export const useFriendDetailStore = defineStore('friendDetail', {
     async fetchCollection(friendId: number) {
       this.resetIfDifferentFriend(friendId)
       this.collectionLoading = true
+      this.collectionError = false
       try {
         const { data } = await apiClient.get(`/friends/${friendId}/games`)
         this.friend = data.data.friend
@@ -84,7 +89,12 @@ export const useFriendDetailStore = defineStore('friendDetail', {
         } else if (isAxiosError(err) && err.response?.status === 403) {
           this.collectionHidden = true
         } else {
-          throw err
+          // Swallowed, not rethrown: called fire-and-forget from
+          // FriendDetailView's onMounted/watch, with no try/catch of its
+          // own - see the identical reasoning in games.ts's fetchAll().
+          // collectionLoaded stays false so the view can distinguish
+          // "still loading" from "failed" via collectionError.
+          this.collectionError = true
         }
       } finally {
         this.collectionLoading = false
@@ -95,6 +105,7 @@ export const useFriendDetailStore = defineStore('friendDetail', {
       this.resetIfDifferentFriend(friendId)
       if (this.playsLoading) return
       this.playsLoading = true
+      this.playsError = false
       try {
         const { data } = await apiClient.get(`/friends/${friendId}/plays`, {
           params: { page, search: this.playsSearch },
@@ -112,7 +123,10 @@ export const useFriendDetailStore = defineStore('friendDetail', {
         } else if (isAxiosError(err) && err.response?.status === 403) {
           this.playsHidden = true
         } else {
-          throw err
+          // Swallowed, not rethrown - see fetchCollection()'s identical
+          // reasoning. playsLoaded stays false so the view can tell
+          // "still loading" from "failed" via playsError.
+          this.playsError = true
         }
       } finally {
         this.playsLoading = false
@@ -139,7 +153,10 @@ export const useFriendDetailStore = defineStore('friendDetail', {
         } else if (isAxiosError(err) && err.response?.status === 403) {
           this.playsHidden = true
         } else {
-          throw err
+          // Swallowed, same reasoning as fetchPlays() above - a failed
+          // stats fetch doesn't block the plays list itself from
+          // rendering, so this doesn't need its own loading/loaded gate.
+          this.playsError = true
         }
       }
     },

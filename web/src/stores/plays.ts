@@ -44,6 +44,7 @@ interface PlaysState {
   entries: Play[]
   loaded: boolean
   loading: boolean
+  loadError: boolean
   currentPage: number
   lastPage: number
   search: string
@@ -55,6 +56,7 @@ export const usePlaysStore = defineStore('plays', {
     entries: [],
     loaded: false,
     loading: false,
+    loadError: false,
     currentPage: 1,
     lastPage: 1,
     search: '',
@@ -79,6 +81,7 @@ export const usePlaysStore = defineStore('plays', {
     async fetchPage(page = 1) {
       if (this.loading) return
       this.loading = true
+      this.loadError = false
 
       try {
         const { data } = await apiClient.get('/plays', { params: { page, search: this.search } })
@@ -86,6 +89,13 @@ export const usePlaysStore = defineStore('plays', {
         this.currentPage = data.meta.current_page
         this.lastPage = data.meta.last_page
         this.loaded = true
+      } catch {
+        // Swallowed, not rethrown - see the identical comment in
+        // games.ts's fetchAll() for why (fire-and-forget call sites with
+        // no try/catch of their own, e.g. PlaysView's onMounted).
+        // `loaded` stays false so PlaysView can distinguish "still
+        // loading" from "failed" via `loadError`; re-callable to retry.
+        this.loadError = true
       } finally {
         this.loading = false
       }
@@ -118,8 +128,16 @@ export const usePlaysStore = defineStore('plays', {
      * been paged through so far, which would make a "most played game"
      * or total wrong the moment there's more than one page. */
     async fetchStats() {
-      const { data } = await apiClient.get('/plays/stats')
-      this.stats = data.data
+      try {
+        const { data } = await apiClient.get('/plays/stats')
+        this.stats = data.data
+      } catch {
+        // Swallowed: called fire-and-forget from PlaysView's onMounted,
+        // with no try/catch of its own - a rejection here would
+        // otherwise be an unhandled promise rejection. `stats` staying
+        // null is already a state the template tolerates (it's null
+        // until the first successful fetch too).
+      }
     },
   },
 })

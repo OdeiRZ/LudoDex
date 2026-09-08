@@ -42,6 +42,11 @@ watch(activeTab, (tab) => {
   }
 })
 
+function retryPlays() {
+  friendDetail.fetchPlays(props.friendId, 1)
+  friendDetail.fetchPlaysStats(props.friendId)
+}
+
 const friendName = computed(() => friendDetail.friend?.name ?? '')
 
 // Driven by data rather than three near-identical template blocks - the
@@ -209,6 +214,13 @@ function loadMore() {
           {{ $t('friends.detail.collectionNotShared') }}
         </p>
 
+        <div v-else-if="friendDetail.collectionError" class="load-error">
+          <p role="alert" class="alert alert-error">{{ $t('common.loadError') }}</p>
+          <button type="button" class="btn" @click="friendDetail.fetchCollection(props.friendId)">
+            {{ $t('common.retry') }}
+          </button>
+        </div>
+
         <p v-else-if="!friendDetail.collectionLoaded" class="loading-state">
           <LoadingSpinner :size="36" />
           {{ $t('friends.detail.collection.loading') }}
@@ -292,6 +304,13 @@ function loadMore() {
         <p v-if="friendDetail.playsHidden" class="empty-state">
           {{ $t('friends.detail.playsNotShared') }}
         </p>
+
+        <div v-else-if="friendDetail.playsError" class="load-error">
+          <p role="alert" class="alert alert-error">{{ $t('common.loadError') }}</p>
+          <button type="button" class="btn" @click="retryPlays">
+            {{ $t('common.retry') }}
+          </button>
+        </div>
 
         <template v-else>
         <div

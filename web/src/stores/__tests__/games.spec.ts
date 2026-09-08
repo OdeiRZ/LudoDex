@@ -64,14 +64,28 @@ describe('useGamesStore', () => {
     expect(apiClient.get).toHaveBeenCalledTimes(3) // /games, /mechanics, /categories - once, not twice
   })
 
-  it('turns loading off even when fetchAll fails', async () => {
+  it('swallows the error and sets loadError instead of rejecting, so fire-and-forget callers never see an unhandled rejection', async () => {
     vi.mocked(apiClient.get).mockRejectedValue(new Error('network error'))
     const store = useGamesStore()
 
-    await expect(store.fetchAll()).rejects.toThrow('network error')
+    await expect(store.fetchAll()).resolves.toBeUndefined()
 
-    expect(store.loading).toBe(false)
+    expect(store.loadError).toBe(true)
     expect(store.loaded).toBe(false)
+    expect(store.loading).toBe(false)
+  })
+
+  it('resets loadError at the start of a retry', async () => {
+    vi.mocked(apiClient.get).mockRejectedValueOnce(new Error('network error'))
+    const store = useGamesStore()
+    await store.fetchAll()
+    expect(store.loadError).toBe(true)
+
+    vi.mocked(apiClient.get).mockResolvedValue({ data: { data: [] } })
+    await store.fetchAll()
+
+    expect(store.loadError).toBe(false)
+    expect(store.loaded).toBe(true)
   })
 
   it('prepends a newly created game to the collection', async () => {

@@ -316,7 +316,14 @@ onMounted(() => {
     the list already on screen while it fetches, so this checks !loaded
     rather than plays.loading alone; that later loading state is covered
     by the load-more button's own disabled+label further down instead. -->
-    <p v-if="!plays.loaded" class="loading-state">
+    <div v-if="plays.loadError" class="load-error">
+      <p role="alert" class="alert alert-error">{{ $t('common.loadError') }}</p>
+      <button type="button" class="btn" @click="plays.fetchPage(1)">
+        {{ $t('common.retry') }}
+      </button>
+    </div>
+
+    <p v-else-if="!plays.loaded" class="loading-state">
       <LoadingSpinner :size="36" />
       {{ $t('plays.loading') }}
     </p>

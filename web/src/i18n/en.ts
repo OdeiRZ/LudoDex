@@ -7,6 +7,8 @@ export default {
     genericGameSaveError: "Couldn't save the game. Check the details.",
     loadingCollection: 'Loading your collection…',
     loadingAriaLabel: 'Loading',
+    loadError: "Couldn't load this. Check your connection and try again.",
+    retry: 'Retry',
     showPassword: 'Show password',
     hidePassword: 'Hide password',
     gamesCount: '{count} games',

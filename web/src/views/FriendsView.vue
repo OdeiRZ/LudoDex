@@ -158,7 +158,14 @@ async function onUnblock(blockId: number) {
       </div>
     </section>
 
-    <div v-if="!friends.loaded" class="loading-state"><LoadingSpinner :size="32" /></div>
+    <div v-if="friends.loadError" class="load-error">
+      <p role="alert" class="alert alert-error">{{ $t('common.loadError') }}</p>
+      <button type="button" class="btn" @click="friends.fetchAll()">
+        {{ $t('common.retry') }}
+      </button>
+    </div>
+
+    <div v-else-if="!friends.loaded" class="loading-state"><LoadingSpinner :size="32" /></div>
 
     <template v-else>
       <section v-if="friends.incomingRequests.length > 0" class="card">
