@@ -30,7 +30,7 @@
     "@vue/eslint-config-typescript": "^14.4.0",
     "@vue/test-utils": "^2.5.0",
     "@vue/tsconfig": "^0.9.1",
-    "eslint": "^10.9.1",
+    "eslint": "^10.10.0",
     "eslint-plugin-vue": "^10.10.0",
     "jiti": "^2.4.2",
     "jsdom": "^26.0.0",
