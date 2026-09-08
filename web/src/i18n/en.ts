@@ -45,8 +45,6 @@ export default {
       failureTitle: 'Invalid link',
       failureBody:
         'This verification link is invalid or has expired. Request a new one from your account.',
-      goToDashboard: 'Go to your collection',
-      goToLogin: 'Go to login',
     },
     login: {
       title: 'Log in',

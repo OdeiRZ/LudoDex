@@ -45,8 +45,6 @@ export default {
       failureTitle: 'Enlace no válido',
       failureBody:
         'Este enlace de verificación no es válido o ha caducado. Pide uno nuevo desde tu cuenta.',
-      goToDashboard: 'Ir a tu colección',
-      goToLogin: 'Ir a iniciar sesión',
     },
     login: {
       title: 'Iniciar sesión',

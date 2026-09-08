@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
-const auth = useAuthStore()
 
 // Set by EmailVerificationController::verify() in the API - the link the
 // verification email points at lands here either way (valid or not), so
@@ -22,13 +20,6 @@ const ok = route.query.ok === '1'
         <h1>{{ $t('auth.verifyEmail.failureTitle') }}</h1>
         <p role="alert" class="alert alert-error">{{ $t('auth.verifyEmail.failureBody') }}</p>
       </template>
-
-      <RouterLink v-if="auth.isAuthenticated" :to="{ name: 'dashboard' }">
-        {{ $t('auth.verifyEmail.goToDashboard') }}
-      </RouterLink>
-      <RouterLink v-else :to="{ name: 'login' }">
-        {{ $t('auth.verifyEmail.goToLogin') }}
-      </RouterLink>
     </div>
   </div>
 </template>
