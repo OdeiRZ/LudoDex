@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { createRouter, createMemoryHistory } from 'vue-router'
 import FriendsView from '@/views/FriendsView.vue'
 import { useFriendsStore, type Friend } from '@/stores/friends'
 import { i18n } from '@/i18n'
@@ -15,6 +16,17 @@ function makeFriend(overrides: Partial<Friend> = {}): Friend {
   }
 }
 
+// Only "friend-detail" (linked from each friend row's own "Ver perfil")
+// needs to exist here - FriendsView itself doesn't route anywhere else.
+function makeRouter() {
+  return createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/friends/:friendId', name: 'friend-detail', component: { template: '<div />' } },
+    ],
+  })
+}
+
 function mountFriends(fetchAllImpl?: () => Promise<void>) {
   setActivePinia(createPinia())
   const store = useFriendsStore()
@@ -25,7 +37,7 @@ function mountFriends(fetchAllImpl?: () => Promise<void>) {
       }),
   )
 
-  const wrapper = mount(FriendsView, { global: { plugins: [i18n] } })
+  const wrapper = mount(FriendsView, { global: { plugins: [makeRouter(), i18n] } })
 
   return { wrapper, store }
 }
@@ -184,5 +196,16 @@ describe('FriendsView', () => {
     await flushPromises()
 
     expect(store.removeRelationship).toHaveBeenCalledWith(1)
+  })
+
+  it('links each friend to their detail page', async () => {
+    const { wrapper, store } = mountFriends()
+    await flushPromises()
+    store.friends = [{ id: 1, user: makeFriend({ id: 42, name: 'Amigo Uno' }) }]
+    await flushPromises()
+
+    const link = wrapper.find('.friend-row a[href="/friends/42"]')
+    expect(link.exists()).toBe(true)
+    expect(link.text()).toBe('Ver perfil')
   })
 })

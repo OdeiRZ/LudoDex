@@ -115,4 +115,49 @@ class FriendshipService
             ->with(['requester', 'recipient'])
             ->get();
     }
+
+    /**
+     * Symmetric (doesn't matter who requested whom) and only ever true for
+     * `accepted` - a pending or declined row never counts. Used to gate the
+     * Fase 2 read-only endpoints (collection comparison, a friend's plays):
+     * those must 404 identically whether `$b`'s id doesn't exist at all or
+     * exists but isn't an accepted friend of `$a` - see each caller's own
+     * `abort_unless(..., 404)` for why that's never a 403.
+     *
+     * No need to short-circuit `$a->id === $b->id` - a Friendship row is
+     * never self-referencing, so this already returns false for that case.
+     */
+    public function areFriends(User $a, User $b): bool
+    {
+        return Friendship::accepted()
+            ->where(function ($query) use ($a, $b) {
+                $query->where('requester_id', $a->id)->where('recipient_id', $b->id);
+            })
+            ->orWhere(function ($query) use ($a, $b) {
+                $query->where('requester_id', $b->id)->where('recipient_id', $a->id);
+            })
+            ->exists();
+    }
+
+    /**
+     * Deliberately does NOT rely on Laravel's implicit route-model-binding
+     * for `{friend}` (which would throw a ModelNotFoundException carrying
+     * "No query results for model [User] 123" as its message) - that
+     * message differs from a plain `abort(404)`, which would make "the id
+     * doesn't exist" distinguishable from "exists but isn't an accepted
+     * friend" even in production (Laravel keeps HttpException messages in
+     * the JSON response regardless of APP_DEBUG). Looking the user up here
+     * and funnelling both cases through the exact same `abort(404)` call
+     * guarantees a byte-identical response either way - confirmed by a
+     * literal body comparison in FriendCollectionTest/FriendPlaysIndexTest/
+     * FriendPlaysStatsTest.
+     */
+    public function resolveAcceptedFriend(User $me, int $friendId): User
+    {
+        $friend = User::find($friendId);
+
+        abort_unless($friend !== null && $this->areFriends($me, $friend), 404);
+
+        return $friend;
+    }
 }

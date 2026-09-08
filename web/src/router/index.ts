@@ -76,6 +76,17 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      // props as a function (not just `true`) since the route param
+      // arrives as a string but the store/API expect a number - this is
+      // the one place that conversion happens, instead of repeating
+      // Number(...) throughout the view.
+      path: '/friends/:friendId',
+      name: 'friend-detail',
+      component: () => import('@/views/FriendDetailView.vue'),
+      props: (route) => ({ friendId: Number(route.params.friendId) }),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/login',
       name: 'login',
       component: () => import('@/views/LoginView.vue'),

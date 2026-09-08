@@ -347,6 +347,28 @@ export default {
       title: 'Tus amigos',
       empty: 'Todavía no tienes amigos añadidos.',
       remove: 'Quitar amigo',
+      viewProfile: 'Ver perfil',
+    },
+    detail: {
+      notFound: 'No se ha podido encontrar a este amigo.',
+      backToList: '← Volver a amigos',
+      tabs: {
+        collection: 'Colección compartida',
+        plays: 'Partidas',
+      },
+      collection: {
+        loading: 'Cargando la colección…',
+        shared: 'En común',
+        mineOnly: 'Solo tú',
+        theirsOnly: 'Solo {name}',
+        emptyShared: 'Todavía no tenéis ningún juego en común.',
+        emptyMineOnly: 'No tienes ningún juego que {name} no tenga también.',
+        emptyTheirsOnly: '{name} no tiene ningún juego que tú no tengas también.',
+      },
+      plays: {
+        loading: 'Cargando las partidas…',
+        empty: 'Todavía no tiene partidas importadas.',
+      },
     },
   },
 }

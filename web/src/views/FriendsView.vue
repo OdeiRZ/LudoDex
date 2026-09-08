@@ -181,6 +181,12 @@ async function onRemove(friendshipId: number) {
         <div v-for="entry in friends.friends" :key="entry.id" class="friend-row">
           <UserAvatar :name="entry.user.name" :avatar-url="entry.user.avatar_url" :size="40" />
           <span class="friend-name">{{ entry.user.name }}</span>
+          <RouterLink
+            :to="{ name: 'friend-detail', params: { friendId: entry.user.id } }"
+            class="btn"
+          >
+            {{ $t('friends.list.viewProfile') }}
+          </RouterLink>
           <button
             type="button"
             class="btn btn-danger"

@@ -347,6 +347,28 @@ export default {
       title: 'Your friends',
       empty: "You haven't added any friends yet.",
       remove: 'Remove friend',
+      viewProfile: 'View profile',
+    },
+    detail: {
+      notFound: "This friend couldn't be found.",
+      backToList: '← Back to friends',
+      tabs: {
+        collection: 'Shared collection',
+        plays: 'Plays',
+      },
+      collection: {
+        loading: 'Loading the collection…',
+        shared: 'In common',
+        mineOnly: 'Only you',
+        theirsOnly: 'Only {name}',
+        emptyShared: "You don't have any games in common yet.",
+        emptyMineOnly: "You don't have any game {name} doesn't also have.",
+        emptyTheirsOnly: "{name} doesn't have any game you don't also have.",
+      },
+      plays: {
+        loading: 'Loading plays…',
+        empty: "They haven't imported any plays yet.",
+      },
     },
   },
 }
