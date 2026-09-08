@@ -9,6 +9,36 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Añadido
 
+- **Función de amigos**, cerrando el área que el README dejaba fuera de
+  alcance a propósito. Tres piezas:
+  - **Relación y descubrimiento**: buscar a alguien por email
+    (`GET /friends/search`, limitado a 6 peticiones/min para no
+    convertirlo en un oráculo de qué emails están registrados), enviar
+    solicitud, aceptarla o rechazarla, y ver la lista de amigos
+    aceptados junto con las solicitudes pendientes. Un punto en el nav
+    de "Amigos" avisa de solicitudes sin leer, además de un email al
+    recibir una.
+  - **Colección y partidas compartidas**: la ficha de un amigo
+    (`FriendDetailView`) compara ambas colecciones vía
+    `GET /friends/{friend}/games` — juegos en común, solo tuyos, solo
+    suyos — y muestra su historial de partidas
+    (`GET /friends/{friend}/plays` + `/stats`) con el mismo ojo de
+    detalles, scrubber A-Z y ranking BGG que "Tu colección".
+  - **"¿A qué jugamos?" en grupo**: nuevo selector "Jugar con" en el
+    Picker que, al elegir un amigo, amplía el conjunto jugable a la
+    unión de ambas colecciones (basta con que uno de los dos tenga el
+    juego — semántica de "quien trae la copia"), reutilizando el mismo
+    endpoint de comparación sin tocar el backend. Cada tarjeta lleva una
+    etiqueta de a quién pertenece ("Compartido" / "De {nombre}") cuando
+    no es solo tuya, para dejar claro quién pondría la copia.
+
+  Verificado en vivo en local con dos cuentas de prueba (colecciones
+  con juegos exclusivos de cada una y uno compartido): la unión, las
+  etiquetas de propiedad y el contador de resultados se actualizan
+  correctamente al elegir/quitar un amigo del selector. 246 tests
+  backend + 395 tests frontend en verde, Pint/PHPStan/ESLint/vue-tsc
+  limpios.
+
 - Verificación de email en `/register` — mismo hallazgo de auditoría de
   seguridad que en MIRA_MarketLens: cualquiera podía registrarse con
   cualquier email, sin comprobar que su dueño lo pidió

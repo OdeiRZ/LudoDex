@@ -110,16 +110,16 @@ Repo único con dos aplicaciones independientes, cada una con su propio
   el texto original en inglés con una etiqueta "EN", sin ningún error
   visible. Probado de punta a punta con una clave real, tanto en local
   como en producción (Render).
-- **Envío real de email (recuperación de contraseña)**: la API usa
-  [Resend](https://resend.com) como mailer (soportado de forma nativa en
-  Laravel 12). Sin verificar un dominio propio, Resend solo permite enviar
-  desde su remitente de pruebas (`onboarding@resend.dev`) a la dirección
-  de email de la propia cuenta de Resend — no a cualquier usuario real de
-  la app. Probado de punta a punta así (envío real recibido en español e
-  inglés), pero en producción (Render) `MAIL_MAILER` sigue sin configurar
-  y cae en el driver `log` (no manda nada) hasta decidir sobre un dominio
-  propio que verificar en Resend. Ver [`api/README.md`](api/README.md)
-  para cómo configurarlo.
+- **Envío real de email (recuperación de contraseña y verificación de
+  cuenta)**: en producción (Render) la API usa un mailer propio
+  (`MAIL_MAILER=gmail_api`, vía la API REST de Gmail) en vez de
+  [Resend](https://resend.com) — Render bloquea SMTP saliente, y sin
+  dominio propio verificado Resend solo entrega al dueño de su propia
+  cuenta. Probado de punta a punta contra un destinatario real
+  arbitrario, no solo la cuenta propia. Ver
+  [`api/README.md`](api/README.md), "Alternativa a Resend sin dominio
+  propio (API de Gmail)", para la configuración manual (el token OAuth
+  caduca cada 7 días en modo Prueba y hay que renovarlo a mano).
 
 ## Hitos
 
@@ -141,12 +141,10 @@ Repo único con dos aplicaciones independientes, cada una con su propio
    frontend en [Cloudflare Pages](https://pages.cloudflare.com). Verificado
    de punta a punta contra los servicios reales (registro, login, alta y
    borrado de un juego) tras el despliegue.
-
-Fuera de alcance por ahora, a propósito: amistades/interacción social,
-selector combinado con colecciones de amigos, historial de partidas de
-amigos (el propio historial de partidas ya está implementado — ver
-`web/README.md`). Puede revisarse más adelante si tiene sentido —
-seguimiento en [#21](https://github.com/OdeiRZ/LudoDex/issues/21).
+6. ✅ Amistades: solicitudes de amistad, comparación de colección y
+   partidas de un amigo, y el selector "¿A qué jugamos?" extendido para
+   jugar con la colección combinada de ambos (ver CHANGELOG). Cierra el
+   área que este README dejaba fuera de alcance a propósito.
 
 ## Licencia
 
