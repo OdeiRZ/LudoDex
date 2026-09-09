@@ -358,13 +358,9 @@ h2 {
   font-weight: 600;
 }
 
-.loading-state {
-  display: flex;
-  justify-content: center;
-  padding: var(--space-8) 0;
-}
-
-.empty-state {
-  color: var(--color-text-muted);
-}
+/* .loading-state/.empty-state deliberately not redefined here - come
+from the global main.css, same as every other view (found via a CSS-
+consistency audit: this used to redefine both with a slightly
+different look - no vertical centering/padding/text-align - than what
+the same class names mean everywhere else in the app). */
 </style>

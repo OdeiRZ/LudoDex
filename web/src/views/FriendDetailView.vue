@@ -233,7 +233,7 @@ function loadMore() {
             class="collection-section"
           >
             <h2>{{ section.title }}</h2>
-            <p v-if="section.games.length === 0" class="empty-state">{{ section.empty }}</p>
+            <p v-if="section.games.length === 0" class="section-empty-state">{{ section.empty }}</p>
             <ul v-else class="games">
               <li
                 v-for="game in section.games"
@@ -525,12 +525,9 @@ instead of stacked above on its own line. */
   font-weight: 500;
 }
 
-.loading-state {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--color-text-muted);
-}
+/* .loading-state/.empty-state themselves come from the global main.css
+now (see the audit note below) - only the genuinely different case gets
+its own class here. */
 
 .collection-section {
   margin-bottom: var(--space-6);
@@ -541,7 +538,15 @@ instead of stacked above on its own line. */
   margin-bottom: var(--space-3);
 }
 
-.empty-state {
+/* Deliberately NOT .empty-state: that one is the single, page-level
+"nothing here at all" message (collectionHidden/playsHidden/no plays,
+all elsewhere in this file) - the global version's big padding and
+centered text fit a lone message taking over the whole tab. This is a
+compact note repeated up to three times in a row, one per collection
+section (found via a CSS-consistency audit - this used to redefine
+.empty-state itself, silently diverging from what the same class name
+means everywhere else in the app). */
+.section-empty-state {
   color: var(--color-text-muted);
   font-size: 0.9rem;
 }
