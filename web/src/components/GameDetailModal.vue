@@ -73,9 +73,43 @@ async function onTranslateClick() {
   }
 }
 
+const modalPanelRef = ref<HTMLElement | null>(null)
+
+// Keeps Tab/Shift+Tab cycling inside the modal instead of escaping to
+// whatever's behind the backdrop - without this, a keyboard user could
+// tab straight past the close button into background content that's
+// still technically focusable even though the modal visually covers it.
+function getFocusableElements(): HTMLElement[] {
+  if (!modalPanelRef.value) return []
+
+  return Array.from(
+    modalPanelRef.value.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    ),
+  )
+}
+
 function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
     emit('close')
+
+    return
+  }
+
+  if (event.key !== 'Tab') return
+
+  const focusable = getFocusableElements()
+  if (focusable.length === 0) return
+
+  const first = focusable[0]!
+  const last = focusable[focusable.length - 1]!
+
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
   }
 }
 
@@ -87,21 +121,40 @@ function onKeydown(event: KeyboardEvent) {
 // 'visible') in case something else already set it.
 let previousBodyOverflow = ''
 
+// Without this, opening the modal gives no signal at all to a keyboard/
+// screen-reader user that anything changed - focus stayed wherever it
+// already was (typically the "ver detalles" button underneath), so the
+// dialog's own role="dialog"/aria-label was never even announced. The
+// panel itself (not the close button) is the target, tabindex="-1" in
+// the template makes that legal - landing there announces the dialog's
+// role/label first, before any of its controls.
+let previouslyFocusedElement: HTMLElement | null = null
+
 onMounted(() => {
   window.addEventListener('keydown', onKeydown)
   previousBodyOverflow = document.body.style.overflow
   document.body.style.overflow = 'hidden'
+  previouslyFocusedElement = document.activeElement as HTMLElement | null
+  modalPanelRef.value?.focus()
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', onKeydown)
   document.body.style.overflow = previousBodyOverflow
+  previouslyFocusedElement?.focus()
 })
 </script>
 
 <template>
   <div class="modal-backdrop" @click.self="$emit('close')">
-    <div class="modal-panel card" role="dialog" aria-modal="true" :aria-label="game.name">
+    <div
+      ref="modalPanelRef"
+      class="modal-panel card"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+      :aria-label="game.name"
+    >
       <button
         type="button"
         class="btn modal-close"

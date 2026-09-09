@@ -177,4 +177,76 @@ describe('GameDetailModal', () => {
     expect(document.body.style.overflow).toBe('scroll')
     document.body.style.overflow = ''
   })
+
+  describe('focus management', () => {
+    it('moves focus to the dialog panel itself when it opens', () => {
+      const wrapper = mount(GameDetailModal, {
+        props: { game: makeGame() },
+        global: { plugins: [i18n] },
+        attachTo: document.body,
+      })
+
+      expect(document.activeElement).toBe(wrapper.find('.modal-panel').element)
+
+      wrapper.unmount()
+    })
+
+    it('returns focus to whatever triggered the modal once it closes', () => {
+      const trigger = document.createElement('button')
+      document.body.appendChild(trigger)
+      trigger.focus()
+
+      const wrapper = mount(GameDetailModal, {
+        props: { game: makeGame() },
+        global: { plugins: [i18n] },
+        attachTo: document.body,
+      })
+      expect(document.activeElement).not.toBe(trigger)
+
+      wrapper.unmount()
+
+      expect(document.activeElement).toBe(trigger)
+      trigger.remove()
+    })
+
+    it('wraps Tab from the last focusable element back to the first, instead of escaping the dialog', () => {
+      const wrapper = mount(GameDetailModal, {
+        props: { game: makeGame({ description: 'A game about trade.', description_es: null }) },
+        global: { plugins: [i18n] },
+        attachTo: document.body,
+      })
+
+      const closeButton = wrapper.find('.modal-close').element as HTMLElement
+      const translateButton = wrapper.find('.modal-translate').element as HTMLElement
+      translateButton.focus()
+      expect(document.activeElement).toBe(translateButton)
+
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }))
+
+      expect(document.activeElement).toBe(closeButton)
+
+      wrapper.unmount()
+    })
+
+    it('wraps Shift+Tab from the first focusable element back to the last', () => {
+      const wrapper = mount(GameDetailModal, {
+        props: { game: makeGame({ description: 'A game about trade.', description_es: null }) },
+        global: { plugins: [i18n] },
+        attachTo: document.body,
+      })
+
+      const closeButton = wrapper.find('.modal-close').element as HTMLElement
+      const translateButton = wrapper.find('.modal-translate').element as HTMLElement
+      closeButton.focus()
+      expect(document.activeElement).toBe(closeButton)
+
+      window.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true }),
+      )
+
+      expect(document.activeElement).toBe(translateButton)
+
+      wrapper.unmount()
+    })
+  })
 })
