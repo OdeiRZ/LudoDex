@@ -27,6 +27,23 @@ it('finds a discoverable user by bgg_username', function () {
         ->assertJsonPath('data.id', $target->id);
 });
 
+it('finds a user by bgg_username regardless of case', function () {
+    actingAsUser();
+    // Stored exactly as entered (BGG's own API is case-sensitive on
+    // this) - only the comparison at search time should be
+    // case-insensitive, found live: a real username like "OdeiRZ"
+    // searched as "odeirz" found nobody.
+    $target = User::factory()->create(['bgg_username' => 'OdeiRZ', 'discoverable' => true]);
+
+    $this->getJson('/api/friends/search?bgg_username=odeirz')
+        ->assertOk()
+        ->assertJsonPath('data.id', $target->id);
+
+    $this->getJson('/api/friends/search?bgg_username=ODEIRZ')
+        ->assertOk()
+        ->assertJsonPath('data.id', $target->id);
+});
+
 it('responds the same way for an email that does not exist and one that exists but is not discoverable, to avoid leaking which emails are registered', function () {
     actingAsUser();
     User::factory()->create(['email' => 'private@example.com', 'discoverable' => false]);

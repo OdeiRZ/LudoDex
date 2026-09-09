@@ -8,6 +8,7 @@ use App\Notifications\FriendRequestReceivedNotification;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class FriendshipService
@@ -35,7 +36,14 @@ class FriendshipService
         if ($email !== null) {
             $query->where('email', $email);
         } else {
-            $query->where('bgg_username', $bggUsername);
+            // Case-insensitive on purpose (found live: a friend's real
+            // BGG username was "OdeiRZ", searching "odeirz" found
+            // nobody) - bgg_username itself stays stored exactly as
+            // entered (BggImportController/BggPlaysImportController pass
+            // it straight to BGG's own API, which may care about case),
+            // so the comparison is normalized only here, at search time,
+            // not by lowercasing the column on write.
+            $query->whereRaw('LOWER(bgg_username) = ?', [Str::lower($bggUsername)]);
         }
 
         $result = $query->first();
