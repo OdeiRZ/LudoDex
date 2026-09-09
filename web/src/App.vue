@@ -152,11 +152,11 @@ async function onResendVerification() {
     </nav>
 
     <div class="session">
-      <ThemeToggle />
       <template v-if="auth.isAuthenticated">
         <RouterLink v-if="auth.user" :to="{ name: 'profile' }" class="user-name">
           <UserAvatar :name="auth.user.name" :avatar-url="auth.user.avatar_url" :size="24" />
         </RouterLink>
+        <ThemeToggle />
         <button
           type="button"
           class="btn logout-btn"
@@ -183,6 +183,7 @@ async function onResendVerification() {
         </button>
       </template>
       <template v-else>
+        <ThemeToggle />
         <RouterLink :to="{ name: 'login' }" class="btn">{{ $t('nav.login') }}</RouterLink>
         <RouterLink :to="{ name: 'register' }" class="btn btn-primary">{{
           $t('nav.register')
