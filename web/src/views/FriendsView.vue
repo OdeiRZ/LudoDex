@@ -341,10 +341,16 @@ h2 {
   margin-top: var(--space-2);
 }
 
+/* flex-wrap is what actually fixes the overflow - a row with 3 buttons
+(incoming: aceptar/rechazar/bloquear, or friends list: ver colección/
+eliminar/bloquear) plus a name had nowhere to shrink to, so the buttons
+spilled out past the card's own right edge instead of dropping to a
+second line (found live). */
 .friend-row {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
   padding: var(--space-2) 0;
   border-bottom: 1px solid var(--color-border);
 }
@@ -353,8 +359,17 @@ h2 {
   border-bottom: none;
 }
 
+/* min-width: 0 overrides the flex item's default content-based floor
+(min-width: auto) - without it, a long name alone could still force the
+row wider than its container even with flex-wrap above, the same
+min-width gotcha already documented in FriendDetailView's own scrubber
+comment. Truncates with an ellipsis instead. */
 .friend-name {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: 600;
 }
 
