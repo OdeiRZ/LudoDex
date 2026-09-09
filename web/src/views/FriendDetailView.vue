@@ -270,8 +270,15 @@ function loadMore() {
                       </svg>
                     </button>
                   </div>
-                  <div v-if="game.bgg_id !== null && game.base_game_id === null" class="badge-row">
-                    <span class="badge badge-rank">
+                  <div v-if="game.base_game_id !== null || game.bgg_id !== null" class="badge-row">
+                    <span
+                      v-if="game.base_game_id !== null"
+                      class="badge badge-expansion"
+                      :title="$t('dashboard.expansionOf', { name: game.base_game_name })"
+                    >
+                      {{ $t('dashboard.expansionOf', { name: game.base_game_name }) }}
+                    </span>
+                    <span v-else class="badge badge-rank">
                       {{
                         game.bgg_rank !== null
                           ? $t('dashboard.rank', { rank: game.bgg_rank })
@@ -606,6 +613,28 @@ overlap with this button on a narrow phone regardless of DOM order. */
 .games :deep(.badge-rank) {
   background: rgba(255, 255, 255, 0.2);
   color: #fff;
+}
+
+/* Same violet as the card's own left border (.game-cover.expansion), so
+the badge reads as the text version of that same marker instead of an
+unrelated color. Same pattern as Dashboard/Picker's own .badge-expansion. */
+.games :deep(.badge-expansion) {
+  background: var(--color-expansion);
+  color: #fff;
+}
+
+/* "Expansión de <nombre>" carries the base game's own name, which can run
+long enough to push past the card's edge - without this the card clips it
+abruptly mid-word instead of showing it's truncated. min-width: 0 lets the
+flex item actually shrink; text-overflow needs the display override since
+the base .badge is inline-flex. */
+.games :deep(.badge-expansion) {
+  display: inline-block;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .games :deep(.meta) {

@@ -200,6 +200,22 @@ describe('FriendDetailView', () => {
     expect(wrapper.find('.badge-rank').exists()).toBe(false)
   })
 
+  it('shows an "Expansión de X" badge on an expansion instead of a rank badge', async () => {
+    const { wrapper, store } = await mountDetail()
+    store.shared = [
+      makeGame({
+        id: 'g1',
+        bgg_id: 13,
+        base_game_id: 'base-1',
+        base_game_name: 'Catan',
+        name: 'Catan: Seafarers',
+      }),
+    ]
+    await flushPromises()
+
+    expect(wrapper.find('.badge-expansion').text()).toBe('Expansión de Catan')
+  })
+
   it('shows the A-Z scrubber once there are more than 12 games combined across all three sections', async () => {
     const { wrapper, store } = await mountDetail()
     store.shared = Array.from({ length: 5 }, (_, i) =>
