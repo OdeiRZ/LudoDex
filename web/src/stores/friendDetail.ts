@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { isAxiosError } from 'axios'
 import { apiClient } from '@/lib/api'
-import type { Friend } from './friends'
+import { useFriendsStore, type Friend } from './friends'
 import type { Game } from './games'
 import type { Play, PlaysStats } from './plays'
 
@@ -61,6 +61,21 @@ export const useFriendDetailStore = defineStore('friendDetail', {
       this.friendId = friendId
     },
 
+    /** A 404 here means the friendship no longer exists (e.g. this
+     * friend removed *us* while we were on their detail page - see
+     * fetchCollection()'s own comment on what a 404 means). Without
+     * this, the friends list (a separate store, fetched once and then
+     * only re-fetched when not yet `loaded`) kept showing the friend who
+     * just removed us until a full reload - found live: the friends list
+     * doesn't itself learn about this 404, so it never had a reason to
+     * drop the stale entry on its own. */
+    markNotFound(friendId: number) {
+      this.notFound = true
+
+      const friends = useFriendsStore()
+      friends.friends = friends.friends.filter((entry) => entry.user.id !== friendId)
+    },
+
     async fetchCollection(friendId: number) {
       this.resetIfDifferentFriend(friendId)
       this.collectionLoading = true
@@ -85,7 +100,7 @@ export const useFriendDetailStore = defineStore('friendDetail', {
         // FriendCollectionController::index()'s own comment on why it's
         // 403 and not 404).
         if (isAxiosError(err) && err.response?.status === 404) {
-          this.notFound = true
+          this.markNotFound(friendId)
         } else if (isAxiosError(err) && err.response?.status === 403) {
           this.collectionHidden = true
         } else {
@@ -119,7 +134,7 @@ export const useFriendDetailStore = defineStore('friendDetail', {
         // See fetchCollection()'s own comment for why 403 (playsHidden)
         // and 404 (notFound) are kept separate.
         if (isAxiosError(err) && err.response?.status === 404) {
-          this.notFound = true
+          this.markNotFound(friendId)
         } else if (isAxiosError(err) && err.response?.status === 403) {
           this.playsHidden = true
         } else {
@@ -149,7 +164,7 @@ export const useFriendDetailStore = defineStore('friendDetail', {
         this.playsStats = data.data
       } catch (err) {
         if (isAxiosError(err) && err.response?.status === 404) {
-          this.notFound = true
+          this.markNotFound(friendId)
         } else if (isAxiosError(err) && err.response?.status === 403) {
           this.playsHidden = true
         } else {

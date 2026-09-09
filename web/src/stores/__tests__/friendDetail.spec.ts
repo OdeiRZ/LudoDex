@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useFriendDetailStore } from '@/stores/friendDetail'
+import { useFriendsStore } from '@/stores/friends'
 import { apiClient } from '@/lib/api'
 
 vi.mock('@/lib/api', async (importOriginal) => {
@@ -231,6 +232,29 @@ describe('useFriendDetailStore', () => {
 
       expect(store.playsHidden).toBe(true)
       expect(store.notFound).toBe(false)
+    })
+  })
+
+  describe('markNotFound', () => {
+    it('prunes the stale friend from the friends store too, not just its own notFound flag', async () => {
+      // Found live: this friend removed *us* while we were on their
+      // detail page - the friends list (a separate store) had no other
+      // way to learn that, and kept showing them until a full reload.
+      const friends = useFriendsStore()
+      friends.friends = [
+        { id: 10, user: { id: 2, name: 'Removed Friend', bgg_username: null, avatar_url: null } },
+        { id: 11, user: { id: 3, name: 'Still A Friend', bgg_username: null, avatar_url: null } },
+      ]
+      friends.loaded = true
+
+      vi.mocked(apiClient.get).mockRejectedValue(notFoundError())
+      const store = useFriendDetailStore()
+
+      await store.fetchCollection(2)
+
+      expect(friends.friends).toEqual([
+        { id: 11, user: { id: 3, name: 'Still A Friend', bgg_username: null, avatar_url: null } },
+      ])
     })
   })
 
