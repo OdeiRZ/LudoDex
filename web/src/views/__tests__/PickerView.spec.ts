@@ -543,6 +543,12 @@ describe('PickerView', () => {
       expect(wrapper.text()).toContain(
         'No se ha podido cargar esta colección. Inténtalo de nuevo.',
       )
+      // Hallazgo de auditoria: antes se mostraba con la clase neutra
+      // .empty-state (sin role), indistinguible de un "no hay
+      // resultados" normal y sin anunciarse a lectores de pantalla.
+      const errorEl = wrapper.find('[role="alert"]')
+      expect(errorEl.exists()).toBe(true)
+      expect(errorEl.classes()).toContain('alert-error')
     })
 
     it("keeps a translated description in the friend's game, not just the open modal", async () => {

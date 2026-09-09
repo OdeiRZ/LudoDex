@@ -663,7 +663,7 @@ const {
           : $t('common.loadingCollection')
       }}
     </p>
-    <p v-else-if="friendCollectionError" class="empty-state">
+    <p v-else-if="friendCollectionError" role="alert" class="alert alert-error">
       {{ $t('picker.friendCollectionError') }}
     </p>
     <p v-else-if="playable.length === 0 && selectedFriendId !== null" class="empty-state">
