@@ -174,7 +174,7 @@ describe('App', () => {
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
-  it('shows the restored user name in the header once fetched', async () => {
+  it('links the avatar to the profile once the user is fetched', async () => {
     setActivePinia(createPinia())
     const auth = useAuthStore()
     auth.token = 'a-token'
@@ -198,7 +198,12 @@ describe('App', () => {
     const wrapper = mount(App, { global: { plugins: [router, i18n] } })
     await flushPromises()
 
-    expect(wrapper.find('.user-name').text()).toContain('Odei')
+    // No name text next to it (asked for directly - see App.vue's own
+    // comment on .user-name) - just the avatar itself, initial-fallback
+    // here since avatar_url is null.
+    const profileLink = wrapper.find('.user-name')
+    expect(profileLink.attributes('href')).toBe('/profile')
+    expect(profileLink.text()).toBe('O')
   })
 
   it('shows a friends nav link (in both primary and mobile nav) when authenticated', async () => {

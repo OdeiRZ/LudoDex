@@ -158,7 +158,6 @@ async function onResendVerification() {
       <template v-if="auth.isAuthenticated">
         <RouterLink v-if="auth.user" :to="{ name: 'profile' }" class="user-name">
           <UserAvatar :name="auth.user.name" :avatar-url="auth.user.avatar_url" :size="24" />
-          <span class="user-name-text">{{ auth.user.name }}</span>
         </RouterLink>
         <button
           type="button"
@@ -338,10 +337,16 @@ line to distribute space against. */
   margin-left: auto;
 }
 
+/* Avatar only, no name text next to it (asked for directly - the nav row
+kept needing its own "hide the name below Xpx" breakpoint pushed wider
+every time a new link joined primary-nav, most recently 800px -> 872px
+for a 5th link (Amigos); dropping the name unconditionally retires that
+breakpoint instead of raising it again next time. The avatar (still a
+link to the profile) and the name itself sitting in Mi perfil are enough
+to identify the account without repeating it here. */
 .user-name {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
   color: var(--color-text-muted);
   font-size: 0.9rem;
   white-space: nowrap;
@@ -435,30 +440,7 @@ once a 4th nav link (Partidas) made the row need this room sooner. */
   }
 }
 
-/* Below 400px, .session itself doesn't wrap (see its own comment
-above) - without this, once it stopped fitting on one line even on its
-own row, the name and "Cerrar sesión" wrapped mid-word inside their own
-boxes instead of the row growing or something giving way, reading as
-broken rather than just tight.
-
-Up to 872px, a different problem needs the same fix: primary-nav's own
-flex: 1 lets it shrink rather than forcing the whole header to wrap
-onto two rows, so at a real 768px tablet window "¿A qué jugamos?",
-"Partidas" and "Importar BGG" wrap mid-phrase instead - dropping the
-name here frees up enough of the row that primary-nav has room to lay
-its links out on one line each again. Raised from 800px to 872px once
-a 4th link (Partidas) made the un-wrapped nav row itself wider - 800px
-left only ~14px of slack at that width, not real margin once a real
-device's font rendering is in play.
-
-Either way, the avatar (still a link to the profile) and the name
-itself sitting in Mi perfil are enough to identify the account without
-repeating it here. */
 @media (max-width: 872px) {
-  .user-name-text {
-    display: none;
-  }
-
   .session .btn {
     white-space: nowrap;
   }
