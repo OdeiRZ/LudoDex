@@ -78,7 +78,7 @@ async function onAccept(requestId: number) {
   try {
     await friends.acceptRequest(requestId)
   } catch {
-    toast.show(t('friends.genericError'))
+    toast.show(t('friends.genericError'), 'error')
   } finally {
     acceptingId.value = null
   }
@@ -90,7 +90,7 @@ async function onRemove(friendshipId: number) {
   try {
     await friends.removeRelationship(friendshipId)
   } catch {
-    toast.show(t('friends.genericError'))
+    toast.show(t('friends.genericError'), 'error')
   } finally {
     removingId.value = null
   }
@@ -127,7 +127,7 @@ async function onBlock(target: Friend) {
   try {
     await friends.blockUser(target)
   } catch {
-    toast.show(t('friends.genericError'))
+    toast.show(t('friends.genericError'), 'error')
   } finally {
     blockingUserId.value = null
   }
@@ -139,7 +139,7 @@ async function onUnblock(blockId: number) {
   try {
     await friends.unblockUser(blockId)
   } catch {
-    toast.show(t('friends.genericError'))
+    toast.show(t('friends.genericError'), 'error')
   } finally {
     unblockingId.value = null
   }

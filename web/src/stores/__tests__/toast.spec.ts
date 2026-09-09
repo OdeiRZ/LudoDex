@@ -39,4 +39,29 @@ describe('toast store', () => {
     vi.advanceTimersByTime(2000)
     expect(toast.message).toBeNull()
   })
+
+  it('defaults to the success type when none is given', () => {
+    const toast = useToastStore()
+
+    toast.show('Juego añadido.')
+
+    expect(toast.type).toBe('success')
+  })
+
+  it('accepts an explicit error type', () => {
+    const toast = useToastStore()
+
+    toast.show('No se ha podido eliminar.', 'error')
+
+    expect(toast.type).toBe('error')
+  })
+
+  it('resets to success on the next show() call if not given a type', () => {
+    const toast = useToastStore()
+
+    toast.show('No se ha podido eliminar.', 'error')
+    toast.show('Cambios guardados.')
+
+    expect(toast.type).toBe('success')
+  })
 })

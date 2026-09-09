@@ -6,7 +6,12 @@ const toast = useToastStore()
 
 <template>
   <Transition name="toast">
-    <p v-if="toast.message" role="status" class="toast alert alert-success">
+    <p
+      v-if="toast.message"
+      :role="toast.type === 'error' ? 'alert' : 'status'"
+      class="toast alert"
+      :class="toast.type === 'error' ? 'alert-error' : 'alert-success'"
+    >
       {{ toast.message }}
     </p>
   </Transition>
@@ -32,6 +37,15 @@ A fixed solid color instead, independent of the light/dark theme's own
 reliably paired with readable white text either way). */
 .toast.alert-success {
   background: #15803d;
+  color: #fff;
+}
+
+/* Same fixed-solid-color reasoning as .alert-success above, mirrored for
+the error case - a fixed dark red at the same depth as the green
+(Tailwind's red-700), not the theme's own --color-danger (translucent
+tint, and a different shade per light/dark theme). */
+.toast.alert-error {
+  background: #b91c1c;
   color: #fff;
 }
 

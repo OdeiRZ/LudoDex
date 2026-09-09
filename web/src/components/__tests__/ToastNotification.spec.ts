@@ -25,4 +25,28 @@ describe('ToastNotification', () => {
 
     expect(wrapper.find('[role="status"]').text()).toBe('Cambios guardados.')
   })
+
+  it('renders a success toast with role="status" and the success styling', async () => {
+    const { wrapper, toast } = mountToast()
+
+    toast.show('Cambios guardados.', 'success')
+    await wrapper.vm.$nextTick()
+
+    const el = wrapper.find('.toast')
+    expect(el.attributes('role')).toBe('status')
+    expect(el.classes()).toContain('alert-success')
+    expect(el.classes()).not.toContain('alert-error')
+  })
+
+  it('renders an error toast with role="alert" and the error styling, not the success one', async () => {
+    const { wrapper, toast } = mountToast()
+
+    toast.show('No se ha podido eliminar.', 'error')
+    await wrapper.vm.$nextTick()
+
+    const el = wrapper.find('.toast')
+    expect(el.attributes('role')).toBe('alert')
+    expect(el.classes()).toContain('alert-error')
+    expect(el.classes()).not.toContain('alert-success')
+  })
 })

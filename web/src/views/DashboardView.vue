@@ -207,7 +207,7 @@ async function onDelete(userGameId: string) {
     await games.deleteGame(userGameId)
     toast.show(t('dashboard.toastRemoved'))
   } catch {
-    toast.show(t('dashboard.removeError'))
+    toast.show(t('dashboard.removeError'), 'error')
   }
 }
 
@@ -277,7 +277,7 @@ async function onClearCollection() {
     toast.show(t('dashboard.toastCleared'))
     clearConfirmOpen.value = false
   } catch {
-    toast.show(t('dashboard.clearError'))
+    toast.show(t('dashboard.clearError'), 'error')
   } finally {
     clearing.value = false
   }
