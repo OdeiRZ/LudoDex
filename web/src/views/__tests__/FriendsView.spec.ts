@@ -51,6 +51,13 @@ describe('FriendsView', () => {
     expect(wrapper.find('.loading-state').exists()).toBe(true)
   })
 
+  it('gives the search-type select a real translated accessible name, not the literal i18n key', async () => {
+    const { wrapper } = mountFriends()
+    await flushPromises()
+
+    expect(wrapper.find('select').attributes('aria-label')).toBe('Tipo de búsqueda')
+  })
+
   it('shows the empty state when there are no friends yet', async () => {
     const { wrapper } = mountFriends()
     await flushPromises()

@@ -154,7 +154,7 @@ async function onUnblock(blockId: number) {
       <h2>{{ $t('friends.search.title') }}</h2>
 
       <form class="search-form" @submit.prevent="onSearch">
-        <select v-model="searchForm.type" aria-label="friends.search.type">
+        <select v-model="searchForm.type" :aria-label="$t('friends.search.type')">
           <option value="email">{{ $t('friends.search.byEmail') }}</option>
           <option value="bgg_username">{{ $t('friends.search.byBggUsername') }}</option>
         </select>

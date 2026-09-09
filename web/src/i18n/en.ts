@@ -341,6 +341,7 @@ export default {
     genericError: 'Something went wrong. Please try again.',
     search: {
       title: 'Find friends',
+      type: 'Search type',
       byEmail: 'By email',
       byBggUsername: 'By BGG username',
       emailPlaceholder: 'email\\@example.com',

@@ -341,6 +341,7 @@ export default {
     genericError: 'Algo ha ido mal. Inténtalo de nuevo.',
     search: {
       title: 'Buscar amigos',
+      type: 'Tipo de búsqueda',
       byEmail: 'Por email',
       byBggUsername: 'Por usuario de BGG',
       emailPlaceholder: 'email\\@ejemplo.com',
