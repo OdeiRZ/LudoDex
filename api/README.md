@@ -250,6 +250,7 @@ al controlador) — comprueba la firma a mano con
 | POST   | `/api/games`             | Sí   | Crea un juego y lo añade a la colección |
 | PUT    | `/api/games/{userGame}`  | Sí   | Actualiza el estado/notas y, si se envían, los datos del juego y sus mecánicas/categorías |
 | DELETE | `/api/games/{userGame}`  | Sí   | Quita el juego de la colección |
+| DELETE | `/api/games`             | Sí   | Vacía toda la colección del usuario autenticado (deja el catálogo `games` compartido intacto) |
 | GET    | `/api/mechanics`         | Sí   | Catálogo de mecánicas (para autocompletar el alta) |
 | GET    | `/api/categories`        | Sí   | Catálogo de categorías (para autocompletar el alta) |
 
@@ -405,3 +406,49 @@ empezar — una anulación por código, no un cambio de `php.ini`, así que
 vale igual en cualquier entorno sea cual sea su configuración por defecto.
 Con este arreglo, la cuenta de 7250 partidas importa de principio a fin
 verificado tanto en local como en producción.
+
+| Método | Ruta                                | Auth | Descripción                              |
+|--------|--------------------------------------|------|-------------------------------------------|
+| GET    | `/api/friends`                       | Sí   | Lista los amigos ya aceptados |
+| GET    | `/api/friends/search`                | Sí   | Busca a alguien por email o usuario de BGG (limitado a 6/minuto) |
+| GET    | `/api/friends/requests`              | Sí   | Solicitudes pendientes, recibidas y enviadas, en una sola respuesta |
+| POST   | `/api/friends/requests`              | Sí   | Envía una solicitud de amistad (limitado a 6/minuto) |
+| POST   | `/api/friends/requests/{friendship}/accept` | Sí | Acepta una solicitud recibida |
+| DELETE | `/api/friends/requests/{friendship}` | Sí   | Rechaza/cancela una solicitud, o deshace una amistad ya aceptada (misma ruta para los tres casos) |
+| GET    | `/api/friends/blocks`                | Sí   | Lista a quién ha bloqueado el usuario autenticado |
+| POST   | `/api/friends/blocks`                | Sí   | Bloquea a un usuario (limitado a 6/minuto) |
+| DELETE | `/api/friends/blocks/{block}`        | Sí   | Desbloquea (solo quien bloqueó puede deshacerlo) |
+| GET    | `/api/friends/{friend}/games`        | Sí   | Compara la colección propia con la de un amigo ya aceptado (en común / solo mía / solo suya) |
+| GET    | `/api/friends/{friend}/plays`        | Sí   | Historial de partidas de un amigo, paginado |
+| GET    | `/api/friends/{friend}/plays/stats`  | Sí   | Estadísticas agregadas de las partidas de un amigo |
+
+`search`/`store` (enviar solicitud) están limitados a 6/minuto a
+propósito: son los dos puntos donde alguien podría intentar enumerar
+qué emails están registrados probando uno detrás de otro. Ambos, junto
+con `POST /api/friends/blocks`, comparten el mismo principio de
+`FriendshipService`: nunca distinguir "no existe" de "existe pero no
+descubrible/bloqueado" en la respuesta — mismo mensaje para los tres
+casos, para no convertir el endpoint en un oráculo. `discoverable`
+(booleano en `users`, opt-in, `false` por defecto) es lo que decide si
+una cuenta aparece en `search` y si es un destino válido para
+`store` — bloquear a alguien (en cualquier dirección) tiene el mismo
+efecto que si esa persona no fuera descubrible, con idéntico mensaje.
+
+Enviar una solicitud cuando la otra persona ya te había enviado una
+pendiente la acepta automáticamente en vez de crear una fila duplicada
+— dos personas añadiéndose casi a la vez es un caso real, no un borde a
+rechazar (ver `FriendshipService::sendRequest()` para la condición de
+carrera real que esto también protege vía un índice único `pair_key`, no
+solo la comprobación en la propia petición). Bloquear borra cualquier
+amistad o solicitud pendiente existente entre ambos, en cualquier
+dirección.
+
+`GET /api/friends/{friend}/games`, `/plays` y `/plays/stats` devuelven
+`404` idéntico tanto si `{friend}` no existe como si existe pero no es
+un amigo aceptado (nunca distinguible, mismo principio anti-oráculo de
+arriba) — pero `403` (con mensaje propio) si sí sois amigos y esa
+persona tiene `share_collection`/`share_plays` desactivado en su
+perfil: a diferencia del `404`, aquí no hay nada que ocultar (ya sabes
+que sois amigos), así que un código distinto permite al frontend
+avisar solo de que esa persona concreta no comparte ese dato, sin
+ocultar el resto de su ficha.

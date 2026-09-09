@@ -79,6 +79,26 @@ npm run test:unit      # Vitest
   cargadas); se refresca también tras reimportar.
 - `src/views/PickerView.vue` — selector "¿A qué jugamos?": filtra la
   colección propia en el cliente por jugadores, duración y modo de juego.
+  El selector "Jugar con" (solo visible si tienes amigos) amplía el
+  conjunto filtrado a la unión con la colección de un amigo — ver
+  `friends.ts` más abajo.
+- `src/stores/friends.ts` — store de Pinia: amigos aceptados, solicitudes
+  entrantes/salientes, usuarios bloqueados, y la búsqueda/comparación de
+  colección que usa tanto `FriendsView.vue` como el "Jugar con" del
+  Picker. `src/stores/friendDetail.ts` es la store aparte de la propia
+  ficha de un amigo (`FriendDetailView.vue`) — deliberadamente
+  independiente de `friends.ts` para no arriesgar datos obsoletos si se
+  navega entre el Picker y esa ficha (ver el propio comentario de
+  `fetchCollectionComparison()`).
+- `src/views/FriendsView.vue` — buscar/pedir/aceptar amistad, lista de
+  amigos y de bloqueados. "Quitar amigo" es la única acción que pide
+  confirmación (doble clic, mismo patrón que borrar un juego); bloquear,
+  aceptar y las demás son de un clic.
+- `src/views/FriendDetailView.vue` — ficha de un amigo: pestañas de
+  colección compartida (en común / solo mía / solo suya) y su historial
+  de partidas. Si el amigo tiene `share_collection`/`share_plays`
+  desactivado en su perfil, la pestaña afectada muestra un aviso propio
+  en vez de ocultar la ficha entera.
 
 ## Breakpoints del header (`App.vue`)
 
