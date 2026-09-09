@@ -251,6 +251,7 @@ export default {
   profile: {
     title: 'My profile',
     personalData: 'Personal details',
+    language: 'Language',
     avatarHint:
       'Your avatar is pulled from your BoardGameGeek account if you set your username below.',
     name: 'Name',

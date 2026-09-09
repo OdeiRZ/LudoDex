@@ -7,6 +7,7 @@ import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
 import UserAvatar from '@/components/UserAvatar.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import PasswordInput from '@/components/PasswordInput.vue'
+import LanguageToggle from '@/components/LanguageToggle.vue'
 
 const auth = useAuthStore()
 const { t } = useI18n()
@@ -107,6 +108,17 @@ async function onSubmitPassword() {
         <p class="avatar-hint">
           {{ $t('profile.avatarHint') }}
         </p>
+      </div>
+
+      <!-- Not part of the form below - applies instantly on click, same as
+      it always has, unlike name/email/etc which wait for "Guardar". Moved
+      here from the header nav (freed up room there - see App.vue's own
+      comment) - login/register have no account yet to hold a preference,
+      so they fall back to the browser's own language now instead (see
+      i18n/index.ts), same pattern already used in PequeDex. -->
+      <div class="language-row">
+        <span class="language-label">{{ $t('profile.language') }}</span>
+        <LanguageToggle />
       </div>
 
       <form class="form" @submit.prevent="onSubmitProfile">
@@ -300,6 +312,17 @@ h1 {
 .avatar-hint {
   font-size: 0.85rem;
   color: var(--color-text-muted);
+}
+
+.language-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.language-label {
+  font-weight: 500;
 }
 
 .checkbox-label {

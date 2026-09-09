@@ -5,7 +5,6 @@ import { useAuthStore } from '@/stores/auth'
 import { useFriendsStore } from '@/stores/friends'
 import UserAvatar from '@/components/UserAvatar.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
-import LanguageToggle from '@/components/LanguageToggle.vue'
 import ToastNotification from '@/components/ToastNotification.vue'
 import PoweredByBgg from '@/components/PoweredByBgg.vue'
 import ScrollToTopButton from '@/components/ScrollToTopButton.vue'
@@ -153,7 +152,6 @@ async function onResendVerification() {
     </nav>
 
     <div class="session">
-      <LanguageToggle />
       <ThemeToggle />
       <template v-if="auth.isAuthenticated">
         <RouterLink v-if="auth.user" :to="{ name: 'profile' }" class="user-name">

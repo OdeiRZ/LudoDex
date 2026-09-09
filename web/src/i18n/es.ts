@@ -251,6 +251,7 @@ export default {
   profile: {
     title: 'Mi perfil',
     personalData: 'Datos personales',
+    language: 'Idioma',
     avatarHint: 'El avatar se toma de tu cuenta de BoardGameGeek si indicas tu usuario más abajo.',
     name: 'Nombre',
     email: 'Email',

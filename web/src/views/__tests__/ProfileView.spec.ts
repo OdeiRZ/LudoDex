@@ -126,6 +126,24 @@ describe('ProfileView personal data form', () => {
 
     expect(wrapper.text()).toContain('No se han podido guardar los cambios.')
   })
+
+  // Moved here from the header nav (freed up room there) - applies
+  // instantly on click, outside the "Guardar" form flow, same as it
+  // always has. i18n is a shared module-level singleton (not reset per
+  // test) - other describe blocks in this same file assert Spanish text,
+  // so this restores 'es' afterwards instead of leaking 'en' into them.
+  it('switches the language instantly, outside the save form', async () => {
+    const { wrapper } = mountProfile()
+    await flushPromises()
+
+    expect(i18n.global.locale.value).toBe('es')
+
+    await wrapper.find('.language-toggle').trigger('click')
+
+    expect(i18n.global.locale.value).toBe('en')
+
+    i18n.global.locale.value = 'es'
+  })
 })
 
 describe('ProfileView change password form', () => {

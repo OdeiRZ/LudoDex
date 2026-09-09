@@ -6,8 +6,17 @@ export type Locale = 'es' | 'en'
 
 const STORAGE_KEY = 'ludodex-locale'
 
+// An explicit choice (made from Perfil, the only place to change it now
+// that there's no header toggle) always wins. Without one yet - notably
+// on login/register, where nobody's account exists to hold a preference -
+// fall back to the browser's own language instead of hardcoding Spanish,
+// so a recruiter browsing the portfolio in English sees these screens in
+// English too. Same pattern already used in PequeDex.
 function initialLocale(): Locale {
-  return localStorage.getItem(STORAGE_KEY) === 'en' ? 'en' : 'es'
+  const stored = localStorage.getItem(STORAGE_KEY)
+  if (stored === 'en' || stored === 'es') return stored
+
+  return navigator.language.toLowerCase().startsWith('en') ? 'en' : 'es'
 }
 
 export const i18n = createI18n({
