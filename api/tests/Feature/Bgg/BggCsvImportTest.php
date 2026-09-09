@@ -5,6 +5,7 @@ use App\Models\Game;
 use App\Models\Mechanic;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\TestResponse;
 
@@ -387,6 +388,31 @@ it('updates rather than duplicates when the same bgg id is imported twice', func
 
     expect(Game::where('bgg_id', 191189)->count())->toBe(1);
     expect($user->games()->count())->toBe(1);
+});
+
+it('does not scale the number of DB queries with the number of rows imported', function () {
+    $user = actingAsUser();
+
+    // One already-existing game (exercises the update path) plus 30 brand
+    // new ones (exercises the bulk-insert path) - large enough that the
+    // old one-updateOrCreate()-per-row code would need ~120+ queries
+    // (2 for Game + 2 for UserGame per row), while the batched version
+    // stays flat regardless of row count.
+    Game::factory()->create(['bgg_id' => 1, 'name' => 'Ya existe']);
+
+    $rows = [["'Ya existe'", '1', 'standalone', '1', '0', '', '2.8', ...CSV_EXTRA, '1', '4']];
+    for ($i = 2; $i <= 31; $i++) {
+        $rows[] = ["'Juego {$i}'", (string) $i, 'standalone', '1', '0', '', '2.8', ...CSV_EXTRA, '1', '4'];
+    }
+
+    DB::enableQueryLog();
+    postCsv(csvUpload(CSV_HEADER, $rows))->assertOk();
+    $queryCount = count(DB::getQueryLog());
+    DB::disableQueryLog();
+
+    expect($queryCount)->toBeLessThan(20);
+    expect(Game::count())->toBe(31);
+    expect($user->games()->count())->toBe(31);
 });
 
 it('does not wipe mechanics/categories already set on a game from a real BGG import', function () {

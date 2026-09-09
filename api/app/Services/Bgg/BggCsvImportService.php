@@ -4,8 +4,11 @@ namespace App\Services\Bgg;
 
 use App\Models\Game;
 use App\Models\User;
+use App\Models\UserGame;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -87,6 +90,21 @@ class BggCsvImportService
             $rows, $user, $hasToken, $expansionDetails,
             &$importedCount, &$skippedExpansions, &$skippedNoStatus, &$warnings, &$gamesByBggId, &$importedExpansionBggIds
         ) {
+            // Pass 1: parse every row into an in-memory plan first, no DB
+            // writes yet - lets the actual writes below be batched instead
+            // of one updateOrCreate() (a SELECT + INSERT/UPDATE each) per
+            // row, which previously meant ~4 round-trips per game for a
+            // few-hundred-row export, the same N+1 pattern already fixed
+            // in BggImportService (the XML importer) but that had drifted
+            // back in here. $attributes stays sparse (only keys this row
+            // actually has data for) - unlike the XML importer, this
+            // can't collapse to one uniform upsert() with a fixed column
+            // list, because that would overwrite an existing game's
+            // already-good field with a blank/null just because this
+            // particular CSV row doesn't carry it (see parseMode()'s own
+            // docblock on why that must never happen).
+            $plans = [];
+
             foreach ($rows as $data) {
                 $isExpansion = $data['itemtype'] === 'expansion';
 
@@ -175,17 +193,95 @@ class BggCsvImportService
                     $attributes['description'] = $description;
                 }
 
-                $game = Game::updateOrCreate(['bgg_id' => $bggId], $attributes);
-
-                $user->games()->updateOrCreate(['game_id' => $game->id], ['status' => $status]);
-
-                $gamesByBggId[$bggId] = $game;
+                // Last row for a given bgg_id wins if the file somehow
+                // repeats one - same end result the old per-row
+                // updateOrCreate() loop already had (each call just
+                // updated the same row again), not a new dedup rule.
+                $plans[$bggId] = ['attributes' => $attributes, 'status' => $status, 'isExpansion' => $isExpansion];
 
                 if ($isExpansion) {
                     $importedExpansionBggIds[] = $bggId;
                 }
 
                 $importedCount++;
+            }
+
+            $bggIds = array_keys($plans);
+            $existingGames = $bggIds !== []
+                ? Game::whereIn('bgg_id', $bggIds)->get()->keyBy('bgg_id')
+                : collect();
+
+            $now = Carbon::now();
+            $newGameRows = [];
+
+            foreach ($plans as $bggId => $plan) {
+                $existing = $existingGames->get($bggId);
+
+                if ($existing !== null) {
+                    // Only 1 UPDATE, no wasted SELECT first - $existing is
+                    // already the row from the bulk fetch above. Sparse
+                    // $attributes means this still only ever touches the
+                    // columns this row actually had data for.
+                    $existing->update($plan['attributes']);
+                    $gamesByBggId[$bggId] = $existing;
+
+                    continue;
+                }
+
+                // A brand new row has nothing existing to preserve, so
+                // unlike the update() above, every column is safe to fill
+                // with an explicit default - needed anyway for Game::
+                // insert() below, which (unlike Eloquent's normal create()
+                // path) needs every row to share the exact same set of
+                // columns to become one real bulk INSERT statement.
+                $newGameRows[$bggId] = [
+                    'id' => (string) Str::ulid(),
+                    'bgg_id' => $bggId,
+                    'name' => $plan['attributes']['name'],
+                    'description' => $plan['attributes']['description'] ?? null,
+                    'weight' => $plan['attributes']['weight'] ?? null,
+                    'rating' => $plan['attributes']['rating'] ?? null,
+                    'min_playtime_minutes' => $plan['attributes']['min_playtime_minutes'] ?? null,
+                    'max_playtime_minutes' => $plan['attributes']['max_playtime_minutes'] ?? null,
+                    'year_published' => $plan['attributes']['year_published'] ?? null,
+                    'bgg_rank' => $plan['attributes']['bgg_rank'] ?? null,
+                    'min_age' => $plan['attributes']['min_age'] ?? null,
+                    'min_players' => $plan['attributes']['min_players'] ?? null,
+                    'max_players' => $plan['attributes']['max_players'] ?? null,
+                    'is_cooperative' => $plan['attributes']['is_cooperative'] ?? false,
+                    'is_competitive' => $plan['attributes']['is_competitive'] ?? false,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+
+            if ($newGameRows !== []) {
+                Game::insert(array_values($newGameRows));
+
+                foreach (Game::whereIn('bgg_id', array_keys($newGameRows))->get() as $game) {
+                    $gamesByBggId[$game->bgg_id] = $game;
+                }
+            }
+
+            // user_games.status is always fully known (never sparse, no
+            // "leave it alone" case to worry about) - unlike Game above,
+            // this collapses to exactly the same one-batch-upsert pattern
+            // BggImportService::syncUserCollection() already uses.
+            $userGameRows = [];
+
+            foreach ($plans as $bggId => $plan) {
+                $userGameRows[] = [
+                    'id' => (string) Str::ulid(),
+                    'user_id' => $user->id,
+                    'game_id' => $gamesByBggId[$bggId]->id,
+                    'status' => $plan['status'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+
+            if ($userGameRows !== []) {
+                UserGame::upsert($userGameRows, uniqueBy: ['user_id', 'game_id'], update: ['status', 'updated_at']);
             }
 
             // Only the candidate base games of expansions that turn out
