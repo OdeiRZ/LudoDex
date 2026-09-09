@@ -102,13 +102,13 @@ it('resets the password with a valid token and lets the user log in with it', fu
         ->postJson('/api/reset-password', [
             'token' => $token,
             'email' => 'odei@example.com',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
+            'password' => 'new-password1',
+            'password_confirmation' => 'new-password1',
         ])->assertOk()->assertJsonPath('message', 'Tu contraseña se ha restablecido.');
 
     $this->postJson('/api/login', [
         'email' => 'odei@example.com',
-        'password' => 'new-password',
+        'password' => 'new-password1',
         'device_name' => 'test-suite',
     ])->assertOk();
 });
@@ -138,8 +138,8 @@ it('revokes every existing token on a successful reset', function () {
     $this->postJson('/api/reset-password', [
         'token' => $token,
         'email' => 'odei@example.com',
-        'password' => 'new-password',
-        'password_confirmation' => 'new-password',
+        'password' => 'new-password1',
+        'password_confirmation' => 'new-password1',
     ])->assertOk();
 
     // Unlike the authenticated /user/password change, a reset has no
@@ -155,8 +155,8 @@ it('rejects an invalid reset token', function () {
         ->postJson('/api/reset-password', [
             'token' => 'not-a-real-token',
             'email' => 'odei@example.com',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
+            'password' => 'new-password1',
+            'password_confirmation' => 'new-password1',
         ])
         ->assertUnprocessable()
         ->assertJsonPath('errors.email.0', 'Ese enlace para restablecer la contraseña no es válido.');

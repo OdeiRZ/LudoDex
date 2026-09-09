@@ -25,10 +25,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Laravel's own out-of-the-box default is min(8) - every Password::defaults()
-        // call across the app (registration, password reset, changing it from the
-        // profile page) reads from this one place.
-        Password::defaults(fn () => Password::min(6));
+        // Hallazgo de una auditoría de seguridad: esto estaba en min(6), por debajo
+        // incluso del propio default de Laravel (min(8)), sin exigir letras ni
+        // números - "123456" o "aaaaaa" eran contraseñas válidas. letters()+numbers()
+        // es una barra mínima razonable sin ser tan estricta como para molestar en
+        // un proyecto de portfolio (se descarta mixedCase()/symbols()); uncompromised()
+        // (comprobar contra la base de contraseñas filtradas de Have I Been Pwned) se
+        // descarta a propósito por ahora - añadiría una llamada HTTP real de la que
+        // habría que simular en todos los tests que tocan cualquiera de los tres
+        // formularios de abajo, sin aportar mucho más en un proyecto sin datos
+        // sensibles. Cada Password::defaults() de la app (registro, reset de
+        // contraseña, cambiarla desde el perfil) lee de este único sitio.
+        Password::defaults(fn () => Password::min(8)->letters()->numbers());
 
         // Laravel's default reset link points at a server-rendered
         // "password.reset" web route, which doesn't exist here - this is an

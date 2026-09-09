@@ -10,8 +10,8 @@ it('registers a new user and returns a usable token', function () {
     $response = $this->postJson('/api/register', [
         'name' => 'Odei',
         'email' => 'odei@example.com',
-        'password' => 'password',
-        'password_confirmation' => 'password',
+        'password' => 'password1',
+        'password_confirmation' => 'password1',
         'device_name' => 'test-suite',
     ]);
 
@@ -29,12 +29,14 @@ it('registers a new user and returns a usable token', function () {
         ->assertJsonPath('email', 'odei@example.com');
 });
 
-it('accepts a 6-character password but rejects a 5-character one', function () {
+it('accepts an 8-character password but rejects a 7-character one', function () {
+    // Letters+number held constant across both - isolates the length
+    // check from the separate letters()/numbers() checks below.
     $short = $this->postJson('/api/register', [
         'name' => 'Odei',
         'email' => 'odei@example.com',
-        'password' => 'abcde',
-        'password_confirmation' => 'abcde',
+        'password' => 'abcdef1',
+        'password_confirmation' => 'abcdef1',
         'device_name' => 'test-suite',
     ]);
 
@@ -43,19 +45,39 @@ it('accepts a 6-character password but rejects a 5-character one', function () {
     $minimum = $this->postJson('/api/register', [
         'name' => 'Odei',
         'email' => 'odei@example.com',
-        'password' => 'abcdef',
-        'password_confirmation' => 'abcdef',
+        'password' => 'abcdefg1',
+        'password_confirmation' => 'abcdefg1',
         'device_name' => 'test-suite',
     ]);
 
     $minimum->assertCreated();
 });
 
+it('rejects a password with no numbers', function () {
+    $this->postJson('/api/register', [
+        'name' => 'Odei',
+        'email' => 'odei@example.com',
+        'password' => 'onlyletters',
+        'password_confirmation' => 'onlyletters',
+        'device_name' => 'test-suite',
+    ])->assertUnprocessable()->assertJsonValidationErrors('password');
+});
+
+it('rejects a password with no letters', function () {
+    $this->postJson('/api/register', [
+        'name' => 'Odei',
+        'email' => 'odei@example.com',
+        'password' => '12345678',
+        'password_confirmation' => '12345678',
+        'device_name' => 'test-suite',
+    ])->assertUnprocessable()->assertJsonValidationErrors('password');
+});
+
 it('rejects registration with a mismatched password confirmation', function () {
     $response = $this->postJson('/api/register', [
         'name' => 'Odei',
         'email' => 'odei@example.com',
-        'password' => 'password',
+        'password' => 'password1',
         'password_confirmation' => 'something-else',
         'device_name' => 'test-suite',
     ]);
@@ -69,8 +91,8 @@ it('rejects registration with an email already in use', function () {
     $response = $this->postJson('/api/register', [
         'name' => 'Otro',
         'email' => 'odei@example.com',
-        'password' => 'password',
-        'password_confirmation' => 'password',
+        'password' => 'password1',
+        'password_confirmation' => 'password1',
         'device_name' => 'test-suite',
     ]);
 
@@ -83,8 +105,8 @@ it('returns validation messages in Spanish when Accept-Language: es is sent', fu
     $response = $this->withHeader('Accept-Language', 'es')->postJson('/api/register', [
         'name' => 'Otro',
         'email' => 'odei@example.com',
-        'password' => 'password',
-        'password_confirmation' => 'password',
+        'password' => 'password1',
+        'password_confirmation' => 'password1',
         'device_name' => 'test-suite',
     ]);
 
@@ -98,8 +120,8 @@ it('returns validation messages in English when Accept-Language: en is sent', fu
     $response = $this->withHeader('Accept-Language', 'en')->postJson('/api/register', [
         'name' => 'Otro',
         'email' => 'odei@example.com',
-        'password' => 'password',
-        'password_confirmation' => 'password',
+        'password' => 'password1',
+        'password_confirmation' => 'password1',
         'device_name' => 'test-suite',
     ]);
 
@@ -339,8 +361,8 @@ it('changes the password when the current one is correct', function () {
 
     $response = $this->putJson('/api/user/password', [
         'current_password' => 'old-password',
-        'password' => 'new-password',
-        'password_confirmation' => 'new-password',
+        'password' => 'new-password1',
+        'password_confirmation' => 'new-password1',
     ]);
 
     $response->assertNoContent();
@@ -349,7 +371,7 @@ it('changes the password when the current one is correct', function () {
 
     $this->postJson('/api/login', [
         'email' => $user->email,
-        'password' => 'new-password',
+        'password' => 'new-password1',
         'device_name' => 'test-suite',
     ])->assertOk();
 });
@@ -360,8 +382,8 @@ it('rejects a password change with the wrong current password', function () {
 
     $response = $this->putJson('/api/user/password', [
         'current_password' => 'wrong-password',
-        'password' => 'new-password',
-        'password_confirmation' => 'new-password',
+        'password' => 'new-password1',
+        'password_confirmation' => 'new-password1',
     ]);
 
     $response->assertUnprocessable()->assertJsonValidationErrors('current_password');
@@ -377,8 +399,8 @@ it('revokes every other token when changing the password, but keeps the one maki
 
     $this->withToken($keptToken)->putJson('/api/user/password', [
         'current_password' => 'old-password',
-        'password' => 'new-password',
-        'password_confirmation' => 'new-password',
+        'password' => 'new-password1',
+        'password_confirmation' => 'new-password1',
     ])->assertNoContent();
 
     // Sanctum's guard caches the resolved user for the lifetime of the
