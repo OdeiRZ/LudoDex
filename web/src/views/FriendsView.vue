@@ -96,7 +96,7 @@ async function onRemove(friendshipId: number) {
   }
 }
 
-// Only for "Quitar amigo" (an established relationship) - declining an
+// Only for "Eliminar" (an established relationship) - declining an
 // incoming request or cancelling an outgoing one stays a single click via
 // onRemove() directly, same distinction DashboardView already draws
 // between deleting a game (armed) and lighter actions (not). Same

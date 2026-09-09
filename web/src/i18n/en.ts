@@ -365,9 +365,9 @@ export default {
     list: {
       title: 'Your friends',
       empty: "You haven't added any friends yet.",
-      remove: 'Remove friend',
+      remove: 'Remove',
       removeConfirm: 'Are you sure?',
-      viewProfile: 'View profile',
+      viewProfile: 'View collection',
       block: 'Block',
     },
     blocked: {

@@ -365,9 +365,9 @@ export default {
     list: {
       title: 'Tus amigos',
       empty: 'Todavía no tienes amigos añadidos.',
-      remove: 'Quitar amigo',
+      remove: 'Eliminar',
       removeConfirm: '¿Seguro?',
-      viewProfile: 'Ver perfil',
+      viewProfile: 'Ver colección',
       block: 'Bloquear',
     },
     blocked: {
