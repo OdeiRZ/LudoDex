@@ -74,6 +74,26 @@ export const useFriendsStore = defineStore('friends', {
       }
     },
 
+    /** Just the nav badge's own data, not the full friends/blocks fetchAll()
+     * - called on every route change (see App.vue), so it needs to stay
+     * cheap. Without a periodic/navigation-triggered refetch, `loaded`
+     * being true from the very first fetch meant an incoming request that
+     * arrived later never showed until a full page reload recreated the
+     * Pinia store from scratch (found live: navigating between sections
+     * never updated the badge, only an explicit reload did). Silent on
+     * failure - the badge just keeps showing whatever it last knew rather
+     * than failing navigation over this.
+     */
+    async refreshIncomingRequests() {
+      try {
+        const { data } = await apiClient.get('/friends/requests')
+        this.incomingRequests = data.data.incoming
+        this.outgoingRequests = data.data.outgoing
+      } catch {
+        // Silent - see docblock above.
+      }
+    },
+
     /** Returns null both when nobody matches and when a real account
      * exists but isn't discoverable - the backend deliberately never lets
      * this distinguish the two (see FriendshipService::search()). */

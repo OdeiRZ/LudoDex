@@ -26,6 +26,16 @@ const mobileMenuOpen = ref(false)
 
 router.afterEach(() => {
   mobileMenuOpen.value = false
+
+  // The badge otherwise only ever reflected whatever fetchAll() saw on the
+  // very first load this session (login/reload, see the watcher below) -
+  // a friend request arriving while already browsing never showed up until
+  // an explicit page reload recreated the Pinia store from scratch (found
+  // live). Cheap enough to call on every navigation: one GET, not the full
+  // friends/blocks fetchAll().
+  if (auth.isAuthenticated) {
+    friends.refreshIncomingRequests()
+  }
 })
 
 // A stored token survives a reload, but the user object it belongs to

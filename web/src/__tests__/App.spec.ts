@@ -307,4 +307,44 @@ describe('App', () => {
 
     expect(wrapper.find('.nav-badge').exists()).toBe(false)
   })
+
+  it('refreshes incoming requests on every navigation, not just once on mount', async () => {
+    setActivePinia(createPinia())
+    const auth = useAuthStore()
+    auth.token = 'a-token'
+    const friends = useFriendsStore()
+    vi.spyOn(friends, 'fetchAll').mockResolvedValue()
+    const refreshSpy = vi.spyOn(friends, 'refreshIncomingRequests').mockResolvedValue()
+
+    const router = makeRouter('/')
+    await router.isReady()
+    mount(App, { global: { plugins: [router, i18n] } })
+    await flushPromises()
+    refreshSpy.mockClear()
+
+    // A friend request arriving while already browsing never showed up
+    // until an explicit page reload recreated the Pinia store from scratch
+    // (found live) - the fix is this refetch on every in-app navigation,
+    // not just the one-time fetchAll() on mount/login.
+    await router.push('/plays')
+    await flushPromises()
+
+    expect(refreshSpy).toHaveBeenCalled()
+  })
+
+  it('does not refresh incoming requests on navigation when not authenticated', async () => {
+    setActivePinia(createPinia())
+    const friends = useFriendsStore()
+    const refreshSpy = vi.spyOn(friends, 'refreshIncomingRequests')
+
+    const router = makeRouter('/login')
+    await router.isReady()
+    mount(App, { global: { plugins: [router, i18n] } })
+    await flushPromises()
+
+    await router.push('/register')
+    await flushPromises()
+
+    expect(refreshSpy).not.toHaveBeenCalled()
+  })
 })

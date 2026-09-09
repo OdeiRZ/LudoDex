@@ -90,6 +90,31 @@ describe('useFriendsStore', () => {
     })
   })
 
+  describe('refreshIncomingRequests', () => {
+    it('updates incoming and outgoing requests only, not friends/blocks', async () => {
+      const incoming = makeEntry({ id: 11, user: makeFriend({ id: 2, name: 'Incoming' }) })
+      const outgoing = makeEntry({ id: 12, user: makeFriend({ id: 3, name: 'Outgoing' }) })
+      vi.mocked(apiClient.get).mockResolvedValue({
+        data: { data: { incoming: [incoming], outgoing: [outgoing] } },
+      })
+      const store = useFriendsStore()
+
+      await store.refreshIncomingRequests()
+
+      expect(apiClient.get).toHaveBeenCalledTimes(1)
+      expect(apiClient.get).toHaveBeenCalledWith('/friends/requests')
+      expect(store.incomingRequests).toEqual([incoming])
+      expect(store.outgoingRequests).toEqual([outgoing])
+    })
+
+    it('swallows the error instead of rejecting, so a call from a router.afterEach hook never becomes an unhandled rejection', async () => {
+      vi.mocked(apiClient.get).mockRejectedValue(new Error('network error'))
+      const store = useFriendsStore()
+
+      await expect(store.refreshIncomingRequests()).resolves.toBeUndefined()
+    })
+  })
+
   describe('search', () => {
     it('searchByEmail sends the email param and returns the match', async () => {
       const friend = makeFriend()
