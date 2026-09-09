@@ -338,6 +338,7 @@ export default {
   },
   friends: {
     title: 'Friends',
+    genericError: 'Something went wrong. Please try again.',
     search: {
       title: 'Find friends',
       byEmail: 'By email',
@@ -364,6 +365,7 @@ export default {
       title: 'Your friends',
       empty: "You haven't added any friends yet.",
       remove: 'Remove friend',
+      removeConfirm: 'Are you sure?',
       viewProfile: 'View profile',
       block: 'Block',
     },

@@ -338,6 +338,7 @@ export default {
   },
   friends: {
     title: 'Amigos',
+    genericError: 'Algo ha ido mal. Inténtalo de nuevo.',
     search: {
       title: 'Buscar amigos',
       byEmail: 'Por email',
@@ -364,6 +365,7 @@ export default {
       title: 'Tus amigos',
       empty: 'Todavía no tienes amigos añadidos.',
       remove: 'Quitar amigo',
+      removeConfirm: '¿Seguro?',
       viewProfile: 'Ver perfil',
       block: 'Bloquear',
     },

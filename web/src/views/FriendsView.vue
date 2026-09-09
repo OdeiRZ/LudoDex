@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, onUnmounted, reactive, ref } from 'vue'
 import { isAxiosError } from 'axios'
 import { useI18n } from 'vue-i18n'
 import { useFriendsStore, type Friend } from '@/stores/friends'
+import { useToastStore } from '@/stores/toast'
 import UserAvatar from '@/components/UserAvatar.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const friends = useFriendsStore()
+const toast = useToastStore()
 const { t } = useI18n()
 
 onMounted(() => {
@@ -75,6 +77,8 @@ async function onAccept(requestId: number) {
   acceptingId.value = requestId
   try {
     await friends.acceptRequest(requestId)
+  } catch {
+    toast.show(t('friends.genericError'))
   } finally {
     acceptingId.value = null
   }
@@ -85,16 +89,45 @@ async function onRemove(friendshipId: number) {
   removingId.value = friendshipId
   try {
     await friends.removeRelationship(friendshipId)
+  } catch {
+    toast.show(t('friends.genericError'))
   } finally {
     removingId.value = null
   }
 }
+
+// Only for "Quitar amigo" (an established relationship) - declining an
+// incoming request or cancelling an outgoing one stays a single click via
+// onRemove() directly, same distinction DashboardView already draws
+// between deleting a game (armed) and lighter actions (not). Same
+// "click again within 4s" pattern as that page's own delete button.
+const confirmingRemoveId = ref<number | null>(null)
+let confirmingRemoveTimeout: ReturnType<typeof setTimeout> | undefined
+
+function onRemoveFriendClick(friendshipId: number) {
+  if (confirmingRemoveId.value !== friendshipId) {
+    clearTimeout(confirmingRemoveTimeout)
+    confirmingRemoveId.value = friendshipId
+    confirmingRemoveTimeout = setTimeout(() => {
+      confirmingRemoveId.value = null
+    }, 4000)
+    return
+  }
+
+  clearTimeout(confirmingRemoveTimeout)
+  confirmingRemoveId.value = null
+  onRemove(friendshipId)
+}
+
+onUnmounted(() => clearTimeout(confirmingRemoveTimeout))
 
 const blockingUserId = ref<number | null>(null)
 async function onBlock(target: Friend) {
   blockingUserId.value = target.id
   try {
     await friends.blockUser(target)
+  } catch {
+    toast.show(t('friends.genericError'))
   } finally {
     blockingUserId.value = null
   }
@@ -105,6 +138,8 @@ async function onUnblock(blockId: number) {
   unblockingId.value = blockId
   try {
     await friends.unblockUser(blockId)
+  } catch {
+    toast.show(t('friends.genericError'))
   } finally {
     unblockingId.value = null
   }
@@ -233,10 +268,15 @@ async function onUnblock(blockId: number) {
           <button
             type="button"
             class="btn btn-danger"
+            :class="{ 'btn-danger-confirm': confirmingRemoveId === entry.id }"
             :disabled="removingId === entry.id"
-            @click="onRemove(entry.id)"
+            @click="onRemoveFriendClick(entry.id)"
           >
-            {{ $t('friends.list.remove') }}
+            {{
+              confirmingRemoveId === entry.id
+                ? $t('friends.list.removeConfirm')
+                : $t('friends.list.remove')
+            }}
           </button>
           <button
             type="button"

@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import FriendsView from '@/views/FriendsView.vue'
 import { useFriendsStore, type Friend } from '@/stores/friends'
+import { useToastStore } from '@/stores/toast'
 import { i18n } from '@/i18n'
 
 function makeFriend(overrides: Partial<Friend> = {}): Friend {
@@ -207,17 +208,41 @@ describe('FriendsView', () => {
     expect(store.removeRelationship).toHaveBeenCalledWith(3)
   })
 
-  it('removes a friend via removeRelationship', async () => {
+  it('requires a second click within the confirmation window before removing a friend', async () => {
     const { wrapper, store } = mountFriends()
     await flushPromises()
     store.friends = [{ id: 1, user: makeFriend({ id: 1, name: 'Amigo Uno' }) }]
     await flushPromises()
     vi.spyOn(store, 'removeRelationship').mockResolvedValue()
 
-    await wrapper.find('.friend-row button.btn-danger').trigger('click')
+    const button = wrapper.find('.friend-row button.btn-danger')
+    await button.trigger('click')
+
+    expect(store.removeRelationship).not.toHaveBeenCalled()
+    expect(button.text()).toBe('¿Seguro?')
+
+    await button.trigger('click')
     await flushPromises()
 
     expect(store.removeRelationship).toHaveBeenCalledWith(1)
+  })
+
+  it('shows an error toast (without crashing) when removing a friend fails', async () => {
+    const { wrapper, store } = mountFriends()
+    await flushPromises()
+    store.friends = [{ id: 1, user: makeFriend({ id: 1, name: 'Amigo Uno' }) }]
+    await flushPromises()
+    vi.spyOn(store, 'removeRelationship').mockRejectedValue(new Error('network error'))
+
+    const button = wrapper.find('.friend-row button.btn-danger')
+    await button.trigger('click')
+    await button.trigger('click')
+    await flushPromises()
+
+    // ToastNotification only lives in App.vue, not this view - checking
+    // the store directly is what actually proves the catch fired instead
+    // of leaving an unhandled rejection.
+    expect(useToastStore().message).toBe('Algo ha ido mal. Inténtalo de nuevo.')
   })
 
   it('links each friend to their detail page', async () => {
