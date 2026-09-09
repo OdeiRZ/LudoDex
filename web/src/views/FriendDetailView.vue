@@ -167,9 +167,6 @@ function loadMore() {
 <template>
   <div class="friend-detail">
     <div v-if="friendDetail.notFound" class="card not-found">
-      <RouterLink :to="{ name: 'friends' }" class="back-link">
-        {{ $t('friends.detail.backToList') }}
-      </RouterLink>
       <p>{{ $t('friends.detail.notFound') }}</p>
     </div>
 
@@ -470,10 +467,6 @@ function loadMore() {
   color: var(--color-text-muted);
   font-size: 0.9rem;
   white-space: nowrap;
-}
-
-.not-found .back-link {
-  margin-bottom: var(--space-4);
 }
 
 /* justify-content: space-between puts .back-link flush against the
