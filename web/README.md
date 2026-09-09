@@ -1,6 +1,6 @@
 # LudoDex Web
 
-SPA en Vue 3 (Composition API, Pinia, Vue Router, TypeScript) para
+SPA en Vue 3 (Composition API, Pinia, Vue Router, vue-i18n, TypeScript) para
 [LudoDex](../README.md). Consume la [API](../api/README.md) por HTTP con un
 token Bearer guardado en `localStorage`.
 

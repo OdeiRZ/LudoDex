@@ -28,7 +28,7 @@ Repo único con dos aplicaciones independientes, cada una con su propio
 - [`api/`](api/README.md) — API REST en Laravel 12 + Sanctum (autenticación
   por token, no por cookie de sesión — ver la nota de arquitectura más abajo).
 - [`web/`](web/README.md) — SPA en Vue 3 (Composition API, Pinia, Vue Router,
-  TypeScript), consume la API por HTTP.
+  vue-i18n, TypeScript), consume la API por HTTP.
 
 ## Por qué esta arquitectura
 
