@@ -35,4 +35,23 @@ describe('ScrollToTopButton', () => {
 
     expect(scrollToSpy).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
   })
+
+  // Found live: with prefers-reduced-motion active, the button moved the
+  // scroll but without any animation, which read as "the button doesn't
+  // work" - deliberately ignored from here on, same decision already made
+  // for Poker_Dice's own animated buttons.
+  it('always scrolls smoothly, even with prefers-reduced-motion active', async () => {
+    const scrollToSpy = vi.fn()
+    window.scrollTo = scrollToSpy
+    vi.spyOn(window, 'matchMedia').mockReturnValue({ matches: true } as MediaQueryList)
+
+    setScrollY(500)
+    const wrapper = mount(ScrollToTopButton, { global: { plugins: [i18n] } })
+    window.dispatchEvent(new Event('scroll'))
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('button').trigger('click')
+
+    expect(scrollToSpy).toHaveBeenCalledWith(expect.objectContaining({ behavior: 'smooth' }))
+  })
 })
