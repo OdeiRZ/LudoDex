@@ -16,12 +16,11 @@ function onScroll() {
   visible.value = window.scrollY > SHOW_AFTER_PX
 }
 
-// Always smooth, ignoring prefers-reduced-motion on purpose (same decision
-// already made for Poker_Dice's own animated buttons) - this is the one
-// control whose entire point is the animated scroll itself, not a
-// decorative extra on top of it.
 function scrollToTop() {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  window.scrollTo({
+    top: 0,
+    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+  })
 }
 
 onMounted(() => {

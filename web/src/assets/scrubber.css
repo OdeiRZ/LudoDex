@@ -77,6 +77,12 @@ itself ever registers. */
   transition: opacity 0.15s ease;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .az-scrubber {
+    transition: none;
+  }
+}
+
 /* Small grip icon spanning the top of the pill - dragging from here moves
 the whole strip (see useCollectionScrubber's startHandleDrag), instead of
 jumping to a letter/decade/tier the way dragging the rest of the strip
