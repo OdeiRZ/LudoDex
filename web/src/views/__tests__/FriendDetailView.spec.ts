@@ -276,6 +276,20 @@ describe('FriendDetailView', () => {
     expect(wrapper.find('.az-scrubber').exists()).toBe(true)
   })
 
+  it('hides the A-Z scrubber on the Plays tab - only Collection has one', async () => {
+    const { wrapper, store } = await mountDetail()
+    store.shared = [makeGame({ id: 's1', name: 'Apple' })]
+    await flushPromises()
+    expect(wrapper.find('.az-scrubber').exists()).toBe(true)
+
+    await wrapper.findAll('.tab')[1]!.trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.az-scrubber').exists()).toBe(false)
+
+    await wrapper.findAll('.tab')[0]!.trigger('click')
+    expect(wrapper.find('.az-scrubber').exists()).toBe(true)
+  })
+
   it('hides the A-Z scrubber when the current section has no games, even if other sections do', async () => {
     const { wrapper, store } = await mountDetail()
     store.mineOnly = Array.from({ length: 4 }, (_, i) => makeGame({ id: `m${i}`, name: `Mine ${i}` }))

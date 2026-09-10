@@ -7,6 +7,16 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Corregido
+
+- El scrubber A-Z de la ficha de un amigo aparecía también en la pestaña
+  "Partidas", donde no hay nada que recorrer con él — ahora solo se
+  muestra en "Colección compartida". Cambiar de pestaña desmonta las
+  secciones de colección (`v-if`), pero `currentSectionKey`/
+  `scrubberPool` no se reseteaban solos al no depender de la pestaña
+  activa; se resuelve extendiendo el mismo flag `hidden` que ya oculta
+  el scrubber con el modal de detalle abierto.
+
 ## [0.12.0] - 2026-09-10
 
 ### Añadido

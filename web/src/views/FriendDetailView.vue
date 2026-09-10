@@ -251,7 +251,11 @@ const {
   pool: scrubberPool,
   filtered: scrubberPool, // no hay búsqueda/filtro propio en esta vista
   listRef: gamesListRef,
-  hidden: computed(() => detailGame.value !== null),
+  // Also hidden on the Plays tab - switching tabs unmounts the collection
+  // sections (v-if, not v-show) but currentSectionKey/scrubberPool don't
+  // reset on their own, so without this the scrubber kept showing there
+  // with nothing of its own on screen to jump around in.
+  hidden: computed(() => detailGame.value !== null || activeTab.value !== 'collection'),
   labels: computed(() => ({
     name: t('dashboard.azScrubberLabel'),
     year: t('dashboard.yearScrubberLabel'),
