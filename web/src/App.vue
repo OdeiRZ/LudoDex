@@ -13,6 +13,12 @@ const auth = useAuthStore()
 const friends = useFriendsStore()
 const router = useRouter()
 
+// Checked against MODE (not DEV) on purpose - Vitest also runs with
+// DEV: true (its own mode is 'test', not 'production'), which would
+// otherwise hide the banner under test too and break the tests that
+// assert its presence.
+const isDev = import.meta.env.MODE === 'development'
+
 async function onLogout() {
   await auth.logout()
   router.push({ name: 'login' })
@@ -191,7 +197,7 @@ async function onResendVerification() {
   </header>
 
   <div
-    v-if="auth.isAuthenticated && auth.user && !auth.user.email_verified_at"
+    v-if="!isDev && auth.isAuthenticated && auth.user && !auth.user.email_verified_at"
     class="verify-banner alert alert-info"
   >
     <p v-if="resendMessage" role="status">{{ resendMessage }}</p>
