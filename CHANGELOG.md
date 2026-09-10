@@ -207,7 +207,34 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
     576px→550px, ya que ambos necesitaban prácticamente el mismo
     ancho.
 
+- **Repaso de estilos en Amigos**, en la misma revisión en vivo:
+  - Los 3 botones de una solicitud entrante (aceptar/rechazar/bloquear)
+    dejaban muy poco margen junto al avatar y el nombre antes de tener
+    que envolver a una segunda línea. Pasan a solo icono con
+    `aria-label`/`title` traducidos, mismo patrón ya usado por "Cerrar
+    sesión" en el nav — pero solo por debajo de 510px; por encima
+    vuelven a mostrar el texto completo con el mismo color.
+  - Unificados los criterios de color y de icono/texto entre esa fila y
+    la de "Tus amigos" (Ver colección/Eliminar/Bloquear), que tenía el
+    mismo problema de espacio pero seguía en texto. "Eliminar" (rojo)
+    y "Bloquear" (ámbar, nueva clase `.btn-warning`) dejan de compartir
+    color — antes ambos eran rojo pese a ser acciones de gravedad
+    distinta.
+  - "Bloquear" gana la misma confirmación de doble clic que ya tenía
+    "Eliminar" — bloquear también borra cualquier amistad/solicitud
+    existente (`BlockService::block()`), así que merecía la misma
+    salvaguarda contra un clic accidental que no tenía antes.
+
 ### Corregido
+
+- Un fallo al enviar el email de verificación (Resend caído, límite de
+  cuota, clave en modo sandbox…) dejaba la cuenta creada en la base de
+  datos pero devolvía error al cliente, sin forma de saber que el
+  registro sí se había completado — encontrado en local con una cuenta
+  de prueba real. `sendEmailVerificationNotification()` se captura y
+  solo se loggea (`Log::warning`), mismo patrón ya usado en
+  `FriendshipService::sendRequest()` para el email de solicitud de
+  amistad. Aplicado también al cambio de email desde Perfil.
 
 - Hallazgo de una auditoría de seguridad: `POST /forgot-password` devolvía un mensaje
   distinto según si el email existía o no (`Password::INVALID_USER`) o si se había

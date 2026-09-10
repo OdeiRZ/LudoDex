@@ -226,7 +226,7 @@ describe('FriendsView', () => {
     await button.trigger('click')
 
     expect(store.removeRelationship).not.toHaveBeenCalled()
-    expect(button.text()).toBe('¿Seguro?')
+    expect(button.attributes('aria-label')).toBe('¿Seguro?')
 
     await button.trigger('click')
     await flushPromises()
@@ -260,10 +260,10 @@ describe('FriendsView', () => {
 
     const link = wrapper.find('.friend-row a[href="/friends/42"]')
     expect(link.exists()).toBe(true)
-    expect(link.text()).toBe('Ver colección')
+    expect(link.attributes('aria-label')).toBe('Ver colección')
   })
 
-  it('blocks a friend from the friends list', async () => {
+  it('blocks a friend from the friends list, requiring a second click within the confirmation window', async () => {
     const { wrapper, store } = mountFriends()
     await flushPromises()
     const target = makeFriend({ id: 42, name: 'Amigo Uno' })
@@ -272,13 +272,19 @@ describe('FriendsView', () => {
     vi.spyOn(store, 'blockUser').mockResolvedValue()
 
     const buttons = wrapper.findAll('.friend-row button')
-    await buttons[buttons.length - 1]!.trigger('click')
+    const button = buttons[buttons.length - 1]!
+    await button.trigger('click')
+
+    expect(store.blockUser).not.toHaveBeenCalled()
+    expect(button.attributes('aria-label')).toBe('¿Seguro?')
+
+    await button.trigger('click')
     await flushPromises()
 
     expect(store.blockUser).toHaveBeenCalledWith(target)
   })
 
-  it('blocks a user from an incoming request', async () => {
+  it('blocks a user from an incoming request, requiring a second click within the confirmation window', async () => {
     const { wrapper, store } = mountFriends()
     await flushPromises()
     const target = makeFriend({ id: 2, name: 'Pide Amistad' })
@@ -287,7 +293,13 @@ describe('FriendsView', () => {
     vi.spyOn(store, 'blockUser').mockResolvedValue()
 
     const buttons = wrapper.findAll('.friend-row button')
-    await buttons[buttons.length - 1]!.trigger('click')
+    const button = buttons[buttons.length - 1]!
+    await button.trigger('click')
+
+    expect(store.blockUser).not.toHaveBeenCalled()
+    expect(button.attributes('aria-label')).toBe('¿Seguro?')
+
+    await button.trigger('click')
     await flushPromises()
 
     expect(store.blockUser).toHaveBeenCalledWith(target)

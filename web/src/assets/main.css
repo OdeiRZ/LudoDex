@@ -79,6 +79,15 @@ red made both actions read as interchangeable at a glance. */
   color: #fff;
 }
 
+/* Same "armed" fill as .btn-danger-confirm, same reasoning - blocking
+someone also deletes any existing friendship/request between you (see
+BlockService::block()), so it deserves the same click-again-to-confirm
+safety net as "eliminar amigo", not a single unconfirmed click. */
+.btn-warning-confirm {
+  background: var(--color-accent);
+  color: #fff;
+}
+
 /* Cards */
 .card {
   background: var(--color-surface);

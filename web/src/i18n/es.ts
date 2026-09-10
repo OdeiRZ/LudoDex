@@ -357,6 +357,7 @@ export default {
       accept: 'Aceptar',
       decline: 'Rechazar',
       block: 'Bloquear',
+      blockConfirm: '¿Seguro?',
     },
     outgoing: {
       title: 'Solicitudes enviadas',
@@ -369,6 +370,7 @@ export default {
       removeConfirm: '¿Seguro?',
       viewProfile: 'Ver colección',
       block: 'Bloquear',
+      blockConfirm: '¿Seguro?',
     },
     blocked: {
       title: 'Usuarios bloqueados',

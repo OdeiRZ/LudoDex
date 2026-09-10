@@ -133,6 +133,31 @@ async function onBlock(target: Friend) {
   }
 }
 
+// Same click-again-to-confirm pattern as onRemoveFriendClick above -
+// blocking deletes any existing friendship/request too (see
+// BlockService::block() on the backend), so it's at least as
+// consequential as "eliminar amigo" and deserves the same safety net,
+// not the single unconfirmed click it had before.
+const confirmingBlockId = ref<number | null>(null)
+let confirmingBlockTimeout: ReturnType<typeof setTimeout> | undefined
+
+function onBlockClick(target: Friend) {
+  if (confirmingBlockId.value !== target.id) {
+    clearTimeout(confirmingBlockTimeout)
+    confirmingBlockId.value = target.id
+    confirmingBlockTimeout = setTimeout(() => {
+      confirmingBlockId.value = null
+    }, 4000)
+    return
+  }
+
+  clearTimeout(confirmingBlockTimeout)
+  confirmingBlockId.value = null
+  onBlock(target)
+}
+
+onUnmounted(() => clearTimeout(confirmingBlockTimeout))
+
 const unblockingId = ref<number | null>(null)
 async function onUnblock(blockId: number) {
   unblockingId.value = blockId
@@ -219,10 +244,11 @@ async function onUnblock(blockId: number) {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
             </svg>
+            <span class="action-text">{{ $t('friends.incoming.accept') }}</span>
           </button>
           <button
             type="button"
-            class="btn icon-btn"
+            class="btn btn-danger icon-btn"
             :aria-label="$t('friends.incoming.decline')"
             :title="$t('friends.incoming.decline')"
             :disabled="removingId === entry.id"
@@ -231,19 +257,34 @@ async function onUnblock(blockId: number) {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M18 6L6 18M6 6l12 12" />
             </svg>
+            <span class="action-text">{{ $t('friends.incoming.decline') }}</span>
           </button>
           <button
             type="button"
             class="btn btn-warning icon-btn"
-            :aria-label="$t('friends.incoming.block')"
-            :title="$t('friends.incoming.block')"
+            :class="{ 'btn-warning-confirm': confirmingBlockId === entry.user.id }"
+            :aria-label="
+              confirmingBlockId === entry.user.id
+                ? $t('friends.incoming.blockConfirm')
+                : $t('friends.incoming.block')
+            "
+            :title="
+              confirmingBlockId === entry.user.id
+                ? $t('friends.incoming.blockConfirm')
+                : $t('friends.incoming.block')
+            "
             :disabled="blockingUserId === entry.user.id"
-            @click="onBlock(entry.user)"
+            @click="onBlockClick(entry.user)"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <circle cx="12" cy="12" r="9" />
               <path stroke-linecap="round" d="M5.5 5.5l13 13" />
             </svg>
+            <span class="action-text">{{
+              confirmingBlockId === entry.user.id
+                ? $t('friends.incoming.blockConfirm')
+                : $t('friends.incoming.block')
+            }}</span>
           </button>
         </div>
       </section>
@@ -274,30 +315,82 @@ async function onUnblock(blockId: number) {
           <span class="friend-name">{{ entry.user.name }}</span>
           <RouterLink
             :to="{ name: 'friend-detail', params: { friendId: entry.user.id } }"
-            class="btn"
+            class="btn icon-btn"
+            :aria-label="$t('friends.list.viewProfile')"
+            :title="$t('friends.list.viewProfile')"
           >
-            {{ $t('friends.list.viewProfile') }}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"
+              />
+              <circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span class="action-text">{{ $t('friends.list.viewProfile') }}</span>
           </RouterLink>
           <button
             type="button"
-            class="btn btn-danger"
+            class="btn btn-danger icon-btn"
             :class="{ 'btn-danger-confirm': confirmingRemoveId === entry.id }"
-            :disabled="removingId === entry.id"
-            @click="onRemoveFriendClick(entry.id)"
-          >
-            {{
+            :aria-label="
               confirmingRemoveId === entry.id
                 ? $t('friends.list.removeConfirm')
                 : $t('friends.list.remove')
-            }}
+            "
+            :title="
+              confirmingRemoveId === entry.id
+                ? $t('friends.list.removeConfirm')
+                : $t('friends.list.remove')
+            "
+            :disabled="removingId === entry.id"
+            @click="onRemoveFriendClick(entry.id)"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" d="M4 7h16" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"
+              />
+            </svg>
+            <span class="action-text">{{
+              confirmingRemoveId === entry.id
+                ? $t('friends.list.removeConfirm')
+                : $t('friends.list.remove')
+            }}</span>
           </button>
           <button
             type="button"
-            class="btn btn-warning"
+            class="btn btn-warning icon-btn"
+            :class="{ 'btn-warning-confirm': confirmingBlockId === entry.user.id }"
+            :aria-label="
+              confirmingBlockId === entry.user.id
+                ? $t('friends.list.blockConfirm')
+                : $t('friends.list.block')
+            "
+            :title="
+              confirmingBlockId === entry.user.id
+                ? $t('friends.list.blockConfirm')
+                : $t('friends.list.block')
+            "
             :disabled="blockingUserId === entry.user.id"
-            @click="onBlock(entry.user)"
+            @click="onBlockClick(entry.user)"
           >
-            {{ $t('friends.list.block') }}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path stroke-linecap="round" d="M5.5 5.5l13 13" />
+            </svg>
+            <span class="action-text">{{
+              confirmingBlockId === entry.user.id
+                ? $t('friends.list.blockConfirm')
+                : $t('friends.list.block')
+            }}</span>
           </button>
         </div>
       </section>
@@ -372,20 +465,32 @@ second line (found live). */
   border-bottom: none;
 }
 
-/* Icon-only instead of text (asked for directly) - the incoming-request
-row was the worst offender for the overflow .friend-row's own comment
-above already describes: accept/decline/block plus an avatar and a name
-left barely any room before wrapping. aria-label/title on the button
-itself carry the accessible name and the hover tooltip - same pattern
-already used for App.vue's own icon-only "Cerrar sesión" below its own
-breakpoint. */
-.icon-btn {
-  padding: 0.55rem;
+/* Full text by default - icon-only (asked for directly) only kicks in at
+510px or narrower, same breakpoint-swap pattern already used for
+App.vue's own "Cerrar sesión". Above it these read exactly like any
+other .btn: text plus the color that already carries the accept/
+decline/block/remove distinction (btn-primary/btn-danger/btn-warning).
+aria-label/title stay on the button regardless of width - redundant
+with the visible text above 510px, but exactly what carries the
+accessible name and hover tooltip once the text itself hides below it. */
+.icon-btn svg {
+  display: none;
 }
 
-.icon-btn svg {
-  width: 18px;
-  height: 18px;
+@media (max-width: 510px) {
+  .icon-btn {
+    padding: 0.55rem;
+  }
+
+  .icon-btn svg {
+    display: block;
+    width: 18px;
+    height: 18px;
+  }
+
+  .icon-btn .action-text {
+    display: none;
+  }
 }
 
 /* min-width: 0 overrides the flex item's default content-based floor
