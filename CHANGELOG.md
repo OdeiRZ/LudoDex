@@ -369,6 +369,11 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   liberándolo para competir de verdad con el scrubber sin afectar al
   resto de la tarjeta.
 
+- El enlace "Amigos" del nav no quedaba marcado como activo al estar en
+  la ficha de un amigo (colección compartida/partidas) — el resaltado
+  automático de `RouterLink` solo compara contra la ruta `friends`
+  exacta, no contra `friend-detail`. Ahora también se marca activo ahí.
+
 ## [0.11.0] - 2026-08-23
 
 ### Añadido

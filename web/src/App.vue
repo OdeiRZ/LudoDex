@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
-import { RouterLink, RouterView, useRouter } from 'vue-router'
+import { computed, onMounted, ref, watch } from 'vue'
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useFriendsStore } from '@/stores/friends'
 import UserAvatar from '@/components/UserAvatar.vue'
@@ -12,6 +12,14 @@ import ScrollToTopButton from '@/components/ScrollToTopButton.vue'
 const auth = useAuthStore()
 const friends = useFriendsStore()
 const router = useRouter()
+const route = useRoute()
+
+// RouterLink's own router-link-exact-active only matches the 'friends'
+// route itself, not 'friend-detail' (a friend's shared collection/plays,
+// :friendId in the path) - without this, opening a friend's own page
+// looked like leaving the Amigos section entirely in the nav, even
+// though it's still part of it.
+const isFriendsRoute = computed(() => route.name === 'friends' || route.name === 'friend-detail')
 
 // Checked against MODE (not DEV) on purpose - Vitest also runs with
 // DEV: true (its own mode is 'test', not 'production'), which would
@@ -120,7 +128,11 @@ async function onResendVerification() {
       <RouterLink :to="{ name: 'dashboard' }">{{ $t('nav.collection') }}</RouterLink>
       <RouterLink :to="{ name: 'picker' }">{{ $t('nav.picker') }}</RouterLink>
       <RouterLink :to="{ name: 'plays' }">{{ $t('nav.plays') }}</RouterLink>
-      <RouterLink :to="{ name: 'friends' }" class="nav-link-with-badge">
+      <RouterLink
+        :to="{ name: 'friends' }"
+        class="nav-link-with-badge"
+        :class="{ 'router-link-exact-active': isFriendsRoute }"
+      >
         {{ $t('nav.friends') }}
         <span v-if="friends.incomingRequests.length > 0" class="nav-badge" aria-hidden="true" />
       </RouterLink>
@@ -149,7 +161,11 @@ async function onResendVerification() {
       <RouterLink :to="{ name: 'dashboard' }">{{ $t('nav.collection') }}</RouterLink>
       <RouterLink :to="{ name: 'picker' }">{{ $t('nav.picker') }}</RouterLink>
       <RouterLink :to="{ name: 'plays' }">{{ $t('nav.plays') }}</RouterLink>
-      <RouterLink :to="{ name: 'friends' }" class="nav-link-with-badge">
+      <RouterLink
+        :to="{ name: 'friends' }"
+        class="nav-link-with-badge"
+        :class="{ 'router-link-exact-active': isFriendsRoute }"
+      >
         {{ $t('nav.friends') }}
         <span v-if="friends.incomingRequests.length > 0" class="nav-badge" aria-hidden="true" />
       </RouterLink>

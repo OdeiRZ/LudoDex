@@ -18,6 +18,11 @@ function makeRouter(startPath: string) {
       { path: '/plays', name: 'plays', component: { template: '<div>Plays</div>' } },
       { path: '/import', name: 'import-bgg', component: { template: '<div>Import</div>' } },
       { path: '/friends', name: 'friends', component: { template: '<div>Friends</div>' } },
+      {
+        path: '/friends/:friendId',
+        name: 'friend-detail',
+        component: { template: '<div>Friend detail</div>' },
+      },
       { path: '/profile', name: 'profile', component: { template: '<div>Profile</div>' } },
       { path: '/login', name: 'login', component: { template: '<div>Login</div>' } },
       { path: '/register', name: 'register', component: { template: '<div>Register</div>' } },
@@ -228,6 +233,36 @@ describe('App', () => {
     await wrapper.find('.hamburger-btn').trigger('click')
     await flushPromises()
     expect(wrapper.find('.mobile-nav a[href="/friends"]').exists()).toBe(true)
+  })
+
+  it('marks the friends nav link active on a friend\'s own detail page too, not just /friends itself', async () => {
+    // RouterLink's own router-link-exact-active only matches the
+    // 'friends' route exactly - without App.vue's own extra check,
+    // opening a friend's shared collection/plays looked like leaving
+    // Amigos entirely in the nav.
+    setActivePinia(createPinia())
+    const auth = useAuthStore()
+    auth.token = 'a-token'
+    auth.user = {
+      id: 1,
+      name: 'Odei',
+      email: 'odei@example.com',
+      bgg_username: null,
+      avatar_url: null,
+      email_verified_at: null,
+      discoverable: false,
+      share_activity: true,
+    }
+    vi.spyOn(useFriendsStore(), 'fetchAll').mockResolvedValue()
+
+    const router = makeRouter('/friends/42')
+    await router.isReady()
+    const wrapper = mount(App, { global: { plugins: [router, i18n] } })
+    await flushPromises()
+
+    expect(wrapper.find('.primary-nav a[href="/friends"]').classes()).toContain(
+      'router-link-exact-active',
+    )
   })
 
   it('does not show the friends nav link when not authenticated', async () => {
