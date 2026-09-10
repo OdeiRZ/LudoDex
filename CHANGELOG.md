@@ -7,6 +7,8 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-09-10
+
 ### Añadido
 
 - **Bloqueo de usuario y visibilidad de colección/partidas** — los dos
