@@ -1,9 +1,19 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { createRouter, createMemoryHistory } from 'vue-router'
 import ProfileView from '@/views/ProfileView.vue'
 import { useAuthStore } from '@/stores/auth'
 import { i18n } from '@/i18n'
+
+// Only "import-bgg" needs to exist here - the link to it (moved from the
+// primary nav) is the only RouterLink this view renders.
+function makeRouter() {
+  return createRouter({
+    history: createMemoryHistory(),
+    routes: [{ path: '/import', name: 'import-bgg', component: { template: '<div />' } }],
+  })
+}
 
 const user = {
   id: 1,
@@ -24,7 +34,7 @@ function mountProfile() {
   const store = useAuthStore()
   store.user = { ...user }
 
-  const wrapper = mount(ProfileView, { global: { plugins: [i18n] } })
+  const wrapper = mount(ProfileView, { global: { plugins: [makeRouter(), i18n] } })
 
   return { wrapper, store }
 }
@@ -143,6 +153,16 @@ describe('ProfileView personal data form', () => {
     expect(i18n.global.locale.value).toBe('en')
 
     i18n.global.locale.value = 'es'
+  })
+
+  // Moved here from the primary nav for the same reason as the language
+  // toggle above - the manual "add a game" form is a separate route
+  // entirely, linked from Dashboard/Picker, unaffected by this move.
+  it('links to the BGG import page', async () => {
+    const { wrapper } = mountProfile()
+    await flushPromises()
+
+    expect(wrapper.find('a[href="/import"]').exists()).toBe(true)
   })
 })
 

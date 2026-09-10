@@ -214,6 +214,19 @@ async function onSubmitPassword() {
       </form>
     </section>
 
+    <!-- Moved here from the primary nav (freed up room there, same reasoning
+    as the language toggle above) - used mostly once, at the start, and
+    occasionally after. The manual "add a game" form is a separate route
+    entirely, linked from Dashboard/Picker themselves, not from here or the
+    old nav item - unaffected by this move. -->
+    <section class="card">
+      <h2>{{ $t('profile.importBggTitle') }}</h2>
+      <p class="import-bgg-hint">{{ $t('profile.importBggHint') }}</p>
+      <RouterLink :to="{ name: 'import-bgg' }" class="btn btn-primary">
+        {{ $t('nav.importBgg') }}
+      </RouterLink>
+    </section>
+
     <section class="card">
       <h2>{{ $t('profile.changePassword') }}</h2>
 
@@ -323,6 +336,12 @@ h1 {
 
 .language-label {
   font-weight: 500;
+}
+
+.import-bgg-hint {
+  margin-bottom: var(--space-4);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
 }
 
 .checkbox-label {

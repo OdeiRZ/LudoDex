@@ -252,6 +252,8 @@ export default {
     title: 'Mi perfil',
     personalData: 'Datos personales',
     language: 'Idioma',
+    importBggTitle: 'Importar desde BoardGameGeek',
+    importBggHint: 'Trae tu colección, tu historial de partidas o un CSV desde tu cuenta de BGG.',
     avatarHint: 'El avatar se toma de tu cuenta de BoardGameGeek si indicas tu usuario más abajo.',
     name: 'Nombre',
     email: 'Email',

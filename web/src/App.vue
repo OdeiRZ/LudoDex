@@ -118,7 +118,6 @@ async function onResendVerification() {
         {{ $t('nav.friends') }}
         <span v-if="friends.incomingRequests.length > 0" class="nav-badge" aria-hidden="true" />
       </RouterLink>
-      <RouterLink :to="{ name: 'import-bgg' }">{{ $t('nav.importBgg') }}</RouterLink>
     </nav>
 
     <button
@@ -148,7 +147,6 @@ async function onResendVerification() {
         {{ $t('nav.friends') }}
         <span v-if="friends.incomingRequests.length > 0" class="nav-badge" aria-hidden="true" />
       </RouterLink>
-      <RouterLink :to="{ name: 'import-bgg' }">{{ $t('nav.importBgg') }}</RouterLink>
     </nav>
 
     <div class="session">
