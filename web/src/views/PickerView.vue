@@ -60,6 +60,14 @@ watch(selectedFriendIds, async (ids, previousIds) => {
   const idSet = new Set(ids)
   const previousSet = new Set(previousIds ?? [])
 
+  // Defaults the player count to "you + everyone selected" so the results
+  // already reflect a real group instead of still filtering for 2 once a
+  // third or fourth friend joins. Runs on every change (not just growth),
+  // so removing a friend also brings the count back down.
+  if (ids.length > 0) {
+    players.value = ids.length + 1
+  }
+
   for (const id of previousSet) {
     if (!idSet.has(id)) {
       friendComparisons.value.delete(id)

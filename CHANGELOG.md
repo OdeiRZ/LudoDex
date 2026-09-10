@@ -23,7 +23,9 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   colección ya no desaparece al seleccionar un amigo — antes de este
   cambio, un `mineOnly` vacío en el fixture de test podía (de forma
   irreal) vaciarla del todo. Verificado en vivo con tres cuentas de
-  prueba combinando tres colecciones reales.
+  prueba combinando tres colecciones reales. El número de jugadores se
+  ajusta solo a "tú + cada amigo marcado" al (de)seleccionar alguno, en
+  vez de quedarse fijo en el valor por defecto.
 
 ## [0.12.0] - 2026-09-10
 

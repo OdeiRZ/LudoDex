@@ -459,6 +459,34 @@ describe('PickerView', () => {
       return wrapper.findAll('.play-with-field input[type="checkbox"]')[index]
     }
 
+    it('defaults the player count to you plus everyone selected, and back down when deselected', async () => {
+      const wrapper = mountPicker(
+        [makeEntry({ name: 'Root' }, 'owned')],
+        [friendEntry, friendEntry2],
+      )
+      const friends = useFriendsStore()
+      vi.spyOn(friends, 'fetchCollectionComparison').mockResolvedValue({
+        friend: friendEntry.user,
+        shared: [],
+        mineOnly: [],
+        theirsOnly: [],
+      })
+
+      expect(wrapper.find<HTMLInputElement>('#players').element.value).toBe('2')
+
+      await friendCheckbox(wrapper, 0).setValue(true)
+      await flushPromises()
+      expect(wrapper.find<HTMLInputElement>('#players').element.value).toBe('2')
+
+      await friendCheckbox(wrapper, 1).setValue(true)
+      await flushPromises()
+      expect(wrapper.find<HTMLInputElement>('#players').element.value).toBe('3')
+
+      await friendCheckbox(wrapper, 1).setValue(false)
+      await flushPromises()
+      expect(wrapper.find<HTMLInputElement>('#players').element.value).toBe('2')
+    })
+
     it('only shows the friend selector when there is at least one accepted friend', () => {
       const withoutFriends = mountPicker([makeEntry({ name: 'Root' }, 'owned')])
       expect(withoutFriends.find('.play-with-field').exists()).toBe(false)
