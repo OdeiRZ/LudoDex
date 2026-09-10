@@ -163,6 +163,31 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   no una segunda imagen de portada junto a la suya, para no duplicar
   imágenes en una lista que puede llegar a miles de filas.
 
+- **Secciones expandibles en "Colección compartida"** — "En común",
+  "Solo tú" y "Solo {amigo}" ganan una cabecera clicable con chevron
+  (expandidas por defecto, a diferencia del desglose de "más jugados"
+  en Partidas, que sí colapsa por defecto: aquí son el contenido
+  principal de la pestaña). `v-show` en vez de `v-if` para ocultar la
+  lista al colapsar, no desmontarla — el scrubber A-Z sigue
+  encontrando los elementos en el DOM.
+
+  De paso, dos bugs reales en el propio scrubber A-Z de esta pestaña,
+  encontrados en vivo:
+  - Al saltar a una letra, el scrubber podía aterrizar en la tarjeta de
+    una sección colapsada (oculta con `v-show`, sigue en el DOM) en vez
+    de una visible — un elemento `display: none` devuelve `top: 0` en
+    `getBoundingClientRect()`, indistinguible de "está justo arriba del
+    todo" en la comparación de "más cercano al viewport" que decide a
+    qué tarjeta saltar. Los candidatos de secciones colapsadas se
+    descartan ahora antes de esa comparación.
+  - Las tres listas (En común/Solo tú/Solo amigo) nunca se ordenaban
+    alfabéticamente — se renderizaban en el orden que devolvía la API.
+    El scrubber A-Z asume que la lista sobre la que salta SÍ está
+    ordenada (la misma premisa por la que funciona el índice de un
+    libro), así que saltar a una letra podía aterrizar cerca de
+    cualquier cosa. Ordenadas ahora con el mismo criterio
+    (`localeCompare`) que ya usa Colección.
+
 ### Cambiado
 
 - Licencia del proyecto: de MIT a AGPLv3 — para que un tercero que

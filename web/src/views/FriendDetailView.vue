@@ -52,23 +52,36 @@ const friendName = computed(() => friendDetail.friend?.name ?? '')
 // Driven by data rather than three near-identical template blocks - the
 // only real difference between the three sections is which array/i18n
 // strings feed them, so a single v-for renders all three.
+// Alphabetical, same localeCompare DashboardView already sorts its own
+// collection by - without this, the three lists render in whatever
+// order the API happened to return them (found live: the real bug
+// behind "the scrubber jumped to the wrong game" reports - the scrubber
+// itself was never broken, it always assumes the list it's jumping
+// around IS alphabetically sorted, the same way a phone book's own
+// index only works because the phone book itself is). [...array] copies
+// before sorting - .sort() mutates in place, and these are the store's
+// own arrays, not a local copy.
+function byName(games: Game[]): Game[] {
+  return [...games].sort((a, b) => a.name.localeCompare(b.name))
+}
+
 const collectionSections = computed(() => [
   {
     key: 'shared',
     title: t('friends.detail.collection.shared'),
-    games: friendDetail.shared,
+    games: byName(friendDetail.shared),
     empty: t('friends.detail.collection.emptyShared'),
   },
   {
     key: 'mineOnly',
     title: t('friends.detail.collection.mineOnly'),
-    games: friendDetail.mineOnly,
+    games: byName(friendDetail.mineOnly),
     empty: t('friends.detail.collection.emptyMineOnly', { name: friendName.value }),
   },
   {
     key: 'theirsOnly',
     title: t('friends.detail.collection.theirsOnly', { name: friendName.value }),
-    games: friendDetail.theirsOnly,
+    games: byName(friendDetail.theirsOnly),
     empty: t('friends.detail.collection.emptyTheirsOnly', { name: friendName.value }),
   },
 ])
@@ -118,18 +131,59 @@ const gamesListRef = ref<HTMLElement | null>(null)
 // reuses the game's own (unique here, since a game can only appear in
 // one of the three sections) and status is always 'owned', matching
 // what the comparison itself already only ever includes.
+//
+// Collapsed sections are excluded here (asked for directly) - their
+// letters never show as available, so the scrubber can never offer a
+// jump into a section with nothing currently visible to jump to.
+// Recomputes only when collapsedSections itself changes (a deliberate
+// click), never on scroll - an earlier version kept re-deriving this
+// from wherever the page happened to be scrolled to, which fought with
+// jumpToBucket's own scrollIntoView mid-animation (each animation frame
+// fired a real scroll event, recalculating - and sometimes changing -
+// the pool while the scroll it had itself just triggered was still in
+// flight) and could make the whole scrubber vanish right after a
+// perfectly valid click.
 const scrubberPool = computed(() =>
-  [...friendDetail.shared, ...friendDetail.mineOnly, ...friendDetail.theirsOnly].map((game) => ({
-    id: game.id,
-    status: 'owned' as const,
-    game,
-  })),
+  collectionSections.value
+    .filter((section) => !collapsedSections.value.has(section.key))
+    .flatMap((section) => section.games)
+    .map((game) => ({ id: game.id, status: 'owned' as const, game })),
 )
 
 // Fixed to name mode - this view has no sort/order controls of its own
 // (nothing asked for), unlike Dashboard's own switchable criterion.
 const sortCriterion = ref<'name'>('name')
 const sortOrder = ref<'asc'>('asc')
+
+// Overrides the scrubber's own default "first match in DOM" (correct
+// for Dashboard/Picker's single continuously-sorted list - see the
+// option's own doc comment). candidates comes from querying the whole
+// gamesListRef, which still contains every section's own cards
+// regardless of collapse state (v-show only hides them, it doesn't
+// remove them) - a letter only being "available" when an expanded
+// section has a match (scrubberPool above) does NOT mean every DOM
+// match for it is itself visible, so a collapsed section's own hidden
+// cards have to be filtered out here too, not just assumed away.
+//
+// That filter is load-bearing, not just tidy: a display: none element's
+// getBoundingClientRect() reports every value as 0, including top -
+// indistinguishable from "sitting exactly at the viewport's own top
+// edge" if left in the "nearest" comparison below, so a hidden card
+// always won that comparison against any genuinely visible one
+// (confirmed live - jumping to a letter that only a collapsed section's
+// own hidden card matched silently went nowhere, even with a real match
+// visible in an expanded section).
+function resolveJumpTarget(candidates: HTMLElement[]): HTMLElement | null {
+  const visible = candidates.filter((el) => {
+    const key = el.closest('.collection-section')?.getAttribute('data-section-key')
+    return key !== null && key !== undefined && !collapsedSections.value.has(key)
+  })
+  if (visible.length === 0) return null
+
+  return visible.reduce((nearest, el) =>
+    Math.abs(el.getBoundingClientRect().top) < Math.abs(nearest.getBoundingClientRect().top) ? el : nearest,
+  )
+}
 
 const {
   showScrubber,
@@ -165,6 +219,7 @@ const {
     year: t('dashboard.yearScrubberLabel'),
     rank: t('dashboard.rankScrubberLabel'),
   })),
+  resolveJumpTarget,
 })
 
 const searchInput = ref('')
@@ -249,6 +304,7 @@ function loadMore() {
             v-for="section in collectionSections"
             :key="section.key"
             class="collection-section"
+            :data-section-key="section.key"
           >
             <button
               type="button"

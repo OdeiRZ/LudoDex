@@ -119,6 +119,29 @@ describe('FriendDetailView', () => {
     expect(wrapper.text()).toContain('Azul')
   })
 
+  it('sorts each section alphabetically, regardless of the order the API returned it in', async () => {
+    // Regression test for a real bug found live: the API response isn't
+    // guaranteed alphabetical, and the three sections were rendered in
+    // that raw order - the A-Z scrubber assumes the list it jumps
+    // around IS alphabetically sorted (same premise a phone book's own
+    // index relies on), so scrubbing to a letter on an unsorted list
+    // could land near a same-letter card that wasn't actually the
+    // alphabetically-first one, or right next to an unrelated one.
+    // DashboardView already sorts its own collection the same way
+    // (a.game.name.localeCompare(b.game.name)) - this brings
+    // FriendDetailView in line with it.
+    const { wrapper, store } = await mountDetail()
+    store.shared = [
+      { id: 'g1', name: 'Wingspan' } as never,
+      { id: 'g2', name: 'Azul' } as never,
+      { id: 'g3', name: 'Catan' } as never,
+    ]
+    await flushPromises()
+
+    const names = wrapper.findAll('.collection-section h3').map((el) => el.text())
+    expect(names).toEqual(['Azul', 'Catan', 'Wingspan'])
+  })
+
   it('collapses and re-expands a collection section by clicking its header', async () => {
     const { wrapper, store } = await mountDetail()
     store.shared = [{ id: 'g1', name: 'Catan' } as never]
@@ -271,6 +294,103 @@ describe('FriendDetailView', () => {
     await flushPromises()
 
     expect(wrapper.find('.az-scrubber').exists()).toBe(false)
+  })
+
+  it('excludes a collapsed section from both the scrubber threshold and its available letters', async () => {
+    const { wrapper, store } = await mountDetail()
+    store.shared = Array.from({ length: 13 }, (_, i) =>
+      makeGame({ id: `s${i}`, name: `Apple ${i}` }),
+    )
+    await flushPromises()
+    expect(wrapper.find('.az-scrubber').exists()).toBe(true)
+
+    await wrapper.find('.collection-section-header').trigger('click')
+
+    // Collapsing the only section with enough games to cross the
+    // threshold drops the scrubber entirely - its letters were never
+    // "available" to a section with nothing currently visible to jump
+    // to (asked for directly, after an earlier version could still jump
+    // into - or worse, transiently hide behind - a collapsed section).
+    expect(wrapper.find('.az-scrubber').exists()).toBe(false)
+  })
+
+  it("does not offer a collapsed section's own letters even while another section is expanded", async () => {
+    const { wrapper, store } = await mountDetail()
+    store.shared = Array.from({ length: 13 }, (_, i) =>
+      makeGame({ id: `s${i}`, name: `Apple ${i}` }),
+    )
+    store.mineOnly = [makeGame({ id: 'm1', name: 'Zeppelin' })]
+    await flushPromises()
+    expect(wrapper.find('.az-scrubber').exists()).toBe(true)
+
+    // Collapses mineOnly (second header in the DOM) - Zeppelin's own "Z"
+    // stops being reachable, but shared's own letters are unaffected.
+    const headers = wrapper.findAll('.collection-section-header')
+    await headers[1]!.trigger('click')
+
+    const letters = wrapper.findAll('.az-scrubber-letter-available').map((el) => el.text())
+    expect(letters).toContain('A')
+    expect(letters).not.toContain('Z')
+  })
+
+  it('scrubbing to a letter jumps to the expanded section\'s own card, not a same-letter card hidden in a collapsed one', async () => {
+    // Regression test for a real bug found live: a collapsed section's
+    // own cards stay in the DOM (v-show, not v-if - see scrubberPool's
+    // own comment on why), and a display: none element's
+    // getBoundingClientRect() reports every value including top as 0 -
+    // indistinguishable from "sitting exactly at the viewport's own top
+    // edge" in resolveJumpTarget's own "nearest" comparison unless
+    // filtered out first. Without that filter, scrubbing to a letter
+    // that both a collapsed and an expanded section share silently
+    // jumped nowhere useful instead of the one visible match.
+    //
+    // jsdom has no real layout - scrollIntoView and setPointerCapture
+    // aren't implemented at all, and getBoundingClientRect always
+    // reports zeroes - so this stubs all three deliberately: a fixed,
+    // evenly-spaced rect for the scrubber strip itself (so bucketAtPointer
+    // resolves a real bucket instead of dividing by zero), 0 for every
+    // element inside the collapsed 'shared' section (simulating v-show:
+    // false), and a distinct non-zero value for theirsOnly's own match.
+    const scrollIntoView = vi.fn()
+    Element.prototype.scrollIntoView = scrollIntoView
+    HTMLElement.prototype.setPointerCapture = vi.fn()
+    const rectSpy = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      const base = { bottom: 0, left: 0, right: 0, width: 0, x: 0, y: 0, toJSON: () => ({}) }
+      if (this.classList.contains('az-scrubber-buckets')) {
+        return { ...base, top: 0, height: 270 } as DOMRect
+      }
+      if (this.getAttribute('data-letter') === 'A') {
+        const collapsed = this.closest('.collection-section')?.getAttribute('data-section-key') === 'shared'
+        return { ...base, top: collapsed ? 0 : 200, height: 0 } as DOMRect
+      }
+      return { ...base, top: 0, height: 0 } as DOMRect
+    })
+
+    const { wrapper, store } = await mountDetail()
+    store.shared = [makeGame({ id: 's-a', name: 'Apple' })]
+    store.theirsOnly = Array.from({ length: 13 }, (_, i) =>
+      i === 0 ? makeGame({ id: 't-a', name: 'Avocado' }) : makeGame({ id: `t${i}`, name: `Theirs ${i}` }),
+    )
+    await flushPromises()
+
+    // Collapses 'shared' (first header) - 'mineOnly' stays expanded but
+    // empty, matching the reported "3rd section open, other 2 closed"
+    // shape closely enough (an empty expanded section contributes no
+    // candidates of its own either way).
+    await wrapper.find('.collection-section-header').trigger('click')
+
+    // ALPHABET is ['#', 'A', 'B', ...] - bucket index 1, landing anywhere
+    // within the strip's own second 10px slice (10-20 of the mocked
+    // 270px/27-bucket strip) resolves to 'A'.
+    await wrapper.find('.az-scrubber-buckets').trigger('pointerdown', { clientY: 15, pointerId: 1 })
+
+    expect(scrollIntoView).toHaveBeenCalledTimes(1)
+    const scrolledTo = scrollIntoView.mock.instances[0] as unknown as HTMLElement
+    expect(scrolledTo.closest('.collection-section')?.getAttribute('data-section-key')).toBe('theirsOnly')
+
+    rectSpy.mockRestore()
   })
 
   it('loads plays only the first time the plays tab is opened', async () => {

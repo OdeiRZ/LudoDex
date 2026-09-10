@@ -118,10 +118,21 @@ export interface UseCollectionScrubberOptions {
    * a detail modal open on top of the page. */
   hidden: ComputedRef<boolean>
   labels: ComputedRef<ScrubberLabels>
+  /** Overrides which element jumpToBucket scrolls to, given every element
+   * inside listRef matching the target bucket's attribute (data-letter/
+   * data-year-bucket/data-rank-bucket) - defaults to the first one found
+   * via querySelector, correct for a single continuously-sorted list
+   * (DashboardView, PickerView), where a bucket's first DOM match is
+   * always that letter/year/rank group's own start. FriendDetailView
+   * supplies its own instead: three independently-sorted sections
+   * concatenated into one pool means "first in DOM" is always the first
+   * section's own match regardless of which section is actually in
+   * view. */
+  resolveJumpTarget?: (candidates: HTMLElement[]) => HTMLElement | null
 }
 
 export function useCollectionScrubber(options: UseCollectionScrubberOptions) {
-  const { sortCriterion, sortOrder, pool, filtered, listRef, hidden, labels } = options
+  const { sortCriterion, sortOrder, pool, filtered, listRef, hidden, labels, resolveJumpTarget } = options
 
   // Sorted oldest-first; this is the scrubber's own canonical order for
   // year mode, the same role ALPHABET plays for name mode.
@@ -353,7 +364,13 @@ export function useCollectionScrubber(options: UseCollectionScrubberOptions) {
         : sortCriterion.value === 'rank'
           ? 'data-rank-bucket'
           : 'data-letter'
-    const el = listRef.value?.querySelector<HTMLElement>(`[${attr}="${target}"]`)
+
+    const container = listRef.value
+    if (!container) return
+
+    const el = resolveJumpTarget
+      ? resolveJumpTarget([...container.querySelectorAll<HTMLElement>(`[${attr}="${target}"]`)])
+      : container.querySelector<HTMLElement>(`[${attr}="${target}"]`)
     el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
