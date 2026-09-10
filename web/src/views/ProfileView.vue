@@ -1,18 +1,35 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { isAxiosError } from 'axios'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
+import { getLocale, setLocale, type Locale } from '@/i18n'
 import UserAvatar from '@/components/UserAvatar.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import PasswordInput from '@/components/PasswordInput.vue'
-import LanguageToggle from '@/components/LanguageToggle.vue'
+import SegmentedControl from '@/components/SegmentedControl.vue'
 
 const auth = useAuthStore()
 const { t } = useI18n()
 const { isSlow: isProfileSlow, wrap: wrapProfile } = useSlowRequestHint()
 const { isSlow: isPasswordSlow, wrap: wrapPassword } = useSlowRequestHint()
+
+// Picking a language directly (both options always visible) instead of a
+// single button that cycles through them - asked for directly, same
+// SegmentedControl pattern already used in PequeDex. Language names shown
+// in themselves (Español/English), not translated - conventional for a
+// language switcher regardless of which one the reader currently
+// understands.
+const localeOptions = computed<{ value: Locale; label: string }[]>(() => [
+  { value: 'es', label: 'Español' },
+  { value: 'en', label: 'English' },
+])
+const locale = computed(() => getLocale())
+
+function onSelectLocale(value: Locale) {
+  setLocale(value)
+}
 
 const profileForm = reactive({
   name: '',
@@ -116,7 +133,11 @@ async function onSubmitPassword() {
       i18n/index.ts), same pattern already used in PequeDex. -->
       <div class="language-row">
         <span class="language-label">{{ $t('profile.language') }}</span>
-        <LanguageToggle />
+        <SegmentedControl
+          :model-value="locale"
+          :options="localeOptions"
+          @update:model-value="onSelectLocale"
+        />
       </div>
 
       <form class="form" @submit.prevent="onSubmitProfile">
@@ -317,10 +338,13 @@ h1 {
   color: var(--color-text-muted);
 }
 
+/* Label above the control, not side-by-side - a 2-button grid reads
+better stacked under its own label than squeezed next to it, same
+layout PequeDex already uses for this. */
 .language-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--space-2);
   margin-bottom: var(--space-4);
 }
 

@@ -142,7 +142,10 @@ describe('ProfileView personal data form', () => {
 
     expect(i18n.global.locale.value).toBe('es')
 
-    await wrapper.find('.language-toggle').trigger('click')
+    const englishOption = wrapper
+      .findAll('.segmented-control-btn')
+      .find((button) => button.text() === 'English')
+    await englishOption!.trigger('click')
 
     expect(i18n.global.locale.value).toBe('en')
 
