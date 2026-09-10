@@ -178,8 +178,14 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   otra sección, se recalculan las letras disponibles para esa sección
   en concreto; una sección colapsada nunca ofrece letras propias, ni
   siquiera si otra sección expandida en la misma página hace que el
-  scrubber esté visible; y el umbral de >12 juegos para mostrarlo se
-  aplica a la sección en la que estás, no al total combinado.
+  scrubber esté visible.
+
+  De paso, el umbral mínimo del scrubber (antes >12 elementos, en las
+  tres pantallas que lo usan: Colección, "¿A qué jugamos?" y esta) baja
+  a cualquier cantidad mayor que cero — probado en vivo con "En común"
+  (12 juegos exactos, justo por debajo del umbral antiguo), que nunca
+  podía mostrar su propio scrubber pese a ser una sección real y
+  completa por sí misma.
 
   Detección de sección activa con debounce (recalcula solo cuando el
   scroll lleva ~200ms quieto, no en cada evento) — necesario tras un

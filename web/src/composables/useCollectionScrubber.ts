@@ -190,7 +190,7 @@ export function useCollectionScrubber(options: UseCollectionScrubberOptions) {
   const showScrubber = computed(
     () =>
       (sortCriterion.value === 'name' || sortCriterion.value === 'year' || sortCriterion.value === 'rank') &&
-      filtered.value.length > 12 &&
+      filtered.value.length > 0 &&
       !hidden.value,
   )
 

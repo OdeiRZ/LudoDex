@@ -264,17 +264,20 @@ describe('FriendDetailView', () => {
     expect(wrapper.find('.badge-expansion').text()).toBe('Expansión de Catan')
   })
 
-  it('shows the A-Z scrubber once the current section (shared, by default) alone has more than 12 games', async () => {
+  it('shows the A-Z scrubber for the current section (shared, by default) with any games at all', async () => {
+    // No minimum-count threshold any more (asked for directly) - a real
+    // 12-game "En común" section could never show its own scrubber
+    // under the old >12 floor, even alone with nothing else on the page
+    // competing for it.
     const { wrapper, store } = await mountDetail()
-    store.shared = Array.from({ length: 13 }, (_, i) => makeGame({ id: `s${i}`, name: `Apple ${i}` }))
+    store.shared = [makeGame({ id: 's1', name: 'Apple' })]
     await flushPromises()
 
     expect(wrapper.find('.az-scrubber').exists()).toBe(true)
   })
 
-  it('does not show the A-Z scrubber with 12 or fewer games in the current section, even if other sections combined exceed it', async () => {
+  it('hides the A-Z scrubber when the current section has no games, even if other sections do', async () => {
     const { wrapper, store } = await mountDetail()
-    store.shared = Array.from({ length: 12 }, (_, i) => makeGame({ id: `s${i}`, name: `Apple ${i}` }))
     store.mineOnly = Array.from({ length: 4 }, (_, i) => makeGame({ id: `m${i}`, name: `Mine ${i}` }))
     store.theirsOnly = Array.from({ length: 4 }, (_, i) => makeGame({ id: `t${i}`, name: `Theirs ${i}` }))
     await flushPromises()

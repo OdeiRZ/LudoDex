@@ -121,13 +121,18 @@ describe('rankBucket', () => {
 })
 
 describe('useCollectionScrubber - visibility', () => {
-  it('shows the scrubber once there are more than 12 entries, sorted by name/year/rank', () => {
-    const { scrubber } = setup(bigCollection())
+  it('shows the scrubber with any entries at all, sorted by name/year/rank', () => {
+    // No minimum-count threshold any more (asked for directly, after
+    // FriendDetailView's own "En común" section - a real 12-game
+    // collection - never crossed the old >12 floor and could never show
+    // its own scrubber, even alone with nothing else competing for
+    // attention on the page).
+    const { scrubber } = setup(bigCollection().slice(0, 1))
     expect(scrubber.showScrubber.value).toBe(true)
   })
 
-  it('hides the scrubber at 12 entries or fewer', () => {
-    const { scrubber } = setup(bigCollection().slice(0, 12))
+  it('hides the scrubber with zero entries', () => {
+    const { scrubber } = setup([])
     expect(scrubber.showScrubber.value).toBe(false)
   })
 
