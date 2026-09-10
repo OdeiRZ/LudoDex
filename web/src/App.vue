@@ -24,7 +24,7 @@ async function onLogout() {
   router.push({ name: 'login' })
 }
 
-// Below 576px the primary nav hides behind this button instead of
+// Below 550px the primary nav hides behind this button instead of
 // wrapping onto a second row - closes on navigation so it doesn't stay
 // open over the next page.
 const mobileMenuOpen = ref(false)
@@ -265,8 +265,8 @@ header {
 }
 
 /* Hidden by default - only joins the dice on the header's left edge
-below 702px, and stays there alone once the dice itself disappears at
-618px (see both media queries below). */
+below 650px, and stays there alone once the dice itself disappears at
+550px (see both media queries below). */
 .mobile-avatar {
   display: none;
 }
@@ -275,9 +275,9 @@ below 702px, and stays there alone once the dice itself disappears at
 below) starts looking cramped - dropping the text next to the dice
 keeps the brand mark itself without needing the full wordmark's width,
 freeing up a bit more room for primary-nav next to it. Raised from
-475px to 702px once a 4th nav link (Partidas) made the row need this
+475px to 702px, then to 650px, once nav links made the row need this
 room sooner. */
-@media (max-width: 702px) {
+@media (max-width: 650px) {
   .brand-name {
     display: none;
   }
@@ -355,7 +355,7 @@ to identify the account without repeating it here. */
   white-space: nowrap;
 }
 
-/* Hidden by default - only shown below 576px, where it replaces
+/* Hidden by default - only shown below 550px, where it replaces
 .primary-nav entirely instead of letting the 4 links wrap onto a
 second row. */
 .hamburger-btn {
@@ -366,7 +366,18 @@ second row. */
   display: none;
 }
 
-@media (max-width: 576px) {
+@media (max-width: 550px) {
+  /* At a real 366px phone (the narrowest reported so far) even just the
+  dice by itself is one more thing competing for room in an already
+  tight header - the nav links matter more here, and still link back to
+  the collection the same as the dice would have. Raised from 366px to
+  580px once a 4th nav link (Partidas) made the row need this room
+  sooner, then unified into this same breakpoint since both ended up
+  needing (almost) the same width anyway. */
+  .brand {
+    display: none;
+  }
+
   .primary-nav {
     display: none;
   }
@@ -413,14 +424,14 @@ second row. */
 }
 
 /* The avatar moves in to sit next to the dice (dice first, then avatar)
-from the same width the wordmark itself drops (702px), rather than
-waiting until the dice disappears too at 618px - both icons anchor the
+from the same width the wordmark itself drops (650px), rather than
+waiting until the dice disappears too at 550px - both icons anchor the
 header's left edge together for that whole range. Placed after
 .user-name's own base rule (not before it) so this override actually
 wins the cascade at equal specificity - the same class defined later
 in source order always beats an earlier one when neither has more
 specificity, media query or not. */
-@media (max-width: 702px) {
+@media (max-width: 650px) {
   .mobile-avatar {
     display: flex;
   }
@@ -432,22 +443,6 @@ specificity, media query or not. */
   }
 }
 
-/* At a real 366px phone (the narrowest reported so far) even just the
-dice by itself is one more thing competing for room in an already tight
-header - the nav links matter more here, and still link back to the
-collection the same as the dice would have. Raised from 366px to 618px
-once a 4th nav link (Partidas) made the row need this room sooner. */
-@media (max-width: 618px) {
-  .brand {
-    display: none;
-  }
-}
-
-@media (max-width: 872px) {
-  .session .btn {
-    white-space: nowrap;
-  }
-}
 
 .logout-icon {
   display: none;
@@ -456,10 +451,8 @@ once a 4th nav link (Partidas) made the row need this room sooner. */
 }
 
 /* Swaps "Cerrar sesión" for just its icon once the row gets tight enough
-that every bit of width matters - narrower than 872px's own fix (which
-only drops the user's name), so this only kicks in once that alone
-isn't enough. */
-@media (max-width: 786px) {
+that every bit of width matters. */
+@media (max-width: 735px) {
   .logout-text {
     display: none;
   }

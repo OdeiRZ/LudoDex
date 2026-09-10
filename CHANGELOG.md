@@ -188,6 +188,25 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   reconocen en el borde, que podía dispararse antes de llegar a
   registrar el propio arrastre del tirador.
 
+- **Repaso de estilos en nav/Perfil**, tras revisarlo en vivo en local
+  antes de subir la reorganización de Amigos/Importar BGG:
+  - El selector de idioma en Perfil, de un único botón que ciclaba entre
+    idiomas (sin mostrar cuál estaba activo) a un `SegmentedControl` con
+    ambas opciones siempre visibles, mismo patrón ya usado en PequeDex.
+  - El aviso de verificación de email ya no aparece en local — las
+    cuentas de prueba nunca tienen el email verificado, así que salía
+    siempre en desarrollo sin aportar nada. Comprobado contra `MODE`
+    (no `DEV`, que Vitest también activa bajo test) para no ocultarlo
+    también en los tests que comprueban su presencia.
+  - Los breakpoints del nav, reajustados tras probarlos en vivo:
+    "Cerrar sesión" pasa a solo icono en 735px (antes 786px, sin
+    cambio real de comportamiento — quedó de un ajuste anterior);
+    el nombre de la marca se oculta en 650px (antes 702px); el dado y
+    el cambio a menú hamburguesa, antes en breakpoints distintos
+    (618px y 576px respectivamente) y ahora unificados en un único
+    576px→550px, ya que ambos necesitaban prácticamente el mismo
+    ancho.
+
 ### Corregido
 
 - Hallazgo de una auditoría de seguridad: `POST /forgot-password` devolvía un mensaje
