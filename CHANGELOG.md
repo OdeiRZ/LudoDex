@@ -28,7 +28,11 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   vez de quedarse fijo en el valor por defecto. El bloque "Jugar con" se
   oculta al activar el modo solitario y descarta la selección — jugar en
   solitario no tiene sentido con la colección de otro de por medio,
-  mismo criterio que ya aplicaba al filtro de Modo.
+  mismo criterio que ya aplicaba al filtro de Modo. El resumen de
+  filtros colapsado ya no repite el número de jugadores cuando coincide
+  con el valor automático "tú + amigos" — los nombres ya lo dicen; si se
+  escribe a mano un número distinto, sigue apareciendo por ser
+  información real.
 
 ## [0.12.0] - 2026-09-10
 

@@ -487,6 +487,36 @@ describe('PickerView', () => {
       expect(wrapper.find<HTMLInputElement>('#players').element.value).toBe('2')
     })
 
+    it("drops the redundant player-count chip from the collapsed summary once it's just you + friends", async () => {
+      const wrapper = mountPicker(
+        [makeEntry({ name: 'Root' }, 'owned')],
+        [friendEntry, friendEntry2],
+      )
+      const friends = useFriendsStore()
+      vi.spyOn(friends, 'fetchCollectionComparison').mockResolvedValue({
+        friend: friendEntry.user,
+        shared: [],
+        mineOnly: [],
+        theirsOnly: [],
+      })
+
+      await friendCheckbox(wrapper, 0).setValue(true)
+      await flushPromises()
+      await wrapper.find('.filters-toggle-open').trigger('click')
+
+      // "2 jugadores" ya lo dice "Ana" - un solo amigo elegido.
+      expect(wrapper.find('.filters-summary').text()).toContain('Con Ana')
+      expect(wrapper.find('.filters-summary').text()).not.toContain('jugadores')
+
+      // Un número escrito a mano que ya no coincide con "tú + amigos"
+      // sí es información real, y vuelve a aparecer.
+      await wrapper.find('.filters-summary .filters-toggle').trigger('click')
+      await wrapper.find('#players').setValue('5')
+      await wrapper.find('.filters-toggle-open').trigger('click')
+
+      expect(wrapper.find('.filters-summary').text()).toContain('5 jugadores')
+    })
+
     it('only shows the friend selector when there is at least one accepted friend', () => {
       const withoutFriends = mountPicker([makeEntry({ name: 'Root' }, 'owned')])
       expect(withoutFriends.find('.play-with-field').exists()).toBe(false)

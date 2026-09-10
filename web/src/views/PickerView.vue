@@ -376,9 +376,17 @@ const filterSummary = computed(() => {
     parts.push(`"${search.value.trim()}"`)
   }
 
-  parts.push(
-    isSoloPlayer.value ? t('picker.solo') : t('picker.playersCount', { count: players.value }),
-  )
+  // The player count chip is redundant once it's just the auto-derived
+  // "you + everyone selected" - the friend names above already say
+  // that. Only worth its own chip when it diverges from that default
+  // (typed by hand, or nobody selected at all).
+  const impliedByFriends =
+    selectedFriendIds.value.length > 0 && players.value === selectedFriendIds.value.length + 1
+  if (!impliedByFriends) {
+    parts.push(
+      isSoloPlayer.value ? t('picker.solo') : t('picker.playersCount', { count: players.value }),
+    )
+  }
 
   if (durationBucket.value !== 'any') {
     const durationLabel =
