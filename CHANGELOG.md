@@ -236,6 +236,18 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   `FriendshipService::sendRequest()` para el email de solicitud de
   amistad. Aplicado también al cambio de email desde Perfil.
 
+- El nuevo selector "Jugar con" en el Picker (`¿A qué jugamos?`)
+  desajustaba el resto de filtros — se insertó como primer campo del
+  formulario sin ningún `order`/ancho propio, en un layout flex
+  afinado al detalle por breakpoint (Buscar/Jugadores/Estructura/
+  Género/Ordenar por, cada uno con su propio comentario documentando
+  a qué anchura real de dispositivo se ajustó). Movido al final del
+  formulario, forzado siempre a su propia fila completa
+  (`flex-basis: 100%`) con `order: 999` para garantizar que queda
+  detrás de cualquier otro campo aunque este tenga su propio `order`
+  en algún breakpoint — así el resto del sistema, ya afinado, no
+  necesita ningún cambio.
+
 - Hallazgo de una auditoría de seguridad: `POST /forgot-password` devolvía un mensaje
   distinto según si el email existía o no (`Password::INVALID_USER`) o si se había
   pedido hace muy poco (`Password::RESET_THROTTLED`), permitiendo enumerar qué emails

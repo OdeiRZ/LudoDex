@@ -537,16 +537,6 @@ const {
         </svg>
       </button>
 
-      <div v-if="friends.friends.length" class="play-with-field">
-        <label for="play-with">{{ $t('picker.playWith') }}</label>
-        <select id="play-with" v-model="selectedFriendId">
-          <option :value="null">{{ $t('picker.playWithNoFriend') }}</option>
-          <option v-for="entry in friends.friends" :key="entry.user.id" :value="entry.user.id">
-            {{ entry.user.name }}
-          </option>
-        </select>
-      </div>
-
       <div class="search-field">
         <label for="search">{{ $t('picker.searchLabel') }}</label>
         <input
@@ -652,6 +642,16 @@ const {
       <div v-if="games.loaded && playable.length" class="density-toggle-slot">
         <span class="filter-label-spacer" aria-hidden="true">&nbsp;</span>
         <DensityToggle :density="density" @toggle="toggleDensity" />
+      </div>
+
+      <div v-if="friends.friends.length" class="play-with-field">
+        <label for="play-with">{{ $t('picker.playWith') }}</label>
+        <select id="play-with" v-model="selectedFriendId">
+          <option :value="null">{{ $t('picker.playWithNoFriend') }}</option>
+          <option v-for="entry in friends.friends" :key="entry.user.id" :value="entry.user.id">
+            {{ entry.user.name }}
+          </option>
+        </select>
       </div>
     </form>
 
@@ -1602,6 +1602,41 @@ this tier leaves it tight against Jugadores without it. */
   display: flex;
   flex-direction: column;
   max-width: 180px;
+}
+
+/* Jugar con always closes its own full row, last (moved here from the
+top of the form, asked for directly) - added after every other field
+above already had its own per-breakpoint order/width tuned against a
+fixed set of siblings (Buscar/Jugadores/Estructura already share a
+tightly measured row at several tiers - see the 807-1002px tier's own
+comment on why even Género didn't fit there without its own line).
+Folding a brand-new field into that math wherever it happens to land
+in the flow is what actually desyncs the rest of it.
+
+order: 999 (not just relying on this now being last in the DOM) is
+load-bearing - flex lays items out by their order value first, DOM
+position only breaks ties WITHIN the same order value, and several
+fields elsewhere in this file already carry their own explicit order
+overrides up to 6 (Ordenar por, ≤480px tier) at various breakpoints.
+Without a value higher than every one of those, this field (left at
+the default order: 0) would keep sorting ahead of any field with a
+higher explicit order regardless of where it actually sits in the
+markup - back to the same desync this was moved to fix, just from the
+opposite end. 999 is arbitrary but deliberately far above the highest
+value used anywhere else in this file, so it stays correct even if a
+future tier adds another override past 6.
+
+flex-wrap always starts a fresh line with the container's full width
+back regardless of what filled the line before it, so forcing this
+field alone onto its own trailing row doesn't disturb how the rest
+wraps among themselves one bit. flex-basis: 100% (not a plain width)
+is what forces the wrap; max-width: none overrides the shared 180px
+cap above, same as every other field left alone on its own row
+elsewhere in this file (Género, Ordenar por) already does. */
+.filters > .play-with-field {
+  order: 999;
+  flex-basis: 100%;
+  max-width: none;
 }
 
 /* Wrapped in its own @media (rather than left unconditional) so it
