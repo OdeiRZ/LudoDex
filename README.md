@@ -143,10 +143,10 @@ Repo único con dos aplicaciones independientes, cada una con su propio
    borrado de un juego) tras el despliegue.
 6. ✅ Amistades: solicitudes de amistad, comparación de colección y
    partidas de un amigo, el selector "¿A qué jugamos?" extendido para
-   jugar con la colección combinada de ambos, y bloqueo de usuario +
-   visibilidad de colección/partidas configurable por perfil (4 fases,
-   ver CHANGELOG). Cierra el área que este README dejaba fuera de
-   alcance a propósito.
+   jugar con la colección combinada de varios amigos a la vez (no solo
+   uno), y bloqueo de usuario + visibilidad de colección/partidas
+   configurable por perfil (4 fases, ver CHANGELOG). Cierra el área que
+   este README dejaba fuera de alcance a propósito.
 
 ## Licencia
 

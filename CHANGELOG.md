@@ -7,33 +7,6 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
-### Añadido
-
-- **"Jugar con" admite varios amigos a la vez** en el Picker (`¿A qué
-  jugamos?`) — hasta ahora solo se podía elegir uno. El selector pasa de
-  un `<select>` a una lista de checkboxes; el pool sigue siendo la
-  unión de todas las colecciones seleccionadas (basta con que uno de
-  vosotros tenga el juego), reutilizando el mismo endpoint por parejas
-  una vez por amigo (en paralelo) en vez de un endpoint nuevo N-ario. La
-  etiqueta de propiedad de cada juego lista ahora a todos los que lo
-  aportan ("Compartido con Ana y Bea" / "De Ana y Bea", vía
-  `Intl.ListFormat`). Si falla la carga de algún amigo pero no de todos,
-  se muestra un aviso no bloqueante sin ocultar lo que sí se cargó;
-  solo si fallan todos se mantiene el error a página completa. Tu propia
-  colección ya no desaparece al seleccionar un amigo — antes de este
-  cambio, un `mineOnly` vacío en el fixture de test podía (de forma
-  irreal) vaciarla del todo. Verificado en vivo con tres cuentas de
-  prueba combinando tres colecciones reales. El número de jugadores se
-  ajusta solo a "tú + cada amigo marcado" al (de)seleccionar alguno, en
-  vez de quedarse fijo en el valor por defecto. El bloque "Jugar con" se
-  oculta al activar el modo solitario y descarta la selección — jugar en
-  solitario no tiene sentido con la colección de otro de por medio,
-  mismo criterio que ya aplicaba al filtro de Modo. El resumen de
-  filtros colapsado ya no repite el número de jugadores cuando coincide
-  con el valor automático "tú + amigos" — los nombres ya lo dicen; si se
-  escribe a mano un número distinto, sigue apareciendo por ser
-  información real.
-
 ## [0.12.0] - 2026-09-10
 
 ### Añadido
@@ -223,6 +196,31 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   desaparecer el scrubber justo después de un clic válido. Verificado
   en vivo, letra por letra, con una colección real de 400+ juegos
   repartida en las tres secciones.
+
+- **"Jugar con" admite varios amigos a la vez** en el Picker (`¿A qué
+  jugamos?`) — hasta ahora solo se podía elegir uno. El selector pasa de
+  un `<select>` a una lista de checkboxes; el pool sigue siendo la
+  unión de todas las colecciones seleccionadas (basta con que uno de
+  vosotros tenga el juego), reutilizando el mismo endpoint por parejas
+  una vez por amigo (en paralelo) en vez de un endpoint nuevo N-ario. La
+  etiqueta de propiedad de cada juego lista ahora a todos los que lo
+  aportan ("Compartido con Ana y Bea" / "De Ana y Bea", vía
+  `Intl.ListFormat`). Si falla la carga de algún amigo pero no de todos,
+  se muestra un aviso no bloqueante sin ocultar lo que sí se cargó;
+  solo si fallan todos se mantiene el error a página completa. Tu propia
+  colección ya no desaparece al seleccionar un amigo — antes de este
+  cambio, un `mineOnly` vacío en el fixture de test podía (de forma
+  irreal) vaciarla del todo. Verificado en vivo con tres cuentas de
+  prueba combinando tres colecciones reales. El número de jugadores se
+  ajusta solo a "tú + cada amigo marcado" al (de)seleccionar alguno, en
+  vez de quedarse fijo en el valor por defecto. El bloque "Jugar con" se
+  oculta al activar el modo solitario y descarta la selección — jugar en
+  solitario no tiene sentido con la colección de otro de por medio,
+  mismo criterio que ya aplicaba al filtro de Modo. El resumen de
+  filtros colapsado ya no repite el número de jugadores cuando coincide
+  con el valor automático "tú + amigos" — los nombres ya lo dicen; si se
+  escribe a mano un número distinto, sigue apareciendo por ser
+  información real.
 
 ### Cambiado
 
