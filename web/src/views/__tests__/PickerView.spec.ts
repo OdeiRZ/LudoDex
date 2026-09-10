@@ -444,31 +444,47 @@ describe('PickerView', () => {
     })
   })
 
-  describe('jugar con un amigo', () => {
+  describe('jugar con amigos', () => {
     const friendEntry: FriendEntry = {
       id: 10,
       user: { id: 2, name: 'Ana', bgg_username: null, avatar_url: null },
     }
+    const friendEntry2: FriendEntry = {
+      id: 11,
+      user: { id: 3, name: 'Bea', bgg_username: null, avatar_url: null },
+    }
+
+    // Los checkboxes se listan en el mismo orden que friends.friends.
+    function friendCheckbox(wrapper: ReturnType<typeof mountPicker>, index: number) {
+      return wrapper.findAll('.play-with-field input[type="checkbox"]')[index]
+    }
 
     it('only shows the friend selector when there is at least one accepted friend', () => {
       const withoutFriends = mountPicker([makeEntry({ name: 'Root' }, 'owned')])
-      expect(withoutFriends.find('#play-with').exists()).toBe(false)
+      expect(withoutFriends.find('.play-with-field').exists()).toBe(false)
 
       const withFriends = mountPicker([makeEntry({ name: 'Root' }, 'owned')], [friendEntry])
-      expect(withFriends.find('#play-with').exists()).toBe(true)
+      expect(withFriends.find('.play-with-field').exists()).toBe(true)
     })
 
-    it("mixes both collections once a friend is selected, tagging who owns what", async () => {
-      const wrapper = mountPicker([makeEntry({ name: 'Root' }, 'owned')], [friendEntry])
+    it('mixes both collections once a friend is selected, tagging who owns what', async () => {
+      // "Compartido" solo tiene sentido si el juego realmente está en tu
+      // propia colección - el backend real siempre devuelve el mismo id
+      // de catálogo en ambos lados, así que el fixture debe reflejarlo.
+      const catan = makeEntry({ name: 'Catan' }, 'owned')
+      const wrapper = mountPicker(
+        [makeEntry({ name: 'Root' }, 'owned'), catan],
+        [friendEntry],
+      )
       const friends = useFriendsStore()
       vi.spyOn(friends, 'fetchCollectionComparison').mockResolvedValue({
         friend: friendEntry.user,
-        shared: [makeGame({ name: 'Catan' })],
-        mineOnly: [makeGame({ name: 'Root' })],
+        shared: [catan.game],
+        mineOnly: [],
         theirsOnly: [makeGame({ name: 'Wingspan' })],
       })
 
-      await wrapper.find('#play-with').setValue('2')
+      await friendCheckbox(wrapper, 0).setValue(true)
       await flushPromises()
       await wrapper.find('#players').setValue('')
 
@@ -480,11 +496,38 @@ describe('PickerView', () => {
       const rootCard = cards.find((card) => card.text().includes('Root'))
       const wingspanCard = cards.find((card) => card.text().includes('Wingspan'))
 
-      expect(catanCard?.text()).toContain('Compartido')
+      expect(catanCard?.text()).toContain('Compartido con Ana')
       expect(wingspanCard?.text()).toContain('De Ana')
       // Yours alone is left unbadged on purpose - no "De ti" clutter.
       expect(rootCard?.text()).not.toContain('Compartido')
       expect(rootCard?.text()).not.toContain('De Ana')
+    })
+
+    it('combines three collections at once and lists every contributing name on a shared game', async () => {
+      // Ambos amigos tienen el mismo Catan (mismo id de catálogo real,
+      // como haría el backend) - ninguno de los dos aparece por separado.
+      const catan = makeGame({ name: 'Catan' })
+      const wrapper = mountPicker(
+        [makeEntry({ name: 'Root' }, 'owned')],
+        [friendEntry, friendEntry2],
+      )
+      const friends = useFriendsStore()
+      vi.spyOn(friends, 'fetchCollectionComparison').mockImplementation(async (id) =>
+        id === friendEntry.user.id
+          ? { friend: friendEntry.user, shared: [], mineOnly: [], theirsOnly: [catan] }
+          : { friend: friendEntry2.user, shared: [], mineOnly: [], theirsOnly: [catan] },
+      )
+
+      await friendCheckbox(wrapper, 0).setValue(true)
+      await friendCheckbox(wrapper, 1).setValue(true)
+      await flushPromises()
+      await wrapper.find('#players').setValue('')
+
+      const names = wrapper.findAll('.game-card h2').map((h2) => h2.text())
+      expect(names).toEqual(['Catan', 'Root'])
+
+      const catanCard = wrapper.findAll('.game-card').find((card) => card.text().includes('Catan'))
+      expect(catanCard?.text()).toContain('De Ana y Bea')
     })
 
     it('goes back to only your own collection when the friend is deselected', async () => {
@@ -497,25 +540,49 @@ describe('PickerView', () => {
         theirsOnly: [makeGame({ name: 'Wingspan' })],
       })
 
-      await wrapper.find('#play-with').setValue('2')
+      await friendCheckbox(wrapper, 0).setValue(true)
       await flushPromises()
       await wrapper.find('#players').setValue('')
-      expect(wrapper.findAll('.game-card h2').map((h2) => h2.text())).toEqual(['Wingspan'])
+      // Tu propia colección nunca desaparece al elegir un amigo - se une
+      // a ella, no la sustituye.
+      expect(wrapper.findAll('.game-card h2').map((h2) => h2.text())).toEqual(['Root', 'Wingspan'])
 
-      // Not .setValue('') here: the "no friend" <option> is bound via
-      // :value="null" (not a string), so its round trip goes through
-      // Vue's own option._value rather than the DOM's stringified value
-      // attribute - selecting it by index is what actually exercises
-      // that, the same way a real click on it would.
-      const select = wrapper.find<HTMLSelectElement>('#play-with')
-      select.element.selectedIndex = 0
-      await select.trigger('change')
+      await friendCheckbox(wrapper, 0).setValue(false)
       await flushPromises()
 
       expect(wrapper.findAll('.game-card h2').map((h2) => h2.text())).toEqual(['Root'])
     })
 
-    it('shows a dedicated empty state when you and your friend share nothing playable', async () => {
+    it('deselecting one friend does not re-fetch a friend that stays selected', async () => {
+      const wrapper = mountPicker(
+        [makeEntry({ name: 'Root' }, 'owned')],
+        [friendEntry, friendEntry2],
+      )
+      const friends = useFriendsStore()
+      const fetchSpy = vi
+        .spyOn(friends, 'fetchCollectionComparison')
+        .mockImplementation(async (id) => ({
+          friend: id === friendEntry.user.id ? friendEntry.user : friendEntry2.user,
+          shared: [],
+          mineOnly: [],
+          theirsOnly: [],
+        }))
+
+      await friendCheckbox(wrapper, 0).setValue(true)
+      await friendCheckbox(wrapper, 1).setValue(true)
+      await flushPromises()
+      expect(fetchSpy).toHaveBeenCalledTimes(2)
+
+      await friendCheckbox(wrapper, 0).setValue(false)
+      await flushPromises()
+
+      expect(fetchSpy).toHaveBeenCalledTimes(2)
+    })
+
+    it("keeps showing your own collection when a selected friend's comparison is entirely empty", async () => {
+      // La unión nunca esconde lo que ya tenías - a diferencia del
+      // selector único de antes, elegir un amigo nunca puede vaciar el
+      // pool mientras tú sigas teniendo algo.
       const wrapper = mountPicker([makeEntry({ name: 'Root' }, 'owned')], [friendEntry])
       const friends = useFriendsStore()
       vi.spyOn(friends, 'fetchCollectionComparison').mockResolvedValue({
@@ -525,19 +592,18 @@ describe('PickerView', () => {
         theirsOnly: [],
       })
 
-      await wrapper.find('#play-with').setValue('2')
+      await friendCheckbox(wrapper, 0).setValue(true)
       await flushPromises()
 
-      expect(wrapper.text()).toContain('No coincidís en ningún juego que podáis jugar juntos.')
-      expect(wrapper.text()).not.toContain('No tienes juegos marcados como "Lo tengo"')
+      expect(wrapper.findAll('.game-card h2').map((h2) => h2.text())).toEqual(['Root'])
     })
 
-    it('shows an error state, not a crash, when the friend collection fails to load', async () => {
+    it('shows a full-page error state, not a crash, when every selected friend fails to load', async () => {
       const wrapper = mountPicker([makeEntry({ name: 'Root' }, 'owned')], [friendEntry])
       const friends = useFriendsStore()
       vi.spyOn(friends, 'fetchCollectionComparison').mockRejectedValue(new Error('network'))
 
-      await wrapper.find('#play-with').setValue('2')
+      await friendCheckbox(wrapper, 0).setValue(true)
       await flushPromises()
 
       expect(wrapper.text()).toContain(
@@ -551,6 +617,30 @@ describe('PickerView', () => {
       expect(errorEl.classes()).toContain('alert-error')
     })
 
+    it('shows a non-blocking notice, not a full-page error, when only some selected friends fail', async () => {
+      const wrapper = mountPicker(
+        [makeEntry({ name: 'Root' }, 'owned')],
+        [friendEntry, friendEntry2],
+      )
+      const friends = useFriendsStore()
+      vi.spyOn(friends, 'fetchCollectionComparison').mockImplementation(async (id) => {
+        if (id === friendEntry2.user.id) throw new Error('network')
+        return { friend: friendEntry.user, shared: [], mineOnly: [], theirsOnly: [makeGame({ name: 'Wingspan' })] }
+      })
+
+      await friendCheckbox(wrapper, 0).setValue(true)
+      await friendCheckbox(wrapper, 1).setValue(true)
+      await flushPromises()
+      await wrapper.find('#players').setValue('')
+
+      // El amigo que sí respondió sigue aportando su parte del pool.
+      expect(wrapper.findAll('.game-card h2').map((h2) => h2.text())).toEqual(['Root', 'Wingspan'])
+      expect(wrapper.text()).toContain('No se ha podido cargar la colección de Bea.')
+      expect(wrapper.text()).not.toContain(
+        'No se ha podido cargar esta colección. Inténtalo de nuevo.',
+      )
+    })
+
     it("keeps a translated description in the friend's game, not just the open modal", async () => {
       const wrapper = mountPicker([makeEntry({ name: 'Root' }, 'owned')], [friendEntry])
       const friends = useFriendsStore()
@@ -562,11 +652,14 @@ describe('PickerView', () => {
         theirsOnly: [wingspan],
       })
 
-      await wrapper.find('#play-with').setValue('2')
+      await friendCheckbox(wrapper, 0).setValue(true)
       await flushPromises()
       await wrapper.find('#players').setValue('')
 
-      await wrapper.find('.details-icon-button').trigger('click')
+      const wingspanCard = wrapper
+        .findAll('.game-card')
+        .find((card) => card.text().includes('Wingspan'))
+      await wingspanCard?.find('.details-icon-button').trigger('click')
       await flushPromises()
       wrapper.findComponent({ name: 'GameDetailModal' }).vm.$emit('translated', 'En español')
       await flushPromises()

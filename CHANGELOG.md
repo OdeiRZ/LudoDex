@@ -7,6 +7,24 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Añadido
+
+- **"Jugar con" admite varios amigos a la vez** en el Picker (`¿A qué
+  jugamos?`) — hasta ahora solo se podía elegir uno. El selector pasa de
+  un `<select>` a una lista de checkboxes; el pool sigue siendo la
+  unión de todas las colecciones seleccionadas (basta con que uno de
+  vosotros tenga el juego), reutilizando el mismo endpoint por parejas
+  una vez por amigo (en paralelo) en vez de un endpoint nuevo N-ario. La
+  etiqueta de propiedad de cada juego lista ahora a todos los que lo
+  aportan ("Compartido con Ana y Bea" / "De Ana y Bea", vía
+  `Intl.ListFormat`). Si falla la carga de algún amigo pero no de todos,
+  se muestra un aviso no bloqueante sin ocultar lo que sí se cargó;
+  solo si fallan todos se mantiene el error a página completa. Tu propia
+  colección ya no desaparece al seleccionar un amigo — antes de este
+  cambio, un `mineOnly` vacío en el fixture de test podía (de forma
+  irreal) vaciarla del todo. Verificado en vivo con tres cuentas de
+  prueba combinando tres colecciones reales.
+
 ## [0.12.0] - 2026-09-10
 
 ### Añadido

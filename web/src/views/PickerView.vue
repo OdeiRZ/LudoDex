@@ -25,59 +25,142 @@ const { t } = useI18n()
 // Which card's details modal (image/description) is open, if any - only
 // one at a time, so a single ref rather than per-card state is enough.
 interface PickerEntry extends UserGame {
-  owner?: 'me' | 'friend' | 'shared'
+  // Empty when nobody selected also owns this one - "obviously yours" if
+  // ownedByMe, otherwise it can't exist in pool at all (see pool below).
+  ownedByMe: boolean
+  friendOwnerIds: number[]
 }
 const detailEntry = ref<PickerEntry | null>(null)
 const { density, toggle: toggleDensity } = useCollectionDensity()
 const locale = computed(() => getLocale())
 
-// "Jugar con" - factors a friend's collection into the pool below
-// instead of just your own. Union, not intersection: a game counts if
-// either of you owns it (see the `owner` tag on `pool` below), not only
-// what you'd both have to bring a copy of.
-const selectedFriendId = ref<number | null>(null)
-const friendCollection = ref<FriendCollectionComparison | null>(null)
-const loadingFriendCollection = ref(false)
-const friendCollectionError = ref(false)
+// "Ana", "Ana y Bea", "Ana, Bea y Carla" - native Intl, so this already
+// gets the right conjunction/comma placement per locale for free instead
+// of hand-joining with ", " and a hardcoded "y"/"and" on the last one.
+function formatNameList(names: string[]): string {
+  return new Intl.ListFormat(locale.value, { style: 'long', type: 'conjunction' }).format(names)
+}
 
-watch(selectedFriendId, async (friendId) => {
-  friendCollectionError.value = false
-  if (friendId === null) {
-    friendCollection.value = null
-    return
+// "Jugar con" - factors one or more friends' collections into the pool
+// below instead of just your own. Union, not intersection: a game counts
+// if any of you owns it (see friendOwnerIds on `pool` below), not only
+// what everyone would have to bring their own copy of.
+const selectedFriendIds = ref<number[]>([])
+// Cached per friend id, not re-fetched whenever a *different* friend is
+// (de)selected - toggling one off and back on again, or checking a
+// second box, would otherwise re-request every already-loaded friend's
+// comparison too.
+const friendComparisons = ref(new Map<number, FriendCollectionComparison>())
+// Which selected friends failed to load - a set, not a single boolean,
+// so one friend's collection failing (network error, or they turned off
+// share_activity) doesn't blank out the others who loaded fine.
+const friendErrors = ref(new Set<number>())
+
+watch(selectedFriendIds, async (ids, previousIds) => {
+  const idSet = new Set(ids)
+  const previousSet = new Set(previousIds ?? [])
+
+  for (const id of previousSet) {
+    if (!idSet.has(id)) {
+      friendComparisons.value.delete(id)
+      friendErrors.value.delete(id)
+    }
   }
 
-  loadingFriendCollection.value = true
-  try {
-    friendCollection.value = await friends.fetchCollectionComparison(friendId)
-  } catch {
-    friendCollection.value = null
-    friendCollectionError.value = true
-  } finally {
-    loadingFriendCollection.value = false
-  }
+  const newIds = ids.filter((id) => !previousSet.has(id))
+  if (newIds.length === 0) return
+
+  await Promise.allSettled(
+    newIds.map(async (id) => {
+      try {
+        const comparison = await friends.fetchCollectionComparison(id)
+        friendComparisons.value.set(id, comparison)
+        friendErrors.value.delete(id)
+      } catch {
+        friendErrors.value.add(id)
+      }
+    }),
+  )
+  // Map/Set mutations don't trigger Vue's reactivity on their own -
+  // swapping in shallow copies (same contents) is what makes every
+  // computed depending on them re-evaluate.
+  friendComparisons.value = new Map(friendComparisons.value)
+  friendErrors.value = new Set(friendErrors.value)
 })
 
-const selectedFriendName = computed(
+const loadingFriendCollection = computed(() =>
+  selectedFriendIds.value.some(
+    (id) => !friendComparisons.value.has(id) && !friendErrors.value.has(id),
+  ),
+)
+
+// Full-page error only once every selected friend failed - with at
+// least one that loaded fine, the pool still has something real to show
+// (that friend's own contribution), so a page-wide error would hide
+// results that are already there. Empty on purpose while nothing is
+// selected - selectedFriendIds.length gates this, not friendErrors
+// alone.
+const allSelectedFriendsFailed = computed(
   () =>
-    friends.friends.find((entry) => entry.user.id === selectedFriendId.value)?.user.name ?? null,
+    selectedFriendIds.value.length > 0 &&
+    friendErrors.value.size === selectedFriendIds.value.length,
+)
+
+// Friends actually contributing to the pool (loaded successfully) vs.
+// ones that failed - the filter form itself doesn't need this split
+// (its own checkboxes reflect selectedFriendIds regardless), but the
+// results area does, to show a partial-failure notice without hiding
+// what the friends who *did* load already contributed.
+const selectedFriendNames = computed(() =>
+  selectedFriendIds.value
+    .map((id) => friends.friends.find((entry) => entry.user.id === id)?.user.name)
+    .filter((name): name is string => name !== undefined),
+)
+function ownerNames(friendIds: number[]): string[] {
+  return friendIds
+    .map((id) => friends.friends.find((entry) => entry.user.id === id)?.user.name)
+    .filter((name): name is string => name !== undefined)
+}
+const failedFriendNames = computed(() =>
+  [...friendErrors.value]
+    .map((id) => friends.friends.find((entry) => entry.user.id === id)?.user.name)
+    .filter((name): name is string => name !== undefined),
 )
 
 // The source `playable` and friends filter over. Own collection by
-// default; the friend's shared/mine-only/theirs-only union once one is
-// selected - `owner` is only meaningful in that second case (undefined,
-// i.e. "obviously yours", when browsing your own collection).
+// default; merged with every selected-and-loaded friend's shared/
+// theirs-only games once at least one is picked. mineOnly from each
+// friend's own comparison is never read - it's already a subset of
+// games.collection, seeded below on its own.
 const pool = computed<PickerEntry[]>(() => {
-  if (!friendCollection.value) return games.collection
+  const byId = new Map<string, PickerEntry>()
 
-  const { shared, mineOnly, theirsOnly } = friendCollection.value
-  return [
-    ...shared.map((game): PickerEntry => ({ id: game.id, status: 'owned', game, owner: 'shared' })),
-    ...mineOnly.map((game): PickerEntry => ({ id: game.id, status: 'owned', game, owner: 'me' })),
-    ...theirsOnly.map(
-      (game): PickerEntry => ({ id: game.id, status: 'owned', game, owner: 'friend' }),
-    ),
-  ]
+  for (const entry of games.collection) {
+    byId.set(entry.game.id, { ...entry, ownedByMe: true, friendOwnerIds: [] })
+  }
+
+  for (const [friendId, comparison] of friendComparisons.value) {
+    for (const game of comparison.shared) {
+      byId.get(game.id)?.friendOwnerIds.push(friendId)
+    }
+
+    for (const game of comparison.theirsOnly) {
+      const existing = byId.get(game.id)
+      if (existing) {
+        existing.friendOwnerIds.push(friendId)
+      } else {
+        byId.set(game.id, {
+          id: game.id,
+          status: 'owned',
+          game,
+          ownedByMe: false,
+          friendOwnerIds: [friendId],
+        })
+      }
+    }
+  }
+
+  return [...byId.values()]
 })
 
 const expansionCounts = useExpansionCounts(pool)
@@ -273,8 +356,8 @@ function asFilterNumber(value: number | null): number | null {
 const filterSummary = computed(() => {
   const parts: string[] = []
 
-  if (selectedFriendName.value !== null) {
-    parts.push(t('picker.playWithFriend', { name: selectedFriendName.value }))
+  if (selectedFriendNames.value.length > 0) {
+    parts.push(t('picker.playWithFriend', { name: formatNameList(selectedFriendNames.value) }))
   }
 
   if (search.value.trim() !== '') {
@@ -644,15 +727,13 @@ const {
         <DensityToggle :density="density" @toggle="toggleDensity" />
       </div>
 
-      <div v-if="friends.friends.length" class="play-with-field">
-        <label for="play-with">{{ $t('picker.playWith') }}</label>
-        <select id="play-with" v-model="selectedFriendId">
-          <option :value="null">{{ $t('picker.playWithNoFriend') }}</option>
-          <option v-for="entry in friends.friends" :key="entry.user.id" :value="entry.user.id">
-            {{ entry.user.name }}
-          </option>
-        </select>
-      </div>
+      <fieldset v-if="friends.friends.length" class="play-with-field">
+        <legend>{{ $t('picker.playWith') }}</legend>
+        <label v-for="entry in friends.friends" :key="entry.user.id" class="checkbox-label">
+          <input v-model="selectedFriendIds" type="checkbox" :value="entry.user.id" />
+          {{ entry.user.name }}
+        </label>
+      </fieldset>
     </form>
 
     <p v-if="games.loading || loadingFriendCollection" class="loading-state">
@@ -663,11 +744,8 @@ const {
           : $t('common.loadingCollection')
       }}
     </p>
-    <p v-else-if="friendCollectionError" role="alert" class="alert alert-error">
+    <p v-else-if="allSelectedFriendsFailed" role="alert" class="alert alert-error">
       {{ $t('picker.friendCollectionError') }}
-    </p>
-    <p v-else-if="playable.length === 0 && selectedFriendId !== null" class="empty-state">
-      {{ $t('picker.emptyFriendCollection') }}
     </p>
     <p v-else-if="playable.length === 0" class="empty-state">
       {{ $t('picker.emptyOwned') }}<br />
@@ -748,8 +826,7 @@ const {
           </p>
           <p
             v-if="
-              entry.owner === 'shared' ||
-              entry.owner === 'friend' ||
+              entry.friendOwnerIds.length > 0 ||
               entry.game.is_cooperative ||
               entry.game.is_competitive ||
               effectiveStatsByGameId[entry.game.id]?.hasCampaign ||
@@ -758,11 +835,11 @@ const {
             "
             class="tags"
           >
-            <span v-if="entry.owner === 'shared'" class="badge badge-primary">{{
-              $t('picker.ownerShared')
+            <span v-if="entry.ownedByMe && entry.friendOwnerIds.length > 0" class="badge badge-primary">{{
+              $t('picker.ownerShared', { names: formatNameList(ownerNames(entry.friendOwnerIds)) })
             }}</span>
-            <span v-if="entry.owner === 'friend'" class="badge badge-accent">{{
-              $t('picker.ownerFriend', { name: selectedFriendName })
+            <span v-if="!entry.ownedByMe && entry.friendOwnerIds.length > 0" class="badge badge-accent">{{
+              $t('picker.ownerFriend', { names: formatNameList(ownerNames(entry.friendOwnerIds)) })
             }}</span>
             <span v-if="entry.game.is_cooperative" class="badge badge-primary">{{
               $t('picker.cooperative')
@@ -789,6 +866,14 @@ const {
         </GameCard>
       </li>
     </ul>
+
+    <p
+      v-if="!loadingFriendCollection && !allSelectedFriendsFailed && failedFriendNames.length > 0"
+      role="alert"
+      class="alert alert-error"
+    >
+      {{ $t('picker.someFriendCollectionsFailed', { names: formatNameList(failedFriendNames) }) }}
+    </p>
 
     <GameDetailModal
       v-if="detailEntry"

@@ -7,6 +7,7 @@
 
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "lib": ["ES2022", "ES2021.Intl", "DOM", "DOM.Iterable"]
   }
 }
