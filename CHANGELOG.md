@@ -25,7 +25,10 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   irreal) vaciarla del todo. Verificado en vivo con tres cuentas de
   prueba combinando tres colecciones reales. El número de jugadores se
   ajusta solo a "tú + cada amigo marcado" al (de)seleccionar alguno, en
-  vez de quedarse fijo en el valor por defecto.
+  vez de quedarse fijo en el valor por defecto. El bloque "Jugar con" se
+  oculta al activar el modo solitario y descarta la selección — jugar en
+  solitario no tiene sentido con la colección de otro de por medio,
+  mismo criterio que ya aplicaba al filtro de Modo.
 
 ## [0.12.0] - 2026-09-10
 

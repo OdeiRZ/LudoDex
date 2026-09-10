@@ -495,6 +495,36 @@ describe('PickerView', () => {
       expect(withFriends.find('.play-with-field').exists()).toBe(true)
     })
 
+    it('hides the friend selector and drops the selection in solo mode', async () => {
+      const wrapper = mountPicker([makeEntry({ name: 'Root' }, 'owned')], [friendEntry])
+      const friends = useFriendsStore()
+      const fetchSpy = vi.spyOn(friends, 'fetchCollectionComparison').mockResolvedValue({
+        friend: friendEntry.user,
+        shared: [],
+        mineOnly: [],
+        theirsOnly: [makeGame({ name: 'Wingspan' })],
+      })
+
+      await friendCheckbox(wrapper, 0).setValue(true)
+      await flushPromises()
+      expect(wrapper.find('.play-with-field').exists()).toBe(true)
+      expect(wrapper.findAll('.game-card h2').map((h2) => h2.text())).toContain('Wingspan')
+
+      await wrapper.find('#players').setValue('1')
+
+      expect(wrapper.find('.play-with-field').exists()).toBe(false)
+      // No solo mode debe hablarse de la colección de un amigo: se
+      // descarta la selección, no solo se esconde el checkbox.
+      expect(wrapper.findAll('.game-card h2').map((h2) => h2.text())).not.toContain('Wingspan')
+
+      // Volver a un número de jugadores real muestra el selector otra
+      // vez, vacío - no recuerda la selección anterior.
+      await wrapper.find('#players').setValue('2')
+      expect(wrapper.find('.play-with-field').exists()).toBe(true)
+      expect(wrapper.findAll('.play-with-field input[type="checkbox"]:checked')).toHaveLength(0)
+      expect(fetchSpy).toHaveBeenCalledTimes(1)
+    })
+
     it('mixes both collections once a friend is selected, tagging who owns what', async () => {
       // "Compartido" solo tiene sentido si el juego realmente está en tu
       // propia colección - el backend real siempre devuelve el mismo id

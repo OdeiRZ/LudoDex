@@ -275,6 +275,10 @@ function toggleSolo() {
 watch(isSoloPlayer, (solo) => {
   if (solo) {
     modeFilter.value = 'any'
+    // Solo playing means no one else's collection is relevant either -
+    // same "drop whatever was selected" rule as the mode filter above,
+    // not just hide the checkboxes behind a still-active filter.
+    selectedFriendIds.value = []
   }
 })
 
@@ -735,7 +739,7 @@ const {
         <DensityToggle :density="density" @toggle="toggleDensity" />
       </div>
 
-      <fieldset v-if="friends.friends.length" class="play-with-field">
+      <fieldset v-if="friends.friends.length && !isSoloPlayer" class="play-with-field">
         <legend>{{ $t('picker.playWith') }}</legend>
         <label v-for="entry in friends.friends" :key="entry.user.id" class="checkbox-label">
           <input v-model="selectedFriendIds" type="checkbox" :value="entry.user.id" />
