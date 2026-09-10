@@ -114,11 +114,11 @@ async function onResendVerification() {
       <RouterLink :to="{ name: 'dashboard' }">{{ $t('nav.collection') }}</RouterLink>
       <RouterLink :to="{ name: 'picker' }">{{ $t('nav.picker') }}</RouterLink>
       <RouterLink :to="{ name: 'plays' }">{{ $t('nav.plays') }}</RouterLink>
-      <RouterLink :to="{ name: 'import-bgg' }">{{ $t('nav.importBgg') }}</RouterLink>
       <RouterLink :to="{ name: 'friends' }" class="nav-link-with-badge">
         {{ $t('nav.friends') }}
         <span v-if="friends.incomingRequests.length > 0" class="nav-badge" aria-hidden="true" />
       </RouterLink>
+      <RouterLink :to="{ name: 'import-bgg' }">{{ $t('nav.importBgg') }}</RouterLink>
     </nav>
 
     <button
@@ -144,11 +144,11 @@ async function onResendVerification() {
       <RouterLink :to="{ name: 'dashboard' }">{{ $t('nav.collection') }}</RouterLink>
       <RouterLink :to="{ name: 'picker' }">{{ $t('nav.picker') }}</RouterLink>
       <RouterLink :to="{ name: 'plays' }">{{ $t('nav.plays') }}</RouterLink>
-      <RouterLink :to="{ name: 'import-bgg' }">{{ $t('nav.importBgg') }}</RouterLink>
       <RouterLink :to="{ name: 'friends' }" class="nav-link-with-badge">
         {{ $t('nav.friends') }}
         <span v-if="friends.incomingRequests.length > 0" class="nav-badge" aria-hidden="true" />
       </RouterLink>
+      <RouterLink :to="{ name: 'import-bgg' }">{{ $t('nav.importBgg') }}</RouterLink>
     </nav>
 
     <div class="session">
