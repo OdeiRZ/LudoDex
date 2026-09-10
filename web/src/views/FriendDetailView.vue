@@ -123,66 +123,104 @@ function onDetailGameTranslated(descriptionEs: string | null) {
 
 const gamesListRef = ref<HTMLElement | null>(null)
 
+// Which section the scrubber currently indexes - asked for directly:
+// the scrubber should only ever move you between games in the section
+// you're already in, and only re-index against a different section once
+// you've actually scrolled into it, not before. Starts on 'shared', the
+// first section's own fixed key (collectionSections' own three keys
+// never change, only their .games/.title do once the fetch resolves) -
+// correct even before that fetch finishes, since you're looking at the
+// top of the page either way.
+const currentSectionKey = ref('shared')
+const sectionHeaderRefs = new Map<string, HTMLElement>()
+
+function setSectionHeaderRef(key: string, el: Element | null) {
+  if (el instanceof HTMLElement) {
+    sectionHeaderRefs.set(key, el)
+  } else {
+    sectionHeaderRefs.delete(key)
+  }
+}
+
+// Same "which section have I scrolled into" algorithm any scrollspy/
+// table of contents uses: the last EXPANDED header (in document order)
+// that's already crossed the viewport's own top edge is the section
+// currently in view - collapsed sections are skipped entirely (their
+// own header stays in the flow even collapsed, but there's nothing of
+// theirs to be "in view" of). A first attempt at this exact design
+// (reverted, then reattempted here) recalculated on every raw scroll
+// event, which fired mid-animation on jumpToBucket's own scrollIntoView
+// and could flip currentSectionKey - and with it the scrubber's own
+// pool/threshold - while that same scroll was still in flight, once
+// even making the scrubber vanish right after a perfectly valid click.
+// Debouncing (200ms after the last scroll event, not on every one)
+// means this only fires once scrolling has genuinely settled, long
+// after any single jump's own animation has finished.
+const SECTION_ACTIVE_OFFSET_PX = 80
+const SCROLL_SETTLE_MS = 200
+
+function computeCurrentSection(): string | undefined {
+  let current: string | undefined
+  for (const section of collectionSections.value) {
+    if (collapsedSections.value.has(section.key)) continue
+    const top = sectionHeaderRefs.get(section.key)?.getBoundingClientRect().top
+    if (top === undefined) continue
+    if (current === undefined) current = section.key
+    if (top <= SECTION_ACTIVE_OFFSET_PX) current = section.key
+  }
+  return current
+}
+
+let scrollSettleTimeout: ReturnType<typeof setTimeout> | undefined
+
+function onScroll() {
+  clearTimeout(scrollSettleTimeout)
+  scrollSettleTimeout = setTimeout(() => {
+    const next = computeCurrentSection()
+    if (next) currentSectionKey.value = next
+  }, SCROLL_SETTLE_MS)
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', onScroll, { passive: true })
+})
+onUnmounted(() => {
+  window.removeEventListener('scroll', onScroll)
+  clearTimeout(scrollSettleTimeout)
+})
+
 // useCollectionScrubber reads entry.game.* and is typed for UserGame[] -
 // these three lists are plain Game[], so each entry is wrapped to match
 // that shape rather than changing the composable itself for one caller
 // with a different one. id/status are never read by the composable
-// itself (confirmed reading its source), only game.* is - id just
-// reuses the game's own (unique here, since a game can only appear in
-// one of the three sections) and status is always 'owned', matching
-// what the comparison itself already only ever includes.
+// itself (confirmed reading its source), only game.* is.
 //
-// Collapsed sections are excluded here (asked for directly) - their
-// letters never show as available, so the scrubber can never offer a
-// jump into a section with nothing currently visible to jump to.
-// Recomputes only when collapsedSections itself changes (a deliberate
-// click), never on scroll - an earlier version kept re-deriving this
-// from wherever the page happened to be scrolled to, which fought with
-// jumpToBucket's own scrollIntoView mid-animation (each animation frame
-// fired a real scroll event, recalculating - and sometimes changing -
-// the pool while the scroll it had itself just triggered was still in
-// flight) and could make the whole scrubber vanish right after a
-// perfectly valid click.
-const scrubberPool = computed(() =>
-  collectionSections.value
-    .filter((section) => !collapsedSections.value.has(section.key))
-    .flatMap((section) => section.games)
-    .map((game) => ({ id: game.id, status: 'owned' as const, game })),
-)
+// Scoped to currentSectionKey alone (not every expanded section
+// combined) - a collapsed current section resolves to no games at all,
+// same as scrolling past the end of the page would. The scrubber's own
+// >12 threshold therefore applies per section too: a section with 12 or
+// fewer games of its own never shows the scrubber while you're in it,
+// even if another section elsewhere on the page would cross it.
+const scrubberPool = computed(() => {
+  if (collapsedSections.value.has(currentSectionKey.value)) return []
+
+  const games = collectionSections.value.find((s) => s.key === currentSectionKey.value)?.games ?? []
+  return games.map((game) => ({ id: game.id, status: 'owned' as const, game }))
+})
 
 // Fixed to name mode - this view has no sort/order controls of its own
 // (nothing asked for), unlike Dashboard's own switchable criterion.
 const sortCriterion = ref<'name'>('name')
 const sortOrder = ref<'asc'>('asc')
 
-// Overrides the scrubber's own default "first match in DOM" only enough
-// to skip collapsed sections - picks the first VISIBLE candidate in DOM
-// order, not Dashboard/Picker's plain first-in-DOM (see the option's own
-// doc comment), and deliberately not "nearest to the current scroll
-// position" either, despite that sounding more helpful at first: tried
-// live, and it broke the one guarantee an A-Z index actually promises -
-// pressing the same letter twice from two different scroll positions
-// landed on two different cards, since "nearest" tracks wherever you
-// already are, not the letter itself (found live: scrubbing from Y back
-// up to A landed on "Azul Stained Glass of Sintra", of all things,
-// nearer to Y's own position, instead of the real first A). First in DOM
-// is what every other list in this file (Dashboard, Picker) already
-// promises implicitly, and what this now matches too.
-//
-// candidates comes from querying the whole gamesListRef, which still
-// contains every section's own cards regardless of collapse state
-// (v-show only hides them, it doesn't remove them) - a letter only
-// being "available" when an expanded section has a match (scrubberPool
-// above) does NOT mean every DOM match for it is itself visible, so a
-// collapsed section's own hidden cards have to be filtered out here
-// too, not just assumed away.
+// Every letter offered by availableBuckets already only reflects
+// currentSectionKey's own games (scrubberPool above), so there's
+// exactly one section's worth of candidates to choose from here - the
+// first one in DOM order (alphabetically first, since every section's
+// own list is pre-sorted) is simply that section's own real answer, no
+// cross-section comparison needed at all.
 function resolveJumpTarget(candidates: HTMLElement[]): HTMLElement | null {
-  return (
-    candidates.find((el) => {
-      const key = el.closest('.collection-section')?.getAttribute('data-section-key')
-      return key !== null && key !== undefined && !collapsedSections.value.has(key)
-    }) ?? null
-  )
+  return candidates.find((el) => el.closest('.collection-section')?.getAttribute('data-section-key') === currentSectionKey.value) ?? null
 }
 
 const {
@@ -307,6 +345,7 @@ function loadMore() {
             :data-section-key="section.key"
           >
             <button
+              :ref="(el) => setSectionHeaderRef(section.key, el as Element | null)"
               type="button"
               class="collection-section-header"
               :aria-expanded="!collapsedSections.has(section.key)"

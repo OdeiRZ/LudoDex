@@ -171,32 +171,23 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   lista al colapsar, no desmontarla — el scrubber A-Z sigue
   encontrando los elementos en el DOM.
 
-  De paso, dos bugs reales en el propio scrubber A-Z de esta pestaña,
-  encontrados en vivo:
-  - Al saltar a una letra, el scrubber podía aterrizar en la tarjeta de
-    una sección colapsada (oculta con `v-show`, sigue en el DOM) en vez
-    de una visible — un elemento `display: none` devuelve `top: 0` en
-    `getBoundingClientRect()`, indistinguible de "está justo arriba del
-    todo" en la comparación de "más cercano al viewport" que decide a
-    qué tarjeta saltar. Los candidatos de secciones colapsadas se
-    descartan ahora antes de esa comparación.
-  - Las tres listas (En común/Solo tú/Solo amigo) nunca se ordenaban
-    alfabéticamente — se renderizaban en el orden que devolvía la API.
-    El scrubber A-Z asume que la lista sobre la que salta SÍ está
-    ordenada (la misma premisa por la que funciona el índice de un
-    libro), así que saltar a una letra podía aterrizar cerca de
-    cualquier cosa. Ordenadas ahora con el mismo criterio
-    (`localeCompare`) que ya usa Colección.
-  - Un tercer bug, encontrado tras arreglar los dos anteriores: saltar a
-    una letra elegía el candidato más cercano a la posición de scroll
-    actual (pensado para desambiguar la misma letra repartida entre
-    varias secciones a la vez), pero con muchos juegos de una misma
-    letra dentro de una sola sección, eso hacía que la MISMA letra
-    aterrizara en sitios distintos según desde dónde se pulsara —
-    pulsar "Y" y luego "A" aterrizaba en un juego cualquiera cercano a
-    donde ya estabas, no en el primero real. Ahora elige siempre el
-    primer candidato visible en orden del documento, sin comparar
-    posiciones — determinista, pulses desde donde pulses.
+  El scrubber A-Z de esta pestaña pasa a indexar solo la sección en la
+  que estás — no una única lista alfabética combinada, como hacía antes
+  (y como siguen haciendo Colección y "¿A qué jugamos?", que solo tienen
+  una lista propia cada una). Al hacer scroll y cruzar la cabecera de
+  otra sección, se recalculan las letras disponibles para esa sección
+  en concreto; una sección colapsada nunca ofrece letras propias, ni
+  siquiera si otra sección expandida en la misma página hace que el
+  scrubber esté visible; y el umbral de >12 juegos para mostrarlo se
+  aplica a la sección en la que estás, no al total combinado.
+
+  Detección de sección activa con debounce (recalcula solo cuando el
+  scroll lleva ~200ms quieto, no en cada evento) — necesario tras un
+  primer intento que recalculaba en cada scroll y competía con el
+  propio `scrollIntoView` de un salto en marcha, pudiendo hacer
+  desaparecer el scrubber justo después de un clic válido. Verificado
+  en vivo, letra por letra, con una colección real de 400+ juegos
+  repartida en las tres secciones.
 
 ### Cambiado
 

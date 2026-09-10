@@ -264,93 +264,58 @@ describe('FriendDetailView', () => {
     expect(wrapper.find('.badge-expansion').text()).toBe('Expansión de Catan')
   })
 
-  it('shows the A-Z scrubber once there are more than 12 games combined across all three sections', async () => {
+  it('shows the A-Z scrubber once the current section (shared, by default) alone has more than 12 games', async () => {
     const { wrapper, store } = await mountDetail()
-    store.shared = Array.from({ length: 5 }, (_, i) =>
-      makeGame({ id: `s${i}`, name: `Shared ${i}` }),
-    )
-    store.mineOnly = Array.from({ length: 4 }, (_, i) =>
-      makeGame({ id: `m${i}`, name: `Mine ${i}` }),
-    )
-    store.theirsOnly = Array.from({ length: 4 }, (_, i) =>
-      makeGame({ id: `t${i}`, name: `Theirs ${i}` }),
-    )
+    store.shared = Array.from({ length: 13 }, (_, i) => makeGame({ id: `s${i}`, name: `Apple ${i}` }))
     await flushPromises()
 
     expect(wrapper.find('.az-scrubber').exists()).toBe(true)
   })
 
-  it('does not show the A-Z scrubber with 12 or fewer games combined', async () => {
+  it('does not show the A-Z scrubber with 12 or fewer games in the current section, even if other sections combined exceed it', async () => {
     const { wrapper, store } = await mountDetail()
-    store.shared = Array.from({ length: 4 }, (_, i) =>
-      makeGame({ id: `s${i}`, name: `Shared ${i}` }),
-    )
-    store.mineOnly = Array.from({ length: 4 }, (_, i) =>
-      makeGame({ id: `m${i}`, name: `Mine ${i}` }),
-    )
-    store.theirsOnly = Array.from({ length: 4 }, (_, i) =>
-      makeGame({ id: `t${i}`, name: `Theirs ${i}` }),
-    )
+    store.shared = Array.from({ length: 12 }, (_, i) => makeGame({ id: `s${i}`, name: `Apple ${i}` }))
+    store.mineOnly = Array.from({ length: 4 }, (_, i) => makeGame({ id: `m${i}`, name: `Mine ${i}` }))
+    store.theirsOnly = Array.from({ length: 4 }, (_, i) => makeGame({ id: `t${i}`, name: `Theirs ${i}` }))
     await flushPromises()
 
     expect(wrapper.find('.az-scrubber').exists()).toBe(false)
   })
 
-  it('excludes a collapsed section from both the scrubber threshold and its available letters', async () => {
+  it('hides the A-Z scrubber when the current section is collapsed, even past the threshold', async () => {
     const { wrapper, store } = await mountDetail()
-    store.shared = Array.from({ length: 13 }, (_, i) =>
-      makeGame({ id: `s${i}`, name: `Apple ${i}` }),
-    )
+    store.shared = Array.from({ length: 13 }, (_, i) => makeGame({ id: `s${i}`, name: `Apple ${i}` }))
     await flushPromises()
     expect(wrapper.find('.az-scrubber').exists()).toBe(true)
 
     await wrapper.find('.collection-section-header').trigger('click')
 
-    // Collapsing the only section with enough games to cross the
-    // threshold drops the scrubber entirely - its letters were never
-    // "available" to a section with nothing currently visible to jump
-    // to (asked for directly, after an earlier version could still jump
-    // into - or worse, transiently hide behind - a collapsed section).
     expect(wrapper.find('.az-scrubber').exists()).toBe(false)
   })
 
-  it("does not offer a collapsed section's own letters even while another section is expanded", async () => {
+  it("only offers the current section's own letters, never another expanded section's", async () => {
+    // Asked for directly: the scrubber should only ever move you between
+    // games in the section you're already in - shared is current by
+    // default (no scroll happened), so mineOnly's own "Z" (Zeppelin)
+    // must never show as reachable even though mineOnly is expanded too.
     const { wrapper, store } = await mountDetail()
-    store.shared = Array.from({ length: 13 }, (_, i) =>
-      makeGame({ id: `s${i}`, name: `Apple ${i}` }),
-    )
+    store.shared = Array.from({ length: 13 }, (_, i) => makeGame({ id: `s${i}`, name: `Apple ${i}` }))
     store.mineOnly = [makeGame({ id: 'm1', name: 'Zeppelin' })]
     await flushPromises()
-    expect(wrapper.find('.az-scrubber').exists()).toBe(true)
-
-    // Collapses mineOnly (second header in the DOM) - Zeppelin's own "Z"
-    // stops being reachable, but shared's own letters are unaffected.
-    const headers = wrapper.findAll('.collection-section-header')
-    await headers[1]!.trigger('click')
 
     const letters = wrapper.findAll('.az-scrubber-letter-available').map((el) => el.text())
     expect(letters).toContain('A')
     expect(letters).not.toContain('Z')
   })
 
-  it('scrubbing to a letter jumps to the expanded section\'s own card, not a same-letter card hidden in a collapsed one', async () => {
-    // Regression test for a real bug found live: a collapsed section's
-    // own cards stay in the DOM (v-show, not v-if - see scrubberPool's
-    // own comment on why), and a display: none element's
-    // getBoundingClientRect() reports every value including top as 0 -
-    // indistinguishable from "sitting exactly at the viewport's own top
-    // edge" in resolveJumpTarget's own "nearest" comparison unless
-    // filtered out first. Without that filter, scrubbing to a letter
-    // that both a collapsed and an expanded section share silently
-    // jumped nowhere useful instead of the one visible match.
-    //
+  it('scrubbing jumps within the current section only', async () => {
     // jsdom has no real layout - scrollIntoView and setPointerCapture
     // aren't implemented at all, and getBoundingClientRect always
-    // reports zeroes - so this stubs all three deliberately: a fixed,
-    // evenly-spaced rect for the scrubber strip itself (so bucketAtPointer
-    // resolves a real bucket instead of dividing by zero), 0 for every
-    // element inside the collapsed 'shared' section (simulating v-show:
-    // false), and a distinct non-zero value for theirsOnly's own match.
+    // reports zeroes - stubbed here just enough for bucketAtPointer's
+    // own math to resolve a real bucket (the strip's rect) rather than
+    // dividing by zero; nothing about candidate selection depends on
+    // per-element rects any more, since resolveJumpTarget only ever
+    // looks at currentSectionKey's own cards now.
     const scrollIntoView = vi.fn()
     Element.prototype.scrollIntoView = scrollIntoView
     HTMLElement.prototype.setPointerCapture = vi.fn()
@@ -361,25 +326,15 @@ describe('FriendDetailView', () => {
       if (this.classList.contains('az-scrubber-buckets')) {
         return { ...base, top: 0, height: 270 } as DOMRect
       }
-      if (this.getAttribute('data-letter') === 'A') {
-        const collapsed = this.closest('.collection-section')?.getAttribute('data-section-key') === 'shared'
-        return { ...base, top: collapsed ? 0 : 200, height: 0 } as DOMRect
-      }
       return { ...base, top: 0, height: 0 } as DOMRect
     })
 
     const { wrapper, store } = await mountDetail()
-    store.shared = [makeGame({ id: 's-a', name: 'Apple' })]
-    store.theirsOnly = Array.from({ length: 13 }, (_, i) =>
-      i === 0 ? makeGame({ id: 't-a', name: 'Avocado' }) : makeGame({ id: `t${i}`, name: `Theirs ${i}` }),
+    store.shared = Array.from({ length: 13 }, (_, i) =>
+      i === 0 ? makeGame({ id: 's-a', name: 'Apple' }) : makeGame({ id: `s${i}`, name: `Shared ${i}` }),
     )
+    store.mineOnly = [makeGame({ id: 'm-a', name: 'Avocado (mineOnly)' })]
     await flushPromises()
-
-    // Collapses 'shared' (first header) - 'mineOnly' stays expanded but
-    // empty, matching the reported "3rd section open, other 2 closed"
-    // shape closely enough (an empty expanded section contributes no
-    // candidates of its own either way).
-    await wrapper.find('.collection-section-header').trigger('click')
 
     // ALPHABET is ['#', 'A', 'B', ...] - bucket index 1, landing anywhere
     // within the strip's own second 10px slice (10-20 of the mocked
@@ -388,56 +343,53 @@ describe('FriendDetailView', () => {
 
     expect(scrollIntoView).toHaveBeenCalledTimes(1)
     const scrolledTo = scrollIntoView.mock.instances[0] as unknown as HTMLElement
-    expect(scrolledTo.closest('.collection-section')?.getAttribute('data-section-key')).toBe('theirsOnly')
+    expect(scrolledTo.closest('.collection-section')?.getAttribute('data-section-key')).toBe('shared')
+    expect(scrolledTo.querySelector('h3')?.textContent).toBe('Apple')
 
     rectSpy.mockRestore()
   })
 
-  it('always jumps to the same first match for a letter, regardless of the current scroll position', async () => {
-    // Regression test for a real bug found live: resolveJumpTarget used
-    // to pick whichever same-letter candidate sat nearest the current
-    // viewport position (added to disambiguate the SAME letter matching
-    // more than one expanded section at once) - but with many
-    // candidates for one letter inside a single section, that made the
-    // same scrub land somewhere different depending on where the page
-    // already happened to be scrolled to, breaking the one guarantee an
-    // A-Z index actually promises: scrubbing to "Avocado" instead landed
-    // on "Zebra" (found live - scrubbing from Y back up to A landed on a
-    // late-alphabet card instead of the real first A, simply because it
-    // was physically nearer wherever the page was already scrolled).
-    // Picking the first DOM match instead (this test's whole point) is
-    // deterministic no matter the scroll position, so the mocked rects
-    // deliberately do NOT vary by candidate - only the strip itself needs
-    // a real rect, for bucketAtPointer's own math.
-    const scrollIntoView = vi.fn()
-    Element.prototype.scrollIntoView = scrollIntoView
-    HTMLElement.prototype.setPointerCapture = vi.fn()
-    const rectSpy = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
-      this: HTMLElement,
-    ) {
-      const base = { bottom: 0, left: 0, right: 0, width: 0, x: 0, y: 0, toJSON: () => ({}) }
-      if (this.classList.contains('az-scrubber-buckets')) {
-        return { ...base, top: 0, height: 270 } as DOMRect
-      }
-      return { ...base, top: 0, height: 0 } as DOMRect
-    })
+  it('switches which section the scrubber indexes only once scrolling has settled, not on every scroll event', async () => {
+    // Regression test for a real bug found live: an earlier version of
+    // this exact "index only the current section" design recalculated
+    // on every raw scroll event, which fired mid-animation from
+    // jumpToBucket's own scrollIntoView and could flip the current
+    // section (and with it the scrubber's own pool/threshold) while
+    // that same scroll was still in flight - once making the scrubber
+    // vanish right after a valid click. Debounced now: only recomputes
+    // once scrolling has been quiet for a bit.
+    vi.useFakeTimers()
+    try {
+      const { wrapper, store } = await mountDetail()
+      store.shared = Array.from({ length: 13 }, (_, i) => makeGame({ id: `s${i}`, name: `Apple ${i}` }))
+      store.mineOnly = Array.from({ length: 13 }, (_, i) =>
+        i === 0 ? makeGame({ id: 'm-z', name: 'Zeppelin' }) : makeGame({ id: `m${i}`, name: `Mine ${i}` }),
+      )
+      await flushPromises()
 
-    const { wrapper, store } = await mountDetail()
-    store.theirsOnly = [
-      makeGame({ id: 't-a', name: 'Avocado' }),
-      makeGame({ id: 't-z', name: 'Zebra' }),
-      ...Array.from({ length: 11 }, (_, i) => makeGame({ id: `t${i}`, name: `Middle ${i}` })),
-    ]
-    await flushPromises()
+      const headers = wrapper.findAll('.collection-section-header')
+      vi.spyOn(headers[0]!.element, 'getBoundingClientRect').mockReturnValue({ top: -500 } as DOMRect)
+      vi.spyOn(headers[1]!.element, 'getBoundingClientRect').mockReturnValue({ top: 10 } as DOMRect)
+      // theirsOnly's own header (unmocked jsdom rects default to all
+      // zeroes, which would otherwise satisfy "already scrolled past"
+      // too and win as the last one checked) - far below, not reached.
+      vi.spyOn(headers[2]!.element, 'getBoundingClientRect').mockReturnValue({ top: 900 } as DOMRect)
 
-    await wrapper.find('.az-scrubber-buckets').trigger('pointerdown', { clientY: 15, pointerId: 1 })
+      window.dispatchEvent(new Event('scroll'))
+      // Still 'shared' - the debounce hasn't fired yet.
+      let letters = wrapper.findAll('.az-scrubber-letter-available').map((el) => el.text())
+      expect(letters).toContain('A')
+      expect(letters).not.toContain('Z')
 
-    expect(scrollIntoView).toHaveBeenCalledTimes(1)
-    const scrolledTo = scrollIntoView.mock.instances[0] as unknown as HTMLElement
-    expect(scrolledTo.getAttribute('data-letter')).toBe('A')
-    expect(scrolledTo.querySelector('h3')?.textContent).toBe('Avocado')
+      await vi.advanceTimersByTimeAsync(250)
+      await flushPromises()
 
-    rectSpy.mockRestore()
+      letters = wrapper.findAll('.az-scrubber-letter-available').map((el) => el.text())
+      expect(letters).not.toContain('A')
+      expect(letters).toContain('Z')
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('loads plays only the first time the plays tab is opened', async () => {
