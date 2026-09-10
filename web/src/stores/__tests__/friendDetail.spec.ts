@@ -68,13 +68,13 @@ describe('useFriendDetailStore', () => {
       expect(store.notFound).toBe(false)
     })
 
-    it('marks collectionHidden (not notFound) on a 403 - the friend simply does not share their collection', async () => {
+    it('marks activityHidden (not notFound) on a 403 - the friend simply does not share their activity', async () => {
       vi.mocked(apiClient.get).mockRejectedValue(forbiddenError())
       const store = useFriendDetailStore()
 
       await store.fetchCollection(2)
 
-      expect(store.collectionHidden).toBe(true)
+      expect(store.activityHidden).toBe(true)
       expect(store.notFound).toBe(false)
     })
   })
@@ -151,13 +151,13 @@ describe('useFriendDetailStore', () => {
       expect(store.notFound).toBe(true)
     })
 
-    it('marks playsHidden (not notFound) on a 403 - the friend simply does not share their plays', async () => {
+    it('marks activityHidden (not notFound) on a 403 - the friend simply does not share their activity', async () => {
       vi.mocked(apiClient.get).mockRejectedValue(forbiddenError())
       const store = useFriendDetailStore()
 
       await store.fetchPlays(2, 1)
 
-      expect(store.playsHidden).toBe(true)
+      expect(store.activityHidden).toBe(true)
       expect(store.notFound).toBe(false)
     })
 
@@ -224,13 +224,13 @@ describe('useFriendDetailStore', () => {
       expect(store.notFound).toBe(true)
     })
 
-    it('marks playsHidden (not notFound) on a 403', async () => {
+    it('marks activityHidden (not notFound) on a 403', async () => {
       vi.mocked(apiClient.get).mockRejectedValue(forbiddenError())
       const store = useFriendDetailStore()
 
       await store.fetchPlaysStats(2)
 
-      expect(store.playsHidden).toBe(true)
+      expect(store.activityHidden).toBe(true)
       expect(store.notFound).toBe(false)
     })
   })
@@ -258,20 +258,13 @@ describe('useFriendDetailStore', () => {
     })
   })
 
-  describe('collectionHidden and playsHidden are independent', () => {
-    it('a 403 on the collection does not hide plays, and vice versa - the real bug this guards against', async () => {
+  describe('activityHidden covers both collection and plays', () => {
+    it('a 403 on either endpoint sets the same shared flag', async () => {
       const store = useFriendDetailStore()
       vi.mocked(apiClient.get).mockRejectedValueOnce(forbiddenError())
       await store.fetchCollection(2)
 
-      vi.mocked(apiClient.get).mockResolvedValueOnce({
-        data: { data: [], friend: {}, meta: { current_page: 1, last_page: 1 } },
-      })
-      await store.fetchPlays(2, 1)
-
-      expect(store.collectionHidden).toBe(true)
-      expect(store.playsHidden).toBe(false)
-      expect(store.playsLoaded).toBe(true)
+      expect(store.activityHidden).toBe(true)
     })
   })
 })

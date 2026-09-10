@@ -62,17 +62,17 @@ it('paginates at 20 per page', function () {
         ->assertJsonPath('meta.total', 25);
 });
 
-it('rejects (403) with a specific message when the friend has turned off plays sharing', function () {
+it('rejects (403) with a specific message when the friend has turned off activity sharing', function () {
     $me = actingAsUser();
-    $friend = User::factory()->create(['share_plays' => false]);
+    $friend = User::factory()->create(['share_activity' => false]);
     Friendship::factory()->accepted()->create(['requester_id' => $me->id, 'recipient_id' => $friend->id]);
 
     $this->getJson("/api/friends/{$friend->id}/plays")
         ->assertForbidden()
-        ->assertJsonPath('message', __('friends.plays_not_shared'));
+        ->assertJsonPath('message', __('friends.activity_not_shared'));
 });
 
-it('allows listing plays by default, since share_plays defaults to true', function () {
+it('allows listing plays by default, since share_activity defaults to true', function () {
     $me = actingAsUser();
     $friend = User::factory()->create();
     Friendship::factory()->accepted()->create(['requester_id' => $me->id, 'recipient_id' => $friend->id]);

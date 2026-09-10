@@ -32,8 +32,7 @@ class UpdateProfileRequest extends FormRequest
             'discoverable' => ['boolean'],
             // On by default (see the users migration) - gates what an
             // already-accepted friend can see, not who can find you.
-            'share_collection' => ['boolean'],
-            'share_plays' => ['boolean'],
+            'share_activity' => ['boolean'],
         ];
     }
 }

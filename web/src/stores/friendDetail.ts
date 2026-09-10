@@ -9,8 +9,7 @@ interface FriendDetailState {
   friendId: number | null
   friend: Friend | null
   notFound: boolean
-  collectionHidden: boolean
-  playsHidden: boolean
+  activityHidden: boolean
   collectionError: boolean
   playsError: boolean
   shared: Game[]
@@ -32,8 +31,7 @@ export const useFriendDetailStore = defineStore('friendDetail', {
     friendId: null,
     friend: null,
     notFound: false,
-    collectionHidden: false,
-    playsHidden: false,
+    activityHidden: false,
     collectionError: false,
     playsError: false,
     shared: [],
@@ -94,15 +92,15 @@ export const useFriendDetailStore = defineStore('friendDetail', {
         // so this never tries to show a different message per cause either.
         // A 403 is different: you ARE accepted friends (something this
         // page already knows independently, since you got here via the
-        // friends list), but this friend has turned off collection
-        // sharing specifically - only THIS section should say so, not the
-        // whole page (see collectionHidden vs. notFound, and
+        // friends list), but this friend has turned off activity sharing
+        // - the whole page still isn't hidden, just the collection/plays
+        // sections (see activityHidden vs. notFound, and
         // FriendCollectionController::index()'s own comment on why it's
         // 403 and not 404).
         if (isAxiosError(err) && err.response?.status === 404) {
           this.markNotFound(friendId)
         } else if (isAxiosError(err) && err.response?.status === 403) {
-          this.collectionHidden = true
+          this.activityHidden = true
         } else {
           // Swallowed, not rethrown: called fire-and-forget from
           // FriendDetailView's onMounted/watch, with no try/catch of its
@@ -131,12 +129,12 @@ export const useFriendDetailStore = defineStore('friendDetail', {
         this.playsLastPage = data.meta.last_page
         this.playsLoaded = true
       } catch (err) {
-        // See fetchCollection()'s own comment for why 403 (playsHidden)
+        // See fetchCollection()'s own comment for why 403 (activityHidden)
         // and 404 (notFound) are kept separate.
         if (isAxiosError(err) && err.response?.status === 404) {
           this.markNotFound(friendId)
         } else if (isAxiosError(err) && err.response?.status === 403) {
-          this.playsHidden = true
+          this.activityHidden = true
         } else {
           // Swallowed, not rethrown - see fetchCollection()'s identical
           // reasoning. playsLoaded stays false so the view can tell
@@ -166,7 +164,7 @@ export const useFriendDetailStore = defineStore('friendDetail', {
         if (isAxiosError(err) && err.response?.status === 404) {
           this.markNotFound(friendId)
         } else if (isAxiosError(err) && err.response?.status === 403) {
-          this.playsHidden = true
+          this.activityHidden = true
         } else {
           // Swallowed, same reasoning as fetchPlays() above - a failed
           // stats fetch doesn't block the plays list itself from

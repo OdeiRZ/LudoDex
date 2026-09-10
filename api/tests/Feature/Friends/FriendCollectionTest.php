@@ -96,17 +96,17 @@ it('responds identically (status and body) for a non-existent friend id, a pendi
     expect($forMissing->json())->toBe($forSomeoneElsesFriend->json());
 });
 
-it('rejects (403) with a specific message when the friend has turned off collection sharing', function () {
+it('rejects (403) with a specific message when the friend has turned off activity sharing', function () {
     $me = actingAsUser();
-    $friend = User::factory()->create(['share_collection' => false]);
+    $friend = User::factory()->create(['share_activity' => false]);
     Friendship::factory()->accepted()->create(['requester_id' => $me->id, 'recipient_id' => $friend->id]);
 
     $this->getJson("/api/friends/{$friend->id}/games")
         ->assertForbidden()
-        ->assertJsonPath('message', __('friends.collection_not_shared'));
+        ->assertJsonPath('message', __('friends.activity_not_shared'));
 });
 
-it('allows the collection comparison by default, since share_collection defaults to true', function () {
+it('allows the collection comparison by default, since share_activity defaults to true', function () {
     $me = actingAsUser();
     $friend = User::factory()->create();
     Friendship::factory()->accepted()->create(['requester_id' => $me->id, 'recipient_id' => $friend->id]);

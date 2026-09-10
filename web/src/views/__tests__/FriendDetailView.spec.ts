@@ -89,35 +89,21 @@ describe('FriendDetailView', () => {
     expect(wrapper.find('.tabs').exists()).toBe(false)
   })
 
-  it('shows a not-shared message on the collection tab, but keeps the page (name, tabs) when collectionHidden is true', async () => {
+  it('shows a not-shared message on both tabs, but keeps the page (name, tabs) when activityHidden is true', async () => {
     const { wrapper, store } = await mountDetail()
     store.friend = { id: 2, name: 'Friend One', bgg_username: null, avatar_url: null }
-    store.collectionHidden = true
+    store.activityHidden = true
     await flushPromises()
 
     expect(wrapper.find('.not-found').exists()).toBe(false)
     expect(wrapper.find('.tabs').exists()).toBe(true)
-    expect(wrapper.text()).toContain('Este usuario no comparte su colección contigo.')
+    expect(wrapper.text()).toContain('Este usuario no comparte su actividad contigo.')
     expect(wrapper.text()).toContain('Friend One')
-  })
-
-  it('shows a not-shared message on the plays tab, without affecting the collection tab', async () => {
-    const { wrapper, store } = await mountDetail()
-    store.friend = { id: 2, name: 'Friend One', bgg_username: null, avatar_url: null }
-    store.shared = [{ id: 'g1', name: 'Catan' } as never]
-    store.playsHidden = true
-    await flushPromises()
-
-    // Collection tab (the default) is unaffected by playsHidden - the real
-    // bug this guards against: a single shared notFound flag would have
-    // hidden the whole page for this, even though only plays is blocked.
-    expect(wrapper.text()).toContain('Catan')
-    expect(wrapper.find('.not-found').exists()).toBe(false)
 
     await wrapper.findAll('.tab')[1]!.trigger('click')
     await flushPromises()
 
-    expect(wrapper.text()).toContain('Este usuario no comparte sus partidas contigo.')
+    expect(wrapper.text()).toContain('Este usuario no comparte su actividad contigo.')
   })
 
   it('lists games in the shared, mineOnly and theirsOnly sections', async () => {

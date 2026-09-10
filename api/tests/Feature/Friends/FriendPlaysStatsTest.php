@@ -24,14 +24,14 @@ it('aggregates totals scoped to the friend\'s plays only', function () {
     expect($response->json('friend.id'))->toBe($friend->id);
 });
 
-it('rejects (403) with a specific message when the friend has turned off plays sharing', function () {
+it('rejects (403) with a specific message when the friend has turned off activity sharing', function () {
     $me = actingAsUser();
-    $friend = User::factory()->create(['share_plays' => false]);
+    $friend = User::factory()->create(['share_activity' => false]);
     Friendship::factory()->accepted()->create(['requester_id' => $me->id, 'recipient_id' => $friend->id]);
 
     $this->getJson("/api/friends/{$friend->id}/plays/stats")
         ->assertForbidden()
-        ->assertJsonPath('message', __('friends.plays_not_shared'));
+        ->assertJsonPath('message', __('friends.activity_not_shared'));
 });
 
 it('responds identically (status and body) for a non-existent friend id, a pending friend, and someone else\'s accepted friend', function () {

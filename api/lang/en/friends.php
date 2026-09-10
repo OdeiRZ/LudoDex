@@ -6,6 +6,5 @@ return [
     'already_friends' => 'You are already friends.',
     'already_requested' => "You've already sent them a friend request.",
     'cannot_block_yourself' => 'You cannot block yourself.',
-    'collection_not_shared' => "This user doesn't share their collection with you.",
-    'plays_not_shared' => "This user doesn't share their plays with you.",
+    'activity_not_shared' => "This user doesn't share their activity with you.",
 ];

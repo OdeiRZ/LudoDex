@@ -23,29 +23,32 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
     el bloqueo en un oráculo de quién te ha bloqueado. Botón "Bloquear"
     en "Tus amigos" y en "Solicitudes recibidas", sección nueva
     "Usuarios bloqueados" con "Desbloquear".
-  - **Visibilidad**: dos interruptores globales nuevos en el perfil,
-    `share_collection`/`share_plays` (activados por defecto, a
-    diferencia de `discoverable` — para no romper de golpe ninguna
-    amistad ya aceptada), que controlan lo que ve un amigo ya aceptado,
-    no quién puede encontrarte. `FriendCollectionController`/
+  - **Visibilidad**: un interruptor global nuevo en el perfil,
+    `share_activity` (activado por defecto, a diferencia de
+    `discoverable` — para no romper de golpe ninguna amistad ya
+    aceptada), que controla lo que ve un amigo ya aceptado, no quién
+    puede encontrarte. Empezó como dos interruptores separados
+    (`share_collection`/`share_plays`) pero se fusionaron en uno solo
+    tras revisar que tener 3 controles de visibilidad distintos
+    (sumando `discoverable`) era una granularidad excesiva para un
+    proyecto de este tamaño. `FriendCollectionController`/
     `FriendPlayController` devuelven `403` (no `404`) cuando el amigo
-    los tiene desactivados — a diferencia del `404` de
+    lo tiene desactivado — a diferencia del `404` de
     `resolveAcceptedFriend()`, aquí no hay nada que ocultar (el viewer
     ya sabe que sois amigos), así que un código distinto permite que
-    `FriendDetailView` muestre el aviso solo en la pestaña afectada. De
-    paso corregido un bug real: antes de esta pieza, `friendDetail.ts`
+    `FriendDetailView` muestre el aviso solo en las secciones afectadas.
+    De paso corregido un bug real: antes de esta pieza, `friendDetail.ts`
     compartía un único flag `notFound` para cualquier error — reutilizar
     ese mismo flag para "no compartido" habría ocultado la página entera
-    (incluida la pestaña que sí funciona) por un fallo en una sola
-    sección; ahora `collectionHidden`/`playsHidden` son independientes
-    de `notFound` y entre sí.
+    por un fallo en una sola sección; ahora `activityHidden` es
+    independiente de `notFound`.
 
   Verificado en vivo en local con las dos cuentas de prueba: tras
   bloquear, la otra cuenta no puede reenviar solicitud y la búsqueda por
-  email da "no encontrado"; al desactivar `share_collection`, la otra
-  cuenta ve el aviso solo en la pestaña de Colección mientras que
-  Partidas sigue funcionando con normalidad. 263 tests backend + 409
-  tests frontend en verde, Pint/PHPStan/ESLint/vue-tsc limpios.
+  email da "no encontrado"; al desactivar `share_activity`, la otra
+  cuenta ve el aviso tanto en Colección como en Partidas. Pint/PHPStan/
+  ESLint/vue-tsc limpios (recuento de tests pendiente de la verificación
+  final tras la fusión a `share_activity`).
 
 - **Función de amigos**, cerrando el área que el README dejaba fuera de
   alcance a propósito. Planificada y construida en 4 fases

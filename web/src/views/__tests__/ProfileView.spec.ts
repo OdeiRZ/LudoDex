@@ -23,8 +23,7 @@ const user = {
   avatar_url: null,
   email_verified_at: null,
   discoverable: false,
-  share_collection: true,
-  share_plays: true,
+  share_activity: true,
 }
 
 // Pre-seeding auth.user keeps onMounted from calling fetchCurrentUser()
@@ -48,8 +47,7 @@ describe('ProfileView personal data form', () => {
     expect((wrapper.find('#email').element as HTMLInputElement).value).toBe('odei@example.com')
     expect((wrapper.find('#bgg_username').element as HTMLInputElement).value).toBe('odei_bgg')
     expect((wrapper.find('#discoverable').element as HTMLInputElement).checked).toBe(false)
-    expect((wrapper.find('#share_collection').element as HTMLInputElement).checked).toBe(true)
-    expect((wrapper.find('#share_plays').element as HTMLInputElement).checked).toBe(true)
+    expect((wrapper.find('#share_activity').element as HTMLInputElement).checked).toBe(true)
   })
 
   it('saves the profile and shows a success message', async () => {
@@ -66,8 +64,7 @@ describe('ProfileView personal data form', () => {
       email: 'odei@example.com',
       bgg_username: 'odei_bgg',
       discoverable: false,
-      share_collection: true,
-      share_plays: true,
+      share_activity: true,
     })
     expect(wrapper.find('[role="status"]').text()).toBe('Cambios guardados.')
   })
@@ -86,18 +83,16 @@ describe('ProfileView personal data form', () => {
       email: 'odei@example.com',
       bgg_username: 'odei_bgg',
       discoverable: true,
-      share_collection: true,
-      share_plays: true,
+      share_activity: true,
     })
   })
 
-  it('includes share_collection/share_plays when toggled off', async () => {
+  it('includes share_activity when toggled off', async () => {
     const { wrapper, store } = mountProfile()
     await flushPromises()
     vi.spyOn(store, 'updateProfile').mockResolvedValue()
 
-    await wrapper.find('#share_collection').setValue(false)
-    await wrapper.find('#share_plays').setValue(false)
+    await wrapper.find('#share_activity').setValue(false)
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
@@ -106,8 +101,7 @@ describe('ProfileView personal data form', () => {
       email: 'odei@example.com',
       bgg_username: 'odei_bgg',
       discoverable: false,
-      share_collection: false,
-      share_plays: false,
+      share_activity: false,
     })
   })
 

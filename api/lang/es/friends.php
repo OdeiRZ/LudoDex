@@ -6,6 +6,5 @@ return [
     'already_friends' => 'Ya sois amigos.',
     'already_requested' => 'Ya le has enviado una solicitud de amistad.',
     'cannot_block_yourself' => 'No puedes bloquearte a ti mismo.',
-    'collection_not_shared' => 'Este usuario no comparte su colección contigo.',
-    'plays_not_shared' => 'Este usuario no comparte sus partidas contigo.',
+    'activity_not_shared' => 'Este usuario no comparte su actividad contigo.',
 ];

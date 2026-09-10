@@ -262,12 +262,9 @@ export default {
     discoverable: 'Let other users find me',
     discoverableHint:
       'With this on, other users can find you by your email or BGG username to send you a friend request.',
-    shareCollection: 'Let my friends see my collection',
-    shareCollectionHint:
-      "With this off, your already-accepted friends won't be able to see your collection when comparing with theirs, or in their group Picker with you.",
-    sharePlays: 'Let my friends see my plays',
-    sharePlaysHint:
-      "With this off, your already-accepted friends won't be able to see your play history.",
+    shareActivity: 'Let my friends see my collection and plays',
+    shareActivityHint:
+      "With this off, your already-accepted friends won't be able to see your collection when comparing with theirs, in their group Picker with you, or your play history.",
     saved: 'Changes saved.',
     save: 'Save changes',
     genericError: "Couldn't save the changes.",
@@ -379,8 +376,7 @@ export default {
     },
     detail: {
       notFound: "This friend couldn't be found.",
-      collectionNotShared: "This user doesn't share their collection with you.",
-      playsNotShared: "This user doesn't share their plays with you.",
+      activityNotShared: "This user doesn't share their activity with you.",
       backToList: '← Back',
       tabs: {
         collection: 'Shared collection',

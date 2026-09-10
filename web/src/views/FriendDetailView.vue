@@ -207,8 +207,8 @@ function loadMore() {
       </div>
 
       <template v-if="activeTab === 'collection'">
-        <p v-if="friendDetail.collectionHidden" class="empty-state">
-          {{ $t('friends.detail.collectionNotShared') }}
+        <p v-if="friendDetail.activityHidden" class="empty-state">
+          {{ $t('friends.detail.activityNotShared') }}
         </p>
 
         <div v-else-if="friendDetail.collectionError" class="load-error">
@@ -305,8 +305,8 @@ function loadMore() {
       </template>
 
       <template v-else>
-        <p v-if="friendDetail.playsHidden" class="empty-state">
-          {{ $t('friends.detail.playsNotShared') }}
+        <p v-if="friendDetail.activityHidden" class="empty-state">
+          {{ $t('friends.detail.activityNotShared') }}
         </p>
 
         <div v-else-if="friendDetail.playsError" class="load-error">
@@ -539,7 +539,7 @@ its own class here. */
 }
 
 /* Deliberately NOT .empty-state: that one is the single, page-level
-"nothing here at all" message (collectionHidden/playsHidden/no plays,
+"nothing here at all" message (activityHidden/no plays,
 all elsewhere in this file) - the global version's big padding and
 centered text fit a lone message taking over the whole tab. This is a
 compact note repeated up to three times in a row, one per collection

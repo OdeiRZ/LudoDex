@@ -75,8 +75,7 @@ describe('App', () => {
       avatar_url: null,
       email_verified_at: null,
       discoverable: false,
-      share_collection: true,
-      share_plays: true,
+      share_activity: true,
     }
     vi.spyOn(useFriendsStore(), 'fetchAll').mockResolvedValue()
 
@@ -101,8 +100,7 @@ describe('App', () => {
       avatar_url: null,
       email_verified_at: '2026-09-08T00:00:00.000000Z',
       discoverable: false,
-      share_collection: true,
-      share_plays: true,
+      share_activity: true,
     }
     vi.spyOn(useFriendsStore(), 'fetchAll').mockResolvedValue()
 
@@ -126,8 +124,7 @@ describe('App', () => {
       avatar_url: null,
       email_verified_at: null,
       discoverable: false,
-      share_collection: true,
-      share_plays: true,
+      share_activity: true,
     }
     const resendSpy = vi
       .spyOn(auth, 'resendVerificationEmail')
@@ -160,8 +157,7 @@ describe('App', () => {
       avatar_url: null,
       email_verified_at: null,
       discoverable: false,
-      share_collection: true,
-      share_plays: true,
+      share_activity: true,
     }
     const fetchSpy = vi.spyOn(auth, 'fetchCurrentUser')
     vi.spyOn(useFriendsStore(), 'fetchAll').mockResolvedValue()
@@ -187,8 +183,7 @@ describe('App', () => {
         avatar_url: null,
         email_verified_at: null,
         discoverable: false,
-        share_collection: true,
-        share_plays: true,
+        share_activity: true,
       }
     })
     vi.spyOn(useFriendsStore(), 'fetchAll').mockResolvedValue()
@@ -218,8 +213,7 @@ describe('App', () => {
       avatar_url: null,
       email_verified_at: null,
       discoverable: false,
-      share_collection: true,
-      share_plays: true,
+      share_activity: true,
     }
     vi.spyOn(useFriendsStore(), 'fetchAll').mockResolvedValue()
 

@@ -447,8 +447,11 @@ dirección.
 `404` idéntico tanto si `{friend}` no existe como si existe pero no es
 un amigo aceptado (nunca distinguible, mismo principio anti-oráculo de
 arriba) — pero `403` (con mensaje propio) si sí sois amigos y esa
-persona tiene `share_collection`/`share_plays` desactivado en su
-perfil: a diferencia del `404`, aquí no hay nada que ocultar (ya sabes
-que sois amigos), así que un código distinto permite al frontend
-avisar solo de que esa persona concreta no comparte ese dato, sin
-ocultar el resto de su ficha.
+persona tiene `share_activity` desactivado en su perfil: a diferencia
+del `404`, aquí no hay nada que ocultar (ya sabes que sois amigos), así
+que un código distinto permite al frontend avisar de que esa persona no
+comparte su actividad, sin ocultar el resto de su ficha. Un único flag
+para colección y partidas a la vez — se probaron dos independientes
+(`share_collection`/`share_plays`) pero resultaron más precisión de la
+que hacía falta: para un amigo ya aceptado no hay un caso real de
+"comparte lo uno pero no lo otro".

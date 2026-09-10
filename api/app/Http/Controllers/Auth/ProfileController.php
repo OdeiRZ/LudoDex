@@ -34,10 +34,8 @@ class ProfileController extends Controller
             // null here, not false - and this column is NOT NULL.
             'discoverable' => $request->validated('discoverable', $user->discoverable ?? false),
             // Same ?? fallback reasoning as discoverable above, but ??
-            // true - these two default to true (see the users migration),
-            // not false.
-            'share_collection' => $request->validated('share_collection', $user->share_collection ?? true),
-            'share_plays' => $request->validated('share_plays', $user->share_plays ?? true),
+            // true - defaults to true (see the users migration), not false.
+            'share_activity' => $request->validated('share_activity', $user->share_activity ?? true),
         ];
 
         // Best-effort: a BGG lookup failure (no token yet, unknown username,
