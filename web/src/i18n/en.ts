@@ -253,7 +253,7 @@ export default {
     personalData: 'Personal details',
     language: 'Language',
     importBggTitle: 'Import from BoardGameGeek',
-    importBggHint: 'Bring in your collection, play history or a CSV from your BGG account.',
+    importBggHint: 'Bring in your collection or play history from your BGG account.',
     avatarHint:
       'Your avatar is pulled from your BoardGameGeek account if you set your username below.',
     name: 'Name',
