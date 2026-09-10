@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -21,7 +22,20 @@ class AuthController extends Controller
             'password' => Hash::make($request->validated('password')),
         ]);
 
-        $user->sendEmailVerificationNotification();
+        // Caught broadly and only logged, not left to propagate - same
+        // reasoning as FriendshipService::sendRequest(): the account is
+        // already created at this point, so a mail transport failure here
+        // must never turn an already-successful registration into an error
+        // response, with no way for the user to tell their account had
+        // actually been created.
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Throwable $e) {
+            Log::warning('Registration verification email failed to send', [
+                'user_id' => $user->id,
+                'exception' => $e->getMessage(),
+            ]);
+        }
 
         $token = $user->createToken($request->validated('device_name'))->plainTextToken;
 

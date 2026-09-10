@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\Bgg\BggClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class ProfileController extends Controller
 {
@@ -63,7 +64,20 @@ class ProfileController extends Controller
         // asignación en masa desde ningún otro sitio.
         if ($emailChanged) {
             $user->forceFill(['email_verified_at' => null])->save();
-            $user->sendEmailVerificationNotification();
+
+            // Caught broadly and only logged, not left to propagate - same
+            // reasoning as FriendshipService::sendRequest(): the profile
+            // update is already saved at this point, so a mail transport
+            // failure here must never turn an already-successful save into
+            // an error response.
+            try {
+                $user->sendEmailVerificationNotification();
+            } catch (\Throwable $e) {
+                Log::warning('Profile email-change verification email failed to send', [
+                    'user_id' => $user->id,
+                    'exception' => $e->getMessage(),
+                ]);
+            }
         }
 
         return response()->json(['user' => $user]);
