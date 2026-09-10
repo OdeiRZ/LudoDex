@@ -339,7 +339,26 @@ describe('FriendDetailView', () => {
     // ALPHABET is ['#', 'A', 'B', ...] - bucket index 1, landing anywhere
     // within the strip's own second 10px slice (10-20 of the mocked
     // 270px/27-bucket strip) resolves to 'A'.
-    await wrapper.find('.az-scrubber-buckets').trigger('pointerdown', { clientY: 15, pointerId: 1 })
+    //
+    // Dispatched directly (not via wrapper.trigger) - VTU's own trigger()
+    // builds the event by constructing it bare and then assigning each
+    // init property onto it individually, which throws in CI's jsdom
+    // version specifically ("Cannot set property clientY of
+    // #<MouseEvent> which has only a getter" - clientY/clientX are
+    // getter-only on PointerEvent's own prototype there, only settable
+    // via the constructor's own init dict, not after the fact). Built
+    // from MouseEvent instead of PointerEvent - this local jsdom version
+    // doesn't implement PointerEvent globally at all (confirmed
+    // directly), while MouseEvent is available everywhere and accepts
+    // clientY in its own constructor the same way. pointerId (the one
+    // property startScrub itself reads that MouseEventInit has no slot
+    // for) is added as a plain own property after construction instead -
+    // safe here specifically because MouseEvent.prototype has no
+    // pointerId getter of its own to conflict with, unlike clientY.
+    const event = new MouseEvent('pointerdown', { clientY: 15, bubbles: true, cancelable: true })
+    Object.defineProperty(event, 'pointerId', { value: 1 })
+    wrapper.find('.az-scrubber-buckets').element.dispatchEvent(event)
+    await flushPromises()
 
     expect(scrollIntoView).toHaveBeenCalledTimes(1)
     const scrolledTo = scrollIntoView.mock.instances[0] as unknown as HTMLElement
