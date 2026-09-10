@@ -75,6 +75,27 @@ const collectionSections = computed(() => [
 
 const detailGame = ref<Game | null>(null)
 
+// Expanded by default (unlike PlaysView's own top-played breakdown,
+// collapsed by default there - these three sections ARE this tab's main
+// content, not a secondary detail to drill into) - tracks which are
+// collapsed instead, so an empty set means "everything open" without
+// needing to seed it with all three keys up front. v-show (not v-if) on
+// the actual game list below keeps each section's own data-letter
+// elements in the DOM even while collapsed, so the A-Z scrubber can
+// still find and query them - only their visibility toggles, not
+// whether useCollectionScrubber can see them.
+const collapsedSections = ref(new Set<string>())
+
+function toggleSection(key: string) {
+  if (collapsedSections.value.has(key)) {
+    collapsedSections.value.delete(key)
+  } else {
+    collapsedSections.value.add(key)
+  }
+
+  collapsedSections.value = new Set(collapsedSections.value)
+}
+
 // GameDetailModal's own translation result only patches games.collection
 // (see its own docblock) - shared/mineOnly/theirsOnly aren't part of that
 // store, so without this a translation here would show in the modal but
@@ -229,9 +250,33 @@ function loadMore() {
             :key="section.key"
             class="collection-section"
           >
-            <h2>{{ section.title }}</h2>
-            <p v-if="section.games.length === 0" class="section-empty-state">{{ section.empty }}</p>
-            <ul v-else class="games">
+            <button
+              type="button"
+              class="collection-section-header"
+              :aria-expanded="!collapsedSections.has(section.key)"
+              @click="toggleSection(section.key)"
+            >
+              <h2>{{ section.title }}</h2>
+              <svg
+                class="collection-section-chevron"
+                :class="{ 'collection-section-chevron-collapsed': collapsedSections.has(section.key) }"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+            <p
+              v-if="section.games.length === 0"
+              v-show="!collapsedSections.has(section.key)"
+              class="section-empty-state"
+            >
+              {{ section.empty }}
+            </p>
+            <ul v-else v-show="!collapsedSections.has(section.key)" class="games">
               <li
                 v-for="game in section.games"
                 :key="game.id"
@@ -535,7 +580,40 @@ its own class here. */
 
 .collection-section h2 {
   font-size: 1rem;
+  margin: 0;
+}
+
+/* Button reset (border/background/font/text-align) so the clickable
+header still reads as a plain title row, same technique already used
+for PlaysView's own expandable top-played rows - width: 100% plus
+justify-content: space-between is what pushes the chevron to the row's
+own right edge instead of sitting flush against the title. */
+.collection-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
   margin-bottom: var(--space-3);
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.collection-section-chevron {
+  flex-shrink: 0;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--color-text-muted);
+  transition: transform 0.15s ease;
+}
+
+.collection-section-chevron-collapsed {
+  transform: rotate(-90deg);
 }
 
 /* Deliberately NOT .empty-state: that one is the single, page-level

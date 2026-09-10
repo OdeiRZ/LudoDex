@@ -119,6 +119,45 @@ describe('FriendDetailView', () => {
     expect(wrapper.text()).toContain('Azul')
   })
 
+  it('collapses and re-expands a collection section by clicking its header', async () => {
+    const { wrapper, store } = await mountDetail()
+    store.shared = [{ id: 'g1', name: 'Catan' } as never]
+    await flushPromises()
+
+    const header = wrapper.find('.collection-section-header')
+    const list = wrapper.find('.collection-section .games')
+
+    // .isVisible() doesn't reliably reflect v-show's inline display: none
+    // in this jsdom test environment (confirmed via the actual rendered
+    // HTML) - the style attribute itself is what's checked instead.
+    expect(header.attributes('aria-expanded')).toBe('true')
+    expect(list.attributes('style') ?? '').not.toContain('display: none')
+
+    await header.trigger('click')
+
+    expect(header.attributes('aria-expanded')).toBe('false')
+    expect(list.attributes('style')).toContain('display: none')
+
+    await header.trigger('click')
+
+    expect(header.attributes('aria-expanded')).toBe('true')
+    expect(list.attributes('style') ?? '').not.toContain('display: none')
+  })
+
+  it('collapses each collection section independently', async () => {
+    const { wrapper, store } = await mountDetail()
+    store.shared = [{ id: 'g1', name: 'Catan' } as never]
+    store.mineOnly = [{ id: 'g2', name: 'Wingspan' } as never]
+    await flushPromises()
+
+    const headers = wrapper.findAll('.collection-section-header')
+    await headers[0]!.trigger('click')
+
+    const lists = wrapper.findAll('.collection-section .games')
+    expect(lists[0]!.attributes('style')).toContain('display: none')
+    expect(lists[1]!.attributes('style') ?? '').not.toContain('display: none')
+  })
+
   it('never renders edit/remove action buttons on any game card', async () => {
     const { wrapper, store } = await mountDetail()
     store.shared = [{ id: 'g1', name: 'Catan' } as never]
