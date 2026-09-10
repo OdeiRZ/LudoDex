@@ -210,27 +210,40 @@ async function onUnblock(blockId: number) {
           <span class="friend-name">{{ entry.user.name }}</span>
           <button
             type="button"
-            class="btn btn-primary"
+            class="btn btn-primary icon-btn"
+            :aria-label="$t('friends.incoming.accept')"
+            :title="$t('friends.incoming.accept')"
             :disabled="acceptingId === entry.id"
             @click="onAccept(entry.id)"
           >
-            {{ $t('friends.incoming.accept') }}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
           </button>
           <button
             type="button"
-            class="btn"
+            class="btn icon-btn"
+            :aria-label="$t('friends.incoming.decline')"
+            :title="$t('friends.incoming.decline')"
             :disabled="removingId === entry.id"
             @click="onRemove(entry.id)"
           >
-            {{ $t('friends.incoming.decline') }}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M18 6L6 18M6 6l12 12" />
+            </svg>
           </button>
           <button
             type="button"
-            class="btn"
+            class="btn btn-warning icon-btn"
+            :aria-label="$t('friends.incoming.block')"
+            :title="$t('friends.incoming.block')"
             :disabled="blockingUserId === entry.user.id"
             @click="onBlock(entry.user)"
           >
-            {{ $t('friends.incoming.block') }}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path stroke-linecap="round" d="M5.5 5.5l13 13" />
+            </svg>
           </button>
         </div>
       </section>
@@ -280,7 +293,7 @@ async function onUnblock(blockId: number) {
           </button>
           <button
             type="button"
-            class="btn"
+            class="btn btn-warning"
             :disabled="blockingUserId === entry.user.id"
             @click="onBlock(entry.user)"
           >
@@ -357,6 +370,22 @@ second line (found live). */
 
 .friend-row:last-child {
   border-bottom: none;
+}
+
+/* Icon-only instead of text (asked for directly) - the incoming-request
+row was the worst offender for the overflow .friend-row's own comment
+above already describes: accept/decline/block plus an avatar and a name
+left barely any room before wrapping. aria-label/title on the button
+itself carry the accessible name and the hover tooltip - same pattern
+already used for App.vue's own icon-only "Cerrar sesión" below its own
+breakpoint. */
+.icon-btn {
+  padding: 0.55rem;
+}
+
+.icon-btn svg {
+  width: 18px;
+  height: 18px;
 }
 
 /* min-width: 0 overrides the flex item's default content-based floor
