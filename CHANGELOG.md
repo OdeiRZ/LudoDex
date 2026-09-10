@@ -187,6 +187,16 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
     libro), así que saltar a una letra podía aterrizar cerca de
     cualquier cosa. Ordenadas ahora con el mismo criterio
     (`localeCompare`) que ya usa Colección.
+  - Un tercer bug, encontrado tras arreglar los dos anteriores: saltar a
+    una letra elegía el candidato más cercano a la posición de scroll
+    actual (pensado para desambiguar la misma letra repartida entre
+    varias secciones a la vez), pero con muchos juegos de una misma
+    letra dentro de una sola sección, eso hacía que la MISMA letra
+    aterrizara en sitios distintos según desde dónde se pulsara —
+    pulsar "Y" y luego "A" aterrizaba en un juego cualquiera cercano a
+    donde ya estabas, no en el primero real. Ahora elige siempre el
+    primer candidato visible en orden del documento, sin comparar
+    posiciones — determinista, pulses desde donde pulses.
 
 ### Cambiado
 

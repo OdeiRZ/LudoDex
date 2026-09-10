@@ -155,33 +155,33 @@ const scrubberPool = computed(() =>
 const sortCriterion = ref<'name'>('name')
 const sortOrder = ref<'asc'>('asc')
 
-// Overrides the scrubber's own default "first match in DOM" (correct
-// for Dashboard/Picker's single continuously-sorted list - see the
-// option's own doc comment). candidates comes from querying the whole
-// gamesListRef, which still contains every section's own cards
-// regardless of collapse state (v-show only hides them, it doesn't
-// remove them) - a letter only being "available" when an expanded
-// section has a match (scrubberPool above) does NOT mean every DOM
-// match for it is itself visible, so a collapsed section's own hidden
-// cards have to be filtered out here too, not just assumed away.
+// Overrides the scrubber's own default "first match in DOM" only enough
+// to skip collapsed sections - picks the first VISIBLE candidate in DOM
+// order, not Dashboard/Picker's plain first-in-DOM (see the option's own
+// doc comment), and deliberately not "nearest to the current scroll
+// position" either, despite that sounding more helpful at first: tried
+// live, and it broke the one guarantee an A-Z index actually promises -
+// pressing the same letter twice from two different scroll positions
+// landed on two different cards, since "nearest" tracks wherever you
+// already are, not the letter itself (found live: scrubbing from Y back
+// up to A landed on "Azul Stained Glass of Sintra", of all things,
+// nearer to Y's own position, instead of the real first A). First in DOM
+// is what every other list in this file (Dashboard, Picker) already
+// promises implicitly, and what this now matches too.
 //
-// That filter is load-bearing, not just tidy: a display: none element's
-// getBoundingClientRect() reports every value as 0, including top -
-// indistinguishable from "sitting exactly at the viewport's own top
-// edge" if left in the "nearest" comparison below, so a hidden card
-// always won that comparison against any genuinely visible one
-// (confirmed live - jumping to a letter that only a collapsed section's
-// own hidden card matched silently went nowhere, even with a real match
-// visible in an expanded section).
+// candidates comes from querying the whole gamesListRef, which still
+// contains every section's own cards regardless of collapse state
+// (v-show only hides them, it doesn't remove them) - a letter only
+// being "available" when an expanded section has a match (scrubberPool
+// above) does NOT mean every DOM match for it is itself visible, so a
+// collapsed section's own hidden cards have to be filtered out here
+// too, not just assumed away.
 function resolveJumpTarget(candidates: HTMLElement[]): HTMLElement | null {
-  const visible = candidates.filter((el) => {
-    const key = el.closest('.collection-section')?.getAttribute('data-section-key')
-    return key !== null && key !== undefined && !collapsedSections.value.has(key)
-  })
-  if (visible.length === 0) return null
-
-  return visible.reduce((nearest, el) =>
-    Math.abs(el.getBoundingClientRect().top) < Math.abs(nearest.getBoundingClientRect().top) ? el : nearest,
+  return (
+    candidates.find((el) => {
+      const key = el.closest('.collection-section')?.getAttribute('data-section-key')
+      return key !== null && key !== undefined && !collapsedSections.value.has(key)
+    }) ?? null
   )
 }
 

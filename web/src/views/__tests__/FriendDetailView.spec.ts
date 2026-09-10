@@ -393,6 +393,53 @@ describe('FriendDetailView', () => {
     rectSpy.mockRestore()
   })
 
+  it('always jumps to the same first match for a letter, regardless of the current scroll position', async () => {
+    // Regression test for a real bug found live: resolveJumpTarget used
+    // to pick whichever same-letter candidate sat nearest the current
+    // viewport position (added to disambiguate the SAME letter matching
+    // more than one expanded section at once) - but with many
+    // candidates for one letter inside a single section, that made the
+    // same scrub land somewhere different depending on where the page
+    // already happened to be scrolled to, breaking the one guarantee an
+    // A-Z index actually promises: scrubbing to "Avocado" instead landed
+    // on "Zebra" (found live - scrubbing from Y back up to A landed on a
+    // late-alphabet card instead of the real first A, simply because it
+    // was physically nearer wherever the page was already scrolled).
+    // Picking the first DOM match instead (this test's whole point) is
+    // deterministic no matter the scroll position, so the mocked rects
+    // deliberately do NOT vary by candidate - only the strip itself needs
+    // a real rect, for bucketAtPointer's own math.
+    const scrollIntoView = vi.fn()
+    Element.prototype.scrollIntoView = scrollIntoView
+    HTMLElement.prototype.setPointerCapture = vi.fn()
+    const rectSpy = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      const base = { bottom: 0, left: 0, right: 0, width: 0, x: 0, y: 0, toJSON: () => ({}) }
+      if (this.classList.contains('az-scrubber-buckets')) {
+        return { ...base, top: 0, height: 270 } as DOMRect
+      }
+      return { ...base, top: 0, height: 0 } as DOMRect
+    })
+
+    const { wrapper, store } = await mountDetail()
+    store.theirsOnly = [
+      makeGame({ id: 't-a', name: 'Avocado' }),
+      makeGame({ id: 't-z', name: 'Zebra' }),
+      ...Array.from({ length: 11 }, (_, i) => makeGame({ id: `t${i}`, name: `Middle ${i}` })),
+    ]
+    await flushPromises()
+
+    await wrapper.find('.az-scrubber-buckets').trigger('pointerdown', { clientY: 15, pointerId: 1 })
+
+    expect(scrollIntoView).toHaveBeenCalledTimes(1)
+    const scrolledTo = scrollIntoView.mock.instances[0] as unknown as HTMLElement
+    expect(scrolledTo.getAttribute('data-letter')).toBe('A')
+    expect(scrolledTo.querySelector('h3')?.textContent).toBe('Avocado')
+
+    rectSpy.mockRestore()
+  })
+
   it('loads plays only the first time the plays tab is opened', async () => {
     const { wrapper, store } = await mountDetail()
 
