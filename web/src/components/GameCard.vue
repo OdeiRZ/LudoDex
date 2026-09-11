@@ -77,7 +77,7 @@ is the ordinary case), overridden below for the other two. */
 .game-cover:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-card-hover);
-  outline: 2px solid var(--color-primary);
+  outline: 3px solid var(--color-primary);
   outline-offset: 0;
 }
 
