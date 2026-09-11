@@ -49,4 +49,12 @@ describe('GameCard', () => {
     expect(base.find('.game-cover').classes()).not.toContain('expansion')
     expect(expansion.find('.game-cover').classes()).toContain('expansion')
   })
+
+  it('applies the wishlist class only when isWishlist is set, not by default', () => {
+    const base = mount(GameCard, { props: { imageUrl: null } })
+    const wishlist = mount(GameCard, { props: { imageUrl: null, isWishlist: true } })
+
+    expect(base.find('.game-cover').classes()).not.toContain('wishlist')
+    expect(wishlist.find('.game-cover').classes()).toContain('wishlist')
+  })
 })

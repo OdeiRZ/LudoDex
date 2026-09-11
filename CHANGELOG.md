@@ -42,6 +42,15 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   en vivo en navegador (skeletons durante la carga real, hover de
   cards/botones).
 
+- Anillo de color al pasar el ratón sobre una tarjeta de juego
+  (`GameCard.vue`), distinto según qué es: ámbar si está en "Lo quiero"
+  (mismo color que su badge), violeta si es una expansión (mismo color
+  que su franja lateral), teal si es un juego base que ya tienes (el
+  caso normal — mismo color que el badge "Lo tengo"). Solo Colección
+  pasa `is-wishlist`, ya que Picker y la ficha de un amigo nunca listan
+  juegos en la wishlist. Un `outline` (no `border`), para no mover el
+  layout de la tarjeta al aparecer.
+
 ## [0.12.0] - 2026-09-10
 
 ### Añadido

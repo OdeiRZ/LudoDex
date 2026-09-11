@@ -7,8 +7,9 @@ const props = withDefaults(
     imageUrl?: string | null
     compact?: boolean
     isExpansion?: boolean
+    isWishlist?: boolean
   }>(),
-  { imageUrl: null, compact: false, isExpansion: false },
+  { imageUrl: null, compact: false, isExpansion: false, isWishlist: false },
 )
 
 // Same broken-image fallback the old small thumbnail had: a missing or
@@ -26,7 +27,7 @@ watch(
 </script>
 
 <template>
-  <div class="game-cover" :class="{ compact, expansion: isExpansion }">
+  <div class="game-cover" :class="{ compact, expansion: isExpansion, wishlist: isWishlist }">
     <img
       v-if="imageUrl && !showFallback"
       :src="imageUrl"
@@ -64,10 +65,17 @@ watch(
 
 /* Lifts on hover even though the card itself has no single click handler
 (the details button and edit link inside do) - it's still the container
-someone's cursor lands on first, so it's what should react first. */
+someone's cursor lands on first, so it's what should react first. An
+outline (not a border) so it doesn't shift the card's own box size/
+layout the way changing border-width would - box-shadow's spread would
+work too, but that's already spent on --shadow-card-hover above.
+Teal by default (same color as the "Lo tengo" badge - a plain owned
+base game is the ordinary case), overridden below for the other two. */
 .game-cover:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-card-hover);
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 /* Left border rather than a corner ribbon or full outline - reads at a
@@ -76,9 +84,26 @@ naturally follows .game-cover's own border-radius instead of needing its
 own separate positioning to fit every card size/breakpoint here. Violet
 because every other color already means something else on this card
 (teal is the owned status, amber is wishlist/cooperative, red is the
-remove button). */
+remove button). The hover ring reuses the same violet, one rule below
+the plain hover default so it overrides it for an expansion card. */
 .game-cover.expansion {
   border-left: 4px solid var(--color-expansion);
+}
+
+.game-cover.expansion:hover {
+  outline-color: var(--color-expansion);
+}
+
+/* Same amber as the wishlist badge itself (.badge-accent) - "quiero
+este" reads the same color whether it's the tag on the card or the ring
+around it. Declared after .expansion above on purpose: a wishlisted
+expansion (can happen - wanting an expansion for a game you don't own
+yet) should still read as "wishlist" first on hover, since wanting it
+is the more actionable fact here - equal specificity to the expansion
+rule, so source order is what decides which wins when both classes are
+present. */
+.game-cover.wishlist:hover {
+  outline-color: var(--color-accent);
 }
 
 .game-cover.compact {

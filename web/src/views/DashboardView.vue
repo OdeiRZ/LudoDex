@@ -529,6 +529,7 @@ async function onClearCollection() {
           :image-url="entry.game.image_url"
           :compact="density === 'compact'"
           :is-expansion="entry.game.base_game_id !== null"
+          :is-wishlist="entry.status === 'wishlist'"
         >
           <div class="game-card-header">
             <h2>{{ entry.game.name }}</h2>
