@@ -135,12 +135,14 @@ Repo único con dos aplicaciones independientes, cada una con su propio
 4. ✅ Selector de "a qué jugar": filtros de jugadores, duración disponible y
    modo (cooperativo/competitivo/campaña) sobre los juegos marcados como "lo
    tengo", excluyendo expansiones sueltas (no son jugables por sí solas).
-5. ✅ Pulido visual (paleta propia, componentes reutilizables, verificado en
-   desktop y móvil) y despliegue real: API en [Render](https://render.com)
-   (Docker, Frankfurt) + Postgres en [Neon](https://neon.tech) (Londres) +
-   frontend en [Cloudflare Pages](https://pages.cloudflare.com). Verificado
-   de punta a punta contra los servicios reales (registro, login, alta y
-   borrado de un juego) tras el despliegue.
+5. ✅ Pulido visual (paleta propia, componentes reutilizables, micro-
+   interacciones en botones/cards/badges, skeleton loaders y un gráfico de
+   actividad mensual en "Tus partidas", verificado en desktop y móvil) y
+   despliegue real: API en [Render](https://render.com) (Docker, Frankfurt)
+   + Postgres en [Neon](https://neon.tech) (Londres) + frontend en
+   [Cloudflare Pages](https://pages.cloudflare.com). Verificado de punta a
+   punta contra los servicios reales (registro, login, alta y borrado de un
+   juego) tras el despliegue.
 6. ✅ Amistades: solicitudes de amistad, comparación de colección y
    partidas de un amigo, el selector "¿A qué jugamos?" extendido para
    jugar con la colección combinada de varios amigos a la vez (no solo
