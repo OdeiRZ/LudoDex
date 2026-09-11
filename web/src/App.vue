@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useFriendsStore } from '@/stores/friends'
+import { useToastStore } from '@/stores/toast'
 import UserAvatar from '@/components/UserAvatar.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 import ToastNotification from '@/components/ToastNotification.vue'
@@ -11,8 +12,27 @@ import ScrollToTopButton from '@/components/ScrollToTopButton.vue'
 
 const auth = useAuthStore()
 const friends = useFriendsStore()
+const toast = useToastStore()
 const router = useRouter()
 const route = useRoute()
+
+// A small brand gesture tied to real confirmations, not a decorative
+// loop - the nav's own dice rolls briefly whenever a success toast fires
+// (save, delete, block...), never on an error one. Toggling the class
+// off and back on (rather than leaving it on) is what lets the same
+// animation replay on a second success arriving before the first one's
+// timing function finished.
+const diceRolling = ref(false)
+watch(
+  () => (toast.type === 'success' ? toast.message : null),
+  (message) => {
+    if (!message) return
+    diceRolling.value = false
+    requestAnimationFrame(() => {
+      diceRolling.value = true
+    })
+  },
+)
 
 // RouterLink's own router-link-exact-active only matches the 'friends'
 // route itself, not 'friend-detail' (a friend's shared collection/plays,
@@ -113,7 +133,8 @@ async function onResendVerification() {
 <template>
   <header>
     <RouterLink :to="{ name: 'dashboard' }" class="brand"
-      >🎲 <span class="brand-name">LudoDex</span></RouterLink
+      ><span class="brand-dice" :class="{ roll: diceRolling }" aria-hidden="true">🎲</span>
+      <span class="brand-name">LudoDex</span></RouterLink
     >
 
     <RouterLink
@@ -278,6 +299,36 @@ header {
 
 .brand:hover {
   text-decoration: none;
+}
+
+.brand-dice {
+  display: inline-block;
+  transform-origin: 50% 55%;
+}
+
+@keyframes brand-dice-roll {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  35% {
+    transform: rotate(-18deg) scale(1.15);
+  }
+  65% {
+    transform: rotate(12deg) scale(1.15);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+.brand-dice.roll {
+  animation: brand-dice-roll 0.5s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-dice.roll {
+    animation: none;
+  }
 }
 
 /* Hidden by default - only joins the dice on the header's left edge

@@ -22,11 +22,21 @@
   color: var(--color-heading);
   transition:
     background-color 0.15s,
-    border-color 0.15s;
+    border-color 0.15s,
+    transform 0.12s ease;
 }
 
 .btn:hover {
   background: var(--color-surface-hover);
+  transform: translateY(-1px);
+}
+
+/* Compressing on press (not just on hover) is what makes a click feel
+acknowledged - without this a tap and a miss look identical until the
+result shows up a moment later. Skipped for :disabled so a disabled
+button never looks pressable. */
+.btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.96);
 }
 
 .btn:disabled {
@@ -175,6 +185,41 @@ fieldset input[type='radio'] {
   background: var(--color-surface-hover);
   color: var(--color-text-muted);
   white-space: nowrap;
+  animation: badge-pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Plays once per real DOM insertion (a fresh v-if/v-for mount), not on
+every re-render of an already-mounted badge - that's just how CSS
+animations on element paint already work, no JS needed to track "is this
+new". Most noticeable on the Picker's ownership badges appearing as a
+friend gets checked. */
+@keyframes badge-pop {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: background-color 0.15s, border-color 0.15s;
+  }
+
+  .btn:hover,
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
+
+  .badge {
+    animation: none;
+  }
 }
 
 .badge-accent {

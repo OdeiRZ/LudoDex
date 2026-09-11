@@ -17,6 +17,7 @@ import DensityToggle from '@/components/DensityToggle.vue'
 import GameCard from '@/components/GameCard.vue'
 import GameDetailModal from '@/components/GameDetailModal.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import SkeletonGameCard from '@/components/SkeletonGameCard.vue'
 
 const games = useGamesStore()
 const friends = useFriendsStore()
@@ -756,13 +757,21 @@ const {
       </fieldset>
     </form>
 
-    <p v-if="games.loading || loadingFriendCollection" class="loading-state">
+    <ul
+      v-if="games.loading"
+      class="results"
+      :class="{ compact: density === 'compact' }"
+      role="status"
+      aria-busy="true"
+    >
+      <span class="sr-only">{{ $t('common.loadingCollection') }}</span>
+      <li v-for="n in 8" :key="n" class="game-card" aria-hidden="true">
+        <SkeletonGameCard :compact="density === 'compact'" />
+      </li>
+    </ul>
+    <p v-else-if="loadingFriendCollection" class="loading-state">
       <LoadingSpinner :size="36" />
-      {{
-        loadingFriendCollection
-          ? $t('picker.loadingFriendCollection')
-          : $t('common.loadingCollection')
-      }}
+      {{ $t('picker.loadingFriendCollection') }}
     </p>
     <p v-else-if="allSelectedFriendsFailed" role="alert" class="alert alert-error">
       {{ $t('picker.friendCollectionError') }}

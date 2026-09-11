@@ -52,6 +52,7 @@
   --radius-pill: 999px;
 
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 16px 32px -10px rgba(0, 0, 0, 0.55);
 }
 
 @media (prefers-color-scheme: light) {
@@ -75,6 +76,7 @@
     --color-success: #16a34a;
 
     --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.08);
+    --shadow-card-hover: 0 12px 24px -8px rgba(15, 23, 42, 0.18);
   }
 }
 
@@ -99,6 +101,7 @@
   --color-expansion: #8b5cf6;
 
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 16px 32px -10px rgba(0, 0, 0, 0.55);
 }
 
 :root[data-theme='light'] {
@@ -122,6 +125,7 @@
   --color-expansion: #7c3aed;
 
   --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --shadow-card-hover: 0 12px 24px -8px rgba(15, 23, 42, 0.18);
 }
 
 *,
@@ -222,4 +226,19 @@ a:focus-visible {
 button {
   font: inherit;
   cursor: pointer;
+}
+
+/* Standard visually-hidden pattern - for text that needs to reach a
+screen reader (a loading announcement behind a purely visual skeleton,
+say) without taking up layout space or being visible. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

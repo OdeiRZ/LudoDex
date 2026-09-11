@@ -57,6 +57,17 @@ watch(
   overflow: hidden;
   background: var(--color-surface-hover);
   box-shadow: var(--shadow-card);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+/* Lifts on hover even though the card itself has no single click handler
+(the details button and edit link inside do) - it's still the container
+someone's cursor lands on first, so it's what should react first. */
+.game-cover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card-hover);
 }
 
 /* Left border rather than a corner ribbon or full outline - reads at a
@@ -145,5 +156,15 @@ gradient or how tall the scrim ends up being. */
 
 .cover-scrim :deep(h2) {
   color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-cover {
+    transition: none;
+  }
+
+  .game-cover:hover {
+    transform: none;
+  }
 }
 </style>

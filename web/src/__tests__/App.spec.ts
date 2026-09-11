@@ -5,6 +5,7 @@ import { createRouter, createMemoryHistory } from 'vue-router'
 import App from '@/App.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useFriendsStore } from '@/stores/friends'
+import { useToastStore } from '@/stores/toast'
 import { i18n } from '@/i18n'
 
 // Only the routes App.vue itself links to need to exist here - the routed
@@ -380,5 +381,42 @@ describe('App', () => {
     await flushPromises()
 
     expect(refreshSpy).not.toHaveBeenCalled()
+  })
+
+  it('rolls the brand dice when a success toast fires, not on an error one', async () => {
+    setActivePinia(createPinia())
+    const router = makeRouter('/login')
+    await router.isReady()
+    const wrapper = mount(App, { global: { plugins: [router, i18n] } })
+    await flushPromises()
+
+    const dice = () => wrapper.find('.brand-dice')
+    expect(dice().classes()).not.toContain('roll')
+
+    const toast = useToastStore()
+    toast.show('Juego guardado.', 'success')
+    await flushPromises()
+    // requestAnimationFrame runs the class toggle outside Vue's own
+    // microtask queue - flushPromises() alone doesn't wait for it.
+    await new Promise((resolve) => requestAnimationFrame(resolve))
+    await flushPromises()
+
+    expect(dice().classes()).toContain('roll')
+  })
+
+  it('does not roll the brand dice for an error toast', async () => {
+    setActivePinia(createPinia())
+    const router = makeRouter('/login')
+    await router.isReady()
+    const wrapper = mount(App, { global: { plugins: [router, i18n] } })
+    await flushPromises()
+
+    const toast = useToastStore()
+    toast.show('No se ha podido guardar.', 'error')
+    await flushPromises()
+    await new Promise((resolve) => requestAnimationFrame(resolve))
+    await flushPromises()
+
+    expect(wrapper.find('.brand-dice').classes()).not.toContain('roll')
   })
 })

@@ -7,6 +7,41 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Añadido
+
+- Un pase de interacción/vivacidad tras revisar la web y notar que
+  funcionaba bien pero apenas tenía brillo — casi ningún `transition`/
+  `animation` en el CSS base. Probado antes de tocar código con un
+  demo interactivo aparte (artifact HTML con los tokens reales de
+  LudoDex) para validar cada efecto. Seis piezas:
+  - **Botones**: se elevan 1px al hover y se comprimen (`scale(0.96)`)
+    al pulsar, en vez de solo cambiar de color de golpe.
+  - **Cards** (`GameCard.vue`, usado en Colección/Picker/ficha de
+    amigo): se despegan (`translateY(-4px)` + sombra más profunda) al
+    pasar el ratón — nuevo token `--shadow-card-hover` en ambos temas.
+  - **Badges**: pop de entrada (`scale`+`opacity`, `cubic-bezier`
+    elástico) la primera vez que se montan — más visible al marcar un
+    amigo en "Jugar con" y aparecer su etiqueta de propiedad.
+  - **Toasts**: ya tenían una entrada deslizante (`ToastNotification.vue`)
+    de una pieza de trabajo anterior — sin cambios aquí.
+  - **Skeleton loaders** (`SkeletonGameCard.vue`, nuevo): sustituyen al
+    spinner+texto "Cargando tu colección..." en Colección y en la carga
+    inicial del Picker — un `role="status"`/`aria-busy` con el texto
+    real en un `.sr-only` nuevo mantiene el anuncio para lectores de
+    pantalla pese a que el skeleton en sí es puramente visual. La carga
+    de la colección de un amigo dentro del Picker (ya con el formulario
+    visible) sigue con el spinner de antes — sustituir resultados que
+    ya se ven por skeletons ahí habría escondido contenido real.
+  - **El dado de marca como confirmación**: el 🎲 del nav gira/rebota
+    brevemente cada vez que aparece un toast de éxito (guardar,
+    eliminar, bloquear...) en cualquier página - nunca en uno de error.
+    Un único punto de integración en `App.vue`, observando el store de
+    toasts, en vez de disparar el gesto desde cada acción una por una.
+  Todo respeta `prefers-reduced-motion`. Verificado con tests nuevos
+  (el gesto del dado, disparado/no disparado según el tipo de toast) y
+  en vivo en navegador (skeletons durante la carga real, hover de
+  cards/botones).
+
 ## [0.12.0] - 2026-09-10
 
 ### Añadido

@@ -14,7 +14,7 @@ import {
 import DensityToggle from '@/components/DensityToggle.vue'
 import GameCard from '@/components/GameCard.vue'
 import GameDetailModal from '@/components/GameDetailModal.vue'
-import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import SkeletonGameCard from '@/components/SkeletonGameCard.vue'
 
 const games = useGamesStore()
 const toast = useToastStore()
@@ -457,10 +457,18 @@ async function onClearCollection() {
       </template>
     </div>
 
-    <p v-if="games.loading" class="loading-state">
-      <LoadingSpinner :size="36" />
-      {{ $t('common.loadingCollection') }}
-    </p>
+    <ul
+      v-if="games.loading"
+      class="games"
+      :class="{ compact: density === 'compact' }"
+      role="status"
+      aria-busy="true"
+    >
+      <span class="sr-only">{{ $t('common.loadingCollection') }}</span>
+      <li v-for="n in 8" :key="n" class="game-card" aria-hidden="true">
+        <SkeletonGameCard :compact="density === 'compact'" />
+      </li>
+    </ul>
 
     <div v-else-if="games.loadError" class="load-error">
       <p role="alert" class="alert alert-error">{{ $t('common.loadError') }}</p>
