@@ -334,6 +334,9 @@ export default {
     statsHoursMinutes: '{hours} h {minutes} min',
     statsMostPlayed: 'Most played',
     statsMostPlayedCount: '{count} time | {count} times',
+    activityTitle: 'Activity (last 12 months)',
+    activityCurrentMonth: 'This month: {count}',
+    activityTooltip: '{month} · {count} play | {month} · {count} plays',
   },
   friends: {
     title: 'Friends',

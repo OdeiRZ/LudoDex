@@ -26,6 +26,8 @@ export interface PlaysStats {
   distinct_games: number
   total_minutes: number
   duration_known_plays: number
+  /** Last 12 calendar months, oldest first, zero-filled - always 12 entries. */
+  monthly_activity: { month: string; count: number }[]
   /** Ranked by summed quantity, capped server-side at 3 entries. */
   top_played: {
     game: { id: string; name: string; image_url: string | null }

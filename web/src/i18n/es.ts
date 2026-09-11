@@ -334,6 +334,9 @@ export default {
     statsHoursMinutes: '{hours} h {minutes} min',
     statsMostPlayed: 'Más jugados',
     statsMostPlayedCount: '{count} vez | {count} veces',
+    activityTitle: 'Actividad (últimos 12 meses)',
+    activityCurrentMonth: 'Este mes: {count}',
+    activityTooltip: '{month} · {count} partida | {month} · {count} partidas',
   },
   friends: {
     title: 'Amigos',

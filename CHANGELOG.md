@@ -60,6 +60,31 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   lista, no una rejilla de juegos) sigue con el spinner - no aplica
   aquí.
 
+- **Gráfico de actividad en "Tus partidas"**, maquetado antes en un
+  artifact aparte para validarlo. `PlayStatsCalculator` (compartido por
+  `PlayController::stats()` y `FriendPlayController::stats()`) añade
+  `monthly_activity`: los últimos 12 meses naturales, más antiguo
+  primero, con relleno a cero — agregado en PHP a partir de
+  `played_at`/`quantity`, no con SQL específico de un motor
+  (`DATE_TRUNC`/`strftime`), para funcionar igual en sqlite local y
+  Postgres (Neon) en producción. `ActivityChart.vue` (nuevo) dibuja una
+  barra por mes con los tokens reales, resalta el mes con más partidas
+  y muestra un tooltip al pasar el ratón con el mes y el número exacto
+  (vía `Intl.DateTimeFormat`, sin tabla de nombres de mes a mano).
+  Aparece en "Tus partidas" y en la pestaña "Partidas" de la ficha de
+  un amigo, entre las stat-tiles y la lista.
+
+- Hover en las filas de partidas y en la portada que sirve de enlace,
+  en ambas ventanas (`PlaysView.vue` y la pestaña "Partidas" de la
+  ficha de un amigo): la fila entera resalta el fondo al pasar el
+  ratón, y la portada se escala (`scale(1.08)` + `--shadow-card-hover`)
+  igual que las cards de Colección/Picker, pero sin anillo — a 56px un
+  outline se veía recargado. De paso, la portada de la pestaña
+  "Partidas" de un amigo ahora también abre el modal de detalle al
+  pulsarla — antes solo era una imagen sin enlace, a diferencia de
+  "Tus partidas", que ya lo tenía. El icono de "Reimportar" se deja tal
+  cual, a propósito.
+
 ### Corregido
 
 - `SkeletonGameCard.vue` animaba el brillo con `background-position`,

@@ -473,6 +473,40 @@ describe('FriendDetailView', () => {
     expect(wrapper.text()).toContain('Catan')
   })
 
+  it("opens the game detail modal when a friend's play cover is clicked", async () => {
+    const { wrapper, store } = await mountDetail()
+    const tabs = wrapper.findAll('.tab')
+    await tabs[1]!.trigger('click')
+    await flushPromises()
+
+    store.plays = [
+      {
+        id: 'p1',
+        played_at: '2026-01-01',
+        quantity: 1,
+        duration_minutes: 30,
+        game: {
+          id: 'g1',
+          bgg_id: 13,
+          name: 'Catan',
+          image_url: null,
+          description: null,
+          description_es: null,
+          base_game_name: null,
+        },
+      },
+    ]
+    await flushPromises()
+
+    expect(wrapper.findComponent({ name: 'GameDetailModal' }).exists()).toBe(false)
+
+    await wrapper.find('.play-cover-button').trigger('click')
+
+    const modal = wrapper.findComponent({ name: 'GameDetailModal' })
+    expect(modal.exists()).toBe(true)
+    expect(modal.props('game').name).toBe('Catan')
+  })
+
   it('shows a retry option on the collection tab instead of an endless spinner when the fetch fails', async () => {
     // Can't close over the outer `store` here - it runs as part of
     // mounting, before mountDetail() has returned and assigned `store`

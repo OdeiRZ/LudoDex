@@ -204,6 +204,7 @@ describe('useFriendDetailStore', () => {
         distinct_games: 2,
         total_minutes: 90,
         duration_known_plays: 5,
+        monthly_activity: [],
         top_played: [],
       }
       vi.mocked(apiClient.get).mockResolvedValue({ data: { data: stats } })

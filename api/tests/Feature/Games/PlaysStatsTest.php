@@ -138,6 +138,59 @@ it('caps top_played at 3 games even with more distinct games played', function (
     expect($names->all())->toBe(['A', 'B', 'C']);
 });
 
+it('returns 12 zero-filled months, oldest first, for a fresh user', function () {
+    actingAsUser();
+
+    $response = $this->getJson('/api/plays/stats')->assertOk();
+
+    $months = collect($response->json('data.monthly_activity'));
+    expect($months)->toHaveCount(12);
+    expect($months->pluck('count')->unique()->all())->toBe([0]);
+    expect($months->first()['month'])->toBe(now()->subMonths(11)->format('Y-m'));
+    expect($months->last()['month'])->toBe(now()->format('Y-m'));
+});
+
+it('buckets monthly_activity by played_at, summing quantity within each month', function () {
+    $user = actingAsUser();
+    $game = Game::factory()->create(['bgg_id' => 13]);
+
+    Play::factory()->for($user)->for($game)->create([
+        'played_at' => now()->startOfMonth()->format('Y-m-d'),
+        'quantity' => 2,
+    ]);
+    Play::factory()->for($user)->for($game)->create([
+        'played_at' => now()->startOfMonth()->format('Y-m-d'),
+        'quantity' => 3,
+    ]);
+    Play::factory()->for($user)->for($game)->create([
+        'played_at' => now()->subMonths(2)->format('Y-m-d'),
+        'quantity' => 1,
+    ]);
+
+    $response = $this->getJson('/api/plays/stats')->assertOk();
+    $months = collect($response->json('data.monthly_activity'))->keyBy('month');
+
+    expect($months[now()->format('Y-m')]['count'])->toBe(5);
+    expect($months[now()->subMonths(2)->format('Y-m')]['count'])->toBe(1);
+});
+
+it('excludes a play older than the 12-month window from monthly_activity', function () {
+    $user = actingAsUser();
+    $game = Game::factory()->create(['bgg_id' => 13]);
+
+    Play::factory()->for($user)->for($game)->create([
+        'played_at' => now()->subMonths(13)->format('Y-m-d'),
+        'quantity' => 7,
+    ]);
+
+    $response = $this->getJson('/api/plays/stats')->assertOk();
+
+    $total = collect($response->json('data.monthly_activity'))->sum('count');
+    expect($total)->toBe(0);
+    // Still counted in the all-time total, just outside the chart's window.
+    expect($response->json('data.total_plays'))->toBe(7);
+});
+
 it('only counts the authenticated user\'s own plays', function () {
     $user = actingAsUser();
     $otherUser = User::factory()->create();

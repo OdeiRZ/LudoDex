@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { usePlaysStore, type Play } from '@/stores/plays'
 import { useToastStore } from '@/stores/toast'
 import { FALLBACK_ICON_URL } from '@/lib/assets'
+import ActivityChart from '@/components/ActivityChart.vue'
 import GameDetailModal from '@/components/GameDetailModal.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
@@ -241,6 +242,11 @@ onMounted(() => {
         <span class="stat-label">{{ $t('plays.statsTotalTime') }}</span>
       </div>
     </div>
+
+    <ActivityChart
+      v-if="plays.stats && plays.stats.total_plays > 0"
+      :months="plays.stats.monthly_activity"
+    />
 
     <div v-if="plays.stats && plays.stats.top_played.length > 0" class="top-played">
       <h2 class="top-played-title">{{ $t('plays.statsMostPlayed') }}</h2>
@@ -640,6 +646,11 @@ the full row width instead of its own natural checkbox size. */
   padding: var(--space-2) var(--space-3);
   background: var(--color-surface);
   border-radius: var(--radius);
+  transition: background-color 0.15s ease;
+}
+
+.play-row:hover {
+  background: var(--color-surface-hover);
 }
 
 /* A running count across every loaded page (asked for directly), not
@@ -690,6 +701,19 @@ specifically below the cover in each row. */
   object-fit: cover;
   border-radius: var(--radius-sm);
   flex-shrink: 0;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+/* Same "this is clickable" language as GameCard's own hover (lift +
+--shadow-card-hover), scaled down to fit a 56px thumbnail instead of a
+full card - an outline ring at this size read as noisy rather than
+inviting, a scale-up plus the shared shadow token reads the same way
+without it. */
+.play-cover-button:hover .play-cover {
+  transform: scale(1.08);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .play-cover-fallback {
@@ -734,5 +758,16 @@ list's own denser row style. */
 .load-more {
   display: block;
   margin: 0 auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play-row,
+  .play-cover {
+    transition: none;
+  }
+
+  .play-cover-button:hover .play-cover {
+    transform: none;
+  }
 }
 </style>

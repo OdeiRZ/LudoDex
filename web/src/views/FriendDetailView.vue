@@ -6,8 +6,9 @@ import { useCollectionScrubber, normalizeLetter } from '@/composables/useCollect
 import { FALLBACK_ICON_URL } from '@/lib/assets'
 import type { Game } from '@/stores/games'
 import UserAvatar from '@/components/UserAvatar.vue'
+import ActivityChart from '@/components/ActivityChart.vue'
 import GameCard from '@/components/GameCard.vue'
-import GameDetailModal from '@/components/GameDetailModal.vue'
+import GameDetailModal, { type DetailGame } from '@/components/GameDetailModal.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import SkeletonGameCard from '@/components/SkeletonGameCard.vue'
 
@@ -87,7 +88,10 @@ const collectionSections = computed(() => [
   },
 ])
 
-const detailGame = ref<Game | null>(null)
+// DetailGame (not the fuller Game) so this same ref/modal can hold either
+// a collection card's game or a play's own slimmer play.game projection -
+// see GameDetailModal's own docblock on DetailGame for why.
+const detailGame = ref<DetailGame | null>(null)
 
 // Expanded by default (unlike PlaysView's own top-played breakdown,
 // collapsed by default there - these three sections ARE this tab's main
@@ -478,6 +482,11 @@ function loadMore() {
           </div>
         </div>
 
+        <ActivityChart
+          v-if="friendDetail.playsStats && friendDetail.playsStats.total_plays > 0"
+          :months="friendDetail.playsStats.monthly_activity"
+        />
+
         <div
           v-if="
             friendDetail.playsLoaded && (friendDetail.plays.length > 0 || friendDetail.playsSearch)
@@ -513,8 +522,23 @@ function loadMore() {
         <ul v-else class="play-list">
           <li v-for="(play, index) in friendDetail.plays" :key="play.id" class="play-row">
             <span class="play-index">{{ index + 1 }}</span>
-            <img v-if="play.game.image_url" :src="play.game.image_url" alt="" class="play-cover" />
-            <img v-else :src="FALLBACK_ICON_URL" alt="" class="play-cover play-cover-fallback" />
+
+            <button
+              type="button"
+              class="play-cover-button"
+              :aria-label="$t('picker.viewDetails')"
+              :title="$t('picker.viewDetails')"
+              @click="detailGame = play.game"
+            >
+              <img
+                v-if="play.game.image_url"
+                :src="play.game.image_url"
+                alt=""
+                class="play-cover"
+              />
+              <img v-else :src="FALLBACK_ICON_URL" alt="" class="play-cover play-cover-fallback" />
+            </button>
+
             <div class="play-info">
               <span class="play-name">{{ play.game.name }}</span>
               <span class="play-meta">
@@ -873,6 +897,11 @@ the base .badge is inline-flex. */
   padding: var(--space-2) var(--space-3);
   background: var(--color-surface);
   border-radius: var(--radius);
+  transition: background-color 0.15s ease;
+}
+
+.play-row:hover {
+  background: var(--color-surface-hover);
 }
 
 .play-index {
@@ -883,6 +912,20 @@ the base .badge is inline-flex. */
   font-size: 0.85rem;
 }
 
+/* No border/background/padding of its own beyond resetting the button
+defaults - visually this should read as just the cover image sitting in
+the row, same as before it became clickable (same pattern already used
+in PlaysView.vue for its own equivalent). */
+.play-cover-button {
+  display: block;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: var(--radius);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
 .play-cover {
   display: block;
   width: 56px;
@@ -890,6 +933,17 @@ the base .badge is inline-flex. */
   object-fit: cover;
   border-radius: var(--radius-sm);
   flex-shrink: 0;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+/* Same "this is clickable" language as GameCard's own hover, scaled
+down to fit a 56px thumbnail - see PlaysView.vue's identical rule for
+why a scale-up instead of an outline ring at this size. */
+.play-cover-button:hover .play-cover {
+  transform: scale(1.08);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .play-cover-fallback {
@@ -920,5 +974,16 @@ the base .badge is inline-flex. */
 .load-more {
   display: block;
   margin: 0 auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play-row,
+  .play-cover {
+    transition: none;
+  }
+
+  .play-cover-button:hover .play-cover {
+    transform: none;
+  }
 }
 </style>

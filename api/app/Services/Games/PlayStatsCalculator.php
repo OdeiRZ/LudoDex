@@ -4,6 +4,7 @@ namespace App\Services\Games;
 
 use App\Models\Game;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 
 class PlayStatsCalculator
 {
@@ -92,6 +93,23 @@ class PlayStatsCalculator
             ->take(3)
             ->values();
 
+        // Last 12 calendar months (oldest first), zero-filled - aggregated
+        // in PHP rather than a DB-specific DATE_TRUNC/strftime, since this
+        // needs to run unchanged against both sqlite (local) and Postgres
+        // (Neon prod). Only two columns fetched, same "small enough to
+        // pull in full" reasoning $playCounts above already relies on.
+        $monthlyRows = $user->plays()->toBase()->select('played_at', 'quantity')->get();
+
+        $monthlyActivity = collect(range(11, 0))
+            ->mapWithKeys(fn (int $monthsAgo) => [now()->subMonths($monthsAgo)->format('Y-m') => 0]);
+
+        foreach ($monthlyRows as $row) {
+            $month = Carbon::parse($row->played_at)->format('Y-m');
+            if ($monthlyActivity->has($month)) {
+                $monthlyActivity[$month] += (int) $row->quantity;
+            }
+        }
+
         $gamesById = Game::select('id', 'name', 'image_url')
             ->whereIn('id', $topGroups->pluck('ranked_game_id')->merge(
                 $topGroups->flatMap(fn (array $group) => $group['contributors']->pluck('game_id')),
@@ -104,6 +122,9 @@ class PlayStatsCalculator
             'distinct_games' => (int) $totals->distinct_games,
             'total_minutes' => (int) $totals->total_minutes,
             'duration_known_plays' => (int) $totals->duration_known_plays,
+            'monthly_activity' => $monthlyActivity
+                ->map(fn (int $count, string $month) => ['month' => $month, 'count' => $count])
+                ->values(),
             'top_played' => $topGroups->map(function (array $group) use ($gamesById) {
                 $game = $gamesById[$group['ranked_game_id']];
 

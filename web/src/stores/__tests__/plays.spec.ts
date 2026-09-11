@@ -159,6 +159,7 @@ describe('usePlaysStore', () => {
       distinct_games: 4,
       total_minutes: 300,
       duration_known_plays: 9,
+      monthly_activity: [],
       top_played: [{ game: { id: 'game-1', name: 'Catan', image_url: null }, count: 5 }],
     }
     vi.mocked(apiClient.get).mockResolvedValue({ data: { data: stats } })

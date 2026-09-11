@@ -467,6 +467,7 @@ describe('PlaysView', () => {
       distinct_games: 1,
       total_minutes: 30,
       duration_known_plays: 1,
+      monthly_activity: [],
       top_played: [],
     }
     vi.spyOn(store2, 'fetchPage').mockResolvedValue()
@@ -491,6 +492,7 @@ describe('PlaysView', () => {
       distinct_games: 2,
       total_minutes: 90,
       duration_known_plays: 3,
+      monthly_activity: [],
       top_played: [],
     }
     await wrapper.vm.$nextTick()
@@ -506,6 +508,7 @@ describe('PlaysView', () => {
       distinct_games: 4,
       total_minutes: 135,
       duration_known_plays: 8,
+      monthly_activity: [],
       top_played: [],
     }
     await wrapper.vm.$nextTick()
@@ -524,6 +527,7 @@ describe('PlaysView', () => {
       distinct_games: 1,
       total_minutes: 120,
       duration_known_plays: 4,
+      monthly_activity: [],
       top_played: [],
     }
     await wrapper.vm.$nextTick()
@@ -539,6 +543,7 @@ describe('PlaysView', () => {
       distinct_games: 1,
       total_minutes: 0,
       duration_known_plays: 0,
+      monthly_activity: [],
       top_played: [],
     }
     await wrapper.vm.$nextTick()
@@ -554,6 +559,7 @@ describe('PlaysView', () => {
       distinct_games: 3,
       total_minutes: 240,
       duration_known_plays: 8,
+      monthly_activity: [],
       top_played: [
         { game: { id: 'game-1', name: 'Catan', image_url: null }, count: 5, breakdown: null },
         { game: { id: 'game-2', name: '7 Wonders', image_url: null }, count: 1, breakdown: null },
@@ -586,6 +592,7 @@ describe('PlaysView', () => {
       distinct_games: 1,
       total_minutes: 0,
       duration_known_plays: 0,
+      monthly_activity: [],
       top_played: [
         {
           game: { id: 'base-1', name: '7 Wonders Duel', image_url: null },
@@ -633,6 +640,7 @@ describe('PlaysView', () => {
       distinct_games: 0,
       total_minutes: 0,
       duration_known_plays: 0,
+      monthly_activity: [],
       top_played: [],
     }
     await wrapper.vm.$nextTick()
