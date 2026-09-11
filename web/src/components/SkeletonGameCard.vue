@@ -17,6 +17,7 @@ withDefaults(defineProps<{ compact?: boolean }>(), { compact: false })
 
 <style scoped>
 .skeleton-cover {
+  position: relative;
   height: 100%;
   min-height: 190px;
   border-radius: var(--radius);
@@ -27,15 +28,31 @@ withDefaults(defineProps<{ compact?: boolean }>(), { compact: false })
   justify-content: flex-end;
   padding: var(--space-3);
   gap: var(--space-2);
+  background: var(--color-surface-hover);
+}
 
+/* The moving highlight is a separate absolutely-positioned layer
+animated with `transform` (compositor-only, no layout/paint per frame)
+instead of animating `background-position` on the card itself - with up
+to 8 of these shimmering at once during a real load, background-position
+repaints every frame and was measurably competing with the browser for
+the same main thread that's decoding the real cover photos arriving
+behind it, making them visibly slower to appear (found live: the actual
+API response was already back fast, only the photos lagged). */
+.skeleton-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 60%;
   background: linear-gradient(
     100deg,
-    var(--color-surface-hover) 30%,
+    transparent 0%,
     var(--color-border-strong) 50%,
-    var(--color-surface-hover) 70%
+    transparent 100%
   );
-  background-size: 200% 100%;
+  transform: translateX(-150%);
   animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  will-change: transform;
 }
 
 .skeleton-cover.compact {
@@ -70,17 +87,17 @@ different speeds read as flickering, not as a calm "still loading". */
 
 @keyframes skeleton-shimmer {
   0% {
-    background-position: 150% 0;
+    transform: translateX(-150%);
   }
   100% {
-    background-position: -50% 0;
+    transform: translateX(250%);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .skeleton-cover {
+  .skeleton-cover::after {
     animation: none;
-    background-position: 50% 0;
+    display: none;
   }
 }
 </style>

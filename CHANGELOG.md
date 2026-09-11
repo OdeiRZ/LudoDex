@@ -60,6 +60,18 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   lista, no una rejilla de juegos) sigue con el spinner - no aplica
   aquí.
 
+### Corregido
+
+- `SkeletonGameCard.vue` animaba el brillo con `background-position`,
+  que fuerza repintado en cada frame — con hasta 8 tarjetas
+  parpadeando a la vez durante una carga real, competía de verdad por
+  el hilo principal justo cuando el navegador estaba decodificando las
+  portadas reales llegando detrás, haciéndolas notablemente más lentas
+  en aparecer (encontrado en vivo: la petición a la API ya volvía
+  rápido, solo las fotos se quedaban atrás). El brillo pasa a ser una
+  capa `::after` aparte animada con `transform: translateX(...)`, que
+  el navegador compone sin tocar el hilo principal.
+
 ## [0.12.0] - 2026-09-10
 
 ### Añadido
