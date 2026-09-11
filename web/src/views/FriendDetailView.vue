@@ -9,6 +9,7 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import GameCard from '@/components/GameCard.vue'
 import GameDetailModal from '@/components/GameDetailModal.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import SkeletonGameCard from '@/components/SkeletonGameCard.vue'
 
 const props = defineProps<{ friendId: number }>()
 const friendDetail = useFriendDetailStore()
@@ -336,10 +337,12 @@ function loadMore() {
           </button>
         </div>
 
-        <p v-else-if="!friendDetail.collectionLoaded" class="loading-state">
-          <LoadingSpinner :size="36" />
-          {{ $t('friends.detail.collection.loading') }}
-        </p>
+        <ul v-else-if="!friendDetail.collectionLoaded" class="games" role="status" aria-busy="true">
+          <span class="sr-only">{{ $t('friends.detail.collection.loading') }}</span>
+          <li v-for="n in 8" :key="n" class="game-card" aria-hidden="true">
+            <SkeletonGameCard />
+          </li>
+        </ul>
 
         <div v-else ref="gamesListRef">
           <section

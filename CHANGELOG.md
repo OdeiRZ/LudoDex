@@ -49,7 +49,16 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   caso normal — mismo color que el badge "Lo tengo"). Solo Colección
   pasa `is-wishlist`, ya que Picker y la ficha de un amigo nunca listan
   juegos en la wishlist. Un `outline` (no `border`), para no mover el
-  layout de la tarjeta al aparecer.
+  layout de la tarjeta al aparecer. Aumentado de 2px a 3px tras
+  probarlo.
+
+- Los mismos efectos llegan a "Colección compartida" en la ficha de un
+  amigo: el hover con anillo ya llegaba solo (usa el mismo
+  `GameCard.vue`), pero la carga inicial seguía con el spinner+texto de
+  antes - ahora también muestra la rejilla de `SkeletonGameCard`, igual
+  que Colección y el Picker. La pestaña "Partidas" de la ficha (una
+  lista, no una rejilla de juegos) sigue con el spinner - no aplica
+  aquí.
 
 ## [0.12.0] - 2026-09-10
 

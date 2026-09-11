@@ -74,10 +74,13 @@ async function mountDetail(fetchCollectionImpl?: () => Promise<void>) {
 }
 
 describe('FriendDetailView', () => {
-  it('shows a loading state until the collection finishes loading', async () => {
+  it('shows a skeleton loading state until the collection finishes loading', async () => {
     const { wrapper } = await mountDetail(() => new Promise(() => {}))
 
-    expect(wrapper.find('.loading-state').exists()).toBe(true)
+    const status = wrapper.find('[role="status"]')
+    expect(status.exists()).toBe(true)
+    expect(status.attributes('aria-busy')).toBe('true')
+    expect(wrapper.findAllComponents({ name: 'SkeletonGameCard' }).length).toBeGreaterThan(0)
   })
 
   it('shows the not-found state without any other content when notFound is true', async () => {
