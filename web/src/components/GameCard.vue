@@ -69,13 +69,16 @@ someone's cursor lands on first, so it's what should react first. An
 outline (not a border) so it doesn't shift the card's own box size/
 layout the way changing border-width would - box-shadow's spread would
 work too, but that's already spent on --shadow-card-hover above.
-Teal by default (same color as the "Lo tengo" badge - a plain owned
-base game is the ordinary case), overridden below for the other two. */
+outline-offset: 0 (not the usual positive gap) so it sits flush against
+the card's own edge instead of floating a couple pixels outside it -
+asked for directly after the first version left a visible gap. Teal by
+default (same color as the "Lo tengo" badge - a plain owned base game
+is the ordinary case), overridden below for the other two. */
 .game-cover:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-card-hover);
   outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+  outline-offset: 0;
 }
 
 /* Left border rather than a corner ribbon or full outline - reads at a
