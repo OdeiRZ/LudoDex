@@ -17,7 +17,7 @@ function makeFriend(overrides: Partial<Friend> = {}): Friend {
   }
 }
 
-// Only "friend-detail" (linked from each friend row's own "Ver colección")
+// Only "friend-detail" (linked from each friend row's own "Colección")
 // needs to exist here - FriendsView itself doesn't route anywhere else.
 function makeRouter() {
   return createRouter({
@@ -260,7 +260,7 @@ describe('FriendsView', () => {
 
     const link = wrapper.find('.friend-row a[href="/friends/42"]')
     expect(link.exists()).toBe(true)
-    expect(link.attributes('aria-label')).toBe('Ver colección')
+    expect(link.attributes('aria-label')).toBe('Colección')
   })
 
   it('blocks a friend from the friends list, requiring a second click within the confirmation window', async () => {

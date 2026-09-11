@@ -367,7 +367,7 @@ export default {
       empty: "You haven't added any friends yet.",
       remove: 'Remove',
       removeConfirm: 'Are you sure?',
-      viewProfile: 'View collection',
+      viewProfile: 'Collection',
       block: 'Block',
       blockConfirm: 'Are you sure?',
     },

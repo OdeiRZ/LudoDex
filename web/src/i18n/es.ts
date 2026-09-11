@@ -367,7 +367,7 @@ export default {
       empty: 'Todavía no tienes amigos añadidos.',
       remove: 'Eliminar',
       removeConfirm: '¿Seguro?',
-      viewProfile: 'Ver colección',
+      viewProfile: 'Colección',
       block: 'Bloquear',
       blockConfirm: '¿Seguro?',
     },
