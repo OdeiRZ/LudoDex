@@ -70,22 +70,46 @@ class UserGameController extends Controller
         $this->authorize('update', $userGame);
 
         DB::transaction(function () use ($request, $userGame) {
+            // The edit form always resubmits every field, changed or not (it
+            // has no per-field dirty tracking), so checking presence alone
+            // - the previous behaviour - flagged a untouched save as
+            // "touching" the shared Game row just as much as a real edit,
+            // gating it behind updateGame even when nothing would actually
+            // change. Reported live: opening the very first game in a
+            // collection and hitting "Save" with zero edits threw "This
+            // action is unauthorized." as soon as a second account also had
+            // that game - the updateGame policy (see its own docblock) was
+            // correctly blocking catalog edits from a non-sole owner, but a
+            // no-op resubmission isn't an edit. Comparing against the
+            // current values instead means only a genuine change triggers
+            // the gate.
             $gameAttributes = $request->safe()->except(['mechanics', 'categories', 'status']);
-            $touchesGame = $gameAttributes !== [] || $request->has('mechanics') || $request->has('categories');
+            $changedGameAttributes = collect($gameAttributes)
+                ->reject(fn ($value, $key) => $userGame->game->{$key} === $value)
+                ->all();
+
+            $currentMechanics = $userGame->game->mechanics->pluck('name')->all();
+            $currentCategories = $userGame->game->categories->pluck('name')->all();
+            $mechanicsChanged = $request->has('mechanics')
+                && $this->namesDiffer($request->validated('mechanics'), $currentMechanics);
+            $categoriesChanged = $request->has('categories')
+                && $this->namesDiffer($request->validated('categories'), $currentCategories);
+
+            $touchesGame = $changedGameAttributes !== [] || $mechanicsChanged || $categoriesChanged;
 
             if ($touchesGame) {
                 $this->authorize('updateGame', $userGame);
             }
 
-            if ($gameAttributes !== []) {
-                $userGame->game->update($gameAttributes);
+            if ($changedGameAttributes !== []) {
+                $userGame->game->update($changedGameAttributes);
             }
 
-            if ($request->has('mechanics') || $request->has('categories')) {
+            if ($mechanicsChanged || $categoriesChanged) {
                 $this->taxonomySyncer->sync(
                     $userGame->game,
-                    $request->validated('mechanics', $userGame->game->mechanics->pluck('name')->all()),
-                    $request->validated('categories', $userGame->game->categories->pluck('name')->all()),
+                    $request->validated('mechanics', $currentMechanics),
+                    $request->validated('categories', $currentCategories),
                 );
             }
 
@@ -118,5 +142,24 @@ class UserGameController extends Controller
         $request->user()->games()->delete();
 
         return response()->noContent();
+    }
+
+    /**
+     * Order-independent comparison - the form re-sends the tag list in
+     * whatever order TagInput currently holds it, which needn't match
+     * insertion order in the pivot table, so a plain array/order-sensitive
+     * compare would flag an unchanged set as "changed" just as easily as
+     * the bug this whole diff-before-touching approach is fixing for the
+     * plain Game columns above.
+     *
+     * @param  array<int, string>  $incoming
+     * @param  array<int, string>  $current
+     */
+    private function namesDiffer(array $incoming, array $current): bool
+    {
+        sort($incoming);
+        sort($current);
+
+        return $incoming !== $current;
     }
 }

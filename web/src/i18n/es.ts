@@ -5,6 +5,8 @@ export default {
     loading: 'Cargando…',
     coldStartHint: 'Servidor inactivo: puede tardar unos segundos.',
     genericGameSaveError: 'No se ha podido guardar el juego. Revisa los datos.',
+    sharedGameSaveError:
+      'Este juego también está en la colección de otra persona, así que ya no se pueden editar sus datos generales (solo tu propio estado). Si hay algo mal, corrígelo reimportándolo desde BGG.',
     loadingCollection: 'Cargando tu colección…',
     loadingAriaLabel: 'Cargando',
     loadError: 'No se ha podido cargar. Comprueba tu conexión e inténtalo de nuevo.',

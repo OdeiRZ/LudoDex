@@ -184,6 +184,37 @@ it('still allows changing only the status on a game shared with another user', f
         ->assertJsonPath('data.status', 'owned');
 });
 
+it('allows re-saving every field unchanged on a game shared with another user', function () {
+    // Reported live: opening the edit form and hitting "Save" without
+    // touching anything threw a 403 as soon as a second account also had
+    // this game - the edit form always resubmits every field (no per-field
+    // dirty tracking), so the controller used to treat that as "touching"
+    // the shared Game row just as much as a real edit, gating a no-op
+    // resubmission behind updateGame (see UserGamePolicy::updateGame's own
+    // docblock) exactly like it should for an actual rename.
+    $user = actingAsUser();
+    $game = Game::factory()->create([
+        'name' => 'Catan',
+        'min_players' => 3,
+        'max_players' => 4,
+        'weight' => 2.3,
+    ]);
+    $game->mechanics()->attach(Mechanic::factory()->create(['name' => 'Trading']));
+    $game->categories()->attach(Category::factory()->create(['name' => 'Negotiation']));
+    $userGame = UserGame::factory()->for($user)->for($game)->create(['status' => 'owned']);
+    UserGame::factory()->for($game)->create(); // another user, same shared game
+
+    $this->putJson("/api/games/{$userGame->id}", [
+        'name' => 'Catan',
+        'min_players' => 3,
+        'max_players' => 4,
+        'weight' => 2.3,
+        'mechanics' => ['Trading'],
+        'categories' => ['Negotiation'],
+        'status' => 'owned',
+    ])->assertOk();
+});
+
 it('rejects changing a game\'s bgg_id to one that already belongs to another game', function () {
     $user = actingAsUser();
     Game::factory()->create(['bgg_id' => 13]);

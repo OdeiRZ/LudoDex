@@ -149,6 +149,15 @@ async function onSubmit() {
     if (isAxiosError(err) && err.response?.status === 422) {
       const fieldErrors: Record<string, string[]> = err.response.data.errors
       errors.value = { general: Object.values(fieldErrors).flat() }
+    } else if (isAxiosError(err) && err.response?.status === 403) {
+      // Not a data problem (the generic message below implies one) - this
+      // game is shared with someone else's collection, so UserGamePolicy::
+      // updateGame forbids editing its catalog-level fields at all, no
+      // matter what they're changed to. Only reachable here for a genuine
+      // change now that the backend diffs against the stored values first
+      // (see UserGameController::update's own comment) instead of gating
+      // on "was this field present in the payload".
+      errors.value = { general: [t('common.sharedGameSaveError')] }
     } else {
       errors.value = { general: [t('common.genericGameSaveError')] }
     }

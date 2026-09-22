@@ -5,6 +5,8 @@ export default {
     loading: 'Loading…',
     coldStartHint: 'Server was asleep: this might take a few seconds.',
     genericGameSaveError: "Couldn't save the game. Check the details.",
+    sharedGameSaveError:
+      "Someone else also has this game in their collection, so its general details can no longer be edited (only your own status). If something's wrong with it, fix it by re-importing from BGG.",
     loadingCollection: 'Loading your collection…',
     loadingAriaLabel: 'Loading',
     loadError: "Couldn't load this. Check your connection and try again.",
