@@ -90,12 +90,18 @@ function onBlur() {
   <div class="tag-input">
     <label :for="listId">{{ label }}</label>
 
-    <ul v-if="modelValue.length" class="tags">
-      <li v-for="tag in modelValue" :key="tag" class="badge">
-        {{ translate(tag) }}
-        <button type="button" :aria-label="$t('tagInput.remove', { tag: translate(tag) })" @click="removeTag(tag)">×</button>
-      </li>
-    </ul>
+    <TransitionGroup v-if="modelValue.length" tag="ul" name="tag" class="tags">
+      <!-- prettier-ignore -->
+      <li v-for="tag in modelValue" :key="tag" class="badge"
+        >{{ translate(tag) }}
+        <button
+          type="button"
+          :aria-label="$t('tagInput.remove', { tag: translate(tag) })"
+          @click="removeTag(tag)"
+          >×</button
+        ></li
+      >
+    </TransitionGroup>
 
     <div class="combobox">
       <input
@@ -139,6 +145,35 @@ function onBlur() {
   list-style: none;
   padding: 0;
   margin: var(--space-1) 0 var(--space-2);
+}
+
+/* .badge's own global pop-in (main.css) already covers a tag arriving -
+   this only adds the leave half, which nothing handled before (removing
+   a tag just cut it instantly). No `position: absolute` FLIP trick here
+   (the usual TransitionGroup leave pattern) - .tags wraps with flex-wrap,
+   and pulling a leaving tag out of flow there snaps it to the row's own
+   start instead of holding its place, worse than just letting the row
+   reflow immediately under the fading tag. */
+.tag-leave-active {
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.tag-leave-to {
+  opacity: 0;
+  transform: scale(0.85);
+}
+
+.tag-move {
+  transition: transform 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tag-leave-active,
+  .tag-move {
+    transition: none;
+  }
 }
 
 .tags li {

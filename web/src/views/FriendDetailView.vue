@@ -225,7 +225,13 @@ const sortOrder = ref<'asc'>('asc')
 // own list is pre-sorted) is simply that section's own real answer, no
 // cross-section comparison needed at all.
 function resolveJumpTarget(candidates: HTMLElement[]): HTMLElement | null {
-  return candidates.find((el) => el.closest('.collection-section')?.getAttribute('data-section-key') === currentSectionKey.value) ?? null
+  return (
+    candidates.find(
+      (el) =>
+        el.closest('.collection-section')?.getAttribute('data-section-key') ===
+        currentSectionKey.value,
+    ) ?? null
+  )
 }
 
 const {
@@ -365,7 +371,9 @@ function loadMore() {
               <h2>{{ section.title }}</h2>
               <svg
                 class="collection-section-chevron"
-                :class="{ 'collection-section-chevron-collapsed': collapsedSections.has(section.key) }"
+                :class="{
+                  'collection-section-chevron-collapsed': collapsedSections.has(section.key),
+                }"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -468,111 +476,119 @@ function loadMore() {
         </div>
 
         <template v-else>
-        <div
-          v-if="friendDetail.playsStats && friendDetail.playsStats.total_plays > 0"
-          class="stats-bar"
-        >
-          <div class="stat-tile">
-            <span class="stat-value">{{ friendDetail.playsStats.total_plays }}</span>
-            <span class="stat-label">{{ $t('plays.statsTotalPlays') }}</span>
-          </div>
-          <div class="stat-tile">
-            <span class="stat-value">{{ friendDetail.playsStats.distinct_games }}</span>
-            <span class="stat-label">{{ $t('plays.statsDistinctGames') }}</span>
-          </div>
-        </div>
-
-        <ActivityChart
-          v-if="friendDetail.playsStats && friendDetail.playsStats.total_plays > 0"
-          :months="friendDetail.playsStats.monthly_activity"
-        />
-
-        <div
-          v-if="
-            friendDetail.playsLoaded && (friendDetail.plays.length > 0 || friendDetail.playsSearch)
-          "
-          class="search-field"
-        >
-          <label for="friend-plays-search">{{ $t('plays.searchLabel') }}</label>
-          <input
-            id="friend-plays-search"
-            v-model="searchInput"
-            type="search"
-            :placeholder="$t('plays.searchPlaceholder')"
-            @input="onSearchInput"
-          />
-        </div>
-
-        <p v-if="!friendDetail.playsLoaded" class="loading-state">
-          <LoadingSpinner :size="36" />
-          {{ $t('friends.detail.plays.loading') }}
-        </p>
-
-        <p
-          v-else-if="friendDetail.plays.length === 0 && !friendDetail.playsSearch"
-          class="empty-state"
-        >
-          {{ $t('friends.detail.plays.empty') }}
-        </p>
-
-        <p v-else-if="friendDetail.plays.length === 0" class="empty-state">
-          {{ $t('plays.noMatches') }}
-        </p>
-
-        <ul v-else class="play-list">
-          <li v-for="(play, index) in friendDetail.plays" :key="play.id" class="play-row">
-            <span class="play-index">{{ index + 1 }}</span>
-
-            <button
-              type="button"
-              class="play-cover-button"
-              :aria-label="$t('picker.viewDetails')"
-              :title="$t('picker.viewDetails')"
-              @click="detailGame = play.game"
-            >
-              <img
-                v-if="play.game.image_url"
-                :src="play.game.image_url"
-                alt=""
-                class="play-cover"
-              />
-              <img v-else :src="FALLBACK_ICON_URL" alt="" class="play-cover play-cover-fallback" />
-            </button>
-
-            <div class="play-info">
-              <span class="play-name">{{ play.game.name }}</span>
-              <span class="play-meta">
-                {{ play.played_at }}
-                <template v-if="play.duration_minutes">
-                  · {{ $t('plays.duration', { minutes: play.duration_minutes }) }}
-                </template>
-                <template v-if="play.quantity > 1"> · ×{{ play.quantity }}</template>
-              </span>
+          <div
+            v-if="friendDetail.playsStats && friendDetail.playsStats.total_plays > 0"
+            class="stats-bar"
+          >
+            <div class="stat-tile">
+              <span class="stat-value">{{ friendDetail.playsStats.total_plays }}</span>
+              <span class="stat-label">{{ $t('plays.statsTotalPlays') }}</span>
             </div>
-          </li>
-        </ul>
+            <div class="stat-tile">
+              <span class="stat-value">{{ friendDetail.playsStats.distinct_games }}</span>
+              <span class="stat-label">{{ $t('plays.statsDistinctGames') }}</span>
+            </div>
+          </div>
 
-        <button
-          v-if="
-            friendDetail.playsLoaded && friendDetail.playsCurrentPage < friendDetail.playsLastPage
-          "
-          type="button"
-          class="btn load-more"
-          :disabled="friendDetail.playsLoading"
-          @click="loadMore"
-        >
-          {{ $t('plays.loadMore') }}
-        </button>
+          <ActivityChart
+            v-if="friendDetail.playsStats && friendDetail.playsStats.total_plays > 0"
+            :months="friendDetail.playsStats.monthly_activity"
+          />
+
+          <div
+            v-if="
+              friendDetail.playsLoaded &&
+              (friendDetail.plays.length > 0 || friendDetail.playsSearch)
+            "
+            class="search-field"
+          >
+            <label for="friend-plays-search">{{ $t('plays.searchLabel') }}</label>
+            <input
+              id="friend-plays-search"
+              v-model="searchInput"
+              type="search"
+              :placeholder="$t('plays.searchPlaceholder')"
+              @input="onSearchInput"
+            />
+          </div>
+
+          <p v-if="!friendDetail.playsLoaded" class="loading-state">
+            <LoadingSpinner :size="36" />
+            {{ $t('friends.detail.plays.loading') }}
+          </p>
+
+          <p
+            v-else-if="friendDetail.plays.length === 0 && !friendDetail.playsSearch"
+            class="empty-state"
+          >
+            {{ $t('friends.detail.plays.empty') }}
+          </p>
+
+          <p v-else-if="friendDetail.plays.length === 0" class="empty-state">
+            {{ $t('plays.noMatches') }}
+          </p>
+
+          <ul v-else class="play-list">
+            <li v-for="(play, index) in friendDetail.plays" :key="play.id" class="play-row">
+              <span class="play-index">{{ index + 1 }}</span>
+
+              <button
+                type="button"
+                class="play-cover-button"
+                :aria-label="$t('picker.viewDetails')"
+                :title="$t('picker.viewDetails')"
+                @click="detailGame = play.game"
+              >
+                <img
+                  v-if="play.game.image_url"
+                  :src="play.game.image_url"
+                  alt=""
+                  class="play-cover"
+                />
+                <img
+                  v-else
+                  :src="FALLBACK_ICON_URL"
+                  alt=""
+                  class="play-cover play-cover-fallback"
+                />
+              </button>
+
+              <div class="play-info">
+                <span class="play-name">{{ play.game.name }}</span>
+                <span class="play-meta">
+                  {{ play.played_at }}
+                  <template v-if="play.duration_minutes">
+                    · {{ $t('plays.duration', { minutes: play.duration_minutes }) }}
+                  </template>
+                  <template v-if="play.quantity > 1"> · ×{{ play.quantity }}</template>
+                </span>
+              </div>
+            </li>
+          </ul>
+
+          <button
+            v-if="
+              friendDetail.playsLoaded && friendDetail.playsCurrentPage < friendDetail.playsLastPage
+            "
+            type="button"
+            class="btn load-more"
+            :disabled="friendDetail.playsLoading"
+            @click="loadMore"
+          >
+            {{ $t('plays.loadMore') }}
+          </button>
         </template>
       </template>
     </template>
 
-    <GameDetailModal
-      v-if="detailGame"
-      :game="detailGame"
-      @close="detailGame = null"
-      @translated="onDetailGameTranslated"
-    />
+    <Transition name="modal">
+      <GameDetailModal
+        v-if="detailGame"
+        :game="detailGame"
+        @close="detailGame = null"
+        @translated="onDetailGameTranslated"
+      />
+    </Transition>
 
     <div
       v-if="showScrubber"

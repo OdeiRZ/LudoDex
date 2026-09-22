@@ -162,7 +162,13 @@ onUnmounted(() => {
         :title="$t('common.close')"
         @click="$emit('close')"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
           <path stroke-linecap="round" stroke-linejoin="round" d="M18 6 6 18M6 6l12 12" />
         </svg>
       </button>
@@ -177,9 +183,12 @@ onUnmounted(() => {
       <h2>{{ game.name }}</h2>
 
       <p v-if="displayDescription" class="modal-description">
-        <span v-if="isUntranslated" class="badge badge-en" :title="$t('picker.descriptionUntranslated')">{{
-          $t('picker.descriptionUntranslatedShort')
-        }}</span>
+        <span
+          v-if="isUntranslated"
+          class="badge badge-en"
+          :title="$t('picker.descriptionUntranslated')"
+          >{{ $t('picker.descriptionUntranslatedShort') }}</span
+        >
         {{ displayDescription }}
       </p>
       <p v-else class="modal-description-empty">{{ $t('picker.noDescription') }}</p>
@@ -211,6 +220,55 @@ onUnmounted(() => {
   justify-content: center;
   padding: var(--space-4);
   background: rgba(15, 23, 42, 0.6);
+}
+
+/* The 4 call sites (Dashboard/Picker/Plays/FriendDetail) each wrap this
+   component's own v-if in a <Transition name="modal"> - Vue applies the
+   enter/leave classes straight to this component's root (.modal-backdrop),
+   which is why a plain fade lives directly on it below, while the panel's
+   own spring-in/out is a nested selector off that same class instead of
+   its own separate Transition (a modal only ever has the one open/close
+   moment, not independent backdrop/panel lifecycles worth splitting). */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-active .modal-panel {
+  animation: modal-panel-in 0.28s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+.modal-leave-active .modal-panel {
+  animation: modal-panel-out 0.18s ease forwards;
+}
+
+@keyframes modal-panel-in {
+  from {
+    transform: scale(0.92) translateY(8px);
+    opacity: 0;
+  }
+}
+
+@keyframes modal-panel-out {
+  to {
+    transform: scale(0.96) translateY(4px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-enter-active,
+  .modal-leave-active,
+  .modal-enter-active .modal-panel,
+  .modal-leave-active .modal-panel {
+    transition: none;
+    animation: none;
+  }
 }
 
 .modal-panel {

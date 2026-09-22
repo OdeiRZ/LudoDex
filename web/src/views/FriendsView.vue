@@ -230,79 +230,101 @@ async function onUnblock(blockId: number) {
     <template v-else>
       <section v-if="friends.incomingRequests.length > 0" class="card">
         <h2>{{ $t('friends.incoming.title') }}</h2>
-        <div v-for="entry in friends.incomingRequests" :key="entry.id" class="friend-row">
-          <UserAvatar :name="entry.user.name" :avatar-url="entry.user.avatar_url" :size="40" />
-          <span class="friend-name">{{ entry.user.name }}</span>
-          <button
-            type="button"
-            class="btn btn-primary icon-btn"
-            :aria-label="$t('friends.incoming.accept')"
-            :title="$t('friends.incoming.accept')"
-            :disabled="acceptingId === entry.id"
-            @click="onAccept(entry.id)"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            <span class="action-text">{{ $t('friends.incoming.accept') }}</span>
-          </button>
-          <button
-            type="button"
-            class="btn btn-danger icon-btn"
-            :aria-label="$t('friends.incoming.decline')"
-            :title="$t('friends.incoming.decline')"
-            :disabled="removingId === entry.id"
-            @click="onRemove(entry.id)"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M18 6L6 18M6 6l12 12" />
-            </svg>
-            <span class="action-text">{{ $t('friends.incoming.decline') }}</span>
-          </button>
-          <button
-            type="button"
-            class="btn btn-warning icon-btn"
-            :class="{ 'btn-warning-confirm': confirmingBlockId === entry.user.id }"
-            :aria-label="
-              confirmingBlockId === entry.user.id
-                ? $t('friends.incoming.blockConfirm')
-                : $t('friends.incoming.block')
-            "
-            :title="
-              confirmingBlockId === entry.user.id
-                ? $t('friends.incoming.blockConfirm')
-                : $t('friends.incoming.block')
-            "
-            :disabled="blockingUserId === entry.user.id"
-            @click="onBlockClick(entry.user)"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <circle cx="12" cy="12" r="9" />
-              <path stroke-linecap="round" d="M5.5 5.5l13 13" />
-            </svg>
-            <span class="action-text">{{
-              confirmingBlockId === entry.user.id
-                ? $t('friends.incoming.blockConfirm')
-                : $t('friends.incoming.block')
-            }}</span>
-          </button>
-        </div>
+        <TransitionGroup tag="div" name="friend-row" class="friend-rows">
+          <div v-for="entry in friends.incomingRequests" :key="entry.id" class="friend-row">
+            <UserAvatar :name="entry.user.name" :avatar-url="entry.user.avatar_url" :size="40" />
+            <span class="friend-name">{{ entry.user.name }}</span>
+            <button
+              type="button"
+              class="btn btn-primary icon-btn"
+              :aria-label="$t('friends.incoming.accept')"
+              :title="$t('friends.incoming.accept')"
+              :disabled="acceptingId === entry.id"
+              @click="onAccept(entry.id)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              <span class="action-text">{{ $t('friends.incoming.accept') }}</span>
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger icon-btn"
+              :aria-label="$t('friends.incoming.decline')"
+              :title="$t('friends.incoming.decline')"
+              :disabled="removingId === entry.id"
+              @click="onRemove(entry.id)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M18 6L6 18M6 6l12 12" />
+              </svg>
+              <span class="action-text">{{ $t('friends.incoming.decline') }}</span>
+            </button>
+            <button
+              type="button"
+              class="btn btn-warning icon-btn"
+              :class="{ 'btn-warning-confirm': confirmingBlockId === entry.user.id }"
+              :aria-label="
+                confirmingBlockId === entry.user.id
+                  ? $t('friends.incoming.blockConfirm')
+                  : $t('friends.incoming.block')
+              "
+              :title="
+                confirmingBlockId === entry.user.id
+                  ? $t('friends.incoming.blockConfirm')
+                  : $t('friends.incoming.block')
+              "
+              :disabled="blockingUserId === entry.user.id"
+              @click="onBlockClick(entry.user)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path stroke-linecap="round" d="M5.5 5.5l13 13" />
+              </svg>
+              <span class="action-text">{{
+                confirmingBlockId === entry.user.id
+                  ? $t('friends.incoming.blockConfirm')
+                  : $t('friends.incoming.block')
+              }}</span>
+            </button>
+          </div>
+        </TransitionGroup>
       </section>
 
       <section v-if="friends.outgoingRequests.length > 0" class="card">
         <h2>{{ $t('friends.outgoing.title') }}</h2>
-        <div v-for="entry in friends.outgoingRequests" :key="entry.id" class="friend-row">
-          <UserAvatar :name="entry.user.name" :avatar-url="entry.user.avatar_url" :size="40" />
-          <span class="friend-name">{{ entry.user.name }}</span>
-          <button
-            type="button"
-            class="btn"
-            :disabled="removingId === entry.id"
-            @click="onRemove(entry.id)"
-          >
-            {{ $t('friends.outgoing.cancel') }}
-          </button>
-        </div>
+        <TransitionGroup tag="div" name="friend-row" class="friend-rows">
+          <div v-for="entry in friends.outgoingRequests" :key="entry.id" class="friend-row">
+            <UserAvatar :name="entry.user.name" :avatar-url="entry.user.avatar_url" :size="40" />
+            <span class="friend-name">{{ entry.user.name }}</span>
+            <button
+              type="button"
+              class="btn"
+              :disabled="removingId === entry.id"
+              @click="onRemove(entry.id)"
+            >
+              {{ $t('friends.outgoing.cancel') }}
+            </button>
+          </div>
+        </TransitionGroup>
       </section>
 
       <section class="card">
@@ -310,105 +332,127 @@ async function onUnblock(blockId: number) {
         <p v-if="friends.friends.length === 0" class="empty-state">
           {{ $t('friends.list.empty') }}
         </p>
-        <div v-for="entry in friends.friends" :key="entry.id" class="friend-row">
-          <UserAvatar :name="entry.user.name" :avatar-url="entry.user.avatar_url" :size="40" />
-          <span class="friend-name">{{ entry.user.name }}</span>
-          <RouterLink
-            :to="{ name: 'friend-detail', params: { friendId: entry.user.id } }"
-            class="btn icon-btn"
-            :aria-label="$t('friends.list.viewProfile')"
-            :title="$t('friends.list.viewProfile')"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"
-              />
-              <circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-            <span class="action-text">{{ $t('friends.list.viewProfile') }}</span>
-          </RouterLink>
-          <button
-            type="button"
-            class="btn btn-danger icon-btn"
-            :class="{ 'btn-danger-confirm': confirmingRemoveId === entry.id }"
-            :aria-label="
-              confirmingRemoveId === entry.id
-                ? $t('friends.list.removeConfirm')
-                : $t('friends.list.remove')
-            "
-            :title="
-              confirmingRemoveId === entry.id
-                ? $t('friends.list.removeConfirm')
-                : $t('friends.list.remove')
-            "
-            :disabled="removingId === entry.id"
-            @click="onRemoveFriendClick(entry.id)"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path stroke-linecap="round" d="M4 7h16" />
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13"
-              />
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"
-              />
-            </svg>
-            <span class="action-text">{{
-              confirmingRemoveId === entry.id
-                ? $t('friends.list.removeConfirm')
-                : $t('friends.list.remove')
-            }}</span>
-          </button>
-          <button
-            type="button"
-            class="btn btn-warning icon-btn"
-            :class="{ 'btn-warning-confirm': confirmingBlockId === entry.user.id }"
-            :aria-label="
-              confirmingBlockId === entry.user.id
-                ? $t('friends.list.blockConfirm')
-                : $t('friends.list.block')
-            "
-            :title="
-              confirmingBlockId === entry.user.id
-                ? $t('friends.list.blockConfirm')
-                : $t('friends.list.block')
-            "
-            :disabled="blockingUserId === entry.user.id"
-            @click="onBlockClick(entry.user)"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <circle cx="12" cy="12" r="9" />
-              <path stroke-linecap="round" d="M5.5 5.5l13 13" />
-            </svg>
-            <span class="action-text">{{
-              confirmingBlockId === entry.user.id
-                ? $t('friends.list.blockConfirm')
-                : $t('friends.list.block')
-            }}</span>
-          </button>
-        </div>
+        <TransitionGroup tag="div" name="friend-row" class="friend-rows">
+          <div v-for="entry in friends.friends" :key="entry.id" class="friend-row">
+            <UserAvatar :name="entry.user.name" :avatar-url="entry.user.avatar_url" :size="40" />
+            <span class="friend-name">{{ entry.user.name }}</span>
+            <RouterLink
+              :to="{ name: 'friend-detail', params: { friendId: entry.user.id } }"
+              class="btn icon-btn"
+              :aria-label="$t('friends.list.viewProfile')"
+              :title="$t('friends.list.viewProfile')"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"
+                />
+                <circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <span class="action-text">{{ $t('friends.list.viewProfile') }}</span>
+            </RouterLink>
+            <button
+              type="button"
+              class="btn btn-danger icon-btn"
+              :class="{ 'btn-danger-confirm': confirmingRemoveId === entry.id }"
+              :aria-label="
+                confirmingRemoveId === entry.id
+                  ? $t('friends.list.removeConfirm')
+                  : $t('friends.list.remove')
+              "
+              :title="
+                confirmingRemoveId === entry.id
+                  ? $t('friends.list.removeConfirm')
+                  : $t('friends.list.remove')
+              "
+              :disabled="removingId === entry.id"
+              @click="onRemoveFriendClick(entry.id)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path stroke-linecap="round" d="M4 7h16" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"
+                />
+              </svg>
+              <span class="action-text">{{
+                confirmingRemoveId === entry.id
+                  ? $t('friends.list.removeConfirm')
+                  : $t('friends.list.remove')
+              }}</span>
+            </button>
+            <button
+              type="button"
+              class="btn btn-warning icon-btn"
+              :class="{ 'btn-warning-confirm': confirmingBlockId === entry.user.id }"
+              :aria-label="
+                confirmingBlockId === entry.user.id
+                  ? $t('friends.list.blockConfirm')
+                  : $t('friends.list.block')
+              "
+              :title="
+                confirmingBlockId === entry.user.id
+                  ? $t('friends.list.blockConfirm')
+                  : $t('friends.list.block')
+              "
+              :disabled="blockingUserId === entry.user.id"
+              @click="onBlockClick(entry.user)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path stroke-linecap="round" d="M5.5 5.5l13 13" />
+              </svg>
+              <span class="action-text">{{
+                confirmingBlockId === entry.user.id
+                  ? $t('friends.list.blockConfirm')
+                  : $t('friends.list.block')
+              }}</span>
+            </button>
+          </div>
+        </TransitionGroup>
       </section>
 
       <section v-if="friends.blockedUsers.length > 0" class="card">
         <h2>{{ $t('friends.blocked.title') }}</h2>
-        <div v-for="entry in friends.blockedUsers" :key="entry.id" class="friend-row">
-          <UserAvatar :name="entry.user.name" :avatar-url="entry.user.avatar_url" :size="40" />
-          <span class="friend-name">{{ entry.user.name }}</span>
-          <button
-            type="button"
-            class="btn"
-            :disabled="unblockingId === entry.id"
-            @click="onUnblock(entry.id)"
-          >
-            {{ $t('friends.blocked.unblock') }}
-          </button>
-        </div>
+        <TransitionGroup tag="div" name="friend-row" class="friend-rows">
+          <div v-for="entry in friends.blockedUsers" :key="entry.id" class="friend-row">
+            <UserAvatar :name="entry.user.name" :avatar-url="entry.user.avatar_url" :size="40" />
+            <span class="friend-name">{{ entry.user.name }}</span>
+            <button
+              type="button"
+              class="btn"
+              :disabled="unblockingId === entry.id"
+              @click="onUnblock(entry.id)"
+            >
+              {{ $t('friends.blocked.unblock') }}
+            </button>
+          </div>
+        </TransitionGroup>
       </section>
     </template>
   </div>
@@ -463,6 +507,35 @@ second line (found live). */
 
 .friend-row:last-child {
   border-bottom: none;
+}
+
+/* Accept/decline/block/unblock used to just cut the row straight out of
+   these 4 lists (none of them had a <TransitionGroup> at all) - a fade
+   + slide gives that action a visible result instead of the row just
+   vanishing. No `position: absolute` leave trick (the usual
+   TransitionGroup pattern) - this is a plain block column, letting the
+   list reflow immediately under the fading row already looks fine here,
+   unlike a grid where the same trick misplaces the leaving item. */
+.friend-row-leave-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.friend-row-leave-to {
+  opacity: 0;
+  transform: translateX(16px);
+}
+
+.friend-row-move {
+  transition: transform 0.25s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .friend-row-leave-active,
+  .friend-row-move {
+    transition: none;
+  }
 }
 
 /* Full text by default - icon-only (asked for directly) only kicks in at

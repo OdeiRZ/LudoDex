@@ -524,12 +524,14 @@ onMounted(() => {
       {{ $t('plays.loadMore') }}
     </button>
 
-    <GameDetailModal
-      v-if="detailGame"
-      :game="detailGame"
-      @close="detailGame = null"
-      @translated="onDetailGameTranslated"
-    />
+    <Transition name="modal">
+      <GameDetailModal
+        v-if="detailGame"
+        :game="detailGame"
+        @close="detailGame = null"
+        @translated="onDetailGameTranslated"
+      />
+    </Transition>
   </div>
 </template>
 

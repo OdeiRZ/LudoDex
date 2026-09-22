@@ -185,13 +185,30 @@ h2 {
   font-size: 1.125rem;
 }
 
+/* An underline that grows in from the left on hover/focus (a background
+   gradient acting as the "line", not text-decoration) instead of one
+   that just snaps into existence - a background-image also naturally
+   follows a link that wraps onto more than one line, which a
+   border-bottom + scaleX version can't do without extra markup. */
 a {
   color: var(--color-primary-hover);
   text-decoration: none;
+  background-image: linear-gradient(var(--color-primary-hover), var(--color-primary-hover));
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 2px;
+  transition: background-size 0.25s ease;
 }
 
-a:hover {
-  text-decoration: underline;
+a:hover,
+a:focus-visible {
+  background-size: 100% 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a {
+    transition: none;
+  }
 }
 
 label {

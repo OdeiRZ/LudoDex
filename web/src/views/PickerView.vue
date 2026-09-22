@@ -864,12 +864,24 @@ const {
             "
             class="tags"
           >
-            <span v-if="entry.ownedByMe && entry.friendOwnerIds.length > 0" class="badge badge-primary">{{
-              $t('picker.ownerShared', { names: formatNameList(ownerNames(entry.friendOwnerIds)) })
-            }}</span>
-            <span v-if="!entry.ownedByMe && entry.friendOwnerIds.length > 0" class="badge badge-accent">{{
-              $t('picker.ownerFriend', { names: formatNameList(ownerNames(entry.friendOwnerIds)) })
-            }}</span>
+            <span
+              v-if="entry.ownedByMe && entry.friendOwnerIds.length > 0"
+              class="badge badge-primary"
+              >{{
+                $t('picker.ownerShared', {
+                  names: formatNameList(ownerNames(entry.friendOwnerIds)),
+                })
+              }}</span
+            >
+            <span
+              v-if="!entry.ownedByMe && entry.friendOwnerIds.length > 0"
+              class="badge badge-accent"
+              >{{
+                $t('picker.ownerFriend', {
+                  names: formatNameList(ownerNames(entry.friendOwnerIds)),
+                })
+              }}</span
+            >
             <span v-if="entry.game.is_cooperative" class="badge badge-primary">{{
               $t('picker.cooperative')
             }}</span>
@@ -904,12 +916,14 @@ const {
       {{ $t('picker.someFriendCollectionsFailed', { names: formatNameList(failedFriendNames) }) }}
     </p>
 
-    <GameDetailModal
-      v-if="detailEntry"
-      :game="detailEntry.game"
-      @close="detailEntry = null"
-      @translated="onDetailGameTranslated"
-    />
+    <Transition name="modal">
+      <GameDetailModal
+        v-if="detailEntry"
+        :game="detailEntry.game"
+        @close="detailEntry = null"
+        @translated="onDetailGameTranslated"
+      />
+    </Transition>
 
     <div
       v-if="showScrubber"

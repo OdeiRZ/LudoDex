@@ -688,7 +688,9 @@ async function onClearCollection() {
       </li>
     </TransitionGroup>
 
-    <GameDetailModal v-if="detailEntry" :game="detailEntry.game" @close="detailEntry = null" />
+    <Transition name="modal">
+      <GameDetailModal v-if="detailEntry" :game="detailEntry.game" @close="detailEntry = null" />
+    </Transition>
 
     <div
       v-if="showScrubber"

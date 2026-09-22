@@ -301,8 +301,12 @@ header {
   color: var(--color-heading);
 }
 
-.brand:hover {
-  text-decoration: none;
+/* Opts out of the global a:hover/focus-visible growing underline
+   (base.css) - a wordmark/logo link reads as a static brand mark, not
+   body text inviting a click the way an underline usually signals. */
+.brand:hover,
+.brand:focus-visible {
+  background-size: 0% 2px;
 }
 
 .brand-dice {
