@@ -9,6 +9,49 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Añadido
 
+- Tercer pase de movimiento, esta vez centrado en tarjetas, enlaces,
+  categorías, botones e interfaz — a petición explícita de profundizar
+  "extensamente" en el tema tras los dos pases anteriores. Investigado
+  primero en un artifact aparte con los tokens/tipografía reales de
+  LudoDex antes de tocar componentes:
+  - **`GameDetailModal.vue`**: el fondo se desvanece y el panel entra
+    con un ligero resorte de escala en vez de aparecer/desaparecer sin
+    más — el `<Transition name="modal">` envuelve el `v-if` en cada uno
+    de los 4 sitios donde se usa (Dashboard, ficha de amigo, Partidas,
+    Selector), no el propio componente.
+  - **`ThemeToggle.vue`**: los iconos de sol/luna hacen un cross-fade
+    con giro al cambiar de tema en vez de saltar directamente, y el
+    botón reacciona a hover/active.
+  - **`SegmentedControl.vue`** (usado en Idioma/Language de "Tu
+    cuenta"): la opción activa se marca con una "pastilla" que se
+    desliza por debajo — medida con `offsetWidth`/`offsetLeft`, no con
+    porcentajes CSS, porque el `gap` del contenedor no es una fracción
+    simple.
+  - **`TagInput.vue`** (categorías/mecánicas al editar un juego): quitar
+    una etiqueta se anima con fundido+escala en vez de desaparecer al
+    instante, con `TransitionGroup` para el reordenado del resto.
+  - **`ScrollToTopButton.vue`**: aparece/desaparece con animación en vez
+    de con un salto, y reacciona a hover/active como el resto de
+    botones flotantes.
+  - **`FriendsView.vue`**: las 4 listas (solicitudes entrantes,
+    salientes, amigos, bloqueados) usan `TransitionGroup` — aceptar,
+    rechazar o eliminar se siente como quitar una fila, no como un
+    refresco completo de la sección. Es justo el punto que se había
+    dejado fuera del segundo pase por prudencia (pares de filas sin key
+    clara) — aquí cada lista es de un único tipo de fila con key
+    propia, así que no aplicaba el mismo riesgo.
+  - **Enlaces globales** (`base.css`): el subrayado ahora crece desde
+    abajo en hover/focus en vez de aparecer de golpe, con el mismo
+    ajuste en el logo de la cabecera (`App.vue`).
+  Todo respeta `prefers-reduced-motion`. Hallazgo durante la
+  implementación: el auto-wrap de Prettier sobre el `aria-label` largo
+  del botón "×" de `TagInput.vue` introducía un espacio de más en el
+  texto renderizado (detectado porque rompía un test, no a simple
+  vista) — corregido con el formato de whitespace control de Vue
+  (dangling bracket) protegido con `<!-- prettier-ignore -->`, ya que
+  un `--write` normal lo revertía. Verificado en vivo con una cuenta de
+  prueba desechable y con el type-check/ESLint/460 tests completos.
+
 - Segundo pase de movimiento, mismo criterio que el de PequeDex: explorado
   antes en un artefacto con 10 propuestas sobre componentes reales
   (`GameCard.vue`, `ActivityChart.vue`, `stat-tile` de "Tus partidas",
