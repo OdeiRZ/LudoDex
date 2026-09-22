@@ -187,7 +187,9 @@ async function onPlaysSubmit() {
 // wrapped in one DB transaction so it's all-or-nothing anyway) - the real
 // risk is closing the tab or reloading mid-request, which genuinely aborts
 // it. Warn only for that.
-const isImporting = computed(() => phase.value === 'pending' || csvSubmitting.value || playsSubmitting.value)
+const isImporting = computed(
+  () => phase.value === 'pending' || csvSubmitting.value || playsSubmitting.value,
+)
 
 function warnBeforeUnload(event: BeforeUnloadEvent) {
   if (isImporting.value) {
@@ -255,14 +257,20 @@ onMounted(() => {
 
           <div>
             <label for="bgg_username">{{ $t('importBgg.username') }}</label>
-            <input id="bgg_username" v-model="username" type="text" required :disabled="submitting" />
+            <input
+              id="bgg_username"
+              v-model="username"
+              type="text"
+              required
+              :disabled="submitting"
+            />
           </div>
 
           <p v-if="phase === 'failed'" role="alert" class="alert alert-error">
             {{ errorMessage ?? $t('importBgg.genericFailedError') }}
           </p>
 
-          <button type="submit" class="btn btn-primary" :disabled="submitting">
+          <button v-press type="submit" class="btn btn-primary" :disabled="submitting">
             {{ $t('importBgg.submit') }}
           </button>
         </form>
@@ -309,7 +317,12 @@ onMounted(() => {
             {{ $t('importBgg.dontCloseTab') }}
           </p>
 
-          <button type="submit" class="btn btn-primary" :disabled="csvSubmitting || !csvFile">
+          <button
+            v-press
+            type="submit"
+            class="btn btn-primary"
+            :disabled="csvSubmitting || !csvFile"
+          >
             {{ csvSubmitting ? $t('importBgg.csvSubmitting') : $t('importBgg.csvSubmit') }}
           </button>
         </form>
@@ -369,7 +382,12 @@ onMounted(() => {
             {{ $t('importBgg.dontCloseTab') }}
           </p>
 
-          <button type="submit" class="btn btn-primary" :disabled="playsSubmitting || !playsUsername">
+          <button
+            v-press
+            type="submit"
+            class="btn btn-primary"
+            :disabled="playsSubmitting || !playsUsername"
+          >
             {{ playsSubmitting ? $t('importBgg.playsSubmitting') : $t('importBgg.playsSubmit') }}
           </button>
         </form>

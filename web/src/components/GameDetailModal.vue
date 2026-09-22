@@ -195,6 +195,7 @@ onUnmounted(() => {
 
       <button
         v-if="isUntranslated"
+        v-press
         type="button"
         class="btn modal-translate"
         :disabled="translating"

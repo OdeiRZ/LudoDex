@@ -193,7 +193,7 @@ async function onUnblock(blockId: number) {
               : $t('friends.search.bggUsernamePlaceholder')
           "
         />
-        <button type="submit" class="btn btn-primary" :disabled="searching">
+        <button v-press type="submit" class="btn btn-primary" :disabled="searching">
           {{ searching ? $t('friends.search.searching') : $t('friends.search.submit') }}
         </button>
       </form>
@@ -207,6 +207,7 @@ async function onUnblock(blockId: number) {
           <UserAvatar :name="searchResult.name" :avatar-url="searchResult.avatar_url" :size="40" />
           <span class="friend-name">{{ searchResult.name }}</span>
           <button
+            v-press
             type="button"
             class="btn btn-primary"
             :disabled="sendingRequestFor === searchResult.id"
@@ -235,6 +236,7 @@ async function onUnblock(blockId: number) {
             <UserAvatar :name="entry.user.name" :avatar-url="entry.user.avatar_url" :size="40" />
             <span class="friend-name">{{ entry.user.name }}</span>
             <button
+              v-press
               type="button"
               class="btn btn-primary icon-btn"
               :aria-label="$t('friends.incoming.accept')"
@@ -254,6 +256,7 @@ async function onUnblock(blockId: number) {
               <span class="action-text">{{ $t('friends.incoming.accept') }}</span>
             </button>
             <button
+              v-press
               type="button"
               class="btn btn-danger icon-btn"
               :aria-label="$t('friends.incoming.decline')"
@@ -273,6 +276,7 @@ async function onUnblock(blockId: number) {
               <span class="action-text">{{ $t('friends.incoming.decline') }}</span>
             </button>
             <button
+              v-press
               type="button"
               class="btn btn-warning icon-btn"
               :class="{ 'btn-warning-confirm': confirmingBlockId === entry.user.id }"
@@ -316,6 +320,7 @@ async function onUnblock(blockId: number) {
             <UserAvatar :name="entry.user.name" :avatar-url="entry.user.avatar_url" :size="40" />
             <span class="friend-name">{{ entry.user.name }}</span>
             <button
+              v-press
               type="button"
               class="btn"
               :disabled="removingId === entry.id"
@@ -359,6 +364,7 @@ async function onUnblock(blockId: number) {
               <span class="action-text">{{ $t('friends.list.viewProfile') }}</span>
             </RouterLink>
             <button
+              v-press
               type="button"
               class="btn btn-danger icon-btn"
               :class="{ 'btn-danger-confirm': confirmingRemoveId === entry.id }"
@@ -401,6 +407,7 @@ async function onUnblock(blockId: number) {
               }}</span>
             </button>
             <button
+              v-press
               type="button"
               class="btn btn-warning icon-btn"
               :class="{ 'btn-warning-confirm': confirmingBlockId === entry.user.id }"
@@ -444,6 +451,7 @@ async function onUnblock(blockId: number) {
             <UserAvatar :name="entry.user.name" :avatar-url="entry.user.avatar_url" :size="40" />
             <span class="friend-name">{{ entry.user.name }}</span>
             <button
+              v-press
               type="button"
               class="btn"
               :disabled="unblockingId === entry.id"

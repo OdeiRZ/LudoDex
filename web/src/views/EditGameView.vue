@@ -207,13 +207,20 @@ async function onDelete() {
 
     <div v-if="entry" class="danger-zone">
       <button
+        v-press
         type="button"
         class="btn btn-danger"
         :class="{ 'btn-danger-confirm': confirmingDelete }"
         :disabled="submitting || deleting"
         @click="onDeleteClick"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
           <path
             stroke-linecap="round"
             stroke-linejoin="round"

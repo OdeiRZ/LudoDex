@@ -216,7 +216,7 @@ async function onSubmitPassword() {
           </p>
         </Transition>
 
-        <button type="submit" class="btn btn-primary" :disabled="profileSubmitting">
+        <button v-press type="submit" class="btn btn-primary" :disabled="profileSubmitting">
           {{ profileSubmitting ? $t('common.saving') : $t('profile.save') }}
         </button>
 
@@ -304,7 +304,7 @@ async function onSubmitPassword() {
           </p>
         </Transition>
 
-        <button type="submit" class="btn btn-primary" :disabled="passwordSubmitting">
+        <button v-press type="submit" class="btn btn-primary" :disabled="passwordSubmitting">
           {{ passwordSubmitting ? $t('common.saving') : $t('profile.changePassword') }}
         </button>
 

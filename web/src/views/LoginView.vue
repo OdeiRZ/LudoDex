@@ -45,7 +45,12 @@ async function onSubmit() {
 
         <div>
           <label for="password">{{ $t('auth.login.password') }}</label>
-          <PasswordInput id="password" v-model="password" required autocomplete="current-password" />
+          <PasswordInput
+            id="password"
+            v-model="password"
+            required
+            autocomplete="current-password"
+          />
           <RouterLink :to="{ name: 'forgot-password' }" class="forgot-link">{{
             $t('auth.login.forgotPasswordLink')
           }}</RouterLink>
@@ -53,7 +58,7 @@ async function onSubmit() {
 
         <p v-if="error" role="alert" class="alert alert-error">{{ error }}</p>
 
-        <button type="submit" class="btn btn-primary" :disabled="submitting">
+        <button v-press type="submit" class="btn btn-primary" :disabled="submitting">
           {{ submitting ? $t('auth.login.submitting') : $t('auth.login.submit') }}
         </button>
 

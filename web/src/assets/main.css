@@ -70,8 +70,15 @@
 /* Compressing on press (not just on hover) is what makes a click feel
 acknowledged - without this a tap and a miss look identical until the
 result shows up a moment later. Skipped for :disabled so a disabled
-button never looks pressable. */
-.btn:active:not(:disabled) {
+button never looks pressable.
+
+.is-pressed (v-press, directives/press.ts) covers the same look for a
+button whose own click handler synchronously disables it (every submit/
+action button) - :active never gets a frame to render there, since a
+disabled element can't match :active at all and Vue's patch usually lands
+before the next paint. */
+.btn:active:not(:disabled),
+.btn.is-pressed {
   transform: translateY(0) scale(0.96);
 }
 
@@ -251,7 +258,8 @@ friend gets checked. */
   }
 
   .btn:hover,
-  .btn:active:not(:disabled) {
+  .btn:active:not(:disabled),
+  .btn.is-pressed {
     transform: none;
   }
 

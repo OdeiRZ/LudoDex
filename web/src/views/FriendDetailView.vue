@@ -570,6 +570,7 @@ function loadMore() {
             v-if="
               friendDetail.playsLoaded && friendDetail.playsCurrentPage < friendDetail.playsLastPage
             "
+            v-press
             type="button"
             class="btn load-more"
             :disabled="friendDetail.playsLoading"

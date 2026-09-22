@@ -67,7 +67,9 @@ async function onSubmit() {
         </div>
 
         <div>
-          <label for="password_confirmation">{{ $t('auth.resetPassword.passwordConfirmation') }}</label>
+          <label for="password_confirmation">{{
+            $t('auth.resetPassword.passwordConfirmation')
+          }}</label>
           <PasswordInput
             id="password_confirmation"
             v-model="passwordConfirmation"
@@ -91,7 +93,7 @@ async function onSubmit() {
           {{ message }}
         </p>
 
-        <button type="submit" class="btn btn-primary" :disabled="submitting">
+        <button v-press type="submit" class="btn btn-primary" :disabled="submitting">
           {{ submitting ? $t('auth.resetPassword.submitting') : $t('auth.resetPassword.submit') }}
         </button>
 

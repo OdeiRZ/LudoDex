@@ -520,6 +520,7 @@ async function onClearCollection() {
             {{ $t('dashboard.cancel') }}
           </button>
           <button
+            v-press
             type="button"
             class="btn btn-danger"
             :disabled="!clearConfirmMatches || clearing"

@@ -95,7 +95,7 @@ async function onSubmit() {
           {{ message }}
         </p>
 
-        <button type="submit" class="btn btn-primary" :disabled="submitting">
+        <button v-press type="submit" class="btn btn-primary" :disabled="submitting">
           {{ submitting ? $t('auth.register.submitting') : $t('auth.register.submit') }}
         </button>
 

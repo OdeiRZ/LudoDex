@@ -334,6 +334,7 @@ onMounted(() => {
           {{ $t('dashboard.cancel') }}
         </button>
         <button
+          v-press
           type="button"
           class="btn btn-primary"
           :disabled="!reimportUsername.trim() || reimporting"
@@ -516,6 +517,7 @@ onMounted(() => {
 
     <button
       v-if="plays.loaded && plays.currentPage < plays.lastPage"
+      v-press
       type="button"
       class="btn load-more"
       :disabled="plays.loading"

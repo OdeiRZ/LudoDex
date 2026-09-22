@@ -155,6 +155,7 @@ async function onLookupBgg() {
           :aria-label="$t('gameForm.bggIdPlaceholder')"
         />
         <button
+          v-press
           type="button"
           class="btn"
           :disabled="!form.bgg_id || bggLookupLoading"
@@ -180,6 +181,7 @@ async function onLookupBgg() {
         </p>
 
         <label for="image_url">{{ $t('gameForm.imageUrl') }}</label>
+        <!-- prettier-ignore -->
         <input
           id="image_url"
           v-model="form.image_url"
@@ -217,7 +219,14 @@ async function onLookupBgg() {
       </div>
       <div class="field-compact">
         <label for="rating">{{ $t('gameForm.rating') }}</label>
-        <input id="rating" v-model.number="form.rating" type="number" min="0" max="10" step="0.01" />
+        <input
+          id="rating"
+          v-model.number="form.rating"
+          type="number"
+          min="0"
+          max="10"
+          step="0.01"
+        />
       </div>
       <div class="field-compact">
         <label for="weight">{{ $t('gameForm.weight') }}</label>
@@ -236,13 +245,21 @@ async function onLookupBgg() {
           <span class="minage-label-short">{{ $t('gameForm.minAgeShort') }}</span>
         </label>
         <div class="input-with-suffix">
-          <input id="min_age" v-model="form.min_age" type="text" :placeholder="$t('gameForm.minAgePlaceholder')" />
+          <input
+            id="min_age"
+            v-model="form.min_age"
+            type="text"
+            :placeholder="$t('gameForm.minAgePlaceholder')"
+          />
           <span class="input-suffix">{{ $t('gameForm.years') }}</span>
         </div>
       </div>
       <fieldset class="structure-field">
         <legend>{{ $t('gameForm.structureLegend') }}</legend>
-        <label><input v-model="form.has_campaign" type="checkbox" /> {{ $t('gameForm.hasCampaign') }}</label>
+        <label
+          ><input v-model="form.has_campaign" type="checkbox" />
+          {{ $t('gameForm.hasCampaign') }}</label
+        >
       </fieldset>
     </div>
 
@@ -276,7 +293,12 @@ async function onLookupBgg() {
       <fieldset class="range-field">
         <legend>{{ $t('gameForm.playtime') }}</legend>
         <div class="range-input">
-          <input id="min_playtime" v-model.number="form.min_playtime_minutes" type="number" min="1" />
+          <input
+            id="min_playtime"
+            v-model.number="form.min_playtime_minutes"
+            type="number"
+            min="1"
+          />
           <label for="min_playtime">
             <span class="range-label-short">{{ $t('gameForm.min') }}</span>
             <span class="range-label-full">{{ $t('gameForm.minFull') }}</span>
@@ -284,7 +306,12 @@ async function onLookupBgg() {
         </div>
         <span class="range-sep">–</span>
         <div class="range-input">
-          <input id="max_playtime" v-model.number="form.max_playtime_minutes" type="number" min="1" />
+          <input
+            id="max_playtime"
+            v-model.number="form.max_playtime_minutes"
+            type="number"
+            min="1"
+          />
           <label for="max_playtime">
             <span class="range-label-short">{{ $t('gameForm.max') }}</span>
             <span class="range-label-full">{{ $t('gameForm.maxFull') }}</span>
@@ -296,16 +323,26 @@ async function onLookupBgg() {
 
     <fieldset class="mode-fieldset">
       <legend>{{ $t('gameForm.modeLegend') }}</legend>
-      <label><input v-model="modeChoice" type="radio" value="cooperative" /> {{ $t('gameForm.cooperative') }}</label>
-      <label><input v-model="modeChoice" type="radio" value="competitive" /> {{ $t('gameForm.competitive') }}</label>
-      <label><input v-model="modeChoice" type="radio" value="both" /> {{ $t('gameForm.both') }}</label>
+      <label
+        ><input v-model="modeChoice" type="radio" value="cooperative" />
+        {{ $t('gameForm.cooperative') }}</label
+      >
+      <label
+        ><input v-model="modeChoice" type="radio" value="competitive" />
+        {{ $t('gameForm.competitive') }}</label
+      >
+      <label
+        ><input v-model="modeChoice" type="radio" value="both" /> {{ $t('gameForm.both') }}</label
+      >
     </fieldset>
 
     <div>
       <label for="base_game_id">{{ $t('gameForm.baseGame') }}</label>
       <select id="base_game_id" v-model="form.base_game_id">
         <option :value="null">{{ $t('gameForm.baseGameNone') }}</option>
-        <option v-for="game in baseGameOptions" :key="game.id" :value="game.id">{{ game.name }}</option>
+        <option v-for="game in baseGameOptions" :key="game.id" :value="game.id">
+          {{ game.name }}
+        </option>
       </select>
     </div>
 
@@ -339,7 +376,7 @@ async function onLookupBgg() {
       {{ message }}
     </p>
 
-    <button type="submit" class="btn btn-primary" :disabled="submitting">
+    <button v-press type="submit" class="btn btn-primary" :disabled="submitting">
       {{ submitLabel }}
     </button>
   </div>
