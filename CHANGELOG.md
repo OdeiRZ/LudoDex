@@ -153,6 +153,21 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Corregido
 
+- Guardar un juego editado sin tocar nada devolvía 403 ("No se ha
+  podido guardar el juego. Revisa los datos.") en cuanto otra cuenta
+  también lo tenía en su colección — reportado en vivo y reproducido
+  contra la cuenta real de producción. `UserGameController::update()`
+  trataba cualquier reenvío del formulario (siempre manda todos los
+  campos, no solo los cambiados) como una edición real del `Game`
+  compartido, disparando `UserGamePolicy::updateGame` — correcta para
+  un cambio genuino, pero no para un resubmit idéntico. Arreglado
+  comparando contra los valores ya guardados antes de decidir si la
+  petición toca el juego compartido (mecánicas/categorías incluidas,
+  como conjunto sin importar el orden). De paso, un 403 real (edición
+  genuina de un juego compartido) ya no muestra el mensaje genérico de
+  "revisa los datos" — explica que el juego es compartido y por qué no
+  se puede editar.
+
 - El "press" de `.btn:active` (segunda ronda de movimiento) nunca
   llegaba a pintarse en ningún botón de acción real — Guardar,
   Eliminar, Aceptar/Rechazar solicitud, Bloquear, Buscar, Reimportar...
