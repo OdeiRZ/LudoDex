@@ -255,7 +255,11 @@ async function onResendVerification() {
   </div>
 
   <main>
-    <RouterView />
+    <RouterView v-slot="{ Component }">
+      <Transition name="route" mode="out-in">
+        <component :is="Component" />
+      </Transition>
+    </RouterView>
   </main>
 
   <footer>
@@ -509,7 +513,6 @@ specificity, media query or not. */
     display: none;
   }
 }
-
 
 .logout-icon {
   display: none;

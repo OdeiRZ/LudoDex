@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { usePlaysStore, type Play } from '@/stores/plays'
@@ -103,14 +103,129 @@ async function onReimportConfirm() {
 // only ever sums rows that do have one (see PlayController::stats' own
 // docblock), so 0 here is ambiguous between "genuinely nothing" and
 // "unknown" without this flag.
+// Counts up to a changed stat instead of snapping to it, and flashes the
+// tile that changed - a reimport can add several plays at once, and
+// without this every tile just silently shows a bigger number with no
+// sign of which one (if any) actually moved. Skipped on the very first
+// render (nothing "changed" yet, there's no earlier value to animate
+// from). `displayTotalMinutes` feeds the same hours/minutes formatting
+// `totalTimeLabel` used to do directly off the store, so the label
+// itself counts up too instead of only the two bare-integer tiles.
+const displayTotalPlays = ref(0)
+const displayDistinctGames = ref(0)
+const displayTotalMinutes = ref(0)
+const flashTotalPlays = ref(false)
+const flashDistinctGames = ref(false)
+const flashTotalTime = ref(false)
+
+let totalPlaysFrame: number | undefined
+let distinctGamesFrame: number | undefined
+let totalMinutesFrame: number | undefined
+let totalPlaysFlashTimer: ReturnType<typeof setTimeout> | undefined
+let distinctGamesFlashTimer: ReturnType<typeof setTimeout> | undefined
+let totalTimeFlashTimer: ReturnType<typeof setTimeout> | undefined
+
+watch(
+  () => plays.stats?.total_plays,
+  (value, previous) => {
+    if (value === undefined) return
+    if (previous === undefined || previous === value) {
+      displayTotalPlays.value = value
+      return
+    }
+
+    if (totalPlaysFrame !== undefined) cancelAnimationFrame(totalPlaysFrame)
+    const start = performance.now()
+    const from = previous
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / 400)
+      displayTotalPlays.value = Math.round(from + (value - from) * progress)
+      totalPlaysFrame = progress < 1 ? requestAnimationFrame(tick) : undefined
+    }
+    totalPlaysFrame = requestAnimationFrame(tick)
+
+    clearTimeout(totalPlaysFlashTimer)
+    flashTotalPlays.value = false
+    requestAnimationFrame(() => {
+      flashTotalPlays.value = true
+      totalPlaysFlashTimer = setTimeout(() => {
+        flashTotalPlays.value = false
+      }, 700)
+    })
+  },
+  { immediate: true },
+)
+
+watch(
+  () => plays.stats?.distinct_games,
+  (value, previous) => {
+    if (value === undefined) return
+    if (previous === undefined || previous === value) {
+      displayDistinctGames.value = value
+      return
+    }
+
+    if (distinctGamesFrame !== undefined) cancelAnimationFrame(distinctGamesFrame)
+    const start = performance.now()
+    const from = previous
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / 400)
+      displayDistinctGames.value = Math.round(from + (value - from) * progress)
+      distinctGamesFrame = progress < 1 ? requestAnimationFrame(tick) : undefined
+    }
+    distinctGamesFrame = requestAnimationFrame(tick)
+
+    clearTimeout(distinctGamesFlashTimer)
+    flashDistinctGames.value = false
+    requestAnimationFrame(() => {
+      flashDistinctGames.value = true
+      distinctGamesFlashTimer = setTimeout(() => {
+        flashDistinctGames.value = false
+      }, 700)
+    })
+  },
+  { immediate: true },
+)
+
+watch(
+  () => plays.stats?.total_minutes,
+  (value, previous) => {
+    if (value === undefined) return
+    if (previous === undefined || previous === value) {
+      displayTotalMinutes.value = value
+      return
+    }
+
+    if (totalMinutesFrame !== undefined) cancelAnimationFrame(totalMinutesFrame)
+    const start = performance.now()
+    const from = previous
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / 400)
+      displayTotalMinutes.value = from + (value - from) * progress
+      totalMinutesFrame = progress < 1 ? requestAnimationFrame(tick) : undefined
+    }
+    totalMinutesFrame = requestAnimationFrame(tick)
+
+    clearTimeout(totalTimeFlashTimer)
+    flashTotalTime.value = false
+    requestAnimationFrame(() => {
+      flashTotalTime.value = true
+      totalTimeFlashTimer = setTimeout(() => {
+        flashTotalTime.value = false
+      }, 700)
+    })
+  },
+  { immediate: true },
+)
+
 const totalTimeLabel = computed(() => {
   const stats = plays.stats
   if (!stats || stats.duration_known_plays === 0) {
     return t('plays.statsNoDuration')
   }
 
-  const hours = Math.floor(stats.total_minutes / 60)
-  const minutes = stats.total_minutes % 60
+  const hours = Math.floor(displayTotalMinutes.value / 60)
+  const minutes = Math.round(displayTotalMinutes.value % 60)
 
   if (hours === 0) {
     return t('plays.duration', { minutes })
@@ -119,6 +234,15 @@ const totalTimeLabel = computed(() => {
   return minutes === 0
     ? t('plays.statsHoursOnly', { hours })
     : t('plays.statsHoursMinutes', { hours, minutes })
+})
+
+onUnmounted(() => {
+  if (totalPlaysFrame !== undefined) cancelAnimationFrame(totalPlaysFrame)
+  if (distinctGamesFrame !== undefined) cancelAnimationFrame(distinctGamesFrame)
+  if (totalMinutesFrame !== undefined) cancelAnimationFrame(totalMinutesFrame)
+  clearTimeout(totalPlaysFlashTimer)
+  clearTimeout(distinctGamesFlashTimer)
+  clearTimeout(totalTimeFlashTimer)
 })
 
 // Collapsed by default (asked for directly): a top_played entry with a
@@ -169,7 +293,13 @@ onMounted(() => {
         :aria-expanded="reimportPanelOpen"
         @click="toggleReimportPanel"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
           <polyline points="23 4 23 10 17 10" stroke-linecap="round" stroke-linejoin="round" />
           <polyline points="1 20 1 14 7 14" stroke-linecap="round" stroke-linejoin="round" />
           <path
@@ -229,15 +359,15 @@ onMounted(() => {
     only ever holds whatever pages have been paged through so far. Hidden
     until there's at least one play, same as the search box below. -->
     <div v-if="plays.stats && plays.stats.total_plays > 0" class="stats-bar">
-      <div class="stat-tile">
-        <span class="stat-value">{{ plays.stats.total_plays }}</span>
+      <div class="stat-tile" :class="{ 'is-flash': flashTotalPlays }">
+        <span class="stat-value">{{ displayTotalPlays }}</span>
         <span class="stat-label">{{ $t('plays.statsTotalPlays') }}</span>
       </div>
-      <div class="stat-tile">
-        <span class="stat-value">{{ plays.stats.distinct_games }}</span>
+      <div class="stat-tile" :class="{ 'is-flash': flashDistinctGames }">
+        <span class="stat-value">{{ displayDistinctGames }}</span>
         <span class="stat-label">{{ $t('plays.statsDistinctGames') }}</span>
       </div>
-      <div class="stat-tile">
+      <div class="stat-tile" :class="{ 'is-flash': flashTotalTime }">
         <span class="stat-value">{{ totalTimeLabel }}</span>
         <span class="stat-label">{{ $t('plays.statsTotalTime') }}</span>
       </div>
@@ -290,8 +420,15 @@ onMounted(() => {
               <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" />
             </svg>
           </component>
-          <ul v-if="entry.breakdown && expandedTopPlayed.has(entry.game.id)" class="top-played-breakdown">
-            <li v-for="item in entry.breakdown" :key="item.game.id" class="top-played-breakdown-row">
+          <ul
+            v-if="entry.breakdown && expandedTopPlayed.has(entry.game.id)"
+            class="top-played-breakdown"
+          >
+            <li
+              v-for="item in entry.breakdown"
+              :key="item.game.id"
+              class="top-played-breakdown-row"
+            >
               <span class="top-played-breakdown-name">{{ item.game.name }}</span>
               <span class="top-played-breakdown-count">
                 {{ $t('plays.statsMostPlayedCount', { count: item.count }, item.count) }}
@@ -338,14 +475,15 @@ onMounted(() => {
       {{ $t('plays.empty') }}<br />
       <RouterLink :to="{ name: 'import-bgg', query: { tab: 'plays' } }">{{
         $t('plays.importLink')
-      }}</RouterLink>.
+      }}</RouterLink
+      >.
     </p>
 
     <p v-else-if="plays.entries.length === 0" class="empty-state">
       {{ $t('plays.noMatches') }}
     </p>
 
-    <ul v-else class="play-list">
+    <TransitionGroup v-else tag="ul" name="play-list" class="play-list">
       <li v-for="(play, index) in plays.entries" :key="play.id" class="play-row">
         <span class="play-index">{{ index + 1 }}</span>
 
@@ -356,12 +494,7 @@ onMounted(() => {
           :title="$t('picker.viewDetails')"
           @click="detailGame = play.game"
         >
-          <img
-            v-if="play.game.image_url"
-            :src="play.game.image_url"
-            alt=""
-            class="play-cover"
-          />
+          <img v-if="play.game.image_url" :src="play.game.image_url" alt="" class="play-cover" />
           <img v-else :src="FALLBACK_ICON_URL" alt="" class="play-cover play-cover-fallback" />
         </button>
 
@@ -379,7 +512,7 @@ onMounted(() => {
           </span>
         </div>
       </li>
-    </ul>
+    </TransitionGroup>
 
     <button
       v-if="plays.loaded && plays.currentPage < plays.lastPage"
@@ -434,6 +567,25 @@ h1 {
   padding: var(--space-2) var(--space-3);
   background: var(--color-surface);
   border-radius: var(--radius);
+}
+
+.stat-tile.is-flash {
+  animation: stat-tile-flash 0.7s ease;
+}
+
+@keyframes stat-tile-flash {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 50%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--color-primary) 0%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-tile.is-flash {
+    animation: none;
+  }
 }
 
 .stat-value {
@@ -637,6 +789,51 @@ the full row width instead of its own natural checkbox size. */
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+}
+
+/* Rows fading/sliding in (a fresh search, a "cargar más" page landing)
+   and out (search narrowing the list) instead of cutting - a plain
+   flex column, so (unlike the collection grid's CSS-grid version of
+   this same fix) the usual TransitionGroup `position: absolute` leave
+   trick works fine here for a smooth reflow. */
+.play-list-enter-active {
+  animation: play-list-in 0.3s ease;
+}
+
+@keyframes play-list-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.play-list-leave-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+  position: absolute;
+}
+
+.play-list-leave-to {
+  opacity: 0;
+  transform: translateX(10px);
+}
+
+.play-list-move {
+  transition: transform 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play-list-enter-active,
+  .play-list-leave-active,
+  .play-list-move {
+    animation: none;
+    transition: none;
+  }
+
+  .play-list-leave-to {
+    transform: none;
+  }
 }
 
 .play-row {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getLocale } from '@/i18n'
 
@@ -9,13 +9,35 @@ const props = defineProps<{
 
 const { t } = useI18n()
 
+// Bars start pinned at the floor height and only grow to their real
+// height one frame after mount - setting the real height on the very
+// first render would leave nothing for `transition: height` to
+// actually animate from, so the chart would just appear already-drawn
+// instead of growing in.
+const grown = ref(false)
+
+onMounted(() => {
+  requestAnimationFrame(() => {
+    grown.value = true
+  })
+})
+
+// The exact count behind each bar used to live only in a hover
+// tooltip - unreachable by touch. A tapped bar now toggles the same
+// tooltip via this ref; tapping the same bar again, a different bar,
+// or losing focus closes it. Hover still works for a mouse (see the
+// scoped :hover rule below), independent of this.
+const activeMonth = ref<string | null>(null)
+
+function toggleTooltip(month: string) {
+  activeMonth.value = activeMonth.value === month ? null : month
+}
+
 // Native Intl over a hand-rolled month-name table - already the pattern
 // this project uses elsewhere (Intl.ListFormat for friend name lists) -
 // so "Ene"/"Jan" etc. come out right for whichever locale is active for
 // free, no separate translation table to keep in sync.
-const monthFormatter = computed(
-  () => new Intl.DateTimeFormat(getLocale(), { month: 'short' }),
-)
+const monthFormatter = computed(() => new Intl.DateTimeFormat(getLocale(), { month: 'short' }))
 
 function formatMonth(month: string): string {
   // month is "YYYY-MM" - the day is fixed at 1 and never shown, only fed
@@ -50,12 +72,26 @@ const currentMonthCount = computed(() => props.months.at(-1)?.count ?? 0)
       }}</span>
     </div>
     <div class="activity-chart">
-      <div v-for="bar in bars" :key="bar.month" class="activity-bar-col" :class="{ 'is-peak': bar.isPeak }">
-        <div class="activity-bar" :style="{ height: `${bar.heightPercent}%` }">
+      <div
+        v-for="(bar, index) in bars"
+        :key="bar.month"
+        class="activity-bar-col"
+        :class="{ 'is-peak': bar.isPeak }"
+      >
+        <button
+          type="button"
+          class="activity-bar"
+          :class="{ 'is-active': activeMonth === bar.month }"
+          :style="{
+            height: `${grown ? bar.heightPercent : 4}%`,
+            transitionDelay: `${index * 60}ms`,
+          }"
+          @click="toggleTooltip(bar.month)"
+        >
           <span class="activity-tooltip">{{
             t('plays.activityTooltip', { month: bar.label, count: bar.count }, bar.count)
           }}</span>
-        </div>
+        </button>
         <span class="activity-month">{{ bar.label }}</span>
       </div>
     </div>
@@ -110,16 +146,22 @@ const currentMonthCount = computed(() => props.months.at(-1)?.count ?? 0)
 .activity-bar {
   width: 100%;
   max-width: 28px;
+  border: none;
+  padding: 0;
   border-radius: 4px 4px 0 0;
   background: color-mix(in srgb, var(--color-primary) 35%, transparent);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition:
+    height 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
     background-color 0.15s ease,
     transform 0.15s ease;
   transform-origin: bottom;
   position: relative;
 }
 
-.activity-bar-col:hover .activity-bar {
+.activity-bar-col:hover .activity-bar,
+.activity-bar.is-active {
   background: var(--color-primary);
   transform: scaleY(1.03);
 }
@@ -147,7 +189,8 @@ const currentMonthCount = computed(() => props.months.at(-1)?.count ?? 0)
     transform 0.12s ease;
 }
 
-.activity-bar-col:hover .activity-tooltip {
+.activity-bar-col:hover .activity-tooltip,
+.activity-bar.is-active .activity-tooltip {
   opacity: 1;
   transform: translate(-50%, -10px) scale(1);
 }

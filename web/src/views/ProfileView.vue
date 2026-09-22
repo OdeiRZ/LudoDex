@@ -210,9 +210,11 @@ async function onSubmitPassword() {
         >
           {{ message }}
         </p>
-        <p v-if="profileSaved" role="status" class="alert alert-success">
-          {{ $t('profile.saved') }}
-        </p>
+        <Transition name="save-pop">
+          <p v-if="profileSaved" role="status" class="alert alert-success">
+            {{ $t('profile.saved') }}
+          </p>
+        </Transition>
 
         <button type="submit" class="btn btn-primary" :disabled="profileSubmitting">
           {{ profileSubmitting ? $t('common.saving') : $t('profile.save') }}
@@ -296,9 +298,11 @@ async function onSubmitPassword() {
         >
           {{ message }}
         </p>
-        <p v-if="passwordSaved" role="status" class="alert alert-success">
-          {{ $t('profile.passwordSaved') }}
-        </p>
+        <Transition name="save-pop">
+          <p v-if="passwordSaved" role="status" class="alert alert-success">
+            {{ $t('profile.passwordSaved') }}
+          </p>
+        </Transition>
 
         <button type="submit" class="btn btn-primary" :disabled="passwordSubmitting">
           {{ passwordSubmitting ? $t('common.saving') : $t('profile.changePassword') }}
@@ -314,6 +318,26 @@ async function onSubmitPassword() {
 </template>
 
 <style scoped>
+/* The "guardado" banner used to just appear - a small pop-in reads as
+   an actual confirmation happening, not text that was simply always
+   there and became visible. */
+.save-pop-enter-active {
+  animation: save-pop-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes save-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .save-pop-enter-active {
+    animation: none;
+  }
+}
+
 .profile {
   max-width: 480px;
   margin: 0 auto;

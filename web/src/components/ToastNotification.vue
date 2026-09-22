@@ -49,14 +49,39 @@ tint, and a different shade per light/dark theme). */
   color: #fff;
 }
 
-.toast-enter-active,
-.toast-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+/* A small spring overshoot on entry reads as "alive" rather than a flat
+   fade - the leave stays a plain fade+drop so the toast doesn't feel
+   like it's fighting the user on the way out. */
+.toast-enter-active {
+  transition:
+    opacity 0.25s ease,
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.toast-enter-from,
+.toast-leave-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.toast-enter-from {
+  opacity: 0;
+  transform: translateX(-50%) translateY(10px) scale(0.9);
+}
+
 .toast-leave-to {
   opacity: 0;
   transform: translateX(-50%) translateY(8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-enter-active,
+  .toast-leave-active {
+    transition: opacity 0.15s ease;
+  }
+
+  .toast-enter-from {
+    transform: translateX(-50%);
+  }
 }
 </style>

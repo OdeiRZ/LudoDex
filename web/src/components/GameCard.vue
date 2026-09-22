@@ -74,7 +74,8 @@ the card's own edge instead of floating a couple pixels outside it -
 asked for directly after the first version left a visible gap. Teal by
 default (same color as the "Lo tengo" badge - a plain owned base game
 is the ordinary case), overridden below for the other two. */
-.game-cover:hover {
+.game-cover:hover,
+.game-cover:active {
   transform: translateY(-4px);
   box-shadow: var(--shadow-card-hover);
   outline: 3px solid var(--color-primary);
@@ -93,7 +94,8 @@ the plain hover default so it overrides it for an expansion card. */
   border-left: 4px solid var(--color-expansion);
 }
 
-.game-cover.expansion:hover {
+.game-cover.expansion:hover,
+.game-cover.expansion:active {
   outline-color: var(--color-expansion);
 }
 
@@ -105,7 +107,8 @@ yet) should still read as "wishlist" first on hover, since wanting it
 is the more actionable fact here - equal specificity to the expansion
 rule, so source order is what decides which wins when both classes are
 present. */
-.game-cover.wishlist:hover {
+.game-cover.wishlist:hover,
+.game-cover.wishlist:active {
   outline-color: var(--color-accent);
 }
 
@@ -191,7 +194,8 @@ gradient or how tall the scrim ends up being. */
     transition: none;
   }
 
-  .game-cover:hover {
+  .game-cover:hover,
+  .game-cover:active {
     transform: none;
   }
 }

@@ -7,6 +7,42 @@
   padding: var(--space-6) var(--space-4) var(--space-8);
 }
 
+/* Route changes (Colección <-> Partidas <-> Amigos <-> ¿A qué jugamos?)
+   cross-fading with a small lift instead of hard-cutting between views.
+   `mode="out-in"` on App.vue's own <Transition> (not just this CSS) is
+   what keeps the old and new view from ever being mounted at the same
+   time - several of these views run their own onMounted() fetches/
+   debounced search timers, so a brief double-mount would fire two of
+   those at once. */
+.route-enter-active,
+.route-leave-active {
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.route-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.route-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-enter-active,
+  .route-leave-active {
+    transition: none;
+  }
+
+  .route-enter-from,
+  .route-leave-to {
+    transform: none;
+  }
+}
+
 /* Buttons */
 .btn {
   display: inline-flex;
@@ -209,7 +245,9 @@ friend gets checked. */
 
 @media (prefers-reduced-motion: reduce) {
   .btn {
-    transition: background-color 0.15s, border-color 0.15s;
+    transition:
+      background-color 0.15s,
+      border-color 0.15s;
   }
 
   .btn:hover,

@@ -164,6 +164,25 @@ const expansionCounts = useExpansionCounts(computed(() => games.collection))
 
 const gamesListRef = ref<HTMLElement | null>(null)
 
+// useCollectionScrubber needs the actual <ul> DOM node, not a component
+// instance - a plain `ref` on <TransitionGroup> (below, wrapping the
+// list so cards fade in/out instead of cutting) resolves to the
+// component's own public instance, not its root element, unlike a ref
+// on a plain tag. Its `$el` *is* that element (TransitionGroup renders
+// its `tag` prop directly as its root), so this just unwraps it into
+// the same gamesListRef the scrubber already expects - confirmed
+// directly (a stray `HTMLElement` check on the ref's own runtime value
+// came back false/an object before this fix).
+const gamesTransitionGroupRef = ref<{ $el?: HTMLElement } | null>(null)
+
+watch(
+  gamesTransitionGroupRef,
+  (instance) => {
+    gamesListRef.value = instance?.$el ?? null
+  },
+  { immediate: true },
+)
+
 const scrubberLabels = computed(() => ({
   name: t('dashboard.azScrubberLabel'),
   year: t('dashboard.yearScrubberLabel'),
@@ -516,14 +535,21 @@ async function onClearCollection() {
       </p>
     </template>
 
-    <ul ref="gamesListRef" class="games" :class="{ compact: density === 'compact' }">
+    <TransitionGroup
+      tag="ul"
+      name="game-grid"
+      ref="gamesTransitionGroupRef"
+      class="games"
+      :class="{ compact: density === 'compact' }"
+    >
       <li
-        v-for="entry in filtered"
+        v-for="(entry, index) in filtered"
         :key="entry.id"
         class="game-card"
         :data-letter="normalizeLetter(entry.game.name)"
         :data-year-bucket="yearBucket(entry.game.year_published)"
         :data-rank-bucket="rankBucket(entry.game.bgg_rank)"
+        :style="{ '--stagger-delay': `${Math.min(index, 14) * 35}ms` }"
       >
         <GameCard
           :image-url="entry.game.image_url"
@@ -660,7 +686,7 @@ async function onClearCollection() {
           </div>
         </GameCard>
       </li>
-    </ul>
+    </TransitionGroup>
 
     <GameDetailModal v-if="detailEntry" :game="detailEntry.game" @close="detailEntry = null" />
 
@@ -1393,6 +1419,60 @@ one breakpoint. */
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: var(--space-4);
+}
+
+/* No <TransitionGroup> anywhere in the app until now - every list
+   (this grid included) just cut on add/remove. Enter is staggered by
+   `--stagger-delay` (set per <li> above, capped at 14 cards' worth so
+   a large collection's tail doesn't queue up a multi-second cascade on
+   every filter/sort change); leave and reorder (a sort/filter changing
+   which cards are visible or where) both stay a plain, fast fade so
+   removing/re-filtering doesn't feel sluggish the way a spring would
+   here. */
+.game-grid-enter-active {
+  animation: game-grid-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  animation-delay: var(--stagger-delay, 0ms);
+}
+
+@keyframes game-grid-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+}
+
+/* No `position: absolute` here (the usual TransitionGroup leave trick) -
+   .games is a CSS grid, and pulling a leaving item out of grid flow
+   drops it back to the normal document flow relative to the nearest
+   positioned ancestor instead of holding its own grid cell, which
+   looked worse (a jump to the grid's top-left corner) than just letting
+   the grid reflow immediately under the fading item. */
+.game-grid-leave-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.game-grid-leave-to {
+  opacity: 0;
+  transform: scale(0.96);
+}
+
+.game-grid-move {
+  transition: transform 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-grid-enter-active,
+  .game-grid-leave-active,
+  .game-grid-move {
+    animation: none;
+    transition: none;
+  }
+
+  .game-grid-leave-to {
+    transform: none;
+  }
 }
 
 .games.compact {
