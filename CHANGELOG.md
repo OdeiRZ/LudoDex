@@ -153,6 +153,20 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Corregido
 
+- El "press" de `.btn:active` (segunda ronda de movimiento) nunca
+  llegaba a pintarse en ningún botón de acción real — Guardar,
+  Eliminar, Aceptar/Rechazar solicitud, Bloquear, Buscar, Reimportar...
+  — señalado directamente tras la tercera ronda. Causa: `:active` no
+  puede aplicar a un elemento ya `disabled`, y el propio manejador de
+  clic de esos botones pone `disabled` de forma síncrona antes de que
+  el navegador llegue a pintar el frame con el clic activo — confirmado
+  disparando un `mousedown` real y viendo `btn.matches(':active')`
+  devolver `false`. Arreglado con una directiva nueva (`v-press`,
+  `directives/press.ts`) que marca el botón con una clase `.is-pressed`
+  en `pointerdown` — antes de que Vue tenga ocasión de deshabilitarlo —
+  y la retira al soltar o, si el botón ya está deshabilitado para
+  entonces, con un timeout de seguridad.
+
 - `SkeletonGameCard.vue` animaba el brillo con `background-position`,
   que fuerza repintado en cada frame — con hasta 8 tarjetas
   parpadeando a la vez durante una carga real, competía de verdad por
