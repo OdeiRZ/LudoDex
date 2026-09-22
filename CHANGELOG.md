@@ -9,6 +9,29 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Añadido
 
+- Segundo pase de movimiento, mismo criterio que el de PequeDex: explorado
+  antes en un artefacto con 10 propuestas sobre componentes reales
+  (`GameCard.vue`, `ActivityChart.vue`, `stat-tile` de "Tus partidas",
+  `DensityToggle.vue`...). El lift al pasar el ratón sobre una portada
+  gana su equivalente `:active` (invisible al tacto hasta ahora); el
+  tooltip con el número exacto de partidas por mes de `ActivityChart.vue`
+  pasa de `:hover`-only a también abrirse al tocar la barra (mismo
+  hallazgo que el "Ritmo de hoy" de PequeDex), y sus barras crecen desde
+  el suelo en cascada al cargar en vez de aparecer ya dibujadas; el toast
+  gana el mismo resorte de entrada que ya tenía el dado del header; el
+  icono de `DensityToggle.vue` gira/cruza al alternar en vez de
+  sustituirse de golpe; "Partidas jugadas"/"Juegos distintos"/"Tiempo
+  total" cuentan hasta el nuevo valor y destellan al cambiar; la
+  colección y la lista de partidas ganan entrada/salida con fundido (la
+  colección además en cascada, acotada a 14 tarjetas); y cambiar entre
+  Colección/¿A qué jugamos?/Partidas/Amigos cruza con un fundido breve
+  en vez de cortar de golpe. Hallazgo propio durante la implementación:
+  poner `ref` directamente en un `<TransitionGroup>` (para la colección)
+  rompía en silencio `useCollectionScrubber` - ese ref pasa a ser la
+  instancia del componente, no el `<ul>` real que el scrubber A-Z espera,
+  confirmado con una prueba aislada de Vue antes de aplicar el cambio y
+  corregido derivando el `<ul>` real desde `.$el`.
+
 - Un pase de interacción/vivacidad tras revisar la web y notar que
   funcionaba bien pero apenas tenía brillo — casi ningún `transition`/
   `animation` en el CSS base. Probado antes de tocar código con un
