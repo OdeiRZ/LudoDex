@@ -100,8 +100,18 @@ class PlayStatsCalculator
         // pull in full" reasoning $playCounts above already relies on.
         $monthlyRows = $user->plays()->toBase()->select('played_at', 'quantity')->get();
 
+        // startOfMonth() first, then subtract - subMonths() on a bare
+        // now() overflows into the *next* month whenever the current
+        // day-of-month doesn't exist that many months back (e.g. today
+        // the 30th, minus 7 months, lands on "Feb 30" which Carbon
+        // resolves to Mar 2 instead of erroring) - found in CI failing
+        // intermittently around month-end/day-29-31, two different
+        // $monthsAgo values silently collapsing onto the same "Y-m" key
+        // and leaving only 11 zero-filled months instead of 12. The 1st
+        // of any month always exists, so anchoring there first removes
+        // the overflow entirely regardless of what day "today" is.
         $monthlyActivity = collect(range(11, 0))
-            ->mapWithKeys(fn (int $monthsAgo) => [now()->subMonths($monthsAgo)->format('Y-m') => 0]);
+            ->mapWithKeys(fn (int $monthsAgo) => [now()->startOfMonth()->subMonths($monthsAgo)->format('Y-m') => 0]);
 
         foreach ($monthlyRows as $row) {
             $month = Carbon::parse($row->played_at)->format('Y-m');

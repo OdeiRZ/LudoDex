@@ -192,6 +192,23 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   capa `::after` aparte animada con `transform: translateX(...)`, que
   el navegador compone sin tocar el hilo principal.
 
+- CI en rojo de forma intermitente desde el 26-29/09 (visto en las dos
+  PR de dependabot del finde y en el propio push a `main`, todas con el
+  mismo fallo): `PlaysStatsTest > it returns 12 zero-filled months`
+  esperaba 12 claves y recibía 11.
+  `PlayStatsCalculator::calculate()` construía cada mes con
+  `now()->subMonths($monthsAgo)->format('Y-m')` sin anclar antes al
+  día 1 — Carbon, al restar meses sobre un día que no existe en el mes
+  destino, desborda al mes siguiente en vez de fallar (hoy, día 30,
+  restando 7 meses cae en "30 de febrero", inexistente, y Carbon lo
+  reinterpreta como el 2 de marzo), así que dos `$monthsAgo` distintos
+  acababan formateando el mismo `"Y-m"` y `mapWithKeys()` colapsaba esa
+  clave duplicada en una sola. Solo se manifiesta en días concretos del
+  mes (29-31, según qué mes caiga 7 meses atrás), lo que explica que
+  llevara tiempo sin saltar en local. Arreglado anclando
+  `now()->startOfMonth()` antes de restar — el día 1 siempre existe en
+  cualquier mes, así que el desbordamiento deja de ser posible.
+
 ## [0.12.0] - 2026-09-10
 
 ### Añadido

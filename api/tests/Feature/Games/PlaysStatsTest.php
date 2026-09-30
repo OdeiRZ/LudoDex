@@ -146,7 +146,11 @@ it('returns 12 zero-filled months, oldest first, for a fresh user', function () 
     $months = collect($response->json('data.monthly_activity'));
     expect($months)->toHaveCount(12);
     expect($months->pluck('count')->unique()->all())->toBe([0]);
-    expect($months->first()['month'])->toBe(now()->subMonths(11)->format('Y-m'));
+    // startOfMonth() first, matching PlayStatsCalculator - a bare
+    // now()->subMonths(11) can overflow into a different month than the
+    // implementation actually produces whenever today's day-of-month
+    // doesn't exist 11 months back (see the comment on that calculator).
+    expect($months->first()['month'])->toBe(now()->startOfMonth()->subMonths(11)->format('Y-m'));
     expect($months->last()['month'])->toBe(now()->format('Y-m'));
 });
 
