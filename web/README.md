@@ -439,3 +439,32 @@ tramo es acumulativo (`max-width`), de más ancho a más estrecho:
 | `≤428px` | "Rellenar desde BGG" se abrevia a "Rellenar" (`Fill from BGG` → `Fill` en inglés) — el botón vive en una fila que no llega a partirse en dos líneas, así que solo puede ceder texto, no altura. |
 | `≤366px` | Edad recomendada y Estructura comparten fila sin el `min-width: 140px` que heredan de `.field-row` por defecto (lo necesitan menos que ese mínimo genérico), y Estructura recorta su padding lateral. |
 | `≤344px` | "Edad recomendada" se abrevia a "Edad recom." (`Recommended age` → `Rec. age` en inglés). |
+
+## Barra de estado en la app instalada
+
+Reportado en vivo en PequeDex (proyecto hermano) y replicado aquí: al
+abrir la app ya instalada como PWA en Android, la barra de estado
+(el borde superior) se veía de un color distinto al fondo real de la
+cabecera. Causa: `<meta name="theme-color">` en `index.html` estaba
+fijo en el teal de acento (`#0d9488`, el mismo color de `--color-primary`
+que usan los botones), mientras que el fondo real es `--color-background`
+(`#0f172a` en oscuro, el tema por defecto — `#f8fafc` en claro) — Android
+pinta la barra de estado de una PWA instalada con `theme-color`, no con
+el color de fondo real de la página.
+
+`index.html` pasa de una única etiqueta fija a tres: una
+`#theme-color-override` sin `media`, vacía de partida (un `content=""`
+es inválido y el navegador la ignora, cayendo a la siguiente que sí
+matchee) y dos más con `media="(prefers-color-scheme: light/dark)"`
+reflejando `--color-background` de cada tema. El script inline que ya
+existía (aplica `data-theme` antes de pintar, para no tener flash del
+tema equivocado) se amplía para rellenar también esa etiqueta en la
+misma pasada síncrona — tuvo que moverse **después** de los tres
+`<meta name="theme-color">` en el documento: el script original vivía
+antes, y `getElementById('theme-color-override')` no encontraba nada
+todavía en ese punto del parseo (fallo real, encontrado al comprobarlo
+en el navegador, no solo leyendo el código). `useTheme.ts` →
+`apply()` hace lo mismo cuando el usuario toca el toggle más tarde, sin
+necesitar recargar. `manifest.webmanifest` también pasa su `theme_color`
+a coincidir con `background_color` (`#0f172a`, el tema oscuro por
+defecto), para el instante de splash antes de que cargue el JS.

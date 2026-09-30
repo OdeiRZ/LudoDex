@@ -2,25 +2,46 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- theme-color-override has no `media`, so once it has content it
+    wins over the two prefers-color-scheme tags below regardless of OS
+    setting - the inline script further down (cold load) and
+    useTheme.ts (a later toggle) are the only two places that set it.
+    Empty content is invalid and skipped by the browser, falling
+    through to whichever of the two below matches - same "explicit
+    choice beats OS default, no choice follows the system" rule as
+    data-theme. Must be parsed before that script runs, or
+    getElementById would find nothing yet. -->
+    <meta name="theme-color" id="theme-color-override" content="">
+    <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
     <script>
       // Applies a saved theme choice before anything paints, so switching
       // pages/reloading never flashes the "wrong" theme first. No stored
       // value means the user never overrode the OS preference - leave
       // data-theme unset so the prefers-color-scheme default in base.css
       // keeps deciding, same as before this toggle existed.
+      //
+      // Also mirrors that choice onto #theme-color-override above, so the
+      // Android status bar of an installed PWA matches --color-background
+      // instead of the fixed teal accent - same override-beats-media-query
+      // pattern as data-theme itself, done in the same synchronous pass so
+      // there's no flash of a mismatched status bar either. Must run after
+      // that meta tag is parsed (see comment above it).
       (function () {
         var stored = localStorage.getItem('ludodex-theme')
         if (stored === 'light' || stored === 'dark') {
           document.documentElement.setAttribute('data-theme', stored)
+          document
+            .getElementById('theme-color-override')
+            .setAttribute('content', stored === 'dark' ? '#0f172a' : '#f8fafc')
         }
       })()
     </script>
-    <link rel="icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/manifest.webmanifest">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0d9488">
     <meta
       name="description"
       content="Inventario virtual de juegos de mesa: da de alta tu colección (a mano o importándola desde BoardGameGeek) y usa un selector con filtros para decidir a qué jugar."
