@@ -9,6 +9,25 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Añadido
 
+- **Sonido y vibración al interactuar con la interfaz**, con un
+  checkbox propio en "Tu cuenta" junto a `discoverable`/
+  `share_activity` (mismo formulario, mismo `PUT /api/user`, columna
+  `interaction_feedback_enabled` activada por defecto — no hay
+  interruptores independientes en este repo). Nuevo composable
+  `useFeedback.ts`: 3 tonos cortos sintetizados con Web Audio (sin
+  ningún fichero de audio) + `navigator.vibrate()` con feature-detect,
+  calcado del que ya está en producción en PequeDex. Enganchado en la
+  directiva `v-press` (ya aplicada a ~24 botones primarios/submit de
+  toda la app, así que los cubre sin tocarlos uno a uno) y en el toast
+  store (`toast.ts`), junto al gesto visual que ya existía — el dado
+  girando en `App.vue` en cada confirmación de éxito. También
+  enganchado directamente en `PickerView.vue` (solo-mode, orden,
+  mostrar/ocultar filtros — la pantalla más táctil de la app, sin
+  ningún `v-press` hasta ahora), los borrados con clic-dos-veces de
+  `DashboardView.vue`/`EditGameView.vue`, y la resolución del polling
+  de importación por usuario BGG en `ImportBggView.vue` (no pasa por
+  ningún click).
+
 - Tercer pase de movimiento, esta vez centrado en tarjetas, enlaces,
   categorías, botones e interfaz — a petición explícita de profundizar
   "extensamente" en el tema tras los dos pases anteriores. Investigado
