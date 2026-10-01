@@ -37,6 +37,7 @@ const profileForm = reactive({
   bgg_username: '' as string | null,
   discoverable: false,
   share_activity: true,
+  interaction_feedback_enabled: true,
 })
 const profileErrors = ref<Record<string, string[]>>({})
 const profileSubmitting = ref(false)
@@ -62,6 +63,7 @@ onMounted(async () => {
     profileForm.bgg_username = auth.user.bgg_username
     profileForm.discoverable = auth.user.discoverable
     profileForm.share_activity = auth.user.share_activity
+    profileForm.interaction_feedback_enabled = auth.user.interaction_feedback_enabled
   }
 })
 
@@ -200,6 +202,18 @@ async function onSubmitPassword() {
             {{ $t('profile.shareActivity') }}
           </label>
           <p class="discoverable-hint">{{ $t('profile.shareActivityHint') }}</p>
+        </div>
+
+        <div>
+          <label class="checkbox-label" for="interaction_feedback_enabled">
+            <input
+              id="interaction_feedback_enabled"
+              v-model="profileForm.interaction_feedback_enabled"
+              type="checkbox"
+            />
+            {{ $t('profile.interactionFeedback') }}
+          </label>
+          <p class="discoverable-hint">{{ $t('profile.interactionFeedbackHint') }}</p>
         </div>
 
         <p

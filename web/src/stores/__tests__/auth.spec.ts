@@ -23,6 +23,7 @@ const user = {
   email_verified_at: null,
   discoverable: false,
   share_activity: true,
+  interaction_feedback_enabled: true,
 }
 
 describe('useAuthStore', () => {
@@ -126,6 +127,7 @@ describe('useAuthStore', () => {
       email: user.email,
       discoverable: false,
       share_activity: true,
+      interaction_feedback_enabled: true,
     })
 
     expect(store.user).toEqual(updated)

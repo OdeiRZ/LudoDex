@@ -265,6 +265,9 @@ export default {
     shareActivity: 'Permitir que mis amigos vean mi colección y mis partidas',
     shareActivityHint:
       'Con esto desactivado, tus amigos ya aceptados no podrán ver tu colección al comparar con la suya, en su Picker en grupo contigo, ni tu historial de partidas.',
+    interactionFeedback: 'Sonido y vibración al interactuar',
+    interactionFeedbackHint:
+      'Un sonido breve y una vibración (si el dispositivo lo permite) al pulsar botones importantes.',
     saved: 'Cambios guardados.',
     save: 'Guardar cambios',
     genericError: 'No se han podido guardar los cambios.',

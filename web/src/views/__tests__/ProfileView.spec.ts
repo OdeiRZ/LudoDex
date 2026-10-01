@@ -24,6 +24,7 @@ const user = {
   email_verified_at: null,
   discoverable: false,
   share_activity: true,
+  interaction_feedback_enabled: true,
 }
 
 // Pre-seeding auth.user keeps onMounted from calling fetchCurrentUser()
@@ -48,6 +49,9 @@ describe('ProfileView personal data form', () => {
     expect((wrapper.find('#bgg_username').element as HTMLInputElement).value).toBe('odei_bgg')
     expect((wrapper.find('#discoverable').element as HTMLInputElement).checked).toBe(false)
     expect((wrapper.find('#share_activity').element as HTMLInputElement).checked).toBe(true)
+    expect(
+      (wrapper.find('#interaction_feedback_enabled').element as HTMLInputElement).checked,
+    ).toBe(true)
   })
 
   it('saves the profile and shows a success message', async () => {
@@ -65,6 +69,7 @@ describe('ProfileView personal data form', () => {
       bgg_username: 'odei_bgg',
       discoverable: false,
       share_activity: true,
+      interaction_feedback_enabled: true,
     })
     expect(wrapper.find('[role="status"]').text()).toBe('Cambios guardados.')
   })
@@ -84,6 +89,7 @@ describe('ProfileView personal data form', () => {
       bgg_username: 'odei_bgg',
       discoverable: true,
       share_activity: true,
+      interaction_feedback_enabled: true,
     })
   })
 
@@ -102,6 +108,26 @@ describe('ProfileView personal data form', () => {
       bgg_username: 'odei_bgg',
       discoverable: false,
       share_activity: false,
+      interaction_feedback_enabled: true,
+    })
+  })
+
+  it('includes interaction_feedback_enabled when toggled off', async () => {
+    const { wrapper, store } = mountProfile()
+    await flushPromises()
+    vi.spyOn(store, 'updateProfile').mockResolvedValue()
+
+    await wrapper.find('#interaction_feedback_enabled').setValue(false)
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(store.updateProfile).toHaveBeenCalledWith({
+      name: 'Odei',
+      email: 'odei@example.com',
+      bgg_username: 'odei_bgg',
+      discoverable: false,
+      share_activity: true,
+      interaction_feedback_enabled: false,
     })
   })
 

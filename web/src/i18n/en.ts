@@ -266,6 +266,9 @@ export default {
     shareActivity: 'Let my friends see my collection and plays',
     shareActivityHint:
       "With this off, your already-accepted friends won't be able to see your collection when comparing with theirs, in their group Picker with you, or your play history.",
+    interactionFeedback: 'Sound & vibration on interaction',
+    interactionFeedbackHint:
+      'A short sound and vibration (where supported) when tapping key buttons.',
     saved: 'Changes saved.',
     save: 'Save changes',
     genericError: "Couldn't save the changes.",

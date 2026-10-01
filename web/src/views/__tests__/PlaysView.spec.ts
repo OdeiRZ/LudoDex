@@ -58,6 +58,7 @@ async function mountPlays(bggUsername?: string | null) {
       email_verified_at: null,
       discoverable: false,
       share_activity: true,
+      interaction_feedback_enabled: true,
     }
   }
 

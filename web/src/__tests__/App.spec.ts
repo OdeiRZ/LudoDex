@@ -82,6 +82,7 @@ describe('App', () => {
       email_verified_at: null,
       discoverable: false,
       share_activity: true,
+      interaction_feedback_enabled: true,
     }
     vi.spyOn(useFriendsStore(), 'fetchAll').mockResolvedValue()
 
@@ -107,6 +108,7 @@ describe('App', () => {
       email_verified_at: '2026-09-08T00:00:00.000000Z',
       discoverable: false,
       share_activity: true,
+      interaction_feedback_enabled: true,
     }
     vi.spyOn(useFriendsStore(), 'fetchAll').mockResolvedValue()
 
@@ -131,6 +133,7 @@ describe('App', () => {
       email_verified_at: null,
       discoverable: false,
       share_activity: true,
+      interaction_feedback_enabled: true,
     }
     const resendSpy = vi
       .spyOn(auth, 'resendVerificationEmail')
@@ -164,6 +167,7 @@ describe('App', () => {
       email_verified_at: null,
       discoverable: false,
       share_activity: true,
+      interaction_feedback_enabled: true,
     }
     const fetchSpy = vi.spyOn(auth, 'fetchCurrentUser')
     vi.spyOn(useFriendsStore(), 'fetchAll').mockResolvedValue()
@@ -190,6 +194,7 @@ describe('App', () => {
         email_verified_at: null,
         discoverable: false,
         share_activity: true,
+        interaction_feedback_enabled: true,
       }
     })
     vi.spyOn(useFriendsStore(), 'fetchAll').mockResolvedValue()
@@ -220,6 +225,7 @@ describe('App', () => {
       email_verified_at: null,
       discoverable: false,
       share_activity: true,
+      interaction_feedback_enabled: true,
     }
     vi.spyOn(useFriendsStore(), 'fetchAll').mockResolvedValue()
 
@@ -253,6 +259,7 @@ describe('App', () => {
       email_verified_at: null,
       discoverable: false,
       share_activity: true,
+      interaction_feedback_enabled: true,
     }
     vi.spyOn(useFriendsStore(), 'fetchAll').mockResolvedValue()
 
