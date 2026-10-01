@@ -37,6 +37,11 @@ class ProfileController extends Controller
             // Same ?? fallback reasoning as discoverable above, but ??
             // true - defaults to true (see the users migration), not false.
             'share_activity' => $request->validated('share_activity', $user->share_activity ?? true),
+            // Same reasoning, also defaults to true.
+            'interaction_feedback_enabled' => $request->validated(
+                'interaction_feedback_enabled',
+                $user->interaction_feedback_enabled ?? true,
+            ),
         ];
 
         // Best-effort: a BGG lookup failure (no token yet, unknown username,

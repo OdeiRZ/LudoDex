@@ -33,6 +33,9 @@ class UpdateProfileRequest extends FormRequest
             // On by default (see the users migration) - gates what an
             // already-accepted friend can see, not who can find you.
             'share_activity' => ['boolean'],
+            // On by default (see the users migration) - short sound +
+            // vibration on key interactions (buttons, dice-roll toast).
+            'interaction_feedback_enabled' => ['boolean'],
         ];
     }
 }

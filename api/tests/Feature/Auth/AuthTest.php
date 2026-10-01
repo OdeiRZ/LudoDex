@@ -294,6 +294,28 @@ it('keeps discoverable false by default when a profile update omits it', functio
     expect($user->fresh()->discoverable)->toBeFalse();
 });
 
+it('persists the interaction_feedback_enabled flag via the profile update endpoint', function () {
+    $user = User::factory()->create(['name' => 'Odei', 'email' => 'odei@example.com', 'interaction_feedback_enabled' => true]);
+    $this->actingAs($user, 'sanctum');
+
+    $this->putJson('/api/user', [
+        'name' => 'Odei',
+        'email' => 'odei@example.com',
+        'interaction_feedback_enabled' => false,
+    ])->assertOk()->assertJsonPath('user.interaction_feedback_enabled', false);
+
+    expect($user->fresh()->interaction_feedback_enabled)->toBeFalse();
+});
+
+it('keeps interaction_feedback_enabled true by default when a profile update omits it', function () {
+    $user = User::factory()->create(['name' => 'Odei', 'email' => 'odei@example.com', 'interaction_feedback_enabled' => true]);
+    $this->actingAs($user, 'sanctum');
+
+    $this->putJson('/api/user', ['name' => 'Odei', 'email' => 'odei@example.com'])->assertOk();
+
+    expect($user->fresh()->interaction_feedback_enabled)->toBeTrue();
+});
+
 it('fetches and stores the BGG avatar when a bgg_username is set', function () {
     $user = actingAsUser();
 

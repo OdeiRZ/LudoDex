@@ -31,6 +31,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
         'avatar_url',
         'discoverable',
         'share_activity',
+        'interaction_feedback_enabled',
     ];
 
     /**
@@ -55,6 +56,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
             'password' => 'hashed',
             'discoverable' => 'boolean',
             'share_activity' => 'boolean',
+            'interaction_feedback_enabled' => 'boolean',
         ];
     }
 
