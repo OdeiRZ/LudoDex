@@ -28,6 +28,21 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   de importación por usuario BGG en `ImportBggView.vue` (no pasa por
   ningún click).
 
+- **5 tipos de sonido/vibración más en `useFeedback.ts`** —
+  `cancel`/`select`/`nav`/`navBack`/`theme`, trasplantados del mismo
+  cambio ya hecho en PequeDex, cada uno con timbre y patrón de
+  vibración propios (incluido un `playSweep()` nuevo, de frecuencia
+  deslizante, para `cancel`): `select` en `SegmentedControl.vue` (el
+  selector de idioma del perfil), `theme` al cambiar de modo claro/
+  oscuro, `cancel` en "Cancelar" de vaciar la colección y de
+  reimportar partidas (con cuidado de no engancharlo en funciones
+  compartidas que también cierran tras un guardado con éxito), y
+  `nav`/`navBack` (un arpegio de 3 notas ascendentes/descendentes, no
+  un barrido continuo — sonaba a silbido en las primeras pruebas en
+  PequeDex) al entrar/salir de Añadir juego, Editar juego y el perfil
+  de un amigo — las vistas con ruta propia de este repo, alcanzadas
+  desde un enlace y con su propio enlace de vuelta.
+
 - Tercer pase de movimiento, esta vez centrado en tarjetas, enlaces,
   categorías, botones e interfaz — a petición explícita de profundizar
   "extensamente" en el tema tras los dos pases anteriores. Investigado
