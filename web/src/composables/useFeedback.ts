@@ -49,8 +49,13 @@ function getAudioCtx(): AudioContext | null {
 
 // Un tono corto con envolvente de ataque/caída (en vez de un simple
 // on/off) para que no suene como un clic seco - OscillatorNode + GainNode
-// puros, sin ningún fichero de audio. Volumen deliberadamente bajo en
-// todos los tonos: son confirmaciones de interfaz, no contenido musical.
+// puros, sin ningún fichero de audio. Los peakGain de abajo (~0.09-0.15)
+// tienen en cuenta que son picos de una onda senoidal breve (RMS=peak/√2)
+// y que un tono de apenas 45-160ms se percibe más flojo que uno sostenido
+// de la misma amplitud (integración temporal del oído, ventana de
+// referencia ~200ms) - con valores más bajos (0.04-0.07) quedaban
+// perceptiblemente más flojos de lo esperado (mismo problema detectado y
+// corregido en PequeDex, repo hermano con el mismo composable).
 function playBlip(
   ctx: AudioContext,
   startAt: number,
@@ -102,51 +107,51 @@ function playTone(kind: FeedbackKind): void {
   const now = ctx.currentTime
   switch (kind) {
     case 'tap':
-      playBlip(ctx, now, 700, 0.05)
+      playBlip(ctx, now, 700, 0.11)
       break
     case 'success':
-      playBlip(ctx, now, 600, 0.06)
-      playBlip(ctx, now + 0.08, 900, 0.06)
+      playBlip(ctx, now, 600, 0.13)
+      playBlip(ctx, now + 0.08, 900, 0.13)
       break
     case 'error':
-      playBlip(ctx, now, 220, 0.07)
-      playBlip(ctx, now + 0.1, 220, 0.07)
+      playBlip(ctx, now, 220, 0.15)
+      playBlip(ctx, now + 0.1, 220, 0.15)
       break
     case 'cancel':
       // Un único tono bajando - "dar un paso atrás", ni alarmante como
       // error (grave y doble) ni neutro como tap, a medio camino.
-      playSweep(ctx, now, 500, 320, 0.045, 0.11)
+      playSweep(ctx, now, 500, 320, 0.1, 0.11)
       break
     case 'select':
       // Dos blips muy cortos y agudos seguidos - el "tic-tic" de un
       // selector, distinto del blip único de tap.
-      playBlip(ctx, now, 950, 0.04, 0.045)
-      playBlip(ctx, now + 0.055, 950, 0.04, 0.045)
+      playBlip(ctx, now, 950, 0.09, 0.045)
+      playBlip(ctx, now + 0.055, 950, 0.09, 0.045)
       break
     case 'nav':
       // Arpegio de 3 notas rápidas y ascendentes - "entrando" en una
       // sección nueva. Notas discretas en vez de un barrido continuo
       // (sonaba más a "silbido" que a confirmación): más parecido al
       // timbre de cambiar de sala/canal de una app de chat.
-      playBlip(ctx, now, 494, 0.045, 0.06)
-      playBlip(ctx, now + 0.05, 587, 0.045, 0.06)
-      playBlip(ctx, now + 0.1, 740, 0.05, 0.08)
+      playBlip(ctx, now, 494, 0.1, 0.06)
+      playBlip(ctx, now + 0.05, 587, 0.1, 0.06)
+      playBlip(ctx, now + 0.1, 740, 0.11, 0.08)
       break
     case 'navBack':
       // El mismo arpegio de 'nav', mismas 3 notas, tocadas al revés -
       // "saliendo" de la sección en vez de entrando. Más corto en
       // conjunto (notas más próximas entre sí) para que se lea como un
       // repliegue rápido, no como una entrada espejada a cámara lenta.
-      playBlip(ctx, now, 740, 0.045, 0.06)
-      playBlip(ctx, now + 0.045, 587, 0.045, 0.06)
-      playBlip(ctx, now + 0.09, 494, 0.05, 0.08)
+      playBlip(ctx, now, 740, 0.1, 0.06)
+      playBlip(ctx, now + 0.045, 587, 0.1, 0.06)
+      playBlip(ctx, now + 0.09, 494, 0.11, 0.08)
       break
     case 'theme':
       // Un timbre suave de dos notas superpuestas, más largo que el
       // resto - un cambio de modo (día/noche) es menos frecuente que un
       // tap o un select, puede permitirse sonar un poco más presente.
-      playBlip(ctx, now, 520, 0.05, 0.16)
-      playBlip(ctx, now + 0.05, 780, 0.04, 0.16)
+      playBlip(ctx, now, 520, 0.11, 0.16)
+      playBlip(ctx, now + 0.05, 780, 0.09, 0.16)
       break
   }
 }
