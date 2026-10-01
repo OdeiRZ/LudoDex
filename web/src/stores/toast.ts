@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { useFeedback } from '@/composables/useFeedback'
 
 const DISPLAY_MS = 3000
 
@@ -39,6 +40,17 @@ export const useToastStore = defineStore('toast', {
         this.message = null
         this.timeoutId = null
       }, DISPLAY_MS)
+
+      // Acompaña al gesto visual que ya existe (el dado girando en
+      // App.vue, ver `diceRolling`) con un sonido/vibración a juego -
+      // ningún otro sitio de este store vibraba antes, es una adición
+      // limpia, no una migración de algo previo.
+      const feedback = useFeedback()
+      if (type === 'error') {
+        feedback.error()
+      } else {
+        feedback.success()
+      }
     },
   },
 })

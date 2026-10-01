@@ -1,4 +1,5 @@
 import type { Directive } from 'vue'
+import { useFeedback } from '@/composables/useFeedback'
 
 const PRESS_CLASS = 'is-pressed'
 
@@ -13,6 +14,12 @@ const PRESS_CLASS = 'is-pressed'
 // below on the buttons that do go on to disable themselves mid-press.
 const RELEASE_FALLBACK_MS = 200
 
+// Único punto de enganche para el sonido/vibración de "pulsación" en casi
+// todos los botones primarios de la app - todos ya llevan v-press para el
+// efecto visual de arriba, así que añadirlo aquí cubre esos ~24 sitios sin
+// tocar cada uno.
+const feedback = useFeedback()
+
 export const vPress: Directive<HTMLElement> = {
   mounted(el) {
     let timeoutId: ReturnType<typeof window.setTimeout> | undefined
@@ -24,6 +31,7 @@ export const vPress: Directive<HTMLElement> = {
 
     const press = () => {
       el.classList.add(PRESS_CLASS)
+      feedback.tap()
       window.clearTimeout(timeoutId)
       timeoutId = window.setTimeout(release, RELEASE_FALLBACK_MS)
     }
