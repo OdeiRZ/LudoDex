@@ -191,7 +191,9 @@ async function onDelete() {
   <div class="edit-game">
     <div class="page-header">
       <h1>{{ $t('editGame.title') }}</h1>
-      <RouterLink :to="returnTo" class="back-link">{{ $t('backLink') }}</RouterLink>
+      <RouterLink :to="returnTo" class="back-link" @click="feedback.navBack()">{{
+        $t('backLink')
+      }}</RouterLink>
     </div>
 
     <p v-if="games.loading" class="loading-state">

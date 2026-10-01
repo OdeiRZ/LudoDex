@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { useTheme } from '@/composables/useTheme'
+import { useFeedback } from '@/composables/useFeedback'
 
 const { theme, toggle } = useTheme()
+const feedback = useFeedback()
+
+function onToggle() {
+  toggle()
+  feedback.theme()
+}
 </script>
 
 <template>
@@ -10,7 +17,7 @@ const { theme, toggle } = useTheme()
     class="theme-toggle"
     :aria-label="theme === 'dark' ? $t('theme.toLight') : $t('theme.toDark')"
     :title="theme === 'dark' ? $t('theme.toLight') : $t('theme.toDark')"
-    @click="toggle"
+    @click="onToggle"
   >
     <!-- Icon shows the mode a click leads to, not the current one - matches
     the aria-label/title above (e.g. in dark mode the label reads "switch to

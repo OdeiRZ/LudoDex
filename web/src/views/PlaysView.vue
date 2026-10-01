@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { usePlaysStore, type Play } from '@/stores/plays'
 import { useToastStore } from '@/stores/toast'
+import { useFeedback } from '@/composables/useFeedback'
 import { FALLBACK_ICON_URL } from '@/lib/assets'
 import ActivityChart from '@/components/ActivityChart.vue'
 import GameDetailModal from '@/components/GameDetailModal.vue'
@@ -12,6 +13,7 @@ import LoadingSpinner from '@/components/LoadingSpinner.vue'
 const auth = useAuthStore()
 const plays = usePlaysStore()
 const toast = useToastStore()
+const feedback = useFeedback()
 const { t } = useI18n()
 
 // Which play's own game detail is open, if any - same "one at a time"
@@ -78,6 +80,13 @@ function toggleReimportPanel() {
   reimportError.value = null
   reimportFull.value = false
   reimportPanelOpen.value = true
+}
+
+// toggleReimportPanel() también abre el panel (botón de arriba) - esta
+// envoltura es solo para el click de "Cancelar" en sí.
+function onCancelReimport() {
+  feedback.cancel()
+  toggleReimportPanel()
 }
 
 async function onReimportConfirm() {
@@ -330,7 +339,7 @@ onMounted(() => {
         back out of), so removing it instead of graying it out gives
         the input that room back instead of just wasting it on a button
         nobody can use anyway. -->
-        <button v-if="!reimporting" type="button" class="btn" @click="toggleReimportPanel">
+        <button v-if="!reimporting" type="button" class="btn" @click="onCancelReimport">
           {{ $t('dashboard.cancel') }}
         </button>
         <button

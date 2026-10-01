@@ -4,11 +4,13 @@ import { isAxiosError } from 'axios'
 import { useI18n } from 'vue-i18n'
 import { useFriendsStore, type Friend } from '@/stores/friends'
 import { useToastStore } from '@/stores/toast'
+import { useFeedback } from '@/composables/useFeedback'
 import UserAvatar from '@/components/UserAvatar.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const friends = useFriendsStore()
 const toast = useToastStore()
+const feedback = useFeedback()
 const { t } = useI18n()
 
 onMounted(() => {
@@ -345,6 +347,7 @@ async function onUnblock(blockId: number) {
               :to="{ name: 'friend-detail', params: { friendId: entry.user.id } }"
               class="btn icon-btn"
               :aria-label="$t('friends.list.viewProfile')"
+              @click="feedback.nav()"
               :title="$t('friends.list.viewProfile')"
             >
               <svg

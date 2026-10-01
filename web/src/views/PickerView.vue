@@ -787,7 +787,9 @@ const {
     </p>
     <p v-else-if="playable.length === 0" class="empty-state">
       {{ $t('picker.emptyOwned') }}<br />
-      <RouterLink :to="{ name: 'add-game' }">{{ $t('picker.addOne') }}</RouterLink
+      <RouterLink :to="{ name: 'add-game' }" @click="feedback.nav()">{{
+        $t('picker.addOne')
+      }}</RouterLink
       >.
     </p>
     <p v-else-if="filtered.length === 0" class="empty-state">

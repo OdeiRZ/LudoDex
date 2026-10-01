@@ -283,6 +283,7 @@ function toggleClearConfirm() {
 }
 
 function closeClearConfirm() {
+  feedback.cancel()
   clearConfirmOpen.value = false
 }
 
@@ -419,6 +420,7 @@ async function onClearCollection() {
                   class="btn btn-primary add-game-btn"
                   :aria-label="$t('dashboard.addGame')"
                   :title="$t('dashboard.addGame')"
+                  @click="feedback.nav()"
                 >
                   <svg
                     viewBox="0 0 24 24"
@@ -466,6 +468,7 @@ async function onClearCollection() {
             class="btn btn-primary add-game-btn"
             :aria-label="$t('dashboard.addGame')"
             :title="$t('dashboard.addGame')"
+            @click="feedback.nav()"
           >
             <svg
               viewBox="0 0 24 24"
@@ -504,7 +507,9 @@ async function onClearCollection() {
 
     <p v-else-if="games.loaded && games.collection.length === 0" class="empty-state">
       {{ $t('dashboard.empty') }}<br />
-      <RouterLink :to="{ name: 'add-game' }">{{ $t('dashboard.addFirst') }}</RouterLink
+      <RouterLink :to="{ name: 'add-game' }" @click="feedback.nav()">{{
+        $t('dashboard.addFirst')
+      }}</RouterLink
       >.
     </p>
 
@@ -675,6 +680,7 @@ async function onClearCollection() {
             <RouterLink
               :to="{ name: 'edit-game', params: { id: entry.id }, query: { from: 'dashboard' } }"
               class="btn"
+              @click="feedback.nav()"
             >
               {{ $t('dashboard.edit') }}
             </RouterLink>

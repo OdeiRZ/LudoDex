@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { isAxiosError } from 'axios'
 import { useGamesStore } from '@/stores/games'
 import { useToastStore } from '@/stores/toast'
+import { useFeedback } from '@/composables/useFeedback'
 import GameForm, { type GameFormData } from '@/components/GameForm.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
@@ -12,6 +13,7 @@ import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
 const router = useRouter()
 const games = useGamesStore()
 const toast = useToastStore()
+const feedback = useFeedback()
 const { t } = useI18n()
 const { isSlow, wrap } = useSlowRequestHint()
 
@@ -94,7 +96,9 @@ async function onSubmit() {
   <div class="add-game">
     <div class="page-header">
       <h1>{{ $t('addGame.title') }}</h1>
-      <RouterLink :to="{ name: 'dashboard' }" class="back-link">{{ $t('backLink') }}</RouterLink>
+      <RouterLink :to="{ name: 'dashboard' }" class="back-link" @click="feedback.navBack()">{{
+        $t('backLink')
+      }}</RouterLink>
     </div>
 
     <form @submit.prevent="onSubmit">

@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useFriendDetailStore } from '@/stores/friendDetail'
 import { useCollectionScrubber, normalizeLetter } from '@/composables/useCollectionScrubber'
+import { useFeedback } from '@/composables/useFeedback'
 import { FALLBACK_ICON_URL } from '@/lib/assets'
 import type { Game } from '@/stores/games'
 import UserAvatar from '@/components/UserAvatar.vue'
@@ -14,6 +15,7 @@ import SkeletonGameCard from '@/components/SkeletonGameCard.vue'
 
 const props = defineProps<{ friendId: number }>()
 const friendDetail = useFriendDetailStore()
+const feedback = useFeedback()
 const { t } = useI18n()
 
 const activeTab = ref<'collection' | 'plays'>('collection')
@@ -309,7 +311,7 @@ function loadMore() {
           />
           <h1>{{ friendDetail.friend.name }}</h1>
         </div>
-        <RouterLink :to="{ name: 'friends' }" class="back-link">
+        <RouterLink :to="{ name: 'friends' }" class="back-link" @click="feedback.navBack()">
           {{ $t('friends.detail.backToList') }}
         </RouterLink>
       </div>

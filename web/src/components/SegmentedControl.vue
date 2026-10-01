@@ -1,8 +1,17 @@
 <script setup lang="ts" generic="T extends string">
 import { nextTick, onMounted, ref, watch } from 'vue'
+import { useFeedback } from '@/composables/useFeedback'
 
 const props = defineProps<{ modelValue: T; options: { value: T; label: string }[] }>()
-defineEmits<{ 'update:modelValue': [value: T] }>()
+const emit = defineEmits<{ 'update:modelValue': [value: T] }>()
+const feedback = useFeedback()
+
+function onSelect(value: T) {
+  // Sin sonido/vibración si se vuelve a tocar la opción ya activa - no
+  // hay cambio real que confirmar.
+  if (value !== props.modelValue) feedback.select()
+  emit('update:modelValue', value)
+}
 
 // Measured off the actual active <button> (offsetLeft/offsetWidth, both
 // relative to .segmented-control itself - the nearest positioned
@@ -51,7 +60,7 @@ watch(() => props.options, updateIndicator)
       class="segmented-control-btn"
       :class="{ active: modelValue === option.value }"
       :aria-pressed="modelValue === option.value"
-      @click="$emit('update:modelValue', option.value)"
+      @click="onSelect(option.value)"
     >
       {{ option.label }}
     </button>
