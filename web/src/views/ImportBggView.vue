@@ -7,12 +7,14 @@ import { useAuthStore } from '@/stores/auth'
 import { useGamesStore, type BggImportStatus, type BggCsvImportResult } from '@/stores/games'
 import { usePlaysStore, type PlaysImportResult } from '@/stores/plays'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import { useFeedback } from '@/composables/useFeedback'
 
 const auth = useAuthStore()
 const games = useGamesStore()
 const plays = usePlaysStore()
 const { t } = useI18n()
 const route = useRoute()
+const feedback = useFeedback()
 
 const method = ref<'username' | 'csv' | 'plays'>(route.query.tab === 'plays' ? 'plays' : 'username')
 
@@ -58,8 +60,14 @@ function handleResult(result: BggImportStatus) {
   importedCount.value = result.imported_count
   errorMessage.value = result.error_message
 
+  // La importación por nombre de usuario resuelve de forma asíncrona (vía
+  // polling), nunca a través de un click - no pasa por v-press ni por un
+  // toast, así que necesita su propia llamada explícita.
   if (result.status === 'completed') {
+    feedback.success()
     games.fetchAll()
+  } else if (result.status === 'failed') {
+    feedback.error()
   }
 }
 
@@ -75,6 +83,7 @@ async function poll(id: string) {
       clearPendingImportId()
       phase.value = 'failed'
       errorMessage.value = t('importBgg.genericFailedError')
+      feedback.error()
       return
     }
 

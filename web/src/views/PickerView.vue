@@ -18,10 +18,12 @@ import GameCard from '@/components/GameCard.vue'
 import GameDetailModal from '@/components/GameDetailModal.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import SkeletonGameCard from '@/components/SkeletonGameCard.vue'
+import { useFeedback } from '@/composables/useFeedback'
 
 const games = useGamesStore()
 const friends = useFriendsStore()
 const { t } = useI18n()
+const feedback = useFeedback()
 
 // Which card's details modal (image/description) is open, if any - only
 // one at a time, so a single ref rather than per-card state is enough.
@@ -202,6 +204,11 @@ const search = ref('')
 // is.
 const filtersCollapsed = ref(false)
 
+function setFiltersCollapsed(collapsed: boolean) {
+  feedback.tap()
+  filtersCollapsed.value = collapsed
+}
+
 // Same criterion/order pair as the collection's own sort controls (and the
 // same reasoning for a toggle button over a second radio group) - the
 // collection can come back from the API in an order that has nothing to do
@@ -224,6 +231,7 @@ function onDetailGameTranslated(descriptionEs: string | null) {
 }
 
 function toggleSort() {
+  feedback.tap()
   sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
 }
 
@@ -270,6 +278,7 @@ const isSoloPlayer = computed(() => players.value === 1)
 // Jugadores field (isSoloPlayer above reacts to either), just one tap
 // instead of opening a number keyboard on mobile.
 function toggleSolo() {
+  feedback.tap()
   players.value = isSoloPlayer.value ? DEFAULT_PLAYERS : 1
 }
 
@@ -565,7 +574,7 @@ const {
         :aria-expanded="false"
         :aria-label="$t('picker.showFilters')"
         :title="$t('picker.showFilters')"
-        @click="filtersCollapsed = false"
+        @click="setFiltersCollapsed(false)"
       >
         <svg
           viewBox="0 0 24 24"
@@ -609,7 +618,7 @@ const {
         aria-expanded="true"
         :aria-label="$t('picker.hideFilters')"
         :title="$t('picker.hideFilters')"
-        @click="filtersCollapsed = true"
+        @click="setFiltersCollapsed(true)"
       >
         <svg
           viewBox="0 0 24 24"

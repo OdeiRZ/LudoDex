@@ -8,6 +8,7 @@ import { useToastStore } from '@/stores/toast'
 import GameForm, { type GameFormData } from '@/components/GameForm.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import { useSlowRequestHint } from '@/composables/useSlowRequestHint'
+import { useFeedback } from '@/composables/useFeedback'
 
 const props = defineProps<{ id: string }>()
 
@@ -16,6 +17,7 @@ const games = useGamesStore()
 const toast = useToastStore()
 const { t } = useI18n()
 const { isSlow, wrap } = useSlowRequestHint()
+const feedback = useFeedback()
 
 // Editing is only reachable from the collection now (the picker's own
 // edit shortcut was replaced by a read-only details view) - still used
@@ -60,6 +62,8 @@ const confirmingDelete = ref(false)
 let confirmingDeleteTimeout: ReturnType<typeof setTimeout> | undefined
 
 function onDeleteClick() {
+  feedback.tap()
+
   if (!confirmingDelete.value) {
     confirmingDelete.value = true
     confirmingDeleteTimeout = setTimeout(() => {

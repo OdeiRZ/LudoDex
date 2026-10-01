@@ -15,10 +15,12 @@ import DensityToggle from '@/components/DensityToggle.vue'
 import GameCard from '@/components/GameCard.vue'
 import GameDetailModal from '@/components/GameDetailModal.vue'
 import SkeletonGameCard from '@/components/SkeletonGameCard.vue'
+import { useFeedback } from '@/composables/useFeedback'
 
 const games = useGamesStore()
 const toast = useToastStore()
 const { t } = useI18n()
+const feedback = useFeedback()
 
 // Which card's details modal (image/description) is open, if any - same
 // component and trigger as the picker's own, kept independent of
@@ -237,6 +239,8 @@ const confirmingDeleteId = ref<string | null>(null)
 let confirmingDeleteTimeout: ReturnType<typeof setTimeout> | undefined
 
 function onDeleteClick(userGameId: string) {
+  feedback.tap()
+
   if (confirmingDeleteId.value !== userGameId) {
     clearTimeout(confirmingDeleteTimeout)
     confirmingDeleteId.value = userGameId
@@ -266,6 +270,8 @@ const clearConfirmText = ref('')
 const clearing = ref(false)
 
 function toggleClearConfirm() {
+  feedback.tap()
+
   if (clearConfirmOpen.value) {
     clearConfirmOpen.value = false
     return
