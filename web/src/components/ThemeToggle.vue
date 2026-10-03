@@ -5,9 +5,46 @@ import { useFeedback } from '@/composables/useFeedback'
 const { theme, toggle } = useTheme()
 const feedback = useFeedback()
 
-function onToggle() {
-  toggle()
+// Barrido circular "amanecer/atardecer" desde el propio botón, en vez de un
+// cambio de tema instantáneo - View Transitions API (Chrome/Edge, Safari
+// 18+; en el resto simplemente cae al cambio instantáneo de siempre, ver
+// más abajo). El navegador captura una foto del estado viejo y nuevo y deja
+// animar el recorte circular de la nueva con Web Animations API - siempre
+// creciendo desde el punto de clic hacia fuera, en las dos direcciones
+// (claro→oscuro y oscuro→claro), no solo una. El color del halo no se
+// elige a mano: es la propia captura del tema de destino asomando por el
+// círculo, así que sale oscuro al pasar a oscuro y claro al pasar a claro
+// sin lógica adicional. Mismo patrón que el repo hermano PequeDex.
+function onToggle(event: MouseEvent) {
   feedback.theme()
+
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (!document.startViewTransition || reducedMotion) {
+    toggle()
+    return
+  }
+
+  const x = event.clientX
+  const y = event.clientY
+  const endRadius = Math.hypot(
+    Math.max(x, window.innerWidth - x),
+    Math.max(y, window.innerHeight - y),
+  )
+
+  const transition = document.startViewTransition(toggle)
+
+  void transition.ready.then(() => {
+    document.documentElement.animate(
+      {
+        clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`],
+      },
+      {
+        duration: 500,
+        easing: 'ease-in',
+        pseudoElement: '::view-transition-new(root)',
+      },
+    )
+  })
 }
 </script>
 
@@ -17,7 +54,7 @@ function onToggle() {
     class="theme-toggle"
     :aria-label="theme === 'dark' ? $t('theme.toLight') : $t('theme.toDark')"
     :title="theme === 'dark' ? $t('theme.toLight') : $t('theme.toDark')"
-    @click="onToggle"
+    @click="onToggle($event)"
   >
     <!-- Icon shows the mode a click leads to, not the current one - matches
     the aria-label/title above (e.g. in dark mode the label reads "switch to
