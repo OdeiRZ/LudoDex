@@ -10,7 +10,7 @@ const feedback = useFeedback()
 // 18+; en el resto simplemente cae al cambio instantáneo de siempre, ver
 // más abajo). El navegador captura una foto del estado viejo y nuevo y deja
 // animar el recorte circular de la nueva con Web Animations API - siempre
-// creciendo desde el punto de clic hacia fuera, en las dos direcciones
+// creciendo desde el centro del botón hacia fuera, en las dos direcciones
 // (claro→oscuro y oscuro→claro), no solo una. El color del halo no se
 // elige a mano: es la propia captura del tema de destino asomando por el
 // círculo, así que sale oscuro al pasar a oscuro y claro al pasar a claro
@@ -24,8 +24,13 @@ function onToggle(event: MouseEvent) {
     return
   }
 
-  const x = event.clientX
-  const y = event.clientY
+  // Centro del propio botón, no el punto exacto donde cayó el dedo/cursor -
+  // un halo que siempre nace del mismo sitio en vez de bailar según dónde
+  // se pulsó se lee más como "sale del interruptor" y menos como un efecto
+  // pegado al puntero.
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  const x = rect.left + rect.width / 2
+  const y = rect.top + rect.height / 2
   const endRadius = Math.hypot(
     Math.max(x, window.innerWidth - x),
     Math.max(y, window.innerHeight - y),
