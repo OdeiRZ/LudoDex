@@ -24,21 +24,27 @@ function onToggle(event: MouseEvent) {
     return
   }
 
-  // Centro del propio botón, no el punto exacto donde cayó el dedo/cursor -
-  // un halo que siempre nace del mismo sitio en vez de bailar según dónde
-  // se pulsó se lee más como "sale del interruptor" y menos como un efecto
-  // pegado al puntero.
-  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
-  const x = rect.left + rect.width / 2
-  const y = rect.top + rect.height / 2
-  const endRadius = Math.hypot(
-    Math.max(x, window.innerWidth - x),
-    Math.max(y, window.innerHeight - y),
-  )
-
+  const button = event.currentTarget as HTMLElement
   const transition = document.startViewTransition(toggle)
 
   void transition.ready.then(() => {
+    // Centro del botón, leído aquí (con la transición ya lista) y no antes
+    // de startViewTransition() - en una pestaña normal de móvil (a
+    // diferencia de la PWA instalada a pantalla completa, sin barra que
+    // ocultar) el toque puede disparar que la barra de direcciones se
+    // oculte justo entonces, cambiando el viewport entre el click y el
+    // arranque real de la transición. Leer ya con todo asentado evita que
+    // el círculo nazca desplazado respecto al botón - reportado en vivo:
+    // se veía bien en la instalada, pero nacía más arriba del botón en el
+    // navegador normal.
+    const rect = button.getBoundingClientRect()
+    const x = rect.left + rect.width / 2
+    const y = rect.top + rect.height / 2
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y),
+    )
+
     document.documentElement.animate(
       {
         clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`],
