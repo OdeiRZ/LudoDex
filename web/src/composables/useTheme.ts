@@ -26,10 +26,8 @@ const theme = ref<Theme>(initialTheme())
 // Mirrors --color-background from base.css - keeps the Android status
 // bar/toolbar color (driven by <meta name="theme-color">) matching the
 // app's actual background in an installed PWA instead of the fixed teal
-// accent index.html shipped with before. Exportado porque ThemeToggle.vue
-// lo reutiliza también para el color del barrido circular del cambio de
-// tema (ver su propio docblock).
-export const THEME_COLOR: Record<Theme, string> = {
+// accent index.html shipped with before.
+const THEME_COLOR: Record<Theme, string> = {
   light: '#f8fafc',
   dark: '#0f172a',
 }

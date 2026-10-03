@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useTheme, THEME_COLOR } from '@/composables/useTheme'
+import { useTheme } from '@/composables/useTheme'
 import { useFeedback } from '@/composables/useFeedback'
 
 const { theme, toggle } = useTheme()
@@ -8,37 +8,34 @@ const feedback = useFeedback()
 // Barrido circular "amanecer/atardecer" desde el propio botón, en vez de un
 // cambio de tema instantáneo.
 //
-// Dos intentos anteriores usaron la View Transitions API (recorte circular
-// de `::view-transition-new(root)` vía Web Animations API) y, probados en
-// Android real, resultaron frágiles de dos formas distintas: 1) la API
-// tiene que capturar una foto de toda la pantalla por dentro antes de poder
-// animar nada, lo que a veces introducía un retraso perceptible donde no
-// pasaba nada en absoluto antes del barrido; 2) las coordenadas del centro
-// (tanto en píxeles como en vw/vh) no siempre coincidían con las del propio
-// botón - el círculo nacía desplazado hacia arriba en una pestaña normal
-// de móvil, sin que lograra aislar ni arreglar la causa exacta con certeza
-// en dos rondas de cambios.
+// Tres intentos anteriores usaron la View Transitions API (recorte
+// circular de `::view-transition-new(root)` vía Web Animations API,
+// primero en píxeles, luego en vw/vh, con una transición de calentamiento
+// de por medio para el retraso) y, probados en Android real, siguieron
+// naciendo desplazados del botón en una pestaña normal (fuera de la PWA
+// instalada a pantalla completa) en los tres casos - la propia API decide
+// por dentro el tamaño del árbol de pseudo-elementos que recorta, y ese
+// tamaño no coincidía con el viewport real en ese dispositivo por una
+// razón que no se pudo aislar con certeza pese a varios diagnósticos en
+// vivo (vídeo + capturas de pantalla).
 //
-// Esta versión no usa la View Transitions API en absoluto: un <div> normal
-// con `clip-path`, sin ninguna captura de pantalla de por medio, usa
-// exactamente el mismo sistema de coordenadas que `getBoundingClientRect()`
-// del propio botón - cero ambigüedad posible sobre dónde nace el círculo -
-// y es instantáneo (solo crea un elemento y lo anima, nada que capturar).
-// El círculo es del color sólido del tema AL QUE SE VA (`THEME_COLOR`, el
-// mismo origen que ya usa useTheme.ts para `theme-color-override`) y crece
-// desde el botón hasta cubrir toda la pantalla; el cambio de tema real se
-// aplica justo al terminar, cuando el círculo ya la cubre entera, así que
-// el "cambio" por debajo es invisible. Mismo patrón que el repo hermano
+// Esta versión no usa la View Transitions API en absoluto, así que no hay
+// nada que recortar en un sistema de coordenadas ajeno: se recorta
+// directamente el `<body>` de verdad (mismo `getBoundingClientRect()` que
+// ya usa el propio botón para saber dónde está - cero ambigüedad posible)
+// y el cambio de tema ya se ha aplicado por debajo antes de empezar a
+// animar, así que lo que crece dentro del círculo es la interfaz nueva de
+// verdad, en vivo e interactiva, no una foto congelada - y al no haber
+// ninguna captura de pantalla de por medio tampoco hay ningún retraso que
+// calentar. Lo único que se simula es el fondo que queda fuera del
+// círculo mientras crece: el color plano del tema viejo (`--color-background`,
+// leído antes del cambio) puesto en el `<html>` que queda al descubierto
+// donde `<body>` está recortado. Mismo patrón que el repo hermano
 // PequeDex.
 function onToggle(event: MouseEvent) {
   feedback.theme()
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  if (reducedMotion) {
-    toggle()
-    return
-  }
-
   const button = event.currentTarget as HTMLElement
   const rect = button.getBoundingClientRect()
   const x = rect.left + rect.width / 2
@@ -48,12 +45,19 @@ function onToggle(event: MouseEvent) {
     Math.max(y, window.innerHeight - y),
   )
 
-  const nextTheme = theme.value === 'dark' ? 'light' : 'dark'
-  const overlay = document.createElement('div')
-  overlay.style.cssText = `position:fixed;inset:0;z-index:9999;pointer-events:none;background:${THEME_COLOR[nextTheme]}`
-  document.body.appendChild(overlay)
+  if (reducedMotion || typeof document.body.animate !== 'function') {
+    toggle()
+    return
+  }
 
-  const sweep = overlay.animate(
+  const html = document.documentElement
+  const oldBackground = getComputedStyle(html).getPropertyValue('--color-background').trim()
+  const previousHtmlBackground = html.style.background
+
+  toggle()
+  html.style.background = oldBackground
+
+  const sweep = document.body.animate(
     { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`] },
     { duration: 500, easing: 'ease-in' },
   )
@@ -61,8 +65,7 @@ function onToggle(event: MouseEvent) {
   void sweep.finished
     .catch(() => {})
     .then(() => {
-      toggle()
-      overlay.remove()
+      html.style.background = previousHtmlBackground
     })
 }
 </script>
