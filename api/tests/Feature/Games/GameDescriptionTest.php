@@ -59,3 +59,26 @@ it('leaves description_es null instead of failing when DeepL is not configured',
     $response->assertOk()->assertJson(['description_es' => null]);
     expect($game->fresh()->description_es)->toBeNull();
 });
+
+it('rejects unauthenticated access to the description', function () {
+    $game = Game::factory()->create(['description' => 'Some text.']);
+
+    $this->getJson("/api/games/{$game->id}/description")->assertUnauthorized();
+});
+
+it('serves a game\'s description and its translation for the detail modal', function () {
+    actingAsUser();
+    $game = Game::factory()->create(['description' => 'Some text.', 'description_es' => 'Un texto.']);
+
+    $this->getJson("/api/games/{$game->id}/description")->assertOk()
+        ->assertExactJson(['description' => 'Some text.', 'description_es' => 'Un texto.']);
+});
+
+it('serves nulls for a game with no description and 404s an unknown game', function () {
+    actingAsUser();
+    $game = Game::factory()->create(['description' => null, 'description_es' => null]);
+
+    $this->getJson("/api/games/{$game->id}/description")->assertOk()
+        ->assertExactJson(['description' => null, 'description_es' => null]);
+    $this->getJson('/api/games/no-existe/description')->assertNotFound();
+});

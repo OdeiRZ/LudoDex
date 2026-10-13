@@ -12,6 +12,20 @@ class GameDescriptionController extends Controller
     public function __construct(private readonly DeepLTranslationService $translator) {}
 
     /**
+     * La sinopsis de un juego, para el modal de detalle. Va aparte de las listas
+     * (GameResource/PlayResource no la llevan): era el 55 % de GET /api/games y
+     * solo se lee al abrir un juego. El catálogo es compartido entre usuarios y
+     * la sinopsis es contenido público de BGG, así que no depende de quién pregunte.
+     */
+    public function show(Game $game): JsonResponse
+    {
+        return response()->json([
+            'description' => $game->description,
+            'description_es' => $game->description_es,
+        ]);
+    }
+
+    /**
      * Translates a game's own description to Spanish, on demand - games is
      * a catalog shared across every user, so this only ever needs to run
      * once per game total, not once per user who happens to own it.

@@ -26,8 +26,7 @@ class PlayResource extends JsonResource
                 'bgg_id' => $this->game->bgg_id,
                 'name' => $this->game->name,
                 'image_url' => $this->game->image_url,
-                'description' => $this->game->description,
-                'description_es' => $this->game->description_es,
+                // Sin sinopsis: el modal de detalle la pide al abrirse (ver GameResource).
                 'base_game_name' => $this->game->baseGame?->name,
             ],
         ];

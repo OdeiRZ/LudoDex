@@ -8,6 +8,7 @@ use App\Http\Controllers\Bgg\BggCsvImportController;
 use App\Http\Controllers\Bgg\BggImportController;
 use App\Http\Controllers\Bgg\BggLookupController;
 use App\Http\Controllers\Bgg\BggPlaysImportController;
+use App\Http\Controllers\BootstrapController;
 use App\Http\Controllers\Friends\BlockController;
 use App\Http\Controllers\Friends\FriendCollectionController;
 use App\Http\Controllers\Friends\FriendPlayController;
@@ -33,6 +34,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])->middleware('throttle:6,1');
     Route::get('/user', fn (Request $request) => $request->user());
+    // Todo lo que la app pide al abrirse, en una petición condicional (ETag).
+    Route::get('/bootstrap', [BootstrapController::class, 'show']);
     Route::put('/user', [ProfileController::class, 'update']);
     Route::put('/user/password', [ProfileController::class, 'updatePassword'])->middleware('throttle:6,1');
 
@@ -56,6 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/games/{userGame}', [UserGameController::class, 'update']);
     Route::delete('/games/{userGame}', [UserGameController::class, 'destroy']);
     Route::delete('/games', [UserGameController::class, 'clear']);
+    Route::get('/games/{game}/description', [GameDescriptionController::class, 'show']);
     Route::post('/games/{game}/translate-description', [GameDescriptionController::class, 'translate'])->middleware('throttle:20,1');
     // Owner-only - see GameTranslationBackfillController docblock.
     Route::post('/games/backfill-translations', GameTranslationBackfillController::class)->middleware('throttle:2,1');

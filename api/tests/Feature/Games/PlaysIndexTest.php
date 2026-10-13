@@ -70,7 +70,7 @@ it('leaves base_game_name null for a game that is not an expansion', function ()
         ->assertJsonPath('data.0.game.base_game_name', null);
 });
 
-it('includes the game\'s description so the play list can open its detail modal', function () {
+it('leaves the game\'s description out of the list: the detail modal asks for it when it opens', function () {
     $user = actingAsUser();
     $game = Game::factory()->create([
         'bgg_id' => 13,
@@ -81,8 +81,9 @@ it('includes the game\'s description so the play list can open its detail modal'
     Play::factory()->for($user)->for($game)->create();
 
     $this->getJson('/api/plays')->assertOk()
-        ->assertJsonPath('data.0.game.description', 'Trade and build on the island of Catan.')
-        ->assertJsonPath('data.0.game.description_es', 'Comercia y construye en la isla de Catan.');
+        ->assertJsonMissingPath('data.0.game.description')
+        ->assertJsonMissingPath('data.0.game.description_es')
+        ->assertJsonPath('data.0.game.id', $game->id);
 });
 
 it('filters by the played game\'s own name via ?search=, case-insensitively', function () {

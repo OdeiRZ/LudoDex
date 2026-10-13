@@ -23,8 +23,10 @@ class GameResource extends JsonResource
             'base_game_name' => $this->whenLoaded('baseGame', fn () => $this->baseGame?->name),
             'name' => $this->name,
             'image_url' => $this->image_url,
-            'description' => $this->description,
-            'description_es' => $this->description_es,
+            // Sin `description`/`description_es` a propósito: la sinopsis completa de
+            // BGG (~1 KB por juego) era el 55 % de GET /api/games (322 KB de 660 KB con
+            // 323 juegos) y solo la usa el modal de detalle, que la pide al abrirse
+            // (GET /api/games/{game}/description).
             'year_published' => $this->year_published,
             'min_age' => $this->min_age,
             'bgg_rank' => $this->bgg_rank,

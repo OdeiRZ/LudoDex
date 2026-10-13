@@ -3,12 +3,14 @@
 namespace App\Providers;
 
 use App\Mail\Transport\GmailApiTransport;
+use App\Models\PersonalAccessToken;
 use App\Models\User;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,6 +27,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Sanctum reescribía `last_used_at` con un UPDATE en cada petición
+        // autenticada; ver el docblock de PersonalAccessToken.
+        Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
+
         // Hallazgo de una auditoría de seguridad: esto estaba en min(6), por debajo
         // incluso del propio default de Laravel (min(8)), sin exigir letras ni
         // números - "123456" o "aaaaaa" eran contraseñas válidas. letters()+numbers()

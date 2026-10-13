@@ -364,3 +364,19 @@ it('lists the mechanics and categories catalog', function () {
     $this->getJson('/api/mechanics')->assertOk()->assertJsonCount(3, 'data');
     $this->getJson('/api/categories')->assertOk()->assertJsonCount(2, 'data');
 });
+
+it('leaves each game\'s description out of the collection list (the detail modal fetches it)', function () {
+    $user = actingAsUser();
+    UserGame::factory()->create([
+        'user_id' => $user->id,
+        'game_id' => Game::factory()->create([
+            'description' => 'Un texto muy largo de BGG.',
+            'description_es' => 'Un texto muy largo.',
+        ])->id,
+    ]);
+
+    $this->getJson('/api/games')->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonMissingPath('data.0.game.description')
+        ->assertJsonMissingPath('data.0.game.description_es');
+});

@@ -27,6 +27,11 @@ class GameTaxonomySyncer
 
         $game->mechanics()->sync($mechanicIds);
         $game->categories()->sync($categoryIds);
+
+        // La huella de versión de GET /api/bootstrap (BootstrapVersion) se apoya en
+        // games.updated_at: sin esto, cambiar solo mecánicas/categorías dejaría un
+        // ETag viejo y la app seguiría viendo la lista anterior.
+        $game->touch();
     }
 
     /**
@@ -50,6 +55,7 @@ class GameTaxonomySyncer
 
         $game->mechanics()->syncWithoutDetaching($mechanicIds);
         $game->categories()->syncWithoutDetaching($categoryIds);
+        $game->touch();
     }
 
     /**
