@@ -37,6 +37,18 @@ servidor 14,6 s; y la primera consulta tras 5 minutos sin uso (Neon suspendido)
   antes de **cada** llamada autenticada.
 - **No se repite `friends/requests`** al cambiar de ruta justo tras cargarlas.
 
+### Corregido
+
+- **La búsqueda por nombre en "Tus partidas" y en las partidas de un amigo
+  distinguía mayúsculas en producción** (`like` en PostgreSQL) pero no en local
+  (SQLite): "catan" no encontraba "Catan" solo en producción, y los tests, que
+  corren sobre SQLite, no podían verlo. Ahora compara en minúsculas en ambos
+  motores. Lo destapó pasar la suite completa del backend sobre un PostgreSQL 18
+  local, algo que la CI de LudoDex no hace (306 de 307 pasan; el que queda es el
+  test de la carrera por `pair_key`, que solo falla en PostgreSQL por la
+  transacción envolvente del propio test, no en producción, donde cada petición
+  va sin transacción externa).
+
 ### Añadido (copias de seguridad)
 
 - **`backup.yml`**: volcado semanal cifrado de Neon (90 días), que comprueba que

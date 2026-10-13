@@ -40,7 +40,9 @@ class FriendPlayController extends Controller
                 $request->filled('search'),
                 fn ($query) => $query->whereHas(
                     'game',
-                    fn ($gameQuery) => $gameQuery->where('name', 'like', '%'.$request->string('search').'%'),
+                    // lower() en ambos lados: ver PlayController (`like` distingue
+                    // mayúsculas en PostgreSQL, no en SQLite).
+                    fn ($gameQuery) => $gameQuery->whereRaw('lower(name) like ?', ['%'.mb_strtolower($request->string('search')->toString()).'%']),
                 ),
             )
             ->orderByDesc('played_at')

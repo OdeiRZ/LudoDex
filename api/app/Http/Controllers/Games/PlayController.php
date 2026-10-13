@@ -34,7 +34,10 @@ class PlayController extends Controller
                 $request->filled('search'),
                 fn ($query) => $query->whereHas(
                     'game',
-                    fn ($gameQuery) => $gameQuery->where('name', 'like', '%'.$request->string('search').'%'),
+                    // lower() en ambos lados: `like` distingue mayúsculas en PostgreSQL
+                    // (producción) pero no en SQLite (tests y local), así que "catan" no
+                    // encontraba "Catan" solo en producción.
+                    fn ($gameQuery) => $gameQuery->whereRaw('lower(name) like ?', ['%'.mb_strtolower($request->string('search')->toString()).'%']),
                 ),
             )
             ->orderByDesc('played_at')

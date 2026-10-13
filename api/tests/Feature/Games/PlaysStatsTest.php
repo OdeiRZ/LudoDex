@@ -127,7 +127,7 @@ it('caps top_played at 3 games even with more distinct games played', function (
     $user = actingAsUser();
 
     foreach ([['A', 5], ['B', 4], ['C', 3], ['D', 2], ['E', 1]] as [$name, $quantity]) {
-        $game = Game::factory()->create(['name' => $name, 'bgg_id' => crc32($name)]);
+        $game = Game::factory()->create(['name' => $name, 'bgg_id' => crc32($name) % 1_000_000]);
         Play::factory()->for($user)->for($game)->create(['quantity' => $quantity]);
     }
 
