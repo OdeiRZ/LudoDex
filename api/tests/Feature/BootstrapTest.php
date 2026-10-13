@@ -6,8 +6,8 @@ use App\Models\Mechanic;
 use App\Models\User;
 use App\Models\UserBlock;
 use App\Models\UserGame;
-use App\Services\GameTaxonomySyncer;
 use App\Services\Bootstrap\BootstrapVersion;
+use App\Services\GameTaxonomySyncer;
 use Illuminate\Support\Facades\DB;
 
 function giveGame(User $user, array $attributes = []): UserGame
