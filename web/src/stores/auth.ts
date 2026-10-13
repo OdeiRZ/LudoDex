@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { apiClient, clearStoredToken, getStoredToken, storeToken } from '@/lib/api'
+import { resetBootstrap, takeBootstrap } from '@/lib/bootstrap'
 import { useFriendsStore } from './friends'
 import { useGamesStore } from './games'
 import { usePlaysStore } from './plays'
@@ -129,6 +130,14 @@ export const useAuthStore = defineStore('auth', {
         return
       }
 
+      // Atajo: la petición de arranque (lib/bootstrap.ts) ya trae el usuario. Sin ella
+      // (no se pidió, falló o ya se usó) se pide como siempre.
+      const bootstrap = await takeBootstrap('user')
+      if (bootstrap) {
+        this.user = bootstrap.user
+        return
+      }
+
       try {
         const { data } = await apiClient.get('/user')
         this.user = data
@@ -160,6 +169,7 @@ export const useAuthStore = defineStore('auth', {
       this.user = null
       this.token = null
       clearStoredToken()
+      resetBootstrap()
       useGamesStore().$reset()
       usePlaysStore().$reset()
       useFriendsStore().$reset()

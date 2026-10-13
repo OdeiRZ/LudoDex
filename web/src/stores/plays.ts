@@ -11,8 +11,9 @@ export interface Play {
     bgg_id: number | null
     name: string
     image_url: string | null
-    description: string | null
-    description_es: string | null
+    // Ausentes en la lista (el modal de detalle los pide al abrirse); ver stores/games.ts.
+    description?: string | null
+    description_es?: string | null
     base_game_name: string | null
   }
 }

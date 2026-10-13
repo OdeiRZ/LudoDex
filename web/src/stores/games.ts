@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { apiClient } from '@/lib/api'
+import { takeBootstrap } from '@/lib/bootstrap'
 import { usePlaysStore } from './plays'
 
 export interface Game {
@@ -9,8 +10,12 @@ export interface Game {
   base_game_name: string | null
   name: string
   image_url: string | null
-  description: string | null
-  description_es: string | null
+  // Ausentes en las listas (GET /api/games, bootstrap): la sinopsis completa de
+  // BGG era el 55 % del peso de la colección y solo la lee el modal de detalle,
+  // que la pide al abrirse (`fetchDescription`). Cuando están, vienen del
+  // propio modal o de una traducción hecha en esta sesión.
+  description?: string | null
+  description_es?: string | null
   year_published: number | null
   min_age: string | null
   bgg_rank: number | null
@@ -55,6 +60,12 @@ export interface UserGamePayload {
   status: 'owned' | 'wishlist'
 }
 
+/** Sinopsis de un juego, tal como la sirve GET /api/games/{id}/description. */
+export interface GameDescription {
+  description: string | null
+  description_es: string | null
+}
+
 interface Catalog {
   id: number
   name: string
@@ -97,6 +108,8 @@ interface GamesState {
   collection: UserGame[]
   mechanicOptions: string[]
   categoryOptions: string[]
+  /** Sinopsis ya pedidas en esta sesión, por id de juego: reabrir un modal no repite la petición. */
+  descriptions: Record<string, GameDescription>
   loaded: boolean
   loading: boolean
   loadError: boolean
@@ -107,6 +120,7 @@ export const useGamesStore = defineStore('games', {
     collection: [],
     mechanicOptions: [],
     categoryOptions: [],
+    descriptions: {},
     loaded: false,
     loading: false,
     loadError: false,
@@ -126,6 +140,17 @@ export const useGamesStore = defineStore('games', {
       this.loadError = false
 
       try {
+        // Atajo: la petición de arranque (lib/bootstrap.ts) ya trae la colección y los
+        // catálogos. Sin ella (no se pidió, falló o ya se usó) se piden como siempre.
+        const bootstrap = await takeBootstrap('games')
+        if (bootstrap) {
+          this.collection = bootstrap.games
+          this.mechanicOptions = bootstrap.mechanics.map((item) => item.name)
+          this.categoryOptions = bootstrap.categories.map((item) => item.name)
+          this.loaded = true
+          return
+        }
+
         const [gamesResponse, mechanicsResponse, categoriesResponse] = await Promise.all([
           apiClient.get('/games'),
           apiClient.get('/mechanics'),
@@ -150,6 +175,22 @@ export const useGamesStore = defineStore('games', {
       } finally {
         this.loading = false
       }
+    },
+
+    /** La sinopsis (y su traducción, si existe) de un juego. Pide al API solo la
+     * primera vez por sesión; el modal de detalle es el único que la muestra. */
+    async fetchDescription(gameId: string): Promise<GameDescription> {
+      const cached = this.descriptions[gameId]
+      if (cached) return cached
+
+      const { data } = await apiClient.get(`/games/${gameId}/description`)
+      const description: GameDescription = {
+        description: data.description,
+        description_es: data.description_es,
+      }
+      this.descriptions[gameId] = description
+
+      return description
     },
 
     async createGame(payload: UserGamePayload) {
@@ -225,6 +266,9 @@ export const useGamesStore = defineStore('games', {
      * without waiting on either array to re-render it. */
     async translateDescription(gameId: string): Promise<string | null> {
       const { data } = await apiClient.post(`/games/${gameId}/translate-description`)
+
+      const cached = this.descriptions[gameId]
+      if (cached) cached.description_es = data.description_es
 
       this.collection
         .filter((entry) => entry.game.id === gameId)

@@ -72,6 +72,9 @@ describe('useFriendsStore', () => {
       const first = store.fetchAll()
       const second = store.fetchAll()
 
+      // fetchAll primero mira si hay una petición de arranque que recoger (un
+      // instante) y solo después pide lo suyo a la red.
+      await vi.waitFor(() => expect(apiClient.get).toHaveBeenCalledWith('/friends'))
       resolveFriends({ data: { data: [] } })
       await Promise.all([first, second])
 

@@ -249,4 +249,76 @@ describe('GameDetailModal', () => {
       wrapper.unmount()
     })
   })
+
+  describe('lazy description', () => {
+    // Las listas ya no traen la sinopsis (era el 55 % de GET /api/games): llega sin
+    // `description`, y el modal la pide al abrirse.
+    function listGame(overrides = {}) {
+      return makeGame({ id: 'g1', description: undefined, description_es: undefined, ...overrides })
+    }
+
+    it('fetches the description when it opens on a game that came without one, then shows it', async () => {
+      const games = useGamesStore()
+      const fetch = vi
+        .spyOn(games, 'fetchDescription')
+        .mockResolvedValue({ description: 'A game about trade.', description_es: 'Un juego de comercio.' })
+
+      const wrapper = mountModal(listGame())
+
+      expect(wrapper.find('[role="status"]').exists()).toBe(true) // cargando
+      await flushPromises()
+
+      expect(fetch).toHaveBeenCalledWith('g1')
+      expect(wrapper.find('[role="status"]').exists()).toBe(false)
+      expect(wrapper.find('.modal-description').text()).toBe('Un juego de comercio.')
+    })
+
+    it('offers the translate button when the fetched description has no Spanish version yet', async () => {
+      const games = useGamesStore()
+      vi.spyOn(games, 'fetchDescription').mockResolvedValue({
+        description: 'A game about trade.',
+        description_es: null,
+      })
+
+      const wrapper = mountModal(listGame())
+      await flushPromises()
+
+      expect(wrapper.find('.modal-description').text()).toContain('A game about trade.')
+      expect(wrapper.find('.badge-en').exists()).toBe(true)
+      expect(wrapper.find('.modal-translate').exists()).toBe(true)
+    })
+
+    it('shows the empty state when the fetched game has no description at all', async () => {
+      const games = useGamesStore()
+      vi.spyOn(games, 'fetchDescription').mockResolvedValue({ description: null, description_es: null })
+
+      const wrapper = mountModal(listGame())
+      await flushPromises()
+
+      expect(wrapper.find('.modal-description-empty').exists()).toBe(true)
+      expect(wrapper.find('[role="alert"]').exists()).toBe(false)
+    })
+
+    it('does not fetch when the game already carries its description, even a null one', async () => {
+      const games = useGamesStore()
+      const fetch = vi.spyOn(games, 'fetchDescription')
+
+      mountModal(makeGame({ description: 'Ya viene.', description_es: null }))
+      mountModal(makeGame({ description: null, description_es: null }))
+      await flushPromises()
+
+      expect(fetch).not.toHaveBeenCalled()
+    })
+
+    it('shows an error, not "no description", when the request fails', async () => {
+      const games = useGamesStore()
+      vi.spyOn(games, 'fetchDescription').mockRejectedValue(new Error('network error'))
+
+      const wrapper = mountModal(listGame())
+      await flushPromises()
+
+      expect(wrapper.find('[role="alert"]').text()).toContain('descripción')
+      expect(wrapper.find('.modal-description-empty').exists()).toBe(false)
+    })
+  })
 })

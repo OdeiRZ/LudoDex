@@ -240,6 +240,7 @@ export default {
     noMatches: 'No game in your collection matches these filters.',
     viewDetails: 'View details',
     noDescription: "This game doesn't have a description yet.",
+    descriptionLoadError: "Couldn't load the description. Open the game again.",
     descriptionUntranslated: 'Not translated yet - showing the English text.',
     descriptionUntranslatedShort: 'EN',
     translateButton: 'Translate to Spanish',

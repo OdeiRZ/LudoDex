@@ -15,8 +15,9 @@ export interface DetailGame {
   id: string
   name: string
   image_url: string | null
-  description: string | null
-  description_es: string | null
+  // Opcionales: las listas ya no los traen y el modal los pide al abrirse.
+  description?: string | null
+  description_es?: string | null
 }
 
 const props = defineProps<{ game: DetailGame }>()
@@ -28,14 +29,35 @@ const games = useGamesStore()
 // displayDescription/isUntranslated update immediately off the store
 // action's own return value without waiting on a prop change to flow
 // back down.
-const descriptionEs = ref(props.game.description_es)
+const descriptionEs = ref<string | null | undefined>(props.game.description_es)
+
+// Lo mismo para el texto original: las listas (colección, partidas, amigos) ya
+// no llevan la sinopsis, que pesaba más de la mitad de la respuesta y solo se
+// lee aquí. `undefined` = no vino en la lista y hay que pedirla al abrir.
+const description = ref<string | null | undefined>(props.game.description)
+const loadingDescription = ref(props.game.description === undefined)
+const descriptionLoadFailed = ref(false)
+
+async function loadDescription() {
+  if (props.game.description !== undefined) return
+
+  try {
+    const loaded = await games.fetchDescription(props.game.id)
+    description.value = loaded.description
+    descriptionEs.value = loaded.description_es
+  } catch {
+    descriptionLoadFailed.value = true
+  } finally {
+    loadingDescription.value = false
+  }
+}
 
 // Only prefers the Spanish translation when the app itself is in
 // Spanish - description_es existing doesn't mean someone reading the
 // app in English wants the Spanish text instead of the original, and
 // falls back to English if a translation isn't there yet either way.
 const displayDescription = computed(() =>
-  getLocale() === 'es' ? descriptionEs.value || props.game.description : props.game.description,
+  getLocale() === 'es' ? descriptionEs.value || description.value : description.value,
 )
 
 // Neither the "still in English" badge nor the button to fix that mean
@@ -43,7 +65,7 @@ const displayDescription = computed(() =>
 // they can read the original just fine, and offering to translate it
 // into Spanish for them specifically would be backwards.
 const isUntranslated = computed(
-  () => getLocale() === 'es' && !descriptionEs.value && !!props.game.description,
+  () => getLocale() === 'es' && !descriptionEs.value && !!description.value,
 )
 
 const translating = ref(false)
@@ -136,6 +158,7 @@ onMounted(() => {
   document.body.style.overflow = 'hidden'
   previouslyFocusedElement = document.activeElement as HTMLElement | null
   modalPanelRef.value?.focus()
+  loadDescription()
 })
 
 onUnmounted(() => {
@@ -182,7 +205,13 @@ onUnmounted(() => {
 
       <h2>{{ game.name }}</h2>
 
-      <p v-if="displayDescription" class="modal-description">
+      <p v-if="loadingDescription" class="modal-description-empty" role="status">
+        <LoadingSpinner :size="22" />
+      </p>
+      <p v-else-if="descriptionLoadFailed" role="alert" class="alert alert-error">
+        {{ $t('picker.descriptionLoadError') }}
+      </p>
+      <p v-else-if="displayDescription" class="modal-description">
         <span
           v-if="isUntranslated"
           class="badge badge-en"

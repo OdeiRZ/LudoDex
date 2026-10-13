@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useFriendsStore } from '@/stores/friends'
+import { prefetchBootstrap } from '@/lib/bootstrap'
 import { useToastStore } from '@/stores/toast'
 import UserAvatar from '@/components/UserAvatar.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
@@ -102,6 +103,11 @@ watch(
   () => auth.isAuthenticated,
   (isAuthenticated) => {
     if (isAuthenticated && !friends.loaded) {
+      // Una sola petición para todo lo que se pide al abrir (usuario, colección,
+      // catálogos, amigos...): empieza aquí, antes de que ninguna vista pida lo suyo,
+      // y cada store recoge su parte (ver lib/bootstrap.ts).
+      prefetchBootstrap()
+
       // Fire-and-forget: nothing here surfaces a fetch failure to the user,
       // and `loaded` stays false on failure - the next place that checks it
       // (this same watcher won't re-fire, but FriendsView's own guard will)

@@ -217,4 +217,41 @@ describe('useGamesStore', () => {
     expect(plays.entries[0].game.description_es).toBe('Un juego sobre facciones del bosque.')
     expect(plays.entries[1].game.description_es).toBeNull()
   })
+
+  describe('fetchDescription', () => {
+    it('asks the API for a game\'s description once per session and remembers it', async () => {
+      vi.mocked(apiClient.get).mockResolvedValue({
+        data: { description: 'A game about trade.', description_es: null },
+      })
+      const store = useGamesStore()
+
+      const first = await store.fetchDescription('g1')
+      const second = await store.fetchDescription('g1')
+
+      expect(apiClient.get).toHaveBeenCalledTimes(1)
+      expect(apiClient.get).toHaveBeenCalledWith('/games/g1/description')
+      expect(first).toEqual({ description: 'A game about trade.', description_es: null })
+      expect(second).toEqual(first)
+    })
+
+    it('does not cache a failure, so opening the game again retries', async () => {
+      vi.mocked(apiClient.get).mockRejectedValueOnce(new Error('network error'))
+      vi.mocked(apiClient.get).mockResolvedValueOnce({ data: { description: 'Texto.', description_es: null } })
+      const store = useGamesStore()
+
+      await expect(store.fetchDescription('g1')).rejects.toThrow()
+      await expect(store.fetchDescription('g1')).resolves.toEqual({ description: 'Texto.', description_es: null })
+    })
+
+    it('keeps the remembered description in step with a translation done afterwards', async () => {
+      vi.mocked(apiClient.get).mockResolvedValue({ data: { description: 'Texto.', description_es: null } })
+      vi.mocked(apiClient.post).mockResolvedValue({ data: { description_es: 'Traducido.' } })
+      const store = useGamesStore()
+
+      await store.fetchDescription('g1')
+      await store.translateDescription('g1')
+
+      expect((await store.fetchDescription('g1')).description_es).toBe('Traducido.')
+    })
+  })
 })

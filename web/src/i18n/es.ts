@@ -240,6 +240,7 @@ export default {
     noMatches: 'Ningún juego de tu colección encaja con estos filtros.',
     viewDetails: 'Ver detalles',
     noDescription: 'Este juego todavía no tiene descripción.',
+    descriptionLoadError: 'No se ha podido cargar la descripción. Vuelve a abrir el juego.',
     descriptionUntranslated: 'Todavía no se ha traducido: se muestra en inglés.',
     descriptionUntranslatedShort: 'EN',
     translateButton: 'Traducir al español',

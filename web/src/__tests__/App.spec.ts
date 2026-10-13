@@ -7,6 +7,16 @@ import { useAuthStore } from '@/stores/auth'
 import { useFriendsStore } from '@/stores/friends'
 import { useToastStore } from '@/stores/toast'
 import { i18n } from '@/i18n'
+import { prefetchBootstrap } from '@/lib/bootstrap'
+
+// La petición de arranque (usuario, colección, amigos... en una) tiene sus propias
+// pruebas en lib/__tests__/bootstrap.spec.ts: aquí solo se comprueba CUÁNDO la
+// arranca App.vue, sin que salga ninguna petición de verdad.
+vi.mock('@/lib/bootstrap', () => ({
+  prefetchBootstrap: vi.fn(),
+  takeBootstrap: vi.fn().mockResolvedValue(null),
+  resetBootstrap: vi.fn(),
+}))
 
 // Only the routes App.vue itself links to need to exist here - the routed
 // view's own behaviour (data fetching, etc.) isn't what these tests cover.
@@ -425,5 +435,40 @@ describe('App', () => {
     await flushPromises()
 
     expect(wrapper.find('.brand-dice').classes()).not.toContain('roll')
+  })
+
+  describe('bootstrap request', () => {
+    beforeEach(() => {
+      vi.mocked(prefetchBootstrap).mockClear()
+    })
+
+    it('starts it once, before the friends store asks for its own data, when there is a session', async () => {
+      setActivePinia(createPinia())
+      const auth = useAuthStore()
+      auth.token = 'a-token'
+      vi.spyOn(auth, 'fetchCurrentUser').mockResolvedValue()
+      const order: string[] = []
+      vi.mocked(prefetchBootstrap).mockImplementation(() => void order.push('prefetch'))
+      vi.spyOn(useFriendsStore(), 'fetchAll').mockImplementation(async () => void order.push('friends'))
+
+      const router = makeRouter('/picker')
+      await router.isReady()
+      mount(App, { global: { plugins: [router, i18n] } })
+      await flushPromises()
+
+      expect(prefetchBootstrap).toHaveBeenCalledTimes(1)
+      expect(order).toEqual(['prefetch', 'friends'])
+    })
+
+    it('does not start it without a session', async () => {
+      setActivePinia(createPinia())
+
+      const router = makeRouter('/login')
+      await router.isReady()
+      mount(App, { global: { plugins: [router, i18n] } })
+      await flushPromises()
+
+      expect(prefetchBootstrap).not.toHaveBeenCalled()
+    })
   })
 })

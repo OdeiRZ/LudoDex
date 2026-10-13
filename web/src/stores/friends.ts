@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { apiClient } from '@/lib/api'
+import { takeBootstrap } from '@/lib/bootstrap'
 import type { Game } from './games'
 
 export interface Friend {
@@ -28,10 +29,15 @@ interface FriendsState {
   incomingRequests: FriendEntry[]
   outgoingRequests: FriendEntry[]
   blockedUsers: FriendEntry[]
+  /** Cuándo se trajeron por última vez las solicitudes (ms); evita pedirlas dos veces seguidas. */
+  requestsFetchedAt: number
   loaded: boolean
   loading: boolean
   loadError: boolean
 }
+
+/** Las solicitudes traídas hace menos que esto no se vuelven a pedir al cambiar de ruta. */
+const REQUESTS_FRESH_MS = 5_000
 
 export const useFriendsStore = defineStore('friends', {
   state: (): FriendsState => ({
@@ -39,6 +45,7 @@ export const useFriendsStore = defineStore('friends', {
     incomingRequests: [],
     outgoingRequests: [],
     blockedUsers: [],
+    requestsFetchedAt: 0,
     loaded: false,
     loading: false,
     loadError: false,
@@ -51,6 +58,19 @@ export const useFriendsStore = defineStore('friends', {
       this.loadError = false
 
       try {
+        // Atajo: la petición de arranque (lib/bootstrap.ts) ya trae amigos, solicitudes y
+        // bloqueos. Sin ella (no se pidió, falló o ya se usó) se piden como siempre.
+        const bootstrap = await takeBootstrap('friends')
+        if (bootstrap) {
+          this.friends = bootstrap.friends
+          this.incomingRequests = bootstrap.requests.incoming
+          this.outgoingRequests = bootstrap.requests.outgoing
+          this.blockedUsers = bootstrap.blocks
+          this.requestsFetchedAt = Date.now()
+          this.loaded = true
+          return
+        }
+
         const [friendsResponse, requestsResponse, blocksResponse] = await Promise.all([
           apiClient.get('/friends'),
           apiClient.get('/friends/requests'),
@@ -61,6 +81,7 @@ export const useFriendsStore = defineStore('friends', {
         this.incomingRequests = requestsResponse.data.data.incoming
         this.outgoingRequests = requestsResponse.data.data.outgoing
         this.blockedUsers = blocksResponse.data.data
+        this.requestsFetchedAt = Date.now()
         this.loaded = true
       } catch {
         // Swallowed, not rethrown - see the identical comment in
@@ -85,10 +106,15 @@ export const useFriendsStore = defineStore('friends', {
      * than failing navigation over this.
      */
     async refreshIncomingRequests() {
+      // Al abrir la app, el primer cambio de ruta repetía `friends/requests`
+      // justo después de fetchAll()/bootstrap, que ya las acababan de traer.
+      if (this.loading || Date.now() - this.requestsFetchedAt < REQUESTS_FRESH_MS) return
+
       try {
         const { data } = await apiClient.get('/friends/requests')
         this.incomingRequests = data.data.incoming
         this.outgoingRequests = data.data.outgoing
+        this.requestsFetchedAt = Date.now()
       } catch {
         // Silent - see docblock above.
       }
