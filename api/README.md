@@ -199,6 +199,8 @@ La suite usa Pest y `RefreshDatabase` (SQLite en memoria durante los tests).
 | POST   | `/api/login`    | No   | Valida credenciales, devuelve `{ user, token }` (limitado a 6 intentos/minuto) |
 | POST   | `/api/logout`   | Sí   | Revoca el token con el que se autenticó la petición |
 | GET    | `/api/user`     | Sí   | Devuelve el usuario autenticado |
+| GET    | `/api/bootstrap` | Sí  | Todo lo que la app pide al abrirse (usuario, colección, catálogos, amigos, solicitudes, bloqueos) en una respuesta condicional con `ETag` — ver "Arranque en una petición" más abajo |
+| GET    | `/api/games/{game}/description` | Sí | Sinopsis de BGG de un juego y su traducción (la usa el modal de detalle; las listas no la llevan) |
 | PUT    | `/api/user`     | Sí   | Actualiza nombre/email/usuario de BGG |
 | PUT    | `/api/user/password` | Sí | Cambia la contraseña (exige `current_password`; limitado a 6/minuto) |
 | POST   | `/api/forgot-password` | No | Envía el email de recuperación de contraseña (limitado a 6/minuto) |
@@ -213,6 +215,52 @@ respecto al guardado, intenta rellenar `avatar_url` desde esa cuenta de BGG
 (`App\Services\Bgg\BggClient::fetchUserAvatar`) de forma *best-effort* — un
 fallo ahí (sin token, usuario inexistente, BGG caído) nunca bloquea el resto
 del guardado.
+
+### Arranque en una petición (`GET /api/bootstrap`)
+
+Al abrir la app se pedían **ocho cosas a la vez** (`/user`, `/friends`,
+`/friends/requests` —dos veces—, `/friends/blocks`, `/games`, `/mechanics`,
+`/categories`) contra `php artisan serve` con 4 trabajadores en la CPU mínima
+del plan Free de Render. Medido en producción: sueltas, ~450 ms cada una;
+juntas, 1,5-2 s, y la lista de juegos no terminaba hasta +3 s.
+
+`BootstrapController` las devuelve en **una** respuesta
+(`user`, `games`, `mechanics`, `categories`, `friends`, `requests`, `blocks`),
+construida por EXACTAMENTE los mismos controladores que sus endpoints de
+siempre (que siguen ahí para refrescos puntuales y como respaldo): no hay
+lógica duplicada y un test compara cada sección con la de su endpoint.
+
+Es **condicional**. La respuesta lleva un `ETag` calculado por
+`App\Services\Bootstrap\BootstrapVersion` con UNA consulta de agregados
+(nº de filas y última modificación de cada tabla que alimenta una sección).
+El cliente la guarda y la reenvía en `If-None-Match`; si nada ha cambiado, `304`
+sin cuerpo y sin construir ni transferir la colección. Qué cambia la huella
+(todo ello cubierto por tests): alta, baja, estado o edición de un juego,
+**solo** sus mecánicas/categorías (el sincronizador "toca" el juego), filas de
+pivote añadidas en bloque por la importación de BGG, el perfil del usuario, el
+catálogo de mecánicas o categorías, y amigos, solicitudes, bloqueos o el nombre
+de un amigo. La actividad ajena no la cambia. `FORMAT_VERSION` invalida las
+huellas guardadas si cambia la forma de la respuesta.
+
+`config/cors.php` expone `ETag` (sin eso el navegador no deja leerlo desde otro
+dominio) y fija `max_age` en 2 h: con `0`, el navegador repetía la petición
+OPTIONS previa antes de **cada** llamada con `Authorization`.
+
+**La sinopsis ya no viaja en las listas.** La descripción completa de BGG
+(~1 KB por juego) era el 55 % de `GET /api/games` (322 KB de 660 KB con 323
+juegos) y solo la lee el modal de detalle: `GameResource` y `PlayResource` no la
+llevan y el modal la pide al abrirse a `GET /api/games/{game}/description`. En
+local, con 617 juegos, la lista pasó de 1175 KB a 467 KB.
+
+### Tokens: `last_used_at` como mucho cada 5 minutos
+
+Sanctum reescribe `personal_access_tokens.last_used_at` con un `UPDATE` en
+**cada** petición autenticada: contra una base remota, una escritura más (con su
+confirmación) antes de hacer nada útil. Medido, cada petición autenticada hacía
+2 lecturas y esa escritura. `App\Models\PersonalAccessToken` (registrado en
+`AppServiceProvider` con `Sanctum::usePersonalAccessTokenModel`) la omite si la
+hora guardada tiene menos de 5 minutos. Nada de la app depende de que sea exacta
+al segundo; solo indica "este token se usó hace poco".
 
 ### Verificación de email
 

@@ -7,6 +7,44 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Cambiado (rendimiento)
+
+Medido en producción antes de tocar nada (API despierta, desde el navegador):
+`/up` sin base de datos ~140-230 ms, pero `/api/user` ~400-470 ms; cada petición
+autenticada hacía 2 lecturas y 1 escritura en la base (Neon, en Londres, con el
+API en Fráncfort) antes de empezar; `/api/games` tardaba 1,4-1,7 s y pesaba
+660 KB (323 juegos); al abrir la app salían **8 peticiones a la vez** (con
+`friends/requests` repetida) y la última acababa a +3,1 s; arranque en frío del
+servidor 14,6 s; y la primera consulta tras 5 minutos sin uso (Neon suspendido)
+~1,9 s.
+
+- **La app se abre con UNA petición** (`GET /api/bootstrap`) en vez de ocho: el
+  usuario, la colección, los catálogos, los amigos, las solicitudes y los
+  bloqueos, construidos por los mismos controladores de siempre. Es condicional
+  (`ETag`/`If-None-Match`): si nada ha cambiado, `304` sin cuerpo. Los tres
+  stores recogen su parte en su `fetchAll()` de siempre y, si la respuesta no
+  está (falló, ya se usó o pasaron 30 s), piden lo suyo como antes. El `ETag`
+  sale de una sola consulta de agregados y 12 tipos de cambio lo invalidan
+  (probados), incluido tocar solo las mecánicas de un juego.
+- **Las listas ya no llevan la sinopsis de BGG** (`description`,
+  `description_es`): era el 55 % de `GET /api/games` y solo la lee el modal de
+  detalle, que la pide al abrirse (`GET /api/games/{game}/description`, con caché
+  por sesión). Con 617 juegos locales, la lista pasa de 1175 KB a 467 KB.
+- **Sanctum escribía `last_used_at` en cada petición**: ahora, como mucho cada 5
+  minutos (`PersonalAccessToken`): una escritura menos por petición.
+- **CORS**: `ETag` expuesto (necesario para leerlo desde otro dominio) y
+  `max_age` de 0 a 2 h: antes el navegador repetía la petición OPTIONS previa
+  antes de **cada** llamada autenticada.
+- **No se repite `friends/requests`** al cambiar de ruta justo tras cargarlas.
+
+### Añadido (copias de seguridad)
+
+- **`backup.yml`**: volcado semanal cifrado de Neon (90 días), que comprueba que
+  la copia se restaura y que tiene filas; **`restore-database.yml`**: restaura una
+  copia en otra base de datos dentro de GitHub (sirve para mudar de región sin
+  manejar contraseñas). Copiados de PequeDex y adaptados a las tablas de
+  LudoDex. Antes no había ninguna copia y Neon solo guarda 6 horas de historial.
+
 ### Añadido
 
 - **Barrido circular al cambiar de tema** (`ThemeToggle.vue`): en vez de un

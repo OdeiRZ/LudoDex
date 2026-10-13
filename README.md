@@ -150,6 +150,44 @@ Repo único con dos aplicaciones independientes, cada una con su propio
    configurable por perfil (en 4 fases, ver CHANGELOG). Cierra el área
    que este README dejaba fuera de alcance a propósito.
 
+## Copias de seguridad
+
+Neon gratuito solo conserva 6 horas de historial, así que
+`.github/workflows/backup.yml` hace cada domingo (y a mano) un volcado de la base
+de datos, lo **cifra** (el repositorio es público y sus artefactos los puede
+descargar cualquiera con sesión de GitHub) y lo guarda 90 días como artefacto.
+No lleva sesiones, tokens de acceso ni cachés. Después **comprueba que la copia
+se puede restaurar** (la restaura en un PostgreSQL desechable del propio runner y
+cuenta filas): una copia que nunca se ha restaurado no es una copia. Sin coste:
+Actions es gratuito en repositorios públicos y el volcado son pocos MB.
+
+**Puesta en marcha** (una vez; los valores los pones tú):
+
+```
+gh secret set NEON_DATABASE_URL   # cadena de conexión DIRECTA de Neon (no la "pooled")
+gh secret set BACKUP_PASSPHRASE   # contraseña de cifrado; guárdala aparte
+gh workflow run backup.yml        # primera copia, para comprobar que funciona
+```
+
+**Restaurar o mudar de base de datos** (p. ej. de Londres a Fráncfort), sin
+instalar nada ni pasar la contraseña por ningún ordenador personal:
+`.github/workflows/restore-database.yml` descifra una copia y la restaura en OTRA
+base de datos dentro de GitHub.
+
+1. Crear la base de datos de destino, vacía, en el proyecto nuevo de Neon.
+2. Guardar su cadena **directa** como secreto `RESTORE_TARGET_DATABASE_URL`.
+3. Lanzar `backup.yml` (copia fresca) y anotar el número de su ejecución.
+4. `gh workflow run restore-database.yml -f backup_run_id=<id>` y comparar los
+   recuentos que imprime (juegos, colecciones, partidas, usuarios, amistades,
+   mecánicas) con los del origen.
+5. Cambiar las variables `DB_*` de Render a la base nueva y **lanzar un
+   despliegue manual** (guardar las variables no basta), y actualizar el secreto
+   `NEON_DATABASE_URL` para que las copias sigan la base nueva.
+
+Se niega a restaurar sobre una base con tablas o sobre el propio origen de las
+copias. Al restaurar hay que **volver a iniciar sesión** (los tokens no se
+copian a propósito).
+
 ## Licencia
 
 [AGPLv3](LICENSE).
