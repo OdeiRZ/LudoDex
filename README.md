@@ -139,7 +139,8 @@ Repo único con dos aplicaciones independientes, cada una con su propio
    interacciones en botones/cards/badges, skeleton loaders y un gráfico de
    actividad mensual en "Tus partidas", verificado en desktop y móvil) y
    despliegue real: API en [Render](https://render.com) (Docker, Frankfurt)
-   + Postgres en [Neon](https://neon.tech) (Londres) + frontend en
+   + Postgres en [Neon](https://neon.tech) (Fráncfort desde el 2026-10-14;
+   antes Londres, a un océano de distancia del API) + frontend en
    [Cloudflare Pages](https://pages.cloudflare.com). Verificado de punta a
    punta contra los servicios reales (registro, login, alta y borrado de un
    juego) tras el despliegue.

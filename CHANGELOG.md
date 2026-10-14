@@ -37,6 +37,18 @@ servidor 14,6 s; y la primera consulta tras 5 minutos sin uso (Neon suspendido)
   antes de **cada** llamada autenticada.
 - **No se repite `friends/requests`** al cambiar de ruta justo tras cargarlas.
 
+### Cambiado (base de datos)
+
+- **La base de datos de Neon pasa de Londres a Fráncfort** (2026-10-14), la misma
+  región que el API de Render. Neon no permite cambiar la región de un proyecto:
+  se creó uno nuevo (Postgres 18, base `neondb`) y los datos se copiaron con
+  `backup.yml` + `restore-database.yml` dentro de GitHub, sin que ninguna
+  contraseña pasara por un ordenador personal. Recuentos idénticos antes y
+  después (1283 juegos, 1391 colecciones, 14 586 partidas, 11 usuarios, 1
+  amistad, 176 mecánicas) y 0 avisos de `pg_restore`. Los tokens no se copian a
+  propósito: hubo que volver a iniciar sesión. El proyecto antiguo se conserva
+  unos días, renombrado, como vuelta atrás.
+
 ### Corregido
 
 - **La búsqueda por nombre en "Tus partidas" y en las partidas de un amigo
