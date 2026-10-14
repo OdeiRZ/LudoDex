@@ -143,13 +143,14 @@ en cada una: medido, hasta un endpoint trivial tardaba ~250-280 ms con la base d
 datos ya en la misma región. Ahora el `Dockerfile` instala la extensión `opcache`
 con `docker/opcache.ini` (`enable_cli=1`, imprescindible con `artisan serve`;
 `validate_timestamps=0`, porque el contenedor es inmutable; sin JIT) y
-`docker/entrypoint.sh` ejecuta `php artisan config:cache` al arrancar, después de
-las migraciones (necesita las variables de entorno de Render, que solo existen en
-ese momento). Es seguro porque **ningún código llama a `env()` fuera de
-`config/`**: si algún día se añade uno, con la caché devolvería `null`. Si
-`config:cache` fallase, el contenedor arranca igualmente sin caché. No se cachean
-las rutas (`route:cache`) porque `routes/api.php` tiene un closure
-(`/user`) y Laravel no puede serializarlos.
+`docker/entrypoint.sh` ejecuta `php artisan optimize` (configuración, eventos,
+rutas y vistas) al arrancar, después de las migraciones (la configuración necesita
+las variables de entorno de Render, que solo existen en ese momento). Es seguro
+porque **ningún código llama a `env()` fuera de `config/`**: si algún día se
+añade uno, con la caché devolvería `null`. Si `optimize` fallase, el contenedor
+arranca igualmente sin cachés. (Una versión anterior de esta nota decía que las
+rutas no se podían cachear por el closure de `/user`: era falso, Laravel
+serializa los closures; `route:cache` funciona con esta app.)
 
 `SENTRY_LARAVEL_DSN` (opcional, vacía por defecto — sin ella el SDK no hace
 nada): monitorización de errores en producción vía

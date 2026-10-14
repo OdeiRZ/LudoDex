@@ -39,8 +39,9 @@ servidor 14,6 s; y la primera consulta tras 5 minutos sin uso (Neon suspendido)
 - **OPcache y configuración cacheada en el contenedor.** El `Dockerfile` no tenía
   OPcache (PHP recompilaba el framework en cada petición) ni se cacheaba la
   configuración, en la CPU mínima del plan Free. Ahora instala la extensión con
-  `docker/opcache.ini` y el `entrypoint.sh` ejecuta `config:cache` tras las
-  migraciones (con salida de seguridad si fallase). Tras la mudanza a Fráncfort,
+  `docker/opcache.ini` y el `entrypoint.sh` ejecuta `optimize` (configuración,
+  eventos, rutas y vistas) tras las migraciones (con salida de seguridad si
+  fallase). Tras la mudanza a Fráncfort,
   los endpoints triviales seguían en ~280 ms: ese es el suelo que ataca esto.
 
 ### Cambiado (base de datos)
