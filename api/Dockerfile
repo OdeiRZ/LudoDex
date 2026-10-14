@@ -24,7 +24,11 @@ FROM php:8.3-cli-alpine AS app
 WORKDIR /var/www/html
 
 RUN apk add --no-cache postgresql-dev \
-    && docker-php-ext-install -j"$(nproc)" pdo_pgsql bcmath
+    && docker-php-ext-install -j"$(nproc)" pdo_pgsql bcmath opcache
+
+# OPcache: ver docker/opcache.ini. El "zz-" lo carga después del .ini que crea
+# docker-php-ext-install para la extensión.
+COPY docker/opcache.ini /usr/local/etc/php/conf.d/zz-opcache.ini
 
 COPY --from=vendor /app/vendor ./vendor
 COPY . .

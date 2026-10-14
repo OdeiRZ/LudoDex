@@ -135,6 +135,22 @@ enlaces apuntarían a `http://localhost:5173` (el valor por defecto de
 `config/app.php`). `OWNER_EMAIL` es obligatoria para
 `POST /api/games/backfill-translations` (ver más abajo).
 
+**OPcache y configuración cacheada.** El contenedor es `php:8.3-cli-alpine` con
+`php artisan serve` (4 trabajadores) en la CPU mínima del plan Free. Sin OPcache,
+PHP volvía a leer y compilar cientos de ficheros del framework en cada
+petición, y sin `config:cache` Laravel fusionaba todos los de `config/` también
+en cada una: medido, hasta un endpoint trivial tardaba ~250-280 ms con la base de
+datos ya en la misma región. Ahora el `Dockerfile` instala la extensión `opcache`
+con `docker/opcache.ini` (`enable_cli=1`, imprescindible con `artisan serve`;
+`validate_timestamps=0`, porque el contenedor es inmutable; sin JIT) y
+`docker/entrypoint.sh` ejecuta `php artisan config:cache` al arrancar, después de
+las migraciones (necesita las variables de entorno de Render, que solo existen en
+ese momento). Es seguro porque **ningún código llama a `env()` fuera de
+`config/`**: si algún día se añade uno, con la caché devolvería `null`. Si
+`config:cache` fallase, el contenedor arranca igualmente sin caché. No se cachean
+las rutas (`route:cache`) porque `routes/api.php` tiene un closure
+(`/user`) y Laravel no puede serializarlos.
+
 `SENTRY_LARAVEL_DSN` (opcional, vacía por defecto — sin ella el SDK no hace
 nada): monitorización de errores en producción vía
 [Sentry](https://sentry.io) (plan gratuito), cableada en `bootstrap/app.php`

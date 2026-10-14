@@ -36,6 +36,12 @@ servidor 14,6 s; y la primera consulta tras 5 minutos sin uso (Neon suspendido)
   `max_age` de 0 a 2 h: antes el navegador repetía la petición OPTIONS previa
   antes de **cada** llamada autenticada.
 - **No se repite `friends/requests`** al cambiar de ruta justo tras cargarlas.
+- **OPcache y configuración cacheada en el contenedor.** El `Dockerfile` no tenía
+  OPcache (PHP recompilaba el framework en cada petición) ni se cacheaba la
+  configuración, en la CPU mínima del plan Free. Ahora instala la extensión con
+  `docker/opcache.ini` y el `entrypoint.sh` ejecuta `config:cache` tras las
+  migraciones (con salida de seguridad si fallase). Tras la mudanza a Fráncfort,
+  los endpoints triviales seguían en ~280 ms: ese es el suelo que ataca esto.
 
 ### Cambiado (base de datos)
 
