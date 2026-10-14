@@ -26,8 +26,29 @@ npm run test:unit      # Vitest
 
 - `src/lib/api.ts` — instancia de axios con interceptor que añade el token
   Bearer a cada petición.
+- `src/lib/bootstrap.ts` — **la app se abre con UNA petición** en vez de ocho.
+  Antes, al arrancar salían a la vez `/user`, `/friends`, `/friends/requests`
+  (dos veces), `/friends/blocks`, `/games`, `/mechanics` y `/categories` contra un
+  servidor de 4 trabajadores en la CPU mínima de Render (medido: sueltas ~450 ms,
+  juntas 1,5-2 s, y la lista de juegos no terminaba hasta +3 s). Ahora
+  `App.vue` llama a `prefetchBootstrap()` cuando hay sesión (antes de que ninguna
+  vista pida lo suyo) y los tres stores recogen SU parte con
+  `takeBootstrap('user' | 'friends' | 'games')` en su `fetchAll()` /
+  `fetchCurrentUser()` de siempre: **una vez por parte** y solo si la respuesta
+  tiene menos de 30 s. Si no hay respuesta (falló, aún no existe en el API, esa
+  parte ya se recogió, o pasó el tiempo), devuelve `null` y el store pide lo suyo
+  como antes: es un atajo, nunca el único camino (por eso un despliegue del front
+  anterior al del API no rompe nada). La última respuesta se guarda en
+  `localStorage` (`ludodex.bootstrap`, ligada al final del token de la sesión)
+  con su `ETag` y se reenvía en `If-None-Match`: si no ha cambiado nada, el API
+  contesta **304 sin cuerpo** y se usa lo guardado, sin transferir ni
+  reconstruir la colección. Con la base ya en Fráncfort, abrir la app pasó de
+  8 peticiones y +3,1 s a 1 petición de ~0,2-0,4 s. `resetBootstrap()` (al cerrar
+  sesión, en `auth.clearSession()`) borra también esa copia. El API tiene que
+  exponer `ETag` por CORS (`config/cors.php`) o el navegador no lo deja leer.
 - `src/stores/auth.ts` — store de Pinia: sesión (usuario + token), acciones de
-  registro/login/logout, y restauración de sesión al recargar la página.
+  registro/login/logout, y restauración de sesión al recargar la página (el
+  usuario sale de la petición de arranque si está; si no, de `GET /user`).
 - `src/router/index.ts` — rutas, guard de navegación (`requiresAuth` /
   `guestOnly`) y `scrollBehavior` (restaura la posición de scroll guardada
   cuando la navegación es un "atrás" real — botón atrás del navegador, o
@@ -38,7 +59,20 @@ npm run test:unit      # Vitest
   editar un juego a mitad de un scroll largo de la colección siempre
   devolvía a la parte superior de la página.
 - `src/stores/games.ts` — store de Pinia: colección del usuario, catálogo de
-  mecánicas/categorías, altas y borrados.
+  mecánicas/categorías, altas y borrados. `fetchAll()` recoge su parte de la
+  petición de arranque (ver `lib/bootstrap.ts`) antes de pedir nada. **Las listas
+  ya no traen la sinopsis de BGG** (`description`, `description_es`, ~1 KB por
+  juego: el 55 % de `GET /api/games`): son opcionales en `Game` y las pide
+  `fetchDescription(gameId)` a `GET /api/games/{id}/description`, **una vez por
+  sesión y juego** (caché en `descriptions`; un fallo no se cachea, así que
+  reabrir reintenta; una traducción hecha después actualiza la caché).
+- `src/components/GameDetailModal.vue` — el modal de detalle de un juego, el único
+  que muestra la sinopsis: si el juego llega sin ella (`description === undefined`,
+  como en las listas) la pide al abrirse y mientras tanto enseña un indicador de
+  carga; si la petición falla, muestra un error (no "este juego no tiene
+  descripción", que sería mentira). Lo usan Colección, "¿A qué jugamos?",
+  Partidas y las partidas de un amigo, sin que ninguno de ellos tenga que
+  cambiar nada.
 - `src/components/TagInput.vue` — selector de mecánicas/categorías como
   "tags", con autocompletado (`<datalist>`) contra el catálogo existente y
   alta de nuevas sobre la marcha.
@@ -83,7 +117,11 @@ npm run test:unit      # Vitest
   conjunto filtrado a la unión con la colección de un amigo — ver
   `friends.ts` más abajo.
 - `src/stores/friends.ts` — store de Pinia: amigos aceptados, solicitudes
-  entrantes/salientes, usuarios bloqueados, y la búsqueda/comparación de
+  entrantes/salientes, usuarios bloqueados (`fetchAll()` recoge su parte de la
+  petición de arranque, ver `lib/bootstrap.ts`; y `refreshIncomingRequests()` no
+  vuelve a pedir las solicitudes si se trajeron hace menos de 5 s, para no
+  repetir `friends/requests` en el primer cambio de ruta tras abrir la app), y la
+  búsqueda/comparación de
   colección que usa tanto `FriendsView.vue` como el "Jugar con" del
   Picker. `src/stores/friendDetail.ts` es la store aparte de la propia
   ficha de un amigo (`FriendDetailView.vue`) — deliberadamente
