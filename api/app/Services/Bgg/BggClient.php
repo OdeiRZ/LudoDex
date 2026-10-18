@@ -205,11 +205,7 @@ class BggClient
                 return ['status' => 'error', 'message' => $message, 'transient' => false];
             }
 
-            $pagePlayCount = 0;
-
             foreach ($xml->play as $play) {
-                $pagePlayCount++;
-
                 if (! isset($play->item)) {
                     continue;
                 }
@@ -224,7 +220,7 @@ class BggClient
                 ];
             }
 
-            if ($pagePlayCount < 100) {
+            if ($xml->play->count() < 100) {
                 break;
             }
         }
