@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\ResolveClientIp;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocaleFromHeader;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
@@ -18,6 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->api(append: [
             SetLocaleFromHeader::class,
         ]);
+
+        // La IP real del cliente tiene que estar resuelta antes que cualquier
+        // límite de peticiones; ver el docblock de la clase.
+        $middleware->prepend(ResolveClientIp::class);
+        $middleware->append(SecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // This app is API-only - routes/web.php has no named "login" route

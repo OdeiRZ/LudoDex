@@ -50,7 +50,11 @@ return [
     |
     */
 
-    'expiration' => null,
+    // Los tokens caducan a los 120 días de crearse (antes eran eternos: un
+    // móvil perdido o una sesión olvidada seguían dentro para siempre).
+    // Pasados esos días la app vuelve a pedir el login. Se puede cambiar con
+    // SANCTUM_EXPIRATION (minutos).
+    'expiration' => (int) env('SANCTUM_EXPIRATION', 60 * 24 * 120),
 
     /*
     |--------------------------------------------------------------------------

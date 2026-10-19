@@ -30,6 +30,9 @@ RUN apk add --no-cache postgresql-dev \
 # docker-php-ext-install para la extensión.
 COPY docker/opcache.ini /usr/local/etc/php/conf.d/zz-opcache.ini
 
+# Sin "X-Powered-By: PHP/x.y.z" en las respuestas - ver docker/security.ini.
+COPY docker/security.ini /usr/local/etc/php/conf.d/security.ini
+
 COPY --from=vendor /app/vendor ./vendor
 COPY . .
 

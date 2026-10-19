@@ -7,6 +7,18 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Seguridad (endurecimiento de la API)
+
+- **El límite de intentos de login ya cuenta por cliente.** Detrás de Render
+  todas las peticiones llegaban con la IP del proxy, así que `throttle:6,1`
+  (login, registro, restablecer contraseña, búsqueda de amigos) era un único
+  cubo compartido: cualquiera podía bloquear el acceso de todos. Ahora, en
+  producción, se usa la IP real que Cloudflare manda en `CF-Connecting-IP`.
+- **Cabeceras de seguridad** en todas las respuestas (`nosniff`, sin
+  `Referer`, sin marcos, HSTS) y sin `X-Powered-By: PHP/x.y.z`.
+- **Los tokens de sesión caducan a los 120 días** (antes no caducaban nunca).
+  Pasado ese tiempo la app pide iniciar sesión de nuevo.
+
 ### Cambiado (rendimiento)
 
 Medido en producción antes de tocar nada (API despierta, desde el navegador):

@@ -279,6 +279,27 @@ confirmación) antes de hacer nada útil. Medido, cada petición autenticada hac
 hora guardada tiene menos de 5 minutos. Nada de la app depende de que sea exacta
 al segundo; solo indica "este token se usó hace poco".
 
+### Endurecimiento de la API
+
+Portado de PequeDex; tests en `tests/Feature/Security/HardeningTest.php`.
+
+- **IP real del cliente** (`ResolveClientIp`): detrás de Render el servidor solo
+  ve la IP del proxy, así que los límites por IP (`throttle:6,1` de login,
+  registro, restablecer contraseña y búsqueda de amigos) eran un único cubo
+  compartido por todos: cualquiera podía bloquear el acceso de los demás. En
+  producción se toma la IP de `CF-Connecting-IP` (Cloudflare la pone y pisa lo
+  que mande el cliente); `X-Forwarded-For` no se usa porque lo escribe el
+  cliente. Solo con `APP_ENV=production`: tras desplegar, comprobar que la
+  cabecera llega de verdad (login fallido desde dos redes distintas).
+- **Cabeceras de seguridad** (`SecurityHeaders`): `nosniff`, `Referrer-Policy:
+  no-referrer`, `X-Frame-Options: DENY` y HSTS; y `expose_php = Off`
+  (`docker/security.ini`) para no anunciar la versión de PHP.
+- **Los tokens caducan a los 120 días** (`SANCTUM_EXPIRATION`, en minutos). Antes
+  eran eternos. Cambiar o restablecer la contraseña ya cerraba las demás
+  sesiones. Al desplegar nadie se queda fuera: la base de datos original es de
+  agosto de 2026, así que ningún token existente tiene aún 120 días (el más
+  antiguo posible caduca en diciembre de 2026).
+
 ### Verificación de email
 
 `/register` deja crear una cuenta con cualquier email, sin comprobar que
