@@ -15,6 +15,23 @@ Cloudflare Pages) — [ludodex-api.onrender.com](https://ludodex-api.onrender.co
 inactividad y el primer request tras el sueño puede tardar ~50s en responder
 mientras arranca de nuevo.
 
+## De un vistazo
+
+| | |
+|---|---|
+| **Qué resuelve** | Saber qué juegos tienes y elegir a cuál jugar según cuántos sois, cuánto tiempo hay y qué os apetece; con la colección importable desde BoardGameGeek. |
+| **Social** | Amigos, comparar colecciones y ver las partidas de los demás. |
+| **Stack** | Laravel 12 + Sanctum (API) · Vue 3 + Pinia + TypeScript · PostgreSQL en Neon · Render + Cloudflare Pages · español e inglés |
+| **Calidad** | 313 tests de backend (SQLite y PostgreSQL) · 500 de frontend · CI con comprobación de atribución · Sentry · copia de seguridad semanal cifrada |
+
+**Una mejora medida de verdad:** cargar la app hacía **8 peticiones y tardaba
++3,1 s** en terminar de pintar; con un único `/api/bootstrap` con ETag pasó a
+**1 petición, un 304 en ~390 ms** con copia guardada. La lista de juegos bajó de
+**660 KB a 266 KB** al sacar las descripciones largas (se piden al abrir un
+juego), y las peticiones autenticadas de ~450 a ~285 ms al mover la base de
+Londres a Fráncfort. Las mediciones están en [`api/README.md`](api/README.md)
+y en el [CHANGELOG](CHANGELOG.md).
+
 **Proyecto en construcción activa** — este README se irá ampliando a medida
 que avancen los hitos. Ver [CHANGELOG.md](CHANGELOG.md) para el detalle de
 cada uno, o las [releases en GitHub](https://github.com/OdeiRZ/LudoDex/releases)
