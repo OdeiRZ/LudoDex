@@ -7,6 +7,19 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Seguridad (dependencias del frontend)
+
+- **`npm audit` de 8 avisos (1 crítico, 6 altos) a 0, con y sin dependencias de
+  desarrollo.** En producción solo había uno: `follow-redirects` 1.16.0 (llega
+  por axios y solo se usa en Node) → 1.16.1. El resto eran de desarrollo:
+  `shell-quote` (crítico), `brace-expansion` y `postcss-selector-parser`, con
+  arreglo por `npm audit fix` (solo cambia el lockfile), y `braces` (4 avisos
+  que son 1, sin versión corregida) que se resolvió quitando
+  `@vue/eslint-config-typescript`: `eslint.config.ts` usa `typescript-eslint` y
+  `vue-eslint-parser` directamente. Verificado: el lint sigue marcando `any` y
+  variables sin usar en `.ts` y `.vue`, tipos, 500 tests y build, y un
+  `npm ci` limpio sobre el lockfile nuevo funciona.
+
 ### Seguridad (endurecimiento de la API)
 
 - **El límite de intentos de login ya cuenta por cliente.** Detrás de Render

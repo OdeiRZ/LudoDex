@@ -22,6 +22,22 @@ npm run format         # Prettier
 npm run test:unit      # Vitest
 ```
 
+### `npm audit` limpio (dependencias de desarrollo incluidas)
+
+`npm audit` se mantiene en 0, con y sin `--omit=dev`. Lo que se ha resuelto:
+
+- **`braces` ≤ 3.0.3** ("stack-exhaustion denial of service", GHSA-vfj7-8cjw-p6xm):
+  no tenía versión corregida; llegaba por `@vue/eslint-config-typescript` →
+  `fast-glob` → `micromatch` → `braces`. Se quitó la causa: `eslint.config.ts`
+  usa `typescript-eslint` y `vue-eslint-parser` directamente (ese paquete solo
+  añadía este cableado) y `@vue/eslint-config-typescript` ya no es dependencia.
+  El lint se comprobó igual que antes: sigue marcando `any` y variables sin
+  usar en `.ts` y en `.vue`.
+- **`follow-redirects` 1.16.0** (cabeceras con credenciales entre redirecciones;
+  llega por axios y solo se usa en Node, no en el navegador), **`shell-quote`**
+  (crítico, herramientas de desarrollo), **`brace-expansion`** y
+  **`postcss-selector-parser`**: `npm audit fix`, solo cambia el lockfile.
+
 ## Estructura relevante
 
 - `src/lib/api.ts` — instancia de axios con interceptor que añade el token
