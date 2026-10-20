@@ -17,6 +17,8 @@ mientras arranca de nuevo.
 
 ## De un vistazo
 
+![Colección de LudoDex: portadas, estado de cada juego, ranking en BGG y expansiones](docs/coleccion.jpg)
+
 | | |
 |---|---|
 | **Qué resuelve** | Saber qué juegos tienes y elegir a cuál jugar según cuántos sois, cuánto tiempo hay y qué os apetece; con la colección importable desde BoardGameGeek. |
