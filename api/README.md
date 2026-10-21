@@ -111,6 +111,10 @@ de una sola vez, en la cuenta de Gmail que va a enviar los correos:
    emitidos antes, en modo "Prueba", siguen caducando y hay que sacar uno
    nuevo (repetir este paso 5). Un token en producción solo deja de valer si
    se revoca, se cambia la contraseña de Google o pasa medio año sin usarse.
+   En Windows, `scripts/gmail-refresh-token.ps1 -ClientId ... -ClientSecret ...`
+   hace todo este paso 5: abre el navegador, recoge el código en un servidor
+   local temporal (`127.0.0.1:8085`), lo cambia por el token y lo deja en el
+   portapapeles sin guardarlo en ningún fichero.
 6. Poner `MAIL_MAILER=gmail_api`, `MAIL_FROM_ADDRESS`/`MAIL_FROM_NAME` con
    esa misma cuenta, y las tres `GMAIL_*` de arriba.
 
