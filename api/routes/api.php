@@ -18,6 +18,8 @@ use App\Http\Controllers\Games\GameDescriptionController;
 use App\Http\Controllers\Games\GameTranslationBackfillController;
 use App\Http\Controllers\Games\MechanicController;
 use App\Http\Controllers\Games\PlayController;
+use App\Http\Controllers\Games\PublicCollectionController;
+use App\Http\Controllers\Games\ShareLinkController;
 use App\Http\Controllers\Games\UserGameController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +31,10 @@ Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middl
 Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
     ->middleware('throttle:6,1')
     ->name('verification.verify');
+
+// Colección pública de solo lectura, por enlace (ver PublicCollectionController). La
+// única ruta sin sesión que devuelve datos de un usuario: con límite de peticiones por IP.
+Route::get('/public/collections/{token}', [PublicCollectionController::class, 'show'])->middleware('throttle:60,1');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -53,6 +59,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/friends/{friend}/games', [FriendCollectionController::class, 'index']);
     Route::get('/friends/{friend}/plays', [FriendPlayController::class, 'index']);
     Route::get('/friends/{friend}/plays/stats', [FriendPlayController::class, 'stats']);
+
+    Route::get('/share-link', [ShareLinkController::class, 'show']);
+    Route::post('/share-link', [ShareLinkController::class, 'store'])->middleware('throttle:20,1');
+    Route::delete('/share-link', [ShareLinkController::class, 'destroy']);
 
     Route::get('/games', [UserGameController::class, 'index']);
     Route::post('/games', [UserGameController::class, 'store']);

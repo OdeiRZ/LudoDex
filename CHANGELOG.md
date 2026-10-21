@@ -7,6 +7,22 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Enlace público de la colección
+
+- **Compartir tu colección con quien no tiene cuenta.** Desde Perfil → "Compartir
+  mi colección" se crea un enlace de solo lectura (`/c/<token>`) a los juegos que
+  tienes: se ve tu nombre, los juegos "lo tengo" (no la lista de deseos, ni tus
+  partidas ni tu correo), con buscador, filtro por jugadores y expansiones
+  ocultas por defecto. **Caduca a los 7 días** salvo que elijas 30, 90 o nunca; un
+  solo enlace por usuario, que se puede regenerar (el anterior deja de valer al
+  instante) o dejar de compartir, y la tarjeta muestra la caducidad y las visitas.
+- **Seguridad:** token de 256 bits, 404 idéntico para inexistente, mal formado,
+  caducado o revocado, `noindex`, `no-store` y 60 peticiones/minuto por IP. La
+  ruta pública devuelve solo una lista blanca de campos y hay tests de que no se
+  filtra nada. La política de privacidad lo menciona.
+- Nueva tabla `share_links` (migración sin datos previos). 22 tests de backend,
+  7 de frontend y 2 e2e.
+
 ### Política de privacidad
 
 - **Página pública `/privacidad`** (español e inglés, enlazada desde el pie):

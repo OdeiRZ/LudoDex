@@ -9,6 +9,7 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import PasswordInput from '@/components/PasswordInput.vue'
 import SegmentedControl from '@/components/SegmentedControl.vue'
+import ShareCollectionCard from '@/components/ShareCollectionCard.vue'
 
 const auth = useAuthStore()
 const { t } = useI18n()
@@ -253,6 +254,8 @@ async function onSubmitPassword() {
         {{ $t('nav.importBgg') }}
       </RouterLink>
     </section>
+
+    <ShareCollectionCard />
 
     <section class="card">
       <h2>{{ $t('profile.changePassword') }}</h2>

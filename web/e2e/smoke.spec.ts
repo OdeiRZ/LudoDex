@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
-import { addGame, createSession, signIn } from './session'
+import { addGame, createSession, createShareLink, signIn } from './session'
+import { API_URL } from './constants'
 
 // Prueba de humo de principio a fin: la app real (build de producción) contra el
 // API real con una SQLite desechable. Los tests unitarios no ejercitan el
@@ -37,6 +38,58 @@ test('an expired or wrong token sends the visitor to the login, not to a broken 
   await page.goto('./')
 
   await expect(page).toHaveURL(/login/)
+})
+
+test('a shared collection opens without a session: owned games and owner name, no wishlist, and it stops working when revoked', async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000)
+  const session = await createSession(request)
+  await addGame(request, session, { name: 'Juego Que Tengo', status: 'owned' })
+  await addGame(request, session, { name: 'Juego Que Quiero', status: 'wishlist' })
+  const token = await createShareLink(request, session)
+
+  // Sin ninguna sesión en este navegador.
+  await page.goto(`./c/${token}`)
+
+  await expect(page.getByRole('heading', { name: /Colección de Jugador E2E/ })).toBeVisible({
+    timeout: 45_000,
+  })
+  await expect(page.getByText('Juego Que Tengo')).toBeVisible()
+  await expect(page.getByText('Juego Que Quiero')).toHaveCount(0)
+
+  // El dueño deja de compartir: el mismo enlace ya no funciona.
+  const revoked = await request.delete(`${API_URL}/share-link`, { headers: session.authHeaders })
+  expect(revoked.ok()).toBeTruthy()
+  await page.reload()
+  await expect(page.getByTestId('public-not-found')).toBeVisible({ timeout: 45_000 })
+})
+
+test('the owner creates the link from the profile and it opens for someone without an account', async ({
+  page,
+  browser,
+  request,
+}) => {
+  test.setTimeout(120_000)
+  const session = await createSession(request)
+  await addGame(request, session, { name: 'Juego Compartido', status: 'owned' })
+  await signIn(page, session)
+
+  await page.goto('./profile')
+  const card = page.getByTestId('share-card')
+  await card.getByRole('button', { name: 'Crear enlace' }).click()
+  const url = await card
+    .getByRole('textbox', { name: 'Enlace público de tu colección' })
+    .inputValue()
+  expect(url).toMatch(/\/c\/[A-Za-z0-9_-]{43}$/)
+  await expect(card.getByText('Caduca el')).toBeVisible()
+
+  const stranger = await browser.newContext()
+  const strangerPage = await stranger.newPage()
+  await strangerPage.goto(url)
+  await expect(strangerPage.getByText('Juego Compartido')).toBeVisible({ timeout: 45_000 })
+  await stranger.close()
 })
 
 test('the privacy policy is public: it opens without a session and names the contact', async ({

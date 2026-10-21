@@ -43,6 +43,15 @@ export async function addGame(
   return (await created.json()).data
 }
 
+export async function createShareLink(
+  request: APIRequestContext,
+  session: Session,
+): Promise<string> {
+  const created = await request.post(`${API_URL}/share-link`, { headers: session.authHeaders })
+  expect(created.ok(), await created.text()).toBeTruthy()
+  return (await created.json()).data.token as string
+}
+
 export async function signIn(page: Page, session: Session) {
   await page.addInitScript((token) => {
     localStorage.setItem('ludodex_token', token)

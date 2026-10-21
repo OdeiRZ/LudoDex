@@ -23,6 +23,19 @@ npm run test:unit      # Vitest
 npm run e2e            # Playwright (prueba de humo de principio a fin)
 ```
 
+### Enlace público de la colección
+
+- **Gestionarlo:** tarjeta "Compartir mi colección" en Perfil
+  (`components/ShareCollectionCard.vue`, store `stores/shareLink.ts`): crear el
+  enlace con su caducidad (7 días por defecto; 30, 90 o nunca), copiarlo, ver
+  cuándo caduca y cuántas visitas lleva, generar uno nuevo (invalida el anterior)
+  o dejar de compartir (con confirmación).
+- **Verlo:** `/c/:token` (`views/PublicCollectionView.vue`), pública y de solo
+  lectura: "Colección de <nombre>", buscador, filtro por número de jugadores y
+  expansiones ocultas por defecto. No usa ningún store de la app ni los juegos de
+  quien mira. Un enlace caducado, revocado o inventado muestra el mismo mensaje.
+- Detalle del API y de qué datos salen (y cuáles no) en `api/README.md`.
+
 ### Pruebas de principio a fin (`npm run e2e`)
 
 `e2e/smoke.spec.ts` prueba la app real (el build de producción) contra el API

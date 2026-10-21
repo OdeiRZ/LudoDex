@@ -9,6 +9,7 @@ use Illuminate\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -66,6 +67,14 @@ class User extends Authenticatable implements MustVerifyEmailContract
     public function games(): HasMany
     {
         return $this->hasMany(UserGame::class);
+    }
+
+    /**
+     * @return HasOne<ShareLink, $this>
+     */
+    public function shareLink(): HasOne
+    {
+        return $this->hasOne(ShareLink::class);
     }
 
     /**

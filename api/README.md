@@ -238,6 +238,10 @@ La suite usa Pest y `RefreshDatabase` (SQLite en memoria durante los tests).
 | POST   | `/api/reset-password` | No | Cambia la contraseña dado un `token` y `email` válidos (limitado a 6/minuto) |
 | GET    | `/api/email/verify/{id}/{hash}` | No (URL firmada) | Confirma el email y redirige a `{frontend}/verify-email?ok=0/1` — ver "Verificación de email" más abajo |
 | POST   | `/api/email/verification-notification` | Sí | Reenvía el email de verificación (no hace nada si ya está verificado; limitado a 6/minuto) |
+| GET    | `/api/share-link` | Sí | El enlace público de tu colección (o `null`) — ver "Enlace público de la colección" más abajo |
+| POST   | `/api/share-link` | Sí | Crea el enlace o lo regenera (token nuevo, el anterior deja de valer); `expires_in_days`: 7 (por defecto), 30, 90 o `null` (no caduca) |
+| DELETE | `/api/share-link` | Sí | Deja de compartir: borra el enlace |
+| GET    | `/api/public/collections/{token}` | No | La colección compartida, de solo lectura (limitado a 60/minuto por IP) |
 
 `register` y `login` piden un campo `device_name` (etiqueta libre para el
 token, pensada para una futura pantalla de "sesiones activas"). `PUT
@@ -246,6 +250,33 @@ respecto al guardado, intenta rellenar `avatar_url` desde esa cuenta de BGG
 (`App\Services\Bgg\BggClient::fetchUserAvatar`) de forma *best-effort* — un
 fallo ahí (sin token, usuario inexistente, BGG caído) nunca bloquea el resto
 del guardado.
+
+### Enlace público de la colección
+
+Cada usuario puede crear **un** enlace de solo lectura a los juegos que tiene
+(`https://<app>/c/<token>`), para enseñarlos a quien no tiene cuenta. Es la
+ÚNICA ruta de la API que responde sin autenticación con datos de un usuario
+(`PublicCollectionController`), así que todo es lista blanca y tiene tests de que
+no se filtra nada (`tests/Feature/Games/PublicCollectionTest.php`):
+
+- **Qué sale:** el nombre del dueño (decidido al compartir), la caducidad y los
+  juegos con estado `owned` con los datos del catálogo compartido (los mismos de
+  `GameResource` que ya ven sus amigos). **No** la lista de deseos, ni el correo,
+  ni el id del usuario, ni sus partidas, amigos o ajustes.
+- **Token:** 256 bits aleatorios en base64 seguro para URL (43 caracteres), sin
+  relación con ningún dato del usuario. Se guarda en claro porque la pantalla de
+  Perfil tiene que poder volver a mostrar el enlace; quien leyera la base de
+  datos ya vería la colección sin él.
+- **Caducidad:** 7 días por defecto; elegible 7, 30, 90 o sin caducidad. Pasada la
+  fecha responde 404.
+- **Un token mal formado, inexistente, revocado o caducado responde exactamente
+  igual (404):** no se puede averiguar si un enlace existió.
+- **Gestión:** un solo enlace por usuario (`unique` en `user_id`): crear sobre uno
+  existente lo **regenera** (token nuevo, contador a cero, el anterior deja de
+  valer en el acto); `DELETE` lo borra. Al borrar al usuario se borra en cascada.
+- **Respuesta pública:** `X-Robots-Tag: noindex, nofollow` y `Cache-Control:
+  no-store`, límite de 60 peticiones por minuto por IP, y cuenta las visitas
+  (`views_count`, `last_viewed_at`), que el dueño ve en su perfil.
 
 ### Arranque en una petición (`GET /api/bootstrap`)
 

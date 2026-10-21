@@ -121,6 +121,12 @@ const router = createRouter({
       component: () => import('@/views/VerifyEmailView.vue'),
     },
     {
+      // Colección compartida por enlace: pública, de solo lectura y sin sesión.
+      path: '/c/:token',
+      name: 'public-collection',
+      component: () => import('@/views/PublicCollectionView.vue'),
+    },
+    {
       // Pública (sin sesión): la pantalla de consentimiento de Google y los correos
       // enlazan aquí.
       path: '/privacidad',
