@@ -7,6 +7,17 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Pruebas y CI
+
+- **Pruebas de humo de principio a fin con Playwright** (`web/e2e/`): la app real
+  contra el API real con una SQLite desechable. Cubren que un juego guardado en
+  el API sale en la colección y en el selector, que un token no válido lleva al
+  login y que navegar deja un único `<main>` sin violaciones de CSP. Nuevo
+  trabajo `e2e` en el CI (informativo de momento) y script `npm run e2e`.
+- **Trabajo `audit` en el CI:** `npm audit --omit=dev --audit-level=high` sobre
+  el frontend. El aviso de `follow-redirects` solo se vio al revisar a mano;
+  ahora el CI lo marca en rojo, sin bloquear el despliegue.
+
 ### Seguridad (dependencias del frontend)
 
 - **`npm audit` de 8 avisos (1 crítico, 6 altos) a 0, con y sin dependencias de

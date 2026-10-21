@@ -20,7 +20,29 @@ npm run build         # type-check (vue-tsc) + build de producción
 npm run lint          # ESLint (con --fix)
 npm run format         # Prettier
 npm run test:unit      # Vitest
+npm run e2e            # Playwright (prueba de humo de principio a fin)
 ```
+
+### Pruebas de principio a fin (`npm run e2e`)
+
+`e2e/smoke.spec.ts` prueba la app real (el build de producción) contra el API
+real de Laravel con una SQLite desechable, en un Chrome de verdad: que un juego
+guardado en el API sale en la colección y en "¿A qué jugamos?", que un token no
+válido lleva al login y no a una pantalla rota, y que navegar entre páginas deja
+un único `<main>` sin romper el CSP. Los tests unitarios no ejercitan el
+conjunto.
+
+- **Seguridad:** el API arranca con `DB_CONNECTION=sqlite` y su propia base en
+  `api/database/e2e.sqlite`, y el `migrate:fresh` usa `--database=sqlite`
+  explícito: aunque `api/.env` apunte a Neon, nunca toca otra base.
+- **Requisitos:** Chrome instalado (usa `channel: 'chrome'`) y PHP con sqlite.
+- **En CI** es el trabajo `e2e`, informativo de momento (no bloquea el
+  despliegue hasta que demuestre ser estable) y con opcache/JIT desactivados en
+  PHP: el API de pruebas es un proceso largo y con ellos activos se vio un fallo
+  del motor en PequeDex. Aparte, el trabajo `audit` ejecuta
+  `npm audit --omit=dev` y tampoco bloquea el despliegue: un aviso nuevo de un
+  tercero pone el CI en rojo para que se vea, sin impedir publicar un cambio
+  ajeno.
 
 ### `npm audit` limpio (dependencias de desarrollo incluidas)
 

@@ -75,6 +75,92 @@ jobs:
       - name: Type-check and build
         run: npm run build
 
+  # Avisos de seguridad de las dependencias de producción del frontend. Aparte y
+  # fuera de `needs` de deploy: un aviso nuevo de un tercero pone el CI en rojo
+  # (se ve), pero no impide desplegar un cambio que no tiene nada que ver.
+  audit:
+    name: Frontend dependency audit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: npm audit (production)
+        run: npm audit --omit=dev --audit-level=high
+
+  # Prueba de humo de principio a fin: el build de la app contra el API real con
+  # una SQLite desechable, en un Chrome de verdad (ver web/playwright.config.ts).
+  # Informativo de momento: NO bloquea el despliegue (no está en `needs` de
+  # deploy) hasta que demuestre ser estable.
+  e2e:
+    name: End-to-end (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: sqlite3, mbstring, bcmath, ctype, fileinfo
+          coverage: none
+          # El API de pruebas es un proceso PHP que vive toda la ejecución: sin
+          # opcache/JIT (que setup-php activa por defecto) para no depender de
+          # fallos del motor en procesos largos (ver el CI de PequeDex).
+          ini-values: opcache.enable_cli=0, opcache.jit=0
+
+      - name: Install API dependencies
+        working-directory: api
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Prepare API environment
+        working-directory: api
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install web dependencies
+        working-directory: web
+        run: npm ci
+
+      # Usa el Chrome que ya traen los runners de GitHub (channel: 'chrome').
+      - name: Run the end-to-end tests
+        working-directory: web
+        run: npx playwright test
+
+      - name: Show the API log of a failed run
+        if: failure()
+        run: tail -n 120 api/storage/logs/laravel.log || true
+
+      - name: Upload traces of a failed run
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-traces
+          path: web/test-results
+          retention-days: 7
+          if-no-files-found: ignore
+
   attribution-guard:
     name: Attribution Guard
     runs-on: ubuntu-latest

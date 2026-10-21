@@ -28,3 +28,7 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+
+# Playwright (pruebas de principio a fin, ver playwright.config.ts)
+/test-results/
+/playwright-report/
