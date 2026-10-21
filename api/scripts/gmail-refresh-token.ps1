@@ -31,7 +31,12 @@ param(
   [Parameter(Mandatory = $true)][string]$ClientId,
   [Parameter(Mandatory = $true)][string]$ClientSecret,
   [string]$LoginHint = 'soporteludodex@gmail.com',
-  [int]$Port = 8085
+  [int]$Port = 8085,
+  # No abre el navegador: escribe la URL de autorización para abrirla a mano (p. ej. en
+  # otro perfil de Chrome con la sesión de la cuenta que envía).
+  [switch]$NoBrowser,
+  # No imprime el token: solo lo deja en el portapapeles.
+  [switch]$Quiet
 )
 
 $ErrorActionPreference = 'Stop'
@@ -52,8 +57,12 @@ $listener.Prefixes.Add("$redirect/")
 $listener.Start()
 
 try {
-  Write-Host "Abriendo el navegador para autorizar con $LoginHint ..."
-  Start-Process $authUrl
+  if ($NoBrowser) {
+    Write-Host "AUTH_URL=$authUrl"
+  } else {
+    Write-Host "Abriendo el navegador para autorizar con $LoginHint ..."
+    Start-Process $authUrl
+  }
 
   # Espera como mucho 5 minutos a que Google redirija con el código.
   $pending = $listener.GetContextAsync()
@@ -83,8 +92,8 @@ try {
 
   Set-Clipboard -Value $token.refresh_token
   Write-Host ''
-  Write-Host 'GMAIL_REFRESH_TOKEN (copiado al portapapeles):'
-  Write-Host $token.refresh_token
+  Write-Host 'GMAIL_REFRESH_TOKEN copiado al portapapeles.'
+  if (-not $Quiet) { Write-Host $token.refresh_token }
   Write-Host ''
   Write-Host 'Pégalo en la variable GMAIL_REFRESH_TOKEN de Render (ludodex-api) y reinicia el servicio.'
 }
