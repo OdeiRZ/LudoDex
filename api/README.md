@@ -93,15 +93,20 @@ de una sola vez, en la cuenta de Gmail que va a enviar los correos:
    URL de redirección. Cambiarlo por un token con una petición POST a
    `https://oauth2.googleapis.com/token` (`grant_type=authorization_code`)
    — la respuesta trae el `refresh_token`, que va a `GMAIL_REFRESH_TOKEN`.
-   **Ojo**: mientras la pantalla de consentimiento esté en modo "Prueba"
-   (el caso normal aquí, ver paso 3), Google expira ese refresh token a
-   los 7 días — no es de larga duración como en una app en modo
-   "Producción". Pasado ese plazo, `fetchAccessToken()` empieza a fallar
-   con `invalid_grant` y hay que repetir este paso 5 entero para sacar un
-   token nuevo. Pasar a "Producción" evitaría la caducidad, pero exige la
-   revisión de seguridad de Google (CASA) por tratarse de un scope
-   restringido (`gmail.send`) — no vale la pena para el volumen de esta
-   app.
+   **Ojo**: mientras la pantalla de consentimiento esté en modo "Prueba",
+   Google expira ese refresh token a los 7 días (regla de Google para apps
+   externas en "Testing"). Pasado ese plazo, `fetchAccessToken()` empieza a
+   fallar con `invalid_grant` y hay que repetir este paso 5 entero. **La
+   solución es pasar la pantalla de consentimiento a "En producción"**
+   ("Público" → "Publicar la aplicación"): el scope `gmail.send` es
+   *sensible*, no *restringido*, así que NO exige la revisión de seguridad
+   CASA. Sin verificar, la app queda en producción con el aviso de "app no
+   verificada" al autorizar (Avanzado → continuar, una sola vez) y un tope de
+   100 usuarios, que aquí no importa (solo autoriza la cuenta que envía). El
+   token que se emita **después** de publicar ya no caduca a los 7 días; los
+   emitidos antes, en modo "Prueba", siguen caducando y hay que sacar uno
+   nuevo (repetir este paso 5). Un token en producción solo deja de valer si
+   se revoca, se cambia la contraseña de Google o pasa medio año sin usarse.
 6. Poner `MAIL_MAILER=gmail_api`, `MAIL_FROM_ADDRESS`/`MAIL_FROM_NAME` con
    esa misma cuenta, y las tres `GMAIL_*` de arriba.
 
@@ -125,7 +130,8 @@ y las tres `GMAIL_CLIENT_ID`/`GMAIL_CLIENT_SECRET`/`GMAIL_REFRESH_TOKEN` —
 probado en vivo contra un destinatario real arbitrario, no solo la cuenta
 propia. **Ojo con `GMAIL_REFRESH_TOKEN`**: caduca cada 7 días mientras la
 pantalla de consentimiento de Google siga en modo "Prueba" (ver el paso 5
-de arriba) — si `/api/forgot-password` empieza a fallar en producción sin
+de arriba, que explica cómo pasarla a "En producción" sin revisión de
+Google) — si `/api/forgot-password` empieza a fallar en producción sin
 ningún cambio de código, revisar la edad del token antes que nada.
 `DEEPL_API_KEY` sí está configurada en Render, así que el botón de traducir
 funciona igual en producción que en local. `FRONTEND_URL` (la URL pública de
