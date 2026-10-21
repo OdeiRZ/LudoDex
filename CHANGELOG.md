@@ -7,6 +7,18 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Política de privacidad
+
+- **Página pública `/privacidad`** (español e inglés, enlazada desde el pie):
+  qué datos se guardan, para qué, qué servicios de terceros intervienen (Render,
+  Neon, Cloudflare, BoardGameGeek, DeepL, Sentry), cómo se usa Gmail (solo
+  `gmail.send`, para enviar los correos de verificación y recuperación desde la
+  cuenta del servicio, sin leer ni almacenar correo de nadie), cookies y
+  almacenamiento, y cómo pedir el borrado de la cuenta o una copia de los datos.
+  Google la exige para pasar la pantalla de consentimiento de OAuth de "Prueba"
+  a "En producción" y quitar la caducidad semanal del token de Gmail (ver
+  `api/README.md`). Prueba e2e nueva: se abre sin sesión y nombra el contacto.
+
 ### Pruebas y CI
 
 - **Pruebas de humo de principio a fin con Playwright** (`web/e2e/`): la app real

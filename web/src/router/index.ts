@@ -121,6 +121,13 @@ const router = createRouter({
       component: () => import('@/views/VerifyEmailView.vue'),
     },
     {
+      // Pública (sin sesión): la pantalla de consentimiento de Google y los correos
+      // enlazan aquí.
+      path: '/privacidad',
+      name: 'privacy',
+      component: () => import('@/views/PrivacyView.vue'),
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('@/views/NotFoundView.vue'),

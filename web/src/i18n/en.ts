@@ -204,6 +204,55 @@ export default {
     deleteError: "Couldn't delete the game.",
   },
   backLink: '← Back',
+  privacy: {
+    link: 'Privacy',
+    title: 'Privacy policy',
+    updated: 'Last updated: 21 October 2026.',
+    intro:
+      'LudoDex is a free, personal tool to catalogue a board game collection and choose what to play. One person runs it; it is not a company and has no advertising.',
+    sections: {
+      data: {
+        title: 'What data it stores',
+        paragraphs: [
+          'Your account details: name, email address and password (stored encrypted, never in plain text). And what you add to the app: the games in your collection and their details, your plays, your friends and friend requests, and your visibility settings.',
+        ],
+      },
+      use: {
+        title: 'What it is used for',
+        paragraphs: [
+          'Only to make the app work: showing you your collection, the game picker, the plays and what you share with your friends. There is no advertising, no behavioural profiling, and data is neither sold nor handed over.',
+        ],
+      },
+      thirdParties: {
+        title: 'Third-party services',
+        paragraphs: [
+          'The app is hosted on Render (server, Frankfurt), Neon (database, Frankfurt) and Cloudflare (web page). To import your collection, BoardGameGeek is queried with the BGG username you give. If you press "translate", the text of that game\'s description (not your personal data) is sent to DeepL. Technical errors are sent to Sentry without personal data.',
+        ],
+      },
+      google: {
+        title: 'Google (Gmail)',
+        paragraphs: [
+          "LudoDex sends account verification and password recovery emails from a Gmail account that belongs to the service, using the Google \"send email\" permission (gmail.send). It does not read or store anyone's email and does not access users' Google data: that permission is used only by the service's own account, and only to send.",
+        ],
+      },
+      storage: {
+        title: 'Cookies and storage',
+        paragraphs: [
+          "It uses no tracking cookies. It keeps your session identifier and your preferences (language and theme) in your browser's local storage.",
+        ],
+      },
+      deletion: {
+        title: 'Retention and deletion',
+        paragraphs: [
+          'Your data is kept while you have an account. You can remove games or empty your library from the app. To delete your account and all its data, or to ask for a copy of it, write to the contact address and it will be handled within 30 days at most.',
+        ],
+      },
+      contact: {
+        title: 'Contact',
+        paragraphs: ["soporteludodex{'@'}gmail.com"],
+      },
+    },
+  },
   notFound: {
     title: 'Page not found',
     message: "The page you're looking for doesn't exist or was moved.",

@@ -37,6 +37,7 @@ function makeRouter(startPath: string) {
       { path: '/profile', name: 'profile', component: { template: '<div>Profile</div>' } },
       { path: '/login', name: 'login', component: { template: '<div>Login</div>' } },
       { path: '/register', name: 'register', component: { template: '<div>Register</div>' } },
+      { path: '/privacidad', name: 'privacy', component: { template: '<div>Privacy</div>' } },
     ],
   })
   router.push(startPath)
@@ -252,7 +253,7 @@ describe('App', () => {
     expect(wrapper.find('.mobile-nav a[href="/friends"]').exists()).toBe(true)
   })
 
-  it('marks the friends nav link active on a friend\'s own detail page too, not just /friends itself', async () => {
+  it("marks the friends nav link active on a friend's own detail page too, not just /friends itself", async () => {
     // RouterLink's own router-link-exact-active only matches the
     // 'friends' route exactly - without App.vue's own extra check,
     // opening a friend's shared collection/plays looked like leaving
@@ -449,7 +450,9 @@ describe('App', () => {
       vi.spyOn(auth, 'fetchCurrentUser').mockResolvedValue()
       const order: string[] = []
       vi.mocked(prefetchBootstrap).mockImplementation(() => void order.push('prefetch'))
-      vi.spyOn(useFriendsStore(), 'fetchAll').mockImplementation(async () => void order.push('friends'))
+      vi.spyOn(useFriendsStore(), 'fetchAll').mockImplementation(
+        async () => void order.push('friends'),
+      )
 
       const router = makeRouter('/picker')
       await router.isReady()

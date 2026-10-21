@@ -39,6 +39,16 @@ test('an expired or wrong token sends the visitor to the login, not to a broken 
   await expect(page).toHaveURL(/login/)
 })
 
+test('the privacy policy is public: it opens without a session and names the contact', async ({
+  page,
+}) => {
+  await page.goto('./privacidad')
+
+  await expect(page).toHaveURL(/privacidad/)
+  await expect(page.getByRole('heading', { name: 'Política de privacidad' })).toBeVisible()
+  await expect(page.getByText('soporteludodex@gmail.com').first()).toBeVisible()
+})
+
 test('navigating between pages leaves a single <main> and breaks no CSP rule', async ({
   page,
   request,
@@ -50,7 +60,7 @@ test('navigating between pages leaves a single <main> and breaks no CSP rule', a
     if (/content security policy/i.test(message.text())) violations.push(message.text())
   })
 
-  for (const path of ['./', './picker', './plays', './friends', './profile']) {
+  for (const path of ['./', './picker', './plays', './friends', './profile', './privacidad']) {
     await page.goto(path)
     await expect(page.locator('main')).toHaveCount(1)
   }

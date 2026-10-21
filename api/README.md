@@ -98,7 +98,11 @@ de una sola vez, en la cuenta de Gmail que va a enviar los correos:
    externas en "Testing"). Pasado ese plazo, `fetchAccessToken()` empieza a
    fallar con `invalid_grant` y hay que repetir este paso 5 entero. **La
    solución es pasar la pantalla de consentimiento a "En producción"**
-   ("Público" → "Publicar la aplicación"): el scope `gmail.send` es
+   ("Público" → "Publicar la aplicación"; antes hay que rellenar la
+   "Información de la marca": nombre de la app, correo de asistencia,
+   página principal `https://ludodex.pages.dev` y la política de
+   privacidad `https://ludodex.pages.dev/privacidad`, que es una página
+   pública de la propia app): el scope `gmail.send` es
    *sensible*, no *restringido*, así que NO exige la revisión de seguridad
    CASA. Sin verificar, la app queda en producción con el aviso de "app no
    verificada" al autorizar (Avanzado → continuar, una sola vez) y un tope de

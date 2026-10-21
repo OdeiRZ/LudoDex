@@ -270,6 +270,7 @@ async function onResendVerification() {
 
   <footer>
     <PoweredByBgg />
+    <RouterLink :to="{ name: 'privacy' }" class="privacy-link">{{ $t('privacy.link') }}</RouterLink>
   </footer>
 
   <ToastNotification />
@@ -549,9 +550,17 @@ that every bit of width matters. */
 
 footer {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
+  gap: var(--space-3);
   padding: var(--space-6) 0 var(--space-4);
   margin-top: var(--space-6);
   border-top: 1px solid var(--color-border);
+}
+
+.privacy-link {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
 }
 </style>

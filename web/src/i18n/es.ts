@@ -204,6 +204,55 @@ export default {
     deleteError: 'No se ha podido eliminar el juego.',
   },
   backLink: '← Volver',
+  privacy: {
+    link: 'Privacidad',
+    title: 'Política de privacidad',
+    updated: 'Última actualización: 21 de octubre de 2026.',
+    intro:
+      'LudoDex es una herramienta personal y gratuita para catalogar una colección de juegos de mesa y elegir a cuál jugar. La gestiona una sola persona; no es una empresa ni tiene publicidad.',
+    sections: {
+      data: {
+        title: 'Qué datos guarda',
+        paragraphs: [
+          'Los de tu cuenta: nombre, correo electrónico y contraseña (que se guarda cifrada; nunca en claro). Y lo que tú metes en la app: los juegos de tu colección y sus datos, tus partidas, tus amigos y las solicitudes de amistad, y tus ajustes de visibilidad.',
+        ],
+      },
+      use: {
+        title: 'Para qué se usan',
+        paragraphs: [
+          'Solo para que la app funcione: mostrarte tu colección, el selector de juegos, las partidas y lo que compartes con tus amigos. No hay publicidad, ni perfiles de comportamiento, ni se venden ni ceden datos.',
+        ],
+      },
+      thirdParties: {
+        title: 'Servicios de terceros',
+        paragraphs: [
+          'La app se aloja en Render (servidor, Fráncfort), Neon (base de datos, Fráncfort) y Cloudflare (página web). Para importar tu colección se consulta BoardGameGeek con el usuario de BGG que indicas. Si pulsas "traducir", el texto de la descripción de ese juego (no tus datos personales) se envía a DeepL. Los errores técnicos se envían a Sentry sin datos personales.',
+        ],
+      },
+      google: {
+        title: 'Google (Gmail)',
+        paragraphs: [
+          'LudoDex envía los correos de verificación de cuenta y de recuperación de contraseña desde una cuenta de Gmail propia del servicio, usando el permiso de Google "enviar correo" (gmail.send). No lee ni almacena el correo de ninguna persona ni accede a datos de Google de los usuarios: ese permiso lo usa solo la cuenta del propio servicio, y únicamente para enviar.',
+        ],
+      },
+      storage: {
+        title: 'Cookies y almacenamiento',
+        paragraphs: [
+          'No usa cookies de seguimiento. Guarda en el almacenamiento local de tu navegador el identificador de tu sesión y tus preferencias (idioma y tema).',
+        ],
+      },
+      deletion: {
+        title: 'Conservación y borrado',
+        paragraphs: [
+          'Tus datos se conservan mientras tengas cuenta. Puedes quitar juegos o vaciar tu biblioteca desde la app. Para borrar tu cuenta y todos sus datos, o para pedir una copia de ellos, escribe a la dirección de contacto y se atenderá en un plazo máximo de 30 días.',
+        ],
+      },
+      contact: {
+        title: 'Contacto',
+        paragraphs: ["soporteludodex{'@'}gmail.com"],
+      },
+    },
+  },
   notFound: {
     title: 'Página no encontrada',
     message: 'La página que buscas no existe o se ha movido.',
