@@ -41,9 +41,12 @@ npm run e2e            # Playwright (prueba de humo de principio a fin)
 `e2e/smoke.spec.ts` prueba la app real (el build de producción) contra el API
 real de Laravel con una SQLite desechable, en un Chrome de verdad: que un juego
 guardado en el API sale en la colección y en "¿A qué jugamos?", que un token no
-válido lleva al login y no a una pantalla rota, y que navegar entre páginas deja
-un único `<main>` sin romper el CSP. Los tests unitarios no ejercitan el
-conjunto.
+válido lleva al login y no a una pantalla rota, que la política de privacidad abre
+sin sesión, que un enlace público de colección se ve sin cuenta (con los juegos y el
+nombre del dueño pero sin la lista de deseos) y deja de funcionar al revocarlo, que el
+dueño lo crea desde el Perfil y lo abre alguien sin cuenta, y que navegar entre
+páginas deja un único `<main>` sin romper el CSP (6 pruebas). Los tests unitarios no
+ejercitan el conjunto.
 
 - **Seguridad:** el API arranca con `DB_CONNECTION=sqlite` y su propia base en
   `api/database/e2e.sqlite`, y el `migrate:fresh` usa `--database=sqlite`

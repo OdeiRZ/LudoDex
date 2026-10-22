@@ -23,8 +23,10 @@ mientras arranca de nuevo.
 |---|---|
 | **Qué resuelve** | Saber qué juegos tienes y elegir a cuál jugar según cuántos sois, cuánto tiempo hay y qué os apetece; con la colección importable desde BoardGameGeek. |
 | **Social** | Amigos, comparar colecciones y ver las partidas de los demás. |
+| **Compartir** | Un enlace público de solo lectura a tu colección (`/c/<token>`), sin cuenta para quien lo abre: muestra tu nombre y lo que tienes, nunca la lista de deseos, tus partidas ni tu correo. Caduca a los 7 días por defecto (o 30, 90, nunca), un solo enlace por usuario, regenerable o revocable al instante. |
+| **Correo** | Verificación de cuenta y recuperación de contraseña por la API de Gmail, con la pantalla de consentimiento de Google en producción (el token ya no caduca cada semana) y una página pública de [política de privacidad](https://ludodex.pages.dev/privacidad). |
 | **Stack** | Laravel 12 + Sanctum (API) · Vue 3 + Pinia + TypeScript · PostgreSQL en Neon · Render + Cloudflare Pages · español e inglés |
-| **Calidad** | 313 tests de backend (SQLite y PostgreSQL) · 500 de frontend · CI con comprobación de atribución · Sentry · copia de seguridad semanal cifrada |
+| **Calidad** | 335 tests de backend (SQLite y PostgreSQL) · 507 de frontend · 6 pruebas end-to-end con Playwright · `npm audit` a 0 (con aviso en el CI) · CI con comprobación de atribución · Sentry · copia de seguridad semanal cifrada |
 
 **Una mejora medida de verdad:** cargar la app hacía **8 peticiones y tardaba
 +3,1 s** en terminar de pintar; con un único `/api/bootstrap` con ETag pasó a
@@ -169,6 +171,13 @@ Repo único con dos aplicaciones independientes, cada una con su propio
    uno), y bloqueo de usuario + visibilidad de colección/partidas
    configurable por perfil (en 4 fases, ver CHANGELOG). Cierra el área
    que este README dejaba fuera de alcance a propósito.
+7. ✅ Enlace público de la colección: un enlace de solo lectura (`/c/<token>`) para
+   enseñar tus juegos a quien no tiene cuenta, con caducidad (7 días por defecto),
+   un solo enlace por usuario y revocación inmediata. Detalle de qué datos salen y
+   cuáles no en [`api/README.md`](api/README.md#enlace-público-de-la-colección).
+8. ✅ Página pública de política de privacidad (`/privacidad`) y correo por la API de
+   Gmail con el consentimiento de Google en producción (ver
+   [`api/README.md`](api/README.md)).
 
 ## Copias de seguridad
 

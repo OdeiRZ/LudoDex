@@ -23,6 +23,27 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 - Nueva tabla `share_links` (migración sin datos previos). 22 tests de backend,
   7 de frontend y 2 e2e.
 
+### Correo (API de Gmail): el token ya no caduca cada semana
+
+- **La pantalla de consentimiento de Google pasó de "Prueba" a "En producción".** En
+  modo Prueba, Google expira el refresh token a los 7 días y los correos de
+  verificación y de recuperación de contraseña dejaban de salir sin avisar hasta
+  renovarlo a mano. El token nuevo, emitido después de publicar, no caduca (solo
+  deja de valer si se revoca, se cambia la contraseña de Google o pasa medio año sin
+  usarse). Funciona en producción.
+- **Corrección de la documentación:** el README decía que publicar exigía la
+  revisión de seguridad CASA por ser `gmail.send` un scope restringido. Es falso:
+  Google lo clasifica como **sensible**, y una app sin verificar puede publicarse
+  igualmente (aviso de "app no verificada" una vez al autorizar y tope de 100
+  usuarios, que aquí no importa). Lo que sí exige Google es rellenar la información
+  de marca con una página principal y una política de privacidad válidas (ver
+  sección siguiente).
+- **`api/scripts/gmail-refresh-token.ps1`** hace el paso manual de sacar el token: abre
+  el navegador en la autorización, recoge el código en un servidor local temporal
+  (`127.0.0.1:8085`), lo cambia por el token y lo deja en el portapapeles sin guardarlo
+  en ningún fichero. `-NoBrowser` imprime la URL en vez de abrirla y `-Quiet` no
+  imprime el token.
+
 ### Política de privacidad
 
 - **Página pública `/privacidad`** (español e inglés, enlazada desde el pie):
@@ -40,8 +61,12 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 - **Pruebas de humo de principio a fin con Playwright** (`web/e2e/`): la app real
   contra el API real con una SQLite desechable. Cubren que un juego guardado en
   el API sale en la colección y en el selector, que un token no válido lleva al
-  login y que navegar deja un único `<main>` sin violaciones de CSP. Nuevo
-  trabajo `e2e` en el CI (informativo de momento) y script `npm run e2e`.
+  login, que la política de privacidad abre sin sesión, que el enlace público se
+  ve sin cuenta y deja de funcionar al revocarlo (también creándolo desde el
+  Perfil) y que navegar deja un único `<main>` sin violaciones de CSP: **6
+  pruebas**. Nuevo trabajo `e2e` en el CI (informativo de momento, con opcache y
+  JIT desactivados en el PHP del API de pruebas, como en el CI de PequeDex) y
+  script `npm run e2e`.
 - **Trabajo `audit` en el CI:** `npm audit --omit=dev --audit-level=high` sobre
   el frontend. El aviso de `follow-redirects` solo se vio al revisar a mano;
   ahora el CI lo marca en rojo, sin bloquear el despliegue.
