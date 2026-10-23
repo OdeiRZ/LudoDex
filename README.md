@@ -173,7 +173,8 @@ Repo único con dos aplicaciones independientes, cada una con su propio
    que este README dejaba fuera de alcance a propósito.
 7. ✅ Enlace público de la colección: un enlace de solo lectura (`/c/<token>`) para
    enseñar tus juegos a quien no tiene cuenta, con caducidad (7 días por defecto),
-   un solo enlace por usuario y revocación inmediata. Detalle de qué datos salen y
+   un solo enlace por usuario, revocación inmediata y vista previa con tu nombre y
+   número de juegos al pegarlo en WhatsApp, Telegram o Discord. Detalle de qué datos salen y
    cuáles no en [`api/README.md`](api/README.md#enlace-público-de-la-colección).
 8. ✅ Página pública de política de privacidad (`/privacidad`) y correo por la API de
    Gmail con el consentimiento de Google en producción (ver

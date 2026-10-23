@@ -242,6 +242,7 @@ La suite usa Pest y `RefreshDatabase` (SQLite en memoria durante los tests).
 | POST   | `/api/share-link` | Sí | Crea el enlace o lo regenera (token nuevo, el anterior deja de valer); `expires_in_days`: 7 (por defecto), 30, 90 o `null` (no caduca) |
 | DELETE | `/api/share-link` | Sí | Deja de compartir: borra el enlace |
 | GET    | `/api/public/collections/{token}` | No | La colección compartida, de solo lectura (limitado a 60/minuto por IP) |
+| GET    | `/api/public/collections/{token}/preview` | No | Solo `owner_name` y `games_count`, para la vista previa en chats; no cuenta como visita (60/minuto por IP) |
 
 `register` y `login` piden un campo `device_name` (etiqueta libre para el
 token, pensada para una futura pantalla de "sesiones activas"). `PUT
@@ -277,6 +278,11 @@ no se filtra nada (`tests/Feature/Games/PublicCollectionTest.php`):
 - **Respuesta pública:** `X-Robots-Tag: noindex, nofollow` y `Cache-Control:
   no-store`, límite de 60 peticiones por minuto por IP, y cuenta las visitas
   (`views_count`, `last_viewed_at`), que el dueño ve en su perfil.
+- **Vista previa en chats:** `GET .../{token}/preview` devuelve solo el nombre del
+  dueño y el número de juegos "lo tengo". Lo consulta la función de Cloudflare Pages
+  `web/functions/c/[token].ts` cuando pide la página un rastreador de WhatsApp,
+  Telegram, Discord, etc., para rellenar las etiquetas `og:*`. No cuenta como visita
+  y responde el mismo 404 uniforme.
 
 ### Arranque en una petición (`GET /api/bootstrap`)
 

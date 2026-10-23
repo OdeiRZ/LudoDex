@@ -23,6 +23,18 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   filtra nada. La política de privacidad lo menciona.
 - Nueva tabla `share_links` (migración sin datos previos). 22 tests de backend,
   7 de frontend y 2 e2e.
+- **Vista previa al pegar el enlace en un chat.** Al compartir `/c/<token>` por
+  WhatsApp, Telegram, Discord o similares, la tarjeta muestra "Colección de juegos de
+  mesa de <nombre>", cuántos juegos tiene y el icono de LudoDex (en inglés si el
+  rastreador lo pide). Antes salía la tarjeta genérica, porque esas apps no ejecutan
+  JavaScript y la SPA llega vacía. Lo hace una función de Cloudflare Pages
+  (`web/functions/c/[token].ts`) que solo actúa con rastreadores de vistas previas; las
+  personas reciben la SPA tal cual, y si la API falla o el enlace caducó cae a la
+  página normal sin etiquetas propias. Usa un endpoint nuevo
+  (`GET /api/public/collections/{token}/preview`: solo nombre y número de juegos) que
+  **no cuenta como visita**, con el mismo 404 uniforme. 2 tests de backend y 11 de
+  frontend. La variable opcional `API_URL` de Pages cambia la API consultada (por defecto
+  la de producción).
 
 ### Correo (API de Gmail): el token ya no caduca cada semana
 

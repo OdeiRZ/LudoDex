@@ -103,6 +103,27 @@ it('limits how often one client can ask', function () {
     $this->getJson("/api/public/collections/{$link->token}")->assertStatus(429);
 });
 
+it('gives a preview with only the owner name and the owned-games count, without counting a visit', function () {
+    [$owner, $link] = sharedCollection(['email' => 'secreto@example.test']);
+    UserGame::factory()->for($owner)->for(Game::factory()->create())->create(['status' => 'owned']);
+    UserGame::factory()->for($owner)->for(Game::factory()->create())->create(['status' => 'owned']);
+    UserGame::factory()->for($owner)->for(Game::factory()->create())->create(['status' => 'wishlist']);
+
+    $response = $this->getJson("/api/public/collections/{$link->token}/preview")->assertOk();
+
+    expect($response->json('data'))->toBe(['owner_name' => 'Ana Dueña', 'games_count' => 2]);
+    expect($response->getContent())->not->toContain('secreto@example.test');
+    expect($link->fresh()->views_count)->toBe(0);
+});
+
+it('answers the preview 404 identically to a malformed, unknown or expired token', function () {
+    $expired = ShareLink::factory()->expired()->create();
+
+    $this->getJson('/api/public/collections/corto/preview')->assertNotFound();
+    $this->getJson('/api/public/collections/'.str_repeat('a', 43).'/preview')->assertNotFound();
+    $this->getJson("/api/public/collections/{$expired->token}/preview")->assertNotFound();
+});
+
 it('removes the link when its owner is deleted', function () {
     [$owner, $link] = sharedCollection();
 

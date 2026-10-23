@@ -35,6 +35,7 @@ Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 've
 // Colección pública de solo lectura, por enlace (ver PublicCollectionController). La
 // única ruta sin sesión que devuelve datos de un usuario: con límite de peticiones por IP.
 Route::get('/public/collections/{token}', [PublicCollectionController::class, 'show'])->middleware('throttle:60,1');
+Route::get('/public/collections/{token}/preview', [PublicCollectionController::class, 'preview'])->middleware('throttle:60,1');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);

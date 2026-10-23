@@ -54,4 +54,26 @@ class PublicCollectionController extends Controller
             'Cache-Control' => 'no-store',
         ]);
     }
+
+    /**
+     * Lo mínimo para la vista previa de un enlace en chats (WhatsApp, Telegram...): nombre
+     * del dueño y cuántos juegos tiene. Lo consulta la función de Cloudflare cuando un bot
+     * pide la página, así que NO cuenta como visita (si no, cada vez que alguien pega el
+     * enlace en un chat subiría el contador). Mismo 404 uniforme que show().
+     */
+    public function preview(string $token): JsonResponse
+    {
+        abort_unless(ShareLink::isWellFormedToken($token), 404);
+
+        $link = ShareLink::query()->active()->where('token', $token)->with('user')->first();
+        abort_if($link === null, 404);
+
+        return response()->json(['data' => [
+            'owner_name' => $link->user->name,
+            'games_count' => $link->user->games()->where('status', 'owned')->count(),
+        ]])->withHeaders([
+            'X-Robots-Tag' => 'noindex, nofollow',
+            'Cache-Control' => 'no-store',
+        ]);
+    }
 }
