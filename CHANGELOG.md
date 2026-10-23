@@ -16,6 +16,7 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   ocultas por defecto. **Caduca a los 7 días** salvo que elijas 30, 90 o nunca; un
   solo enlace por usuario, que se puede regenerar (el anterior deja de valer al
   instante) o dejar de compartir, y la tarjeta muestra la caducidad y las visitas.
+- **La tarjeta de Perfil, ordenada tras generar el enlace:** lo principal (el enlace y "Copiar", con su caducidad y visitas) arriba; debajo, separado por una línea, lo secundario (la caducidad y "Generar enlace nuevo", su aviso y "Dejar de compartir"). En móvil, los botones pasan a todo el ancho en vez de quedar sueltos.
 - **Seguridad:** token de 256 bits, 404 idéntico para inexistente, mal formado,
   caducado o revocado, `noindex`, `no-store` y 60 peticiones/minuto por IP. La
   ruta pública devuelve solo una lista blanca de campos y hay tests de que no se

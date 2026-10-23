@@ -79,7 +79,23 @@ onMounted(() => {
     <p v-if="store.error" class="error" role="alert">{{ $t('share.error') }}</p>
 
     <template v-else-if="store.loaded">
-      <div v-if="store.link" class="current">
+      <!-- Sin enlace: elegir la caducidad y crearlo. -->
+      <div v-if="!store.link" class="renew">
+        <label class="expiry">
+          <span>{{ $t('share.expiryLabel') }}</span>
+          <select v-model="expiryDays" :disabled="busy">
+            <option v-for="days in EXPIRY_OPTIONS" :key="String(days)" :value="days">
+              {{ optionLabel(days) }}
+            </option>
+          </select>
+        </label>
+        <button type="button" class="btn btn-primary" :disabled="busy" @click="onCreate">
+          {{ $t('share.create') }}
+        </button>
+      </div>
+
+      <!-- Con enlace: lo principal es copiarlo; renovarlo o quitarlo va aparte, debajo. -->
+      <template v-else>
         <p v-if="store.link.expired" class="expired" role="status">{{ $t('share.expired') }}</p>
 
         <div class="url-row">
@@ -91,7 +107,7 @@ onMounted(() => {
           />
           <button
             type="button"
-            class="btn btn-primary"
+            class="btn btn-primary copy"
             :disabled="busy || store.link.expired"
             @click="onCopy"
           >
@@ -99,40 +115,38 @@ onMounted(() => {
           </button>
         </div>
 
-        <p class="meta">
+        <p class="status">
           <span v-if="store.link.expires_at">
             {{ $t('share.expiresOn', { date: formatDate(store.link.expires_at) }) }}
           </span>
           <span v-else>{{ $t('share.neverExpires') }}</span>
-          ·
-          {{ $t('share.views', { count: store.link.views_count }, store.link.views_count) }}
+          <span class="dot" aria-hidden="true">·</span>
+          <span>
+            {{ $t('share.views', { count: store.link.views_count }, store.link.views_count) }}
+          </span>
         </p>
-      </div>
 
-      <div class="actions">
-        <label class="expiry">
-          <span>{{ $t('share.expiryLabel') }}</span>
-          <select v-model="expiryDays" :disabled="busy">
-            <option v-for="days in EXPIRY_OPTIONS" :key="String(days)" :value="days">
-              {{ optionLabel(days) }}
-            </option>
-          </select>
-        </label>
+        <div class="manage">
+          <div class="renew">
+            <label class="expiry">
+              <span>{{ $t('share.expiryLabel') }}</span>
+              <select v-model="expiryDays" :disabled="busy">
+                <option v-for="days in EXPIRY_OPTIONS" :key="String(days)" :value="days">
+                  {{ optionLabel(days) }}
+                </option>
+              </select>
+            </label>
+            <button type="button" class="btn" :disabled="busy" @click="onCreate">
+              {{ $t('share.regenerate') }}
+            </button>
+          </div>
+          <p class="hint small">{{ $t('share.regenerateHint') }}</p>
 
-        <button type="button" class="btn btn-primary" :disabled="busy" @click="onCreate">
-          {{ store.link ? $t('share.regenerate') : $t('share.create') }}
-        </button>
-        <button
-          v-if="store.link"
-          type="button"
-          class="btn btn-danger"
-          :disabled="busy"
-          @click="onStop"
-        >
-          {{ confirmingStop ? $t('share.stopConfirm') : $t('share.stop') }}
-        </button>
-      </div>
-      <p v-if="store.link" class="hint">{{ $t('share.regenerateHint') }}</p>
+          <button type="button" class="btn btn-danger stop" :disabled="busy" @click="onStop">
+            {{ confirmingStop ? $t('share.stopConfirm') : $t('share.stop') }}
+          </button>
+        </div>
+      </template>
     </template>
   </section>
 </template>
@@ -141,7 +155,12 @@ onMounted(() => {
 .hint {
   color: var(--color-text-muted);
   font-size: 0.9rem;
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.hint.small {
+  font-size: 0.8rem;
+  margin: var(--space-2) 0 var(--space-3);
 }
 
 .error,
@@ -150,26 +169,36 @@ onMounted(() => {
   margin-bottom: var(--space-3);
 }
 
+/* El enlace y "Copiar": lo principal de la tarjeta. */
 .url-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto;
   gap: var(--space-2);
-  margin-bottom: var(--space-2);
 }
 
 .url-row input {
-  flex: 1;
   min-width: 0;
+  text-overflow: ellipsis;
 }
 
-.meta {
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
-  margin-bottom: var(--space-3);
-}
-
-.actions {
+.status {
   display: flex;
   flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  margin: var(--space-2) 0 var(--space-4);
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+/* Renovar o dejar de compartir: aparte, con una línea que lo separa de lo anterior. */
+.manage {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-4);
+}
+
+.renew {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
   gap: var(--space-2);
 }
@@ -179,5 +208,23 @@ onMounted(() => {
   flex-direction: column;
   gap: var(--space-1);
   font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.stop {
+  width: 100%;
+}
+
+/* En pantallas estrechas el botón de copiar y el de generar pasan debajo, a todo el ancho. */
+@media (max-width: 440px) {
+  .url-row,
+  .renew {
+    grid-template-columns: 1fr;
+  }
+
+  .copy,
+  .renew .btn {
+    width: 100%;
+  }
 }
 </style>
