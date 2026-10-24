@@ -19,6 +19,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Almacén de los límites de peticiones
+    |--------------------------------------------------------------------------
+    |
+    | Los contadores de los límites (throttle) van aparte de la caché general:
+    | con CACHE_STORE=database cada petición limitada hacía varias consultas
+    | contra la base de datos remota (medido en PequeDex: 6 por petición). Un
+    | fichero local las evita y solo se pierde al reiniciar la instancia, que para
+    | un freno de abusos es irrelevante. Pruebas y e2e fijan `array`.
+    |
+    */
+
+    'limiter' => env('CACHE_LIMITER_STORE', 'file'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Cache Stores
     |--------------------------------------------------------------------------
     |

@@ -25,6 +25,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // límite de peticiones; ver el docblock de la clase.
         $middleware->prepend(ResolveClientIp::class);
         $middleware->append(SecurityHeaders::class);
+
+        // Techo general en todas las rutas del API (limitador 'api', definido en
+        // AppServiceProvider). Laravel 11+ ya no lo pone por defecto.
+        $middleware->throttleApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // This app is API-only - routes/web.php has no named "login" route

@@ -7,7 +7,10 @@ use App\Models\PersonalAccessToken;
 use App\Models\User;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Laravel\Sanctum\Sanctum;
@@ -27,6 +30,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Techo general por usuario (o por IP sin sesión), muy por encima del uso
+        // normal: solo frena abusos. Las rutas sensibles llevan además su propio
+        // throttle más estricto (login, búsqueda de amigos, importaciones...).
+        RateLimiter::for('api', fn (Request $request) => Limit::perMinute(300)
+            ->by('api|'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
         // Sanctum reescribía `last_used_at` con un UPDATE en cada petición
         // autenticada; ver el docblock de PersonalAccessToken.
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);

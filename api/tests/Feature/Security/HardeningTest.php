@@ -75,3 +75,15 @@ it('keeps a token that is almost 120 days old', function () {
 
     $this->withToken($casiCaducado->plainTextToken)->getJson('/api/user')->assertOk();
 });
+
+it('caps each user at 300 API requests a minute, separately from other users', function () {
+    $user = User::factory()->create();
+    $other = User::factory()->create();
+
+    foreach (range(1, 300) as $_) {
+        $this->actingAs($user)->getJson('/api/user')->assertOk();
+    }
+
+    $this->actingAs($user)->getJson('/api/user')->assertStatus(429);
+    $this->actingAs($other)->getJson('/api/user')->assertOk();
+});
