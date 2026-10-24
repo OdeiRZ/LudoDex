@@ -30,7 +30,17 @@ export function getLocale(): Locale {
   return i18n.global.locale.value as Locale
 }
 
+// `<html lang>` sigue al idioma de la interfaz (index.html sale con "es"): el
+// lector de pantalla pronuncia con la voz del idioma correcto y el navegador no
+// ofrece "traducir del español" una página que ya está en inglés.
+function applyDocumentLang(locale: Locale): void {
+  if (typeof document !== 'undefined') document.documentElement.lang = locale
+}
+
+applyDocumentLang(getLocale())
+
 export function setLocale(locale: Locale): void {
   i18n.global.locale.value = locale
   localStorage.setItem(STORAGE_KEY, locale)
+  applyDocumentLang(locale)
 }
