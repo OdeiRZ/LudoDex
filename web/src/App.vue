@@ -261,11 +261,9 @@ async function onResendVerification() {
   </div>
 
   <main>
-    <RouterView v-slot="{ Component }">
-      <Transition name="route" mode="out-in">
-        <component :is="Component" />
-      </Transition>
-    </RouterView>
+    <!-- Sin <Transition>: el cambio de pantalla lo anima el navegador
+         (lib/viewTransition.ts), sin el instante en blanco del out-in. -->
+    <RouterView />
   </main>
 
   <footer>
