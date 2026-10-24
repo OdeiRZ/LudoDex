@@ -7,6 +7,21 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Fluidez y usabilidad
+
+- **Transición entre pantallas con la API View Transitions** (`lib/viewTransition.ts`):
+  la pantalla que sale se desvanece y la nueva entra a la vez, con la cabecera
+  quieta. Sustituye al `<Transition mode="out-in">` del `RouterView`, que dejaba un
+  instante en blanco en cada cambio. Nunca hay dos vistas montadas a la vez (se anima
+  una captura). Sin la API, con movimiento reducido, en la primera carga o si solo
+  cambia la query, cambio normal. 4 tests.
+- **Zona táctil de 44 px** en los botones de icono de 28 px (ver detalles, vista
+  compacta, mostrar filtros, mostrar contraseña), con una capa invisible; el aspecto
+  no cambia.
+- **Corregido:** el tema claro que sigue al sistema no tenía su color de
+  expansión, así que las etiquetas de expansión salían con el violeta del tema
+  oscuro.
+
 ### Enlace público de la colección
 
 - **Compartir tu colección con quien no tiene cuenta.** Desde Perfil → "Compartir
