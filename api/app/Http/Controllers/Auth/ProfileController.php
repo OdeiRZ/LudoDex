@@ -95,7 +95,7 @@ class ProfileController extends Controller
 
         $user->update(['password' => Hash::make($request->validated('password'))]);
 
-        // Revoke every OTHER token - tokens never expire (see
+        // Revoke every OTHER token - tokens last 120 days (see
         // config/sanctum.php), so a stolen token must stop working once
         // the legitimate owner changes their password. The token making
         // THIS request is deliberately kept alive, so changing your own

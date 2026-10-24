@@ -38,7 +38,7 @@ class PasswordResetController extends Controller
             function (User $user, string $password) {
                 $user->forceFill(['password' => Hash::make($password)])->save();
 
-                // Revoke every existing token - tokens never expire (see
+                // Revoke every existing token - tokens last 120 days (see
                 // config/sanctum.php), and a password reset is often the
                 // recovery step after a real or suspected compromise, so a
                 // stolen token must stop working here rather than staying
