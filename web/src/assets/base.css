@@ -12,6 +12,12 @@
 :root {
   --color-primary: #0d9488;
   --color-primary-hover: #14b8a6;
+  /* Fondo de los botones principales (texto claro encima): con --color-primary
+     el texto quedaba en 3,58:1, por debajo del mínimo de 4,5:1; este tono da
+     5,23:1 y el de hover 7,25:1. Igual en los dos temas (el hover de arriba se
+     aclara en oscuro, y con texto claro bajaría a ~2,5:1). */
+  --color-primary-solid: #0f766e;
+  --color-primary-solid-hover: #115e59;
   --color-accent: #f59e0b;
 
   --color-background: #0f172a;

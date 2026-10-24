@@ -178,7 +178,7 @@ CSS formula the way .az-scrubber's own fixed-position default is. */
   font-size: 1.3rem;
   font-weight: 700;
   color: #fff;
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   border-radius: var(--radius);
   pointer-events: none;
   white-space: nowrap;

@@ -1568,7 +1568,7 @@ own row flex wrapper (.tags) instead of directly in the scrim. */
 background - over an arbitrary photo it can lose all contrast against a
 light patch of the image, so it needs a solid fill here instead. */
 .games :deep(.badge-primary) {
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   color: #fff;
 }
 

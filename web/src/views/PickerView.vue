@@ -1939,7 +1939,7 @@ this again with its own fixed 9rem, tuned separately for that tier. */
 usual tinted-transparent fill assumes a solid card background, and loses
 contrast over a light patch of an arbitrary photo without a solid fill. */
 .results :deep(.badge-primary) {
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   color: #fff;
 }
 

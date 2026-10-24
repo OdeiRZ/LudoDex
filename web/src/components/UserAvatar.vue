@@ -55,7 +55,7 @@ function initial(name: string): string {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   color: #f8fafc;
   font-weight: 600;
   line-height: 1;
