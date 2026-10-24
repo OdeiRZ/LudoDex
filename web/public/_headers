@@ -1,0 +1,17 @@
+# Cabeceras de Cloudflare Pages (https://developers.cloudflare.com/pages/configuration/headers/).
+# La CSP completa va como <meta> en index.html (vite.config.ts); aquí solo lo que
+# un <meta> no puede poner.
+
+/*
+  # Que ninguna otra web pueda incrustar la app en un iframe (clickjacking).
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'
+  # La app no usa cámara, micrófono, ubicación ni pagos: que ningún script pueda pedirlos.
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Content-Type-Options: nosniff
+
+# Los ficheros de assets/ llevan un hash en el nombre: nunca cambian, así que se
+# guardan un año sin volver a preguntar (antes se revalidaban en cada visita).
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
