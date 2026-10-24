@@ -345,6 +345,26 @@ Portado de PequeDex; tests en `tests/Feature/Security/HardeningTest.php`.
 - **Cabeceras de seguridad** (`SecurityHeaders`): `nosniff`, `Referrer-Policy:
   no-referrer`, `X-Frame-Options: DENY` y HSTS; y `expose_php = Off`
   (`docker/security.ini`) para no anunciar la versión de PHP.
+- **Límite general de peticiones:** `throttleApi()` (`bootstrap/app.php`) con el
+  limitador `api` de `AppServiceProvider`: 300 por minuto y usuario (por IP sin
+  sesión), muy por encima del uso normal; las rutas sensibles mantienen su propio
+  `throttle` más estricto. Los contadores van a un fichero
+  (`CACHE_LIMITER_STORE=file`, `config/cache.php`), no a la caché de base de datos:
+  así ningún límite añade consultas contra Neon en cada petición. Pruebas y e2e
+  usan `array`.
+- **CORS solo desde el frontend** (`https://ludodex.pages.dev`, sus vistas previas
+  `*.ludodex.pages.dev` y `localhost`); antes `*`. `CORS_ALLOWED_ORIGINS`
+  (separados por comas) cambia la lista sin tocar código. La función de vista previa
+  de Cloudflare llama al API desde el servidor, sin CORS. Test en
+  `tests/Feature/Security/CorsOriginsTest.php`.
+- **Índices en todas las claves foráneas:** PostgreSQL no las indexa solo. La
+  migración `2026_10_25_100000_add_missing_foreign_key_indexes` cubre las
+  solicitudes de amistad recibidas (`friendships.recipient_id`, consultadas en cada
+  navegación), los bloqueos, las expansiones de un juego, los filtros por mecánica y
+  categoría, etc. Comprobado migrando en PostgreSQL: ninguna FK queda sin índice.
+- **Dependencias y CI:** todas las acciones de los workflows fijadas por SHA (una
+  etiqueta como `@v7` se puede mover a otro código) y las actualizaciones de
+  seguridad de Dependabot activadas, además del `dependabot.yml` que ya había.
 - **Los tokens caducan a los 120 días** (`SANCTUM_EXPIRATION`, en minutos). Antes
   eran eternos. Cambiar o restablecer la contraseña ya cerraba las demás
   sesiones. Al desplegar nadie se queda fuera: la base de datos original es de

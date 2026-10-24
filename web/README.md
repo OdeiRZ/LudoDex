@@ -60,6 +60,31 @@ ejercitan el conjunto.
   tercero pone el CI en rojo para que se vea, sin impedir publicar un cambio
   ajeno.
 
+### Seguridad y caché del frontend (CSP y `_headers`)
+
+- **CSP** como `<meta>` en el `index.html` del build (plugin en `vite.config.ts`,
+  solo en el build): scripts solo propios más el script del tema por su hash
+  (calculado al compilar, así que editarlo no rompe la política), conexiones solo al
+  propio origen y al API (`VITE_API_URL`), imágenes de cualquier `https` (portadas de
+  BGG y las URL de cada usuario), `data:` y `blob:`. El e2e falla ante cualquier
+  violación.
+- **`public/_headers`** (Cloudflare Pages) para lo que un `<meta>` no puede poner:
+  `X-Frame-Options: DENY` y `frame-ancestors 'none'` (nadie puede incrustar la app),
+  `Permissions-Policy` sin cámara, micrófono, ubicación ni pagos, y `/assets/*` con
+  `Cache-Control: max-age=31536000, immutable` (llevan hash en el nombre; antes se
+  revalidaban en cada visita).
+- `vite.config.ts` exporta una función (necesita el modo para leer `VITE_API_URL`):
+  `vitest.config.ts` la resuelve antes de fusionarla.
+
+### Accesibilidad: contraste e idioma
+
+- El texto claro sobre el verde principal (botones, chips activos, iniciales del
+  avatar, burbuja del scrubber) usa `--color-primary-solid` (5,23:1; antes 3,58:1, por
+  debajo del mínimo de 4,5:1). Enlaces, gráficas y bordes siguen con
+  `--color-primary`.
+- `setLocale()` (`src/i18n/index.ts`) mantiene `<html lang>` en el idioma elegido:
+  `index.html` sale con `lang="es"`.
+
 ### `npm audit` limpio (dependencias de desarrollo incluidas)
 
 `npm audit` se mantiene en 0, con y sin `--omit=dev`. Lo que se ha resuelto:
