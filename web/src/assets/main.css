@@ -43,6 +43,26 @@
   }
 }
 
+/* Botones de icono de 28 px (ver detalles, vista compacta, mostrar filtros,
+   mostrar contraseña): una capa invisible que los desborda 8 px por lado deja
+   la zona táctil en 44 px sin cambiar cómo se ven. Globales a propósito: cada
+   botón vive en su propio componente con estilos scoped. */
+.details-icon-button,
+.filters-toggle,
+.density-toggle,
+.toggle-visibility {
+  position: relative;
+}
+
+.details-icon-button::after,
+.filters-toggle::after,
+.density-toggle::after,
+.toggle-visibility::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+
 /* Buttons */
 .btn {
   display: inline-flex;
