@@ -7,6 +7,29 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Seguridad, contraste y base de datos (auditoría del 25-10-2026)
+
+- **CSP y cabeceras del frontend.** El build pone una política de seguridad de
+  contenido como `<meta>` (scripts solo propios más el script del tema por hash,
+  conexiones solo al API); `web/public/_headers` impide incrustar la app en otra web
+  (`X-Frame-Options`, `frame-ancestors`), desactiva cámara, micrófono, ubicación y
+  pagos (`Permissions-Policy`) y guarda `/assets/*` un año (antes se revalidaban en
+  cada visita). Los e2e, que fallan ante cualquier violación del CSP, pasan.
+- **Límite general de peticiones:** 300 por minuto y usuario en todo el API (antes solo
+  las rutas sensibles tenían límite). Los contadores van en un fichero local, no en la
+  base de datos (`CACHE_LIMITER_STORE`), así que no añaden consultas a Neon.
+- **Índices** para las claves foráneas que PostgreSQL no indexa solo: solicitudes de
+  amistad recibidas (se consultan en cada navegación), bloqueos, expansiones de un
+  juego, filtros por mecánica y categoría, etc. Validado en PostgreSQL local.
+- **CORS solo desde el frontend** (`ludodex.pages.dev`, sus vistas previas y
+  localhost); antes `*`. `CORS_ALLOWED_ORIGINS` lo cambia sin tocar código.
+- **Contraste:** el texto claro sobre el verde principal (botones, chips activos,
+  iniciales del avatar, burbuja del scrubber) quedaba en 3,58:1; ahora usa un tono más
+  oscuro (5,23:1).
+- **`<html lang>` sigue al idioma elegido** (lectores de pantalla y traductores).
+- **CI:** todas las acciones fijadas por SHA y actualizaciones de seguridad de
+  Dependabot activadas.
+
 ### Fluidez y usabilidad
 
 - **Transición entre pantallas con la API View Transitions** (`lib/viewTransition.ts`):
