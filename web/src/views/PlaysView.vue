@@ -717,6 +717,7 @@ chrome so it still reads as a plain row and not a form control. */
 }
 
 .top-played-name {
+  font-family: var(--font-display);
   flex: 1;
   min-width: 0;
   font-weight: 500;
@@ -999,7 +1000,8 @@ without it. */
 }
 
 .play-name {
-  font-weight: 500;
+  font-family: var(--font-display);
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

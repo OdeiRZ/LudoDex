@@ -1,3 +1,7 @@
+// Fuentes servidas con la app (la CSP solo admite font-src 'self'): Inter para
+// el texto y Bricolage Grotesque para títulos y nombres de juego.
+import '@fontsource-variable/inter'
+import '@fontsource-variable/bricolage-grotesque'
 import './assets/main.css'
 
 import { createApp } from 'vue'
