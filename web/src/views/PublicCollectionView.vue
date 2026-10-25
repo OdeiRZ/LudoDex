@@ -5,6 +5,7 @@ import { isAxiosError } from 'axios'
 import { apiClient } from '@/lib/api'
 import { getLocale } from '@/i18n'
 import GameCard from '@/components/GameCard.vue'
+import GameMeta from '@/components/GameMeta.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import type { Game } from '@/stores/games'
 
@@ -117,20 +118,14 @@ function formatDate(iso: string): string {
         <li v-for="game in visible" :key="game.id">
           <GameCard :image-url="game.image_url" :is-expansion="game.base_game_id !== null">
             <h3>{{ game.name }}</h3>
-            <p class="game-meta">
-              <span v-if="game.year_published">{{ game.year_published }}</span>
-              <span v-if="game.min_players || game.max_players">
-                {{ $t('dashboard.players', { min: game.min_players, max: game.max_players }) }}
-              </span>
-              <span v-if="game.min_playtime_minutes || game.max_playtime_minutes">
-                {{
-                  $t('dashboard.duration', {
-                    min: game.min_playtime_minutes,
-                    max: game.max_playtime_minutes,
-                  })
-                }}
-              </span>
-            </p>
+            <GameMeta
+              class="game-meta"
+              :year="game.year_published"
+              :min-players="game.min_players"
+              :max-players="game.max_players"
+              :min-minutes="game.min_playtime_minutes"
+              :max-minutes="game.max_playtime_minutes"
+            />
           </GameCard>
         </li>
       </ul>
@@ -202,10 +197,6 @@ h3 {
 }
 
 .game-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-2);
-  font-size: 0.8rem;
-  margin: var(--space-1) 0 0;
+  margin-top: var(--space-1);
 }
 </style>

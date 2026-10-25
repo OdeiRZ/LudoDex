@@ -9,6 +9,7 @@ import type { Game } from '@/stores/games'
 import UserAvatar from '@/components/UserAvatar.vue'
 import ActivityChart from '@/components/ActivityChart.vue'
 import GameCard from '@/components/GameCard.vue'
+import GameMeta from '@/components/GameMeta.vue'
 import GameDetailModal, { type DetailGame } from '@/components/GameDetailModal.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import SkeletonGameCard from '@/components/SkeletonGameCard.vue'
@@ -447,17 +448,11 @@ function loadMore() {
                       }}
                     </span>
                   </div>
-                  <p
-                    v-if="game.year_published || game.min_players || game.max_players"
-                    class="meta"
-                  >
-                    <span v-if="game.year_published">{{ game.year_published }}</span>
-                    <span v-if="game.min_players || game.max_players">
-                      {{
-                        $t('dashboard.players', { min: game.min_players, max: game.max_players })
-                      }}
-                    </span>
-                  </p>
+                  <GameMeta
+                    :year="game.year_published"
+                    :min-players="game.min_players"
+                    :max-players="game.max_players"
+                  />
                 </GameCard>
               </li>
             </ul>
@@ -858,14 +853,6 @@ the base .badge is inline-flex. */
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-
-.games :deep(.meta) {
-  display: flex;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.75);
 }
 
 .stats-bar {

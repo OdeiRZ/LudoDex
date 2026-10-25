@@ -13,6 +13,7 @@ import {
 } from '@/composables/useCollectionScrubber'
 import DensityToggle from '@/components/DensityToggle.vue'
 import GameCard from '@/components/GameCard.vue'
+import GameMeta from '@/components/GameMeta.vue'
 import GameDetailModal from '@/components/GameDetailModal.vue'
 import SkeletonGameCard from '@/components/SkeletonGameCard.vue'
 import { useFeedback } from '@/composables/useFeedback'
@@ -648,34 +649,13 @@ async function onClearCollection() {
               {{ $t('dashboard.expansionOf', { name: entry.game.base_game_name }) }}
             </span>
           </div>
-          <p
-            v-if="
-              entry.game.year_published ||
-              entry.game.min_players ||
-              entry.game.max_players ||
-              entry.game.min_playtime_minutes ||
-              entry.game.max_playtime_minutes
-            "
-            class="meta"
-          >
-            <span v-if="entry.game.year_published">{{ entry.game.year_published }}</span>
-            <span v-if="entry.game.min_players || entry.game.max_players">
-              {{
-                $t('dashboard.players', {
-                  min: entry.game.min_players,
-                  max: entry.game.max_players,
-                })
-              }}
-            </span>
-            <span v-if="entry.game.min_playtime_minutes || entry.game.max_playtime_minutes">
-              {{
-                $t('dashboard.duration', {
-                  min: entry.game.min_playtime_minutes,
-                  max: entry.game.max_playtime_minutes,
-                })
-              }}
-            </span>
-          </p>
+          <GameMeta
+            :year="entry.game.year_published"
+            :min-players="entry.game.min_players"
+            :max-players="entry.game.max_players"
+            :min-minutes="entry.game.min_playtime_minutes"
+            :max-minutes="entry.game.max_playtime_minutes"
+          />
           <div class="card-actions">
             <RouterLink
               :to="{ name: 'edit-game', params: { id: entry.id }, query: { from: 'dashboard' } }"
@@ -1612,17 +1592,6 @@ applies to a block/inline-block box - hence the display override here. */
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-
-/* The scrim is always dark regardless of theme (it sits over a photo, not
-the app background), so these need their own fixed light colors instead of
-the theme's usual muted-text variable. */
-.games :deep(.meta) {
-  display: flex;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.75);
 }
 
 .games :deep(.card-actions) {

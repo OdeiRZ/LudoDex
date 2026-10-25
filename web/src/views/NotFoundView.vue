@@ -8,7 +8,10 @@ const auth = useAuthStore()
   <div class="not-found">
     <h1>{{ $t('notFound.title') }}</h1>
     <p>{{ $t('notFound.message') }}</p>
-    <RouterLink :to="{ name: auth.isAuthenticated ? 'dashboard' : 'login' }" class="btn btn-primary">
+    <RouterLink
+      :to="{ name: auth.isAuthenticated ? 'dashboard' : 'login' }"
+      class="btn btn-primary"
+    >
       {{ $t('notFound.backLink') }}
     </RouterLink>
   </div>

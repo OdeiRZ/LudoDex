@@ -15,6 +15,7 @@ import { getLocale } from '@/i18n'
 import { translateCategory } from '@/i18n/bggCategories'
 import DensityToggle from '@/components/DensityToggle.vue'
 import GameCard from '@/components/GameCard.vue'
+import GameMeta from '@/components/GameMeta.vue'
 import GameDetailModal from '@/components/GameDetailModal.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import SkeletonGameCard from '@/components/SkeletonGameCard.vue'
@@ -831,39 +832,13 @@ const {
               </svg>
             </button>
           </div>
-          <p
-            v-if="
-              entry.game.year_published ||
-              effectiveStatsByGameId[entry.game.id]?.minPlayers ||
-              effectiveStatsByGameId[entry.game.id]?.maxPlayers ||
-              entry.game.min_playtime_minutes ||
-              entry.game.max_playtime_minutes
-            "
-            class="meta"
-          >
-            <span v-if="entry.game.year_published">{{ entry.game.year_published }}</span>
-            <span
-              v-if="
-                effectiveStatsByGameId[entry.game.id]?.minPlayers ||
-                effectiveStatsByGameId[entry.game.id]?.maxPlayers
-              "
-            >
-              {{
-                $t('dashboard.players', {
-                  min: effectiveStatsByGameId[entry.game.id]?.minPlayers,
-                  max: effectiveStatsByGameId[entry.game.id]?.maxPlayers,
-                })
-              }}
-            </span>
-            <span v-if="entry.game.min_playtime_minutes || entry.game.max_playtime_minutes">
-              {{
-                $t('dashboard.duration', {
-                  min: entry.game.min_playtime_minutes,
-                  max: entry.game.max_playtime_minutes,
-                })
-              }}
-            </span>
-          </p>
+          <GameMeta
+            :year="entry.game.year_published"
+            :min-players="effectiveStatsByGameId[entry.game.id]?.minPlayers"
+            :max-players="effectiveStatsByGameId[entry.game.id]?.maxPlayers"
+            :min-minutes="entry.game.min_playtime_minutes"
+            :max-minutes="entry.game.max_playtime_minutes"
+          />
           <p
             v-if="
               entry.friendOwnerIds.length > 0 ||
@@ -1960,16 +1935,6 @@ language wherever it shows up. */
 .results :deep(.badge-expansion) {
   background: var(--color-expansion);
   color: #fff;
-}
-
-/* Always light text/fixed colors here too - same reasoning as the
-collection's cards, the scrim sits over a photo, not the theme background. */
-.results :deep(.meta) {
-  display: flex;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.75);
 }
 
 .results :deep(.tags) {
