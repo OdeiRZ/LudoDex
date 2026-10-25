@@ -431,6 +431,8 @@ export default {
     activityTitle: 'Actividad (últimos 12 meses)',
     activityCurrentMonth: 'Este mes: {count}',
     activityTooltip: '{month} · {count} partida | {month} · {count} partidas',
+    activityInProgress: 'en curso',
+    monthCount: '{count} partida | {count} partidas',
   },
   friends: {
     title: 'Amigos',

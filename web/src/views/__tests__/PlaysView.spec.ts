@@ -185,22 +185,37 @@ describe('PlaysView', () => {
     expect(wrapper.text()).toContain('45 min')
   })
 
-  it('numbers plays ascending, continuing across "load more" instead of resetting per page', async () => {
+  it('groups plays by month with readable dates, hiding the last month total while more pages remain', async () => {
     const { wrapper, store } = await mountPlays()
     store.loaded = true
-    store.entries = [makePlay({ id: 'play-1' }), makePlay({ id: 'play-2' })]
+    store.currentPage = 1
+    store.lastPage = 2
+    store.entries = [
+      makePlay({ id: 'play-1', played_at: '2026-09-01', duration_minutes: 360 }),
+      makePlay({ id: 'play-2', played_at: '2026-08-21', duration_minutes: 210 }),
+      makePlay({ id: 'play-3', played_at: '2026-08-09', duration_minutes: 240 }),
+    ]
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.findAll('.play-index').map((el) => el.text())).toEqual(['1', '2'])
+    const heads = wrapper.findAll('.play-month-head')
+    expect(heads.map((el) => el.find('span').text())).toEqual([
+      'septiembre de 2026',
+      'agosto de 2026',
+    ])
+    expect(wrapper.findAll('.play-month-total').map((el) => el.text())).toEqual(['1 partida · 6 h'])
+    expect(wrapper.find('.play-meta').text()).toBe('mar 1')
+    expect(wrapper.findAll('.play-duration').map((el) => el.text())).toEqual([
+      '6 h',
+      '3 h 30 min',
+      '4 h',
+    ])
+    expect(wrapper.text()).not.toContain('2026-09-01')
 
-    // "Cargar más" appends to the same entries array rather than
-    // replacing it - the numbering should pick up from 3, not restart.
-    store.entries.push(makePlay({ id: 'play-3' }))
+    // Con todas las páginas cargadas, agosto ya enseña su total.
+    store.lastPage = 1
     await wrapper.vm.$nextTick()
-
-    expect(wrapper.findAll('.play-index').map((el) => el.text())).toEqual(['1', '2', '3'])
+    expect(wrapper.findAll('.play-month-total')[1].text()).toBe('2 partidas · 7 h 30 min')
   })
-
   it("shows the base game's name under a play logged against an expansion", async () => {
     const { wrapper, store } = await mountPlays()
     store.loaded = true

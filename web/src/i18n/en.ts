@@ -431,6 +431,8 @@ export default {
     activityTitle: 'Activity (last 12 months)',
     activityCurrentMonth: 'This month: {count}',
     activityTooltip: '{month} · {count} play | {month} · {count} plays',
+    activityInProgress: 'in progress',
+    monthCount: '{count} play | {count} plays',
   },
   friends: {
     title: 'Friends',

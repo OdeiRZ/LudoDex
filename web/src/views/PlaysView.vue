@@ -6,6 +6,8 @@ import { usePlaysStore, type Play } from '@/stores/plays'
 import { useToastStore } from '@/stores/toast'
 import { useFeedback } from '@/composables/useFeedback'
 import { FALLBACK_ICON_URL } from '@/lib/assets'
+import { getLocale } from '@/i18n'
+import { formatDuration, groupPlaysByMonth, playDate, type PlayMonthGroup } from '@/lib/playFormat'
 import ActivityChart from '@/components/ActivityChart.vue'
 import GameDetailModal from '@/components/GameDetailModal.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
@@ -233,17 +235,33 @@ const totalTimeLabel = computed(() => {
     return t('plays.statsNoDuration')
   }
 
-  const hours = Math.floor(displayTotalMinutes.value / 60)
-  const minutes = Math.round(displayTotalMinutes.value % 60)
-
-  if (hours === 0) {
-    return t('plays.duration', { minutes })
-  }
-
-  return minutes === 0
-    ? t('plays.statsHoursOnly', { hours })
-    : t('plays.statsHoursMinutes', { hours, minutes })
+  return formatDuration(displayTotalMinutes.value, t)
 })
+
+// Lista agrupada por mes ("septiembre de 2026") y, en cada partida, solo el
+// día de la semana y el número ("mar 1"): el mes ya va en la cabecera.
+const playGroups = computed(() =>
+  groupPlaysByMonth(plays.entries, plays.currentPage < plays.lastPage),
+)
+const monthFormatter = computed(
+  () => new Intl.DateTimeFormat(getLocale(), { month: 'long', year: 'numeric' }),
+)
+const dayFormatter = computed(
+  () => new Intl.DateTimeFormat(getLocale(), { weekday: 'short', day: 'numeric' }),
+)
+
+function monthLabel(key: string): string {
+  return monthFormatter.value.format(playDate(`${key}-01`))
+}
+
+function dayLabel(playedAt: string): string {
+  return dayFormatter.value.format(playDate(playedAt))
+}
+
+function monthTotal(group: PlayMonthGroup): string {
+  const count = t('plays.monthCount', { count: group.count }, group.count)
+  return group.minutes > 0 ? `${count} · ${formatDuration(group.minutes, t)}` : count
+}
 
 onUnmounted(() => {
   if (totalPlaysFrame !== undefined) cancelAnimationFrame(totalPlaysFrame)
@@ -493,36 +511,51 @@ onMounted(() => {
       {{ $t('plays.noMatches') }}
     </p>
 
-    <TransitionGroup v-else tag="ul" name="play-list" class="play-list">
-      <li v-for="(play, index) in plays.entries" :key="play.id" class="play-row">
-        <span class="play-index">{{ index + 1 }}</span>
+    <!-- Agrupada por mes, como el gráfico de arriba: cada mes con sus partidas
+    y su tiempo (ver groupPlaysByMonth). El último mes no enseña totales
+    mientras queden páginas, porque podría seguir en la siguiente. -->
+    <div v-else class="play-months">
+      <section v-for="group in playGroups" :key="group.key" class="play-month">
+        <h2 class="play-month-head">
+          <span>{{ monthLabel(group.key) }}</span>
+          <span v-if="group.complete" class="play-month-total">{{ monthTotal(group) }}</span>
+        </h2>
+        <TransitionGroup tag="ul" name="play-list" class="play-list">
+          <li v-for="play in group.plays" :key="play.id" class="play-row">
+            <button
+              type="button"
+              class="play-cover-button"
+              :aria-label="$t('picker.viewDetails')"
+              :title="$t('picker.viewDetails')"
+              @click="detailGame = play.game"
+            >
+              <img
+                v-if="play.game.image_url"
+                :src="play.game.image_url"
+                alt=""
+                class="play-cover"
+              />
+              <img v-else :src="FALLBACK_ICON_URL" alt="" class="play-cover play-cover-fallback" />
+            </button>
 
-        <button
-          type="button"
-          class="play-cover-button"
-          :aria-label="$t('picker.viewDetails')"
-          :title="$t('picker.viewDetails')"
-          @click="detailGame = play.game"
-        >
-          <img v-if="play.game.image_url" :src="play.game.image_url" alt="" class="play-cover" />
-          <img v-else :src="FALLBACK_ICON_URL" alt="" class="play-cover play-cover-fallback" />
-        </button>
+            <div class="play-info">
+              <span class="play-name">{{ play.game.name }}</span>
+              <span v-if="play.game.base_game_name" class="play-base-game">
+                {{ $t('dashboard.expansionOf', { name: play.game.base_game_name }) }}
+              </span>
+              <span class="play-meta">
+                <time :datetime="play.played_at.slice(0, 10)">{{ dayLabel(play.played_at) }}</time>
+                <template v-if="play.quantity > 1"> · ×{{ play.quantity }}</template>
+              </span>
+            </div>
 
-        <div class="play-info">
-          <span class="play-name">{{ play.game.name }}</span>
-          <span v-if="play.game.base_game_name" class="play-base-game">
-            {{ $t('dashboard.expansionOf', { name: play.game.base_game_name }) }}
-          </span>
-          <span class="play-meta">
-            {{ play.played_at }}
-            <template v-if="play.duration_minutes">
-              · {{ $t('plays.duration', { minutes: play.duration_minutes }) }}
-            </template>
-            <template v-if="play.quantity > 1"> · ×{{ play.quantity }}</template>
-          </span>
-        </div>
-      </li>
-    </TransitionGroup>
+            <span v-if="play.duration_minutes" class="play-duration">{{
+              formatDuration(play.duration_minutes, t)
+            }}</span>
+          </li>
+        </TransitionGroup>
+      </section>
+    </div>
 
     <button
       v-if="plays.loaded && plays.currentPage < plays.lastPage"
@@ -863,25 +896,51 @@ the full row width instead of its own natural checkbox size. */
   background: var(--color-surface-hover);
 }
 
-/* A running count across every loaded page (asked for directly), not
-per-page - "load more" appends to the same plays.entries array rather
-than replacing it, so the v-for's own index already counts continuously
-without needing separate state to track it. text-align: left (asked
-for directly, down from the original right) hugs the row's own left
-edge instead of the cover. width: 0.75rem (asked for directly, down
-from 1.5rem) keeps a 1-2 digit index snug against that edge too -
-narrower than a 3-digit index's own natural width, so past 99 plays
-the number starts overflowing this fixed box rather than the row still
-lining every cover up regardless of digit count the way the original
-1.5rem did. */
-.play-index {
-  width: 0.75rem;
-  flex-shrink: 0;
-  text-align: left;
-  color: var(--color-text-muted);
-  font-size: 0.85rem;
+.play-months {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
 }
 
+.play-month-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.play-month-total {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.play-months .play-list {
+  margin-bottom: 0;
+}
+
+/* La duración a la derecha de cada fila, en el color de la marca, para que
+las partidas largas se vean sin leer cada línea. */
+.play-duration {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
 /* No border/background/padding of its own beyond resetting the button
 defaults - visually this should read as just the cover image sitting in
 the row, same as before it became clickable, not as a distinct button. */
