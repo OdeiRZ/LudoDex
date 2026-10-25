@@ -10,6 +10,8 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
 import ToastNotification from '@/components/ToastNotification.vue'
 import PoweredByBgg from '@/components/PoweredByBgg.vue'
 import ScrollToTopButton from '@/components/ScrollToTopButton.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import { apiWaking } from '@/lib/apiWaking'
 
 const auth = useAuthStore()
 const friends = useFriendsStore()
@@ -260,6 +262,14 @@ async function onResendVerification() {
     </button>
   </div>
 
+  <!-- La API dormida tarda en contestar (lib/apiWaking.ts): sin esto la
+       colección se queda en esqueletos medio minuto sin decir por qué. Neutro,
+       no de error: solo pide esperar. -->
+  <p v-if="apiWaking" class="api-waking" role="status">
+    <LoadingSpinner :size="18" />
+    {{ $t('common.apiWaking') }}
+  </p>
+
   <main>
     <!-- Sin <Transition>: el cambio de pantalla lo anima el navegador
          (lib/viewTransition.ts), sin el instante en blanco del out-in. -->
@@ -285,6 +295,19 @@ header {
   padding-bottom: var(--space-4);
   margin-bottom: var(--space-6);
   border-bottom: 1px solid var(--color-border);
+}
+
+.api-waking {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.88rem;
 }
 
 .verify-banner {

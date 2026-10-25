@@ -4,6 +4,7 @@ export default {
     saving: 'Saving…',
     loading: 'Loading…',
     coldStartHint: 'Server was asleep: this might take a few seconds.',
+    apiWaking: 'The server is waking up after a while idle (it can take up to a minute)…',
     genericGameSaveError: "Couldn't save the game. Check the details.",
     sharedGameSaveError:
       "Someone else also has this game in their collection, so its general details can no longer be edited (only your own status). If something's wrong with it, fix it by re-importing from BGG.",

@@ -4,6 +4,7 @@ export default {
     saving: 'Guardando…',
     loading: 'Cargando…',
     coldStartHint: 'Servidor inactivo: puede tardar unos segundos.',
+    apiWaking: 'El servidor se está despertando tras un rato sin uso (tarda hasta un minuto)…',
     genericGameSaveError: 'No se ha podido guardar el juego. Revisa los datos.',
     sharedGameSaveError:
       'Este juego también está en la colección de otra persona, así que ya no se pueden editar sus datos generales (solo tu propio estado). Si hay algo mal, corrígelo reimportándolo desde BGG.',

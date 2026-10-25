@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { getLocale, i18n } from '@/i18n'
+import { requestStarted, responseArrived } from '@/lib/apiWaking'
 import router from '@/router'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
@@ -40,8 +41,22 @@ apiClient.interceptors.request.use((config) => {
   // Spanish regardless of the frontend's own language toggle.
   config.headers['Accept-Language'] = getLocale()
 
+  requestStarted()
   return config
 })
+
+// Cualquier respuesta (también un 4xx/5xx) dice que la API ya está despierta
+// (lib/apiWaking.ts). Va antes que el interceptor del 401 de abajo.
+apiClient.interceptors.response.use(
+  (response) => {
+    responseArrived()
+    return response
+  },
+  (error) => {
+    if (axios.isAxiosError(error) && error.response) responseArrived()
+    return Promise.reject(error)
+  },
+)
 
 // A 401 on an authenticated request means the token Sanctum issued has
 // expired or been revoked server-side - without this, the stored token
