@@ -60,6 +60,11 @@ const bars = computed(() =>
   })),
 )
 
+// El último mes es siempre el actual (la API devuelve los 12 últimos, el de
+// hoy al final): va rayado y con "en curso" para que unos pocos días no se
+// lean como un mes flojo.
+const currentMonthKey = computed(() => props.months.at(-1)?.month ?? null)
+
 const currentMonthCount = computed(() => props.months.at(-1)?.count ?? 0)
 </script>
 
@@ -76,7 +81,7 @@ const currentMonthCount = computed(() => props.months.at(-1)?.count ?? 0)
         v-for="(bar, index) in bars"
         :key="bar.month"
         class="activity-bar-col"
-        :class="{ 'is-peak': bar.isPeak }"
+        :class="{ 'is-peak': bar.isPeak, 'is-current': bar.month === currentMonthKey }"
       >
         <button
           type="button"
@@ -93,6 +98,9 @@ const currentMonthCount = computed(() => props.months.at(-1)?.count ?? 0)
           }}</span>
         </button>
         <span class="activity-month">{{ bar.label }}</span>
+        <span v-if="bar.month === currentMonthKey" class="activity-in-progress">{{
+          t('plays.activityInProgress')
+        }}</span>
       </div>
     </div>
   </div>
@@ -131,6 +139,7 @@ const currentMonthCount = computed(() => props.months.at(-1)?.count ?? 0)
   align-items: flex-end;
   gap: var(--space-2);
   height: 96px;
+  margin-bottom: 0.8rem;
 }
 
 .activity-bar-col {
@@ -203,6 +212,40 @@ const currentMonthCount = computed(() => props.months.at(-1)?.count ?? 0)
 .activity-bar-col.is-peak .activity-month {
   color: var(--color-heading);
   font-weight: 600;
+}
+
+/* Mes en curso: rayado y más suave (también si es el máximo), y "en curso"
+debajo, alineado a la derecha porque es la última columna. */
+.activity-bar-col {
+  position: relative;
+}
+
+.activity-bar-col.is-current .activity-bar {
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--color-primary) 40%, transparent) 0 4px,
+    color-mix(in srgb, var(--color-primary) 18%, transparent) 4px 8px
+  );
+}
+
+.activity-bar-col.is-current:hover .activity-bar,
+.activity-bar-col.is-current .activity-bar.is-active {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--color-primary) 0 4px,
+    color-mix(in srgb, var(--color-primary) 55%, transparent) 4px 8px
+  );
+}
+
+.activity-in-progress {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.1rem;
+  font-size: 0.62rem;
+  line-height: 1;
+  color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 @media (prefers-reduced-motion: reduce) {
