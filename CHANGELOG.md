@@ -9,66 +9,73 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Lavado de cara: datos de los juegos, partidas, aviso del servidor y tipografía
 
-- **Corregido: rangos "2–2 jugadores" y "30–30 min".** Cuando coincidían los dos
-  extremos se repetía el número, y si faltaba uno salía "–5 jugadores". Ahora pone
-  "2", "30 min" o "5", con "1 jugador" en singular. Un único componente (`GameMeta`)
-  pinta estos datos en la colección, "¿A qué jugamos?", la colección de un amigo y
-  el enlace público, como pastillas con icono para jugadores y duración y el año al
-  final, más apagado.
-- **Partidas agrupadas por mes y con fechas legibles.** Antes era una lista numerada
-  con "2026-09-01 · 360 min"; ahora cada mes ("septiembre de 2026") lleva sus
-  partidas y su tiempo ("3 partidas · 9 h 30 min", contando las repeticiones ×N como
-  el resumen), y cada fila la portada, el día ("mar 1") y la duración a la derecha
-  ("6 h", "3 h 30 min"). El último mes no enseña totales mientras queden páginas por
-  cargar, porque podría seguir en la siguiente.
-- **El mes en curso del gráfico de actividad** va rayado y con "en curso", para que
-  unos pocos días no parezcan un mes flojo.
-- **Aviso de servidor despertando.** Tras un rato sin uso la primera petición tarda
-  unos 35 s (medido en la petición de arranque) y la colección solo enseñaba
-  esqueletos. Si una petición lleva 5 s sin respuesta y la API no había contestado
-  nada en 10 minutos, sale un aviso neutro con un indicador de carga, que se quita con
-  la primera respuesta. Una importación lenta con la API despierta no lo dispara.
-  Mismo módulo que MIRA (`lib/apiWaking.ts`).
-- **Fuentes servidas con la app.** El CSS pedía Inter sin cargarla, así que se veía
-  Roboto en Android y Segoe UI en Windows. Ahora van Inter para el texto y Bricolage
-  Grotesque para títulos, nombres de juego y la lista de partidas, como fuentes
-  variables de Fontsource (la CSP solo admite `font-src 'self'`). El navegador solo
-  baja los alfabetos que usa: unos 87 KB en español, una vez.
+- **Corregido: rangos "2–2 jugadores" y "30–30 min".** Cuando coincidían los
+  dos extremos se repetía el número, y si faltaba uno salía "–5 jugadores".
+  Ahora pone "2", "30 min" o "5", con "1 jugador" en singular. Un único
+  componente (`GameMeta`) pinta estos datos en la colección, "¿A qué
+  jugamos?", la colección de un amigo y el enlace público, como pastillas con
+  icono para jugadores y duración y el año al final, más apagado.
+- **Partidas agrupadas por mes y con fechas legibles.** Antes era una lista
+  numerada con "2026-09-01 · 360 min"; ahora cada mes ("septiembre de 2026")
+  lleva sus partidas y su tiempo ("3 partidas · 9 h 30 min", contando las
+  repeticiones ×N como el resumen), y cada fila la portada, el día ("mar 1") y
+  la duración a la derecha ("6 h", "3 h 30 min"). El último mes no enseña
+  totales mientras queden páginas por cargar, porque podría seguir en la
+  siguiente.
+- **El mes en curso del gráfico de actividad** va rayado y con "en curso",
+  para que unos pocos días no parezcan un mes flojo.
+- **Aviso de servidor despertando.** Tras un rato sin uso la primera petición
+  tarda unos 35 s (medido en la petición de arranque) y la colección solo
+  enseñaba esqueletos. Si una petición lleva 5 s sin respuesta y la API no
+  había contestado nada en 10 minutos, sale un aviso neutro con un indicador
+  de carga, que se quita con la primera respuesta. Una importación lenta con
+  la API despierta no lo dispara. Mismo módulo que MIRA (`lib/apiWaking.ts`).
+- **Fuentes servidas con la app.** El CSS pedía Inter sin cargarla, así que se
+  veía Roboto en Android y Segoe UI en Windows. Ahora van Inter para el texto
+  y Bricolage Grotesque para títulos, nombres de juego y la lista de partidas,
+  como fuentes variables de Fontsource (la CSP solo admite `font-src 'self'`).
+  El navegador solo baja los alfabetos que usa: unos 87 KB en español, una
+  vez.
 
 ### Seguridad, contraste y base de datos (auditoría del 25-10-2026)
 
 - **CSP y cabeceras del frontend.** El build pone una política de seguridad de
-  contenido como `<meta>` (scripts solo propios más el script del tema por hash,
-  conexiones solo al API); `web/public/_headers` impide incrustar la app en otra web
-  (`X-Frame-Options`, `frame-ancestors`), desactiva cámara, micrófono, ubicación y
-  pagos (`Permissions-Policy`) y guarda `/assets/*` un año (antes se revalidaban en
-  cada visita). Los e2e, que fallan ante cualquier violación del CSP, pasan.
-- **Límite general de peticiones:** 300 por minuto y usuario en todo el API (antes solo
-  las rutas sensibles tenían límite). Los contadores van en un fichero local, no en la
-  base de datos (`CACHE_LIMITER_STORE`), así que no añaden consultas a Neon.
-- **Índices** para las claves foráneas que PostgreSQL no indexa solo: solicitudes de
-  amistad recibidas (se consultan en cada navegación), bloqueos, expansiones de un
-  juego, filtros por mecánica y categoría, etc. Validado en PostgreSQL local.
+  contenido como `<meta>` (scripts solo propios más el script del tema por
+  hash, conexiones solo al API); `web/public/_headers` impide incrustar la app
+  en otra web (`X-Frame-Options`, `frame-ancestors`), desactiva cámara,
+  micrófono, ubicación y pagos (`Permissions-Policy`) y guarda `/assets/*` un
+  año (antes se revalidaban en cada visita). Los e2e, que fallan ante
+  cualquier violación del CSP, pasan.
+- **Límite general de peticiones:** 300 por minuto y usuario en todo el API
+  (antes solo las rutas sensibles tenían límite). Los contadores van en un
+  fichero local, no en la base de datos (`CACHE_LIMITER_STORE`), así que no
+  añaden consultas a Neon.
+- **Índices** para las claves foráneas que PostgreSQL no indexa solo:
+  solicitudes de amistad recibidas (se consultan en cada navegación),
+  bloqueos, expansiones de un juego, filtros por mecánica y categoría, etc.
+  Validado en PostgreSQL local.
 - **CORS solo desde el frontend** (`ludodex.pages.dev`, sus vistas previas y
   localhost); antes `*`. `CORS_ALLOWED_ORIGINS` lo cambia sin tocar código.
-- **Contraste:** el texto claro sobre el verde principal (botones, chips activos,
-  iniciales del avatar, burbuja del scrubber) quedaba en 3,58:1; ahora usa un tono más
-  oscuro (5,23:1).
-- **`<html lang>` sigue al idioma elegido** (lectores de pantalla y traductores).
+- **Contraste:** el texto claro sobre el verde principal (botones, chips
+  activos, iniciales del avatar, burbuja del scrubber) quedaba en 3,58:1;
+  ahora usa un tono más oscuro (5,23:1).
+- **`<html lang>` sigue al idioma elegido** (lectores de pantalla y
+  traductores).
 - **CI:** todas las acciones fijadas por SHA y actualizaciones de seguridad de
   Dependabot activadas.
 
 ### Fluidez y usabilidad
 
-- **Transición entre pantallas con la API View Transitions** (`lib/viewTransition.ts`):
-  la pantalla que sale se desvanece y la nueva entra a la vez, con la cabecera
-  quieta. Sustituye al `<Transition mode="out-in">` del `RouterView`, que dejaba un
-  instante en blanco en cada cambio. Nunca hay dos vistas montadas a la vez (se anima
-  una captura). Sin la API, con movimiento reducido, en la primera carga o si solo
-  cambia la query, cambio normal. 4 tests.
-- **Zona táctil de 44 px** en los botones de icono de 28 px (ver detalles, vista
-  compacta, mostrar filtros, mostrar contraseña), con una capa invisible; el aspecto
-  no cambia.
+- **Transición entre pantallas con la API View Transitions**
+  (`lib/viewTransition.ts`): la pantalla que sale se desvanece y la nueva
+  entra a la vez, con la cabecera quieta. Sustituye al `<Transition
+  mode="out-in">` del `RouterView`, que dejaba un instante en blanco en cada
+  cambio. Nunca hay dos vistas montadas a la vez (se anima una captura). Sin
+  la API, con movimiento reducido, en la primera carga o si solo cambia la
+  query, cambio normal. 4 tests.
+- **Zona táctil de 44 px** en los botones de icono de 28 px (ver detalles,
+  vista compacta, mostrar filtros, mostrar contraseña), con una capa
+  invisible; el aspecto no cambia.
 - **Corregido:** el tema claro que sigue al sistema no tenía su color de
   expansión, así que las etiquetas de expansión salían con el violeta del tema
   oscuro.
