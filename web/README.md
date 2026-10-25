@@ -105,6 +105,23 @@ ejercitan el conjunto.
 
 - `src/lib/api.ts` — instancia de axios con interceptor que añade el token
   Bearer a cada petición.
+- `src/lib/apiWaking.ts` — enciende el aviso "El servidor se está despertando…"
+  (en `App.vue`) cuando una petición lleva 5 s sin respuesta y la API no había
+  contestado nada en 10 minutos, o sea, cuando Render la está arrancando. Los
+  interceptores de `api.ts` lo avisan al salir cada petición y al llegar cualquier
+  respuesta (también un error HTTP). Igual que en MIRA.
+- `src/components/GameMeta.vue` + `src/lib/gameMeta.ts` — jugadores, duración y
+  año de un juego sobre el velo de su portada, en las cuatro vistas que los
+  enseñan. `formatRange()` junta los extremos iguales ("2", no "2–2") y el que
+  falta ("5", no "–5").
+- `src/lib/playFormat.ts` — duraciones ("6 h", "3 h 30 min"), la fecha de una
+  partida leída como local y `groupPlaysByMonth()` para la lista de partidas por
+  mes (cuenta las repeticiones como el resumen del servidor y marca incompleto el
+  último mes mientras queden páginas).
+- Fuentes: `main.ts` importa `@fontsource-variable/inter` (texto, `--font-sans`)
+  y `@fontsource-variable/bricolage-grotesque` (`--font-display`: títulos, nombres
+  de juego y partidas). Servidas con la app porque la CSP solo admite
+  `font-src 'self'`.
 - `src/lib/bootstrap.ts` — **la app se abre con UNA petición** en vez de ocho.
   Antes, al arrancar salían a la vez `/user`, `/friends`, `/friends/requests`
   (dos veces), `/friends/blocks`, `/games`, `/mechanics` y `/categories` contra un

@@ -13,7 +13,7 @@ personal y abierta a que cualquiera gestione la suya.
 Cloudflare Pages) — [ludodex-api.onrender.com](https://ludodex-api.onrender.com)
 (API, Render). Ambos en capa gratuita: la API "duerme" tras un rato de
 inactividad y el primer request tras el sueño puede tardar ~50s en responder
-mientras arranca de nuevo.
+mientras arranca de nuevo; la app lo avisa con un mensaje mientras espera.
 
 ## De un vistazo
 

@@ -7,6 +7,34 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Lavado de cara: datos de los juegos, partidas, aviso del servidor y tipografía
+
+- **Corregido: rangos "2–2 jugadores" y "30–30 min".** Cuando coincidían los dos
+  extremos se repetía el número, y si faltaba uno salía "–5 jugadores". Ahora pone
+  "2", "30 min" o "5", con "1 jugador" en singular. Un único componente (`GameMeta`)
+  pinta estos datos en la colección, "¿A qué jugamos?", la colección de un amigo y
+  el enlace público, como pastillas con icono para jugadores y duración y el año al
+  final, más apagado.
+- **Partidas agrupadas por mes y con fechas legibles.** Antes era una lista numerada
+  con "2026-09-01 · 360 min"; ahora cada mes ("septiembre de 2026") lleva sus
+  partidas y su tiempo ("3 partidas · 9 h 30 min", contando las repeticiones ×N como
+  el resumen), y cada fila la portada, el día ("mar 1") y la duración a la derecha
+  ("6 h", "3 h 30 min"). El último mes no enseña totales mientras queden páginas por
+  cargar, porque podría seguir en la siguiente.
+- **El mes en curso del gráfico de actividad** va rayado y con "en curso", para que
+  unos pocos días no parezcan un mes flojo.
+- **Aviso de servidor despertando.** Tras un rato sin uso la primera petición tarda
+  unos 35 s (medido en la petición de arranque) y la colección solo enseñaba
+  esqueletos. Si una petición lleva 5 s sin respuesta y la API no había contestado
+  nada en 10 minutos, sale un aviso neutro con un indicador de carga, que se quita con
+  la primera respuesta. Una importación lenta con la API despierta no lo dispara.
+  Mismo módulo que MIRA (`lib/apiWaking.ts`).
+- **Fuentes servidas con la app.** El CSS pedía Inter sin cargarla, así que se veía
+  Roboto en Android y Segoe UI en Windows. Ahora van Inter para el texto y Bricolage
+  Grotesque para títulos, nombres de juego y la lista de partidas, como fuentes
+  variables de Fontsource (la CSP solo admite `font-src 'self'`). El navegador solo
+  baja los alfabetos que usa: unos 87 KB en español, una vez.
+
 ### Seguridad, contraste y base de datos (auditoría del 25-10-2026)
 
 - **CSP y cabeceras del frontend.** El build pone una política de seguridad de
