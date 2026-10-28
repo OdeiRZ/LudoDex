@@ -26,7 +26,7 @@ mientras arranca de nuevo; la app lo avisa con un mensaje mientras espera.
 | **Compartir** | Un enlace público de solo lectura a tu colección (`/c/<token>`), sin cuenta para quien lo abre: muestra tu nombre y lo que tienes, nunca la lista de deseos, tus partidas ni tu correo. Caduca a los 7 días por defecto (o 30, 90, nunca), un solo enlace por usuario, regenerable o revocable al instante. |
 | **Correo** | Verificación de cuenta y recuperación de contraseña por la API de Gmail, con la pantalla de consentimiento de Google en producción (el token ya no caduca cada semana) y una página pública de [política de privacidad](https://ludodex.pages.dev/privacidad). |
 | **Stack** | Laravel 12 + Sanctum (API) · Vue 3 + Pinia + TypeScript · PostgreSQL en Neon · Render + Cloudflare Pages · español e inglés |
-| **Calidad** | 335 tests de backend (SQLite y PostgreSQL) · 507 de frontend · 6 pruebas end-to-end con Playwright · `npm audit` a 0 (con aviso en el CI) · CI con comprobación de atribución · Sentry · copia de seguridad semanal cifrada |
+| **Calidad** | 345 tests de backend (SQLite y PostgreSQL) · 535 de frontend · 6 pruebas end-to-end con Playwright · `npm audit` a 0 (con aviso en el CI) · CI con comprobación de atribución · Sentry · copia de seguridad semanal cifrada |
 
 **Una mejora medida de verdad:** cargar la app hacía **8 peticiones y tardaba
 +3,1 s** en terminar de pintar; con un único `/api/bootstrap` con ETag pasó a
