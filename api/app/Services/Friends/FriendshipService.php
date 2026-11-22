@@ -34,7 +34,7 @@ class FriendshipService
             ->where('discoverable', true);
 
         if ($email !== null) {
-            $query->where('email', $email);
+            $query->whereRaw('lower(email) = ?', [mb_strtolower($email)]);
         } else {
             // Case-insensitive on purpose (found live: a friend's real
             // BGG username was "OdeiRZ", searching "odeirz" found

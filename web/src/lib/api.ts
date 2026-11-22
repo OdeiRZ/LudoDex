@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { getLocale, i18n } from '@/i18n'
-import { requestStarted, responseArrived } from '@/lib/apiWaking'
+import { requestFailedWithoutResponse, requestStarted, responseArrived } from '@/lib/apiWaking'
 import router from '@/router'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
@@ -53,7 +53,12 @@ apiClient.interceptors.response.use(
     return response
   },
   (error) => {
-    if (axios.isAxiosError(error) && error.response) responseArrived()
+    if (axios.isAxiosError(error)) {
+      // Sin respuesta (offline, DNS) no es una API dormida: el temporizador de 5 s
+      // seguía armado y el aviso se quedaba fijo, diciendo que esperes un minuto.
+      if (error.response) responseArrived()
+      else requestFailedWithoutResponse()
+    }
     return Promise.reject(error)
   },
 )

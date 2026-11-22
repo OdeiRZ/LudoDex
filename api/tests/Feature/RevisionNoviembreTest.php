@@ -6,6 +6,7 @@ use App\Models\Mechanic;
 use App\Models\Play;
 use App\Models\User;
 use App\Models\UserBlock;
+use App\Models\UserGame;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
@@ -137,4 +138,47 @@ it('imports plays even when one is repeated, has no real date or has absurd numb
 
     expect(Play::where('user_id', $user->id)->count())->toBe(2);
     expect(Play::where('bgg_play_id', 3)->first()->duration_minutes)->toBeNull();
+});
+
+it('allows re-saving a whole-number weight and rating on a game shared with another user', function () {
+    $user = actingAsUser();
+    $game = Game::factory()->create(['name' => 'Catan', 'weight' => 3.0, 'rating' => 8.0]);
+    $userGame = UserGame::factory()->for($user)->for($game)->create(['status' => 'owned']);
+    UserGame::factory()->for($game)->create(); // otro usuario, el mismo juego
+
+    // La web reenvía 3 y 8 (enteros en el JSON); el modelo los tiene como float 3.0 y 8.0.
+    $this->putJson("/api/games/{$userGame->id}", ['name' => 'Catan', 'weight' => 3, 'rating' => 8, 'status' => 'owned'])
+        ->assertOk();
+});
+
+it('lists the plays of one day in a stable order across pages', function () {
+    $user = actingAsUser();
+    $game = Game::factory()->create();
+    Play::factory()->count(25)->for($user)->for($game)->create(['played_at' => '2026-01-01']);
+
+    $primera = collect($this->getJson('/api/plays?page=1')->json('data'))->pluck('id');
+    $segunda = collect($this->getJson('/api/plays?page=2')->json('data'))->pluck('id');
+
+    expect($primera->intersect($segunda))->toBeEmpty()
+        ->and($primera->count() + $segunda->count())->toBe(25);
+});
+
+it('finds a friend by email whatever the case typed', function () {
+    actingAsUser();
+    User::factory()->create(['email' => 'Ana.Lopez@Example.com', 'discoverable' => true]);
+
+    $this->getJson('/api/friends/search?email=ana.lopez@example.com')
+        ->assertOk()
+        ->assertJsonPath('data.name', fn ($name) => $name !== null);
+});
+
+it('shows the app\'s own games messages in English too', function () {
+    $user = actingAsUser();
+    $game = Game::factory()->create(['bgg_id' => 13]);
+    UserGame::factory()->for($user)->for($game)->create(['status' => 'owned']);
+
+    $this->withHeader('Accept-Language', 'en')
+        ->postJson('/api/games', ['name' => 'Catan', 'status' => 'owned', 'bgg_id' => 13])
+        ->assertUnprocessable()
+        ->assertJsonPath('errors.bgg_id.0', 'You already have this game in your collection.');
 });

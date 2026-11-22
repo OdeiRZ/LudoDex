@@ -38,10 +38,9 @@ class PublicCollectionController extends Controller
             ->orderBy('name')
             ->get();
 
-        $link->forceFill([
-            'views_count' => $link->views_count + 1,
-            'last_viewed_at' => now(),
-        ])->saveQuietly();
+        // UPDATE ... SET views_count = views_count + 1: dos visitas a la vez ya no se
+        // pisan (antes se leía, se sumaba en PHP y se escribía).
+        $link->incrementQuietly('views_count', 1, ['last_viewed_at' => now()]);
 
         return response()->json(['data' => [
             'owner_name' => $link->user->name,

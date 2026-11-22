@@ -51,6 +51,10 @@ interface PlaysState {
   currentPage: number
   lastPage: number
   search: string
+  /** Se escribió una búsqueda mientras otra petición seguía en curso: al terminar
+   * esa, hay que pedir la nueva (antes se descartaba y la lista quedaba con los
+   * resultados del término anterior bajo un cuadro que decía otro). */
+  searchDirty: boolean
   stats: PlaysStats | null
 }
 
@@ -63,6 +67,7 @@ export const usePlaysStore = defineStore('plays', {
     currentPage: 1,
     lastPage: 1,
     search: '',
+    searchDirty: false,
     stats: null,
   }),
 
@@ -102,6 +107,11 @@ export const usePlaysStore = defineStore('plays', {
       } finally {
         this.loading = false
       }
+
+      if (this.searchDirty) {
+        this.searchDirty = false
+        await this.fetchPage(1)
+      }
     },
 
     /** Sets the active search term and reloads from page 1 - a new term
@@ -110,6 +120,12 @@ export const usePlaysStore = defineStore('plays', {
      * was never requested. */
     async setSearch(term: string) {
       this.search = term
+
+      if (this.loading) {
+        this.searchDirty = true
+        return
+      }
+
       await this.fetchPage(1)
     },
 

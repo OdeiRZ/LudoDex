@@ -97,6 +97,26 @@ describe('usePlaysStore', () => {
     expect(store.entries).toEqual([fresh])
   })
 
+  it('fetches a search typed while another request is still in flight, instead of dropping it', async () => {
+    const resolvers: ((value: unknown) => void)[] = []
+    vi.mocked(apiClient.get).mockImplementation(
+      () => new Promise((resolve) => resolvers.push(resolve)),
+    )
+    const store = usePlaysStore()
+
+    const first = store.fetchPage(1)
+    await store.setSearch('catan') // llega con la primera petición aún en curso
+
+    expect(apiClient.get).toHaveBeenCalledTimes(1)
+
+    resolvers[0]!({ data: { data: [], meta: { current_page: 1, last_page: 1 } } })
+    await vi.waitFor(() => expect(apiClient.get).toHaveBeenCalledTimes(2))
+    expect(apiClient.get).toHaveBeenLastCalledWith('/plays', { params: { page: 1, search: 'catan' } })
+
+    resolvers[1]!({ data: { data: [], meta: { current_page: 1, last_page: 1 } } })
+    await first
+  })
+
   it('ignores a second fetchPage call while the first is still in flight', async () => {
     let resolveFirst: (value: unknown) => void = () => {}
     vi.mocked(apiClient.get).mockImplementation(

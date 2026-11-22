@@ -21,6 +21,20 @@ app.directive('press', vPress)
 
 app.mount('#app')
 
+// Tras un despliegue, una pestaña ya abierta pide trozos (`/assets/...-hash.js`) que
+// Cloudflare Pages ya no sirve: la navegación fallaba sin avisar (solo un error en la
+// consola) hasta recargar a mano. Se recarga una vez; la marca evita un bucle si el
+// fallo no es de versión sino de red.
+window.addEventListener('vite:preloadError', () => {
+  try {
+    if (sessionStorage.getItem('ludodex_preload_reloaded') === '1') return
+    sessionStorage.setItem('ludodex_preload_reloaded', '1')
+  } catch {
+    return
+  }
+  window.location.reload()
+})
+
 // Registered purely for "Add to Home Screen" installability (see
 // public/sw.js) - not for offline support, so failures here are harmless.
 if ('serviceWorker' in navigator) {

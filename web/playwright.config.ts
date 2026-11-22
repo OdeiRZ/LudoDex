@@ -26,6 +26,9 @@ fs.closeSync(fs.openSync(e2eDb, 'a'))
 const apiEnv = {
   DB_CONNECTION: 'sqlite',
   DB_DATABASE: e2eDb,
+  // config/database.php lee DB_URL en la conexión sqlite y, si existe, manda sobre
+  // DB_DATABASE: con una URL de Neon en el entorno, `migrate:fresh` borraría esa base.
+  DB_URL: '',
   APP_ENV: 'local',
   APP_DEBUG: 'false',
   CACHE_STORE: 'array',

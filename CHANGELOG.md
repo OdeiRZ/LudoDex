@@ -7,6 +7,52 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Revisión de noviembre: detalles de la colección, partidas y web
+
+- **Corregido: un 403 falso al guardar sin cambios un juego compartido** con
+  peso o valoración enteros (3, 8): el modelo los tiene como `float` (3.0) y la
+  web reenvía el entero, y `3.0 === 3` es falso, así que se tomaba por una
+  edición del catálogo.
+- **Partidas con un orden estable entre páginas:** se ordenaban solo por fecha
+  y, con varias partidas el mismo día, PostgreSQL podía repetir o saltarse
+  alguna al cargar más. Ahora desempata por id (propias y de un amigo).
+- **El contador de visitas de un enlace público es atómico** (`UPDATE ... SET
+  views_count = views_count + 1`): dos visitas a la vez ya no se pisan.
+- **Buscar a un amigo por email ya no distingue mayúsculas** (el usuario de BGG
+  ya no lo hacía).
+- **Los mensajes propios de la app también salen en inglés** ("ya tienes este
+  juego", "un juego no puede ser expansión de sí mismo"): solo existían en
+  español y el inglés enseñaba la clave.
+- **Búsquedas que se perdían:** escribir en la búsqueda de partidas (propias o
+  de un amigo) mientras había una petición en curso guardaba el término pero no
+  lo pedía nunca; ahora se pide al acabar la que corre. Al volver a Partidas el
+  cuadro conserva el término que filtra la lista.
+- **"¿A qué jugamos?":** un juego que un amigo tiene y yo solo tengo en la
+  lista de deseos no salía nunca; un amigo desmarcado (o "Solo") cuya respuesta
+  llegaba tarde seguía aportando juegos; y un género elegido que desaparecía
+  dejaba el filtro activo tras un desplegable en blanco.
+- **Vista pública:** vaciar el campo "Jugadores" ocultaba todos los juegos.
+- **Aviso de servidor despertando:** ya no se queda fijo si la petición falla
+  sin respuesta (sin red). Y una pestaña abierta antes de un despliegue, al pedir
+  un trozo que ya no existe, se recarga una vez en vez de no hacer nada.
+- **CI y documentación:** el CI prueba con PHP 8.3 (el de producción); la
+  prueba e2e ya no puede apuntar a otra base de datos si hay un `DB_URL` en el
+  entorno; el README ya no dice que los tests corren también en PostgreSQL
+  (solo SQLite) ni que el token de Gmail caduca cada 7 días.
+
+- **Dependencias:** `npm audit fix` actualiza `follow-redirects` (aviso alto:
+  las cabeceras sensibles podían seguir una redirección) y varias herramientas
+  de desarrollo (typescript-eslint, minimatch...); `npm audit` de producción
+  vuelve a 0.
+
+**Pendiente de decidir (no tocado):** `translations:sync` está roto porque la
+API ya no devuelve `description_es` en `/games` (hace falta un endpoint con las
+traducciones); los emails se guardan tal cual se escriben (login y recuperación
+distinguen mayúsculas); la API de Gmail se llama de forma síncrona y sin caché
+del token; el token de sesión no se sincroniza entre pestañas; y la función de
+vista previa de Cloudflare espera 4 s a una API que puede tardar 50 s al
+despertar.
+
 ### Revisión de noviembre: PostgreSQL, importaciones de BGG y límites
 
 - **Corregido: los contadores del límite de peticiones se compartían entre

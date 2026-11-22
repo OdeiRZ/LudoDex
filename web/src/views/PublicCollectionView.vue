@@ -51,7 +51,9 @@ const visible = computed(() => {
   return (collection.value?.games ?? []).filter((game) => {
     if (!showExpansions.value && game.base_game_id !== null) return false
     if (needle && !game.name.toLowerCase().includes(needle)) return false
-    if (players.value !== null) {
+    // v-model.number deja '' (no null) al vaciar el campo: '' < min es verdadero para
+    // todos los juegos y se ocultaban todos. Solo cuenta si hay un número.
+    if (typeof players.value === 'number' && Number.isFinite(players.value)) {
       const min = game.min_players ?? 1
       const max = game.max_players ?? min
       if (players.value < min || players.value > max) return false

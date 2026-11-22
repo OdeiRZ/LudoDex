@@ -197,6 +197,30 @@ describe('useFriendDetailStore', () => {
     })
   })
 
+  describe('setPlaysSearch while a request is in flight', () => {
+    it('fetches the new term once the running request ends', async () => {
+      const resolvers: ((value: unknown) => void)[] = []
+      vi.mocked(apiClient.get).mockImplementation(
+        () => new Promise((resolve) => resolvers.push(resolve)),
+      )
+      const store = useFriendDetailStore()
+
+      const first = store.fetchPlays(2, 1)
+      await store.setPlaysSearch(2, 'catan')
+      expect(apiClient.get).toHaveBeenCalledTimes(1)
+
+      const empty = { data: { data: [], friend: {}, meta: { current_page: 1, last_page: 1 } } }
+      resolvers[0]!(empty)
+      await vi.waitFor(() => expect(apiClient.get).toHaveBeenCalledTimes(2))
+      expect(apiClient.get).toHaveBeenLastCalledWith('/friends/2/plays', {
+        params: { page: 1, search: 'catan' },
+      })
+
+      resolvers[1]!(empty)
+      await first
+    })
+  })
+
   describe('fetchPlaysStats', () => {
     it('stores the aggregated result', async () => {
       const stats = {

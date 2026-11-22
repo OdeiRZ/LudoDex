@@ -41,7 +41,7 @@ function onDetailGameTranslated(descriptionEs: string | null) {
 // store's own plays.search only updates (and triggers a fetch) after the
 // debounce below, so typing itself is never blocked waiting on a
 // request.
-const searchInput = ref('')
+const searchInput = ref(plays.search)
 let searchDebounce: ReturnType<typeof setTimeout> | undefined
 
 function onSearchInput() {

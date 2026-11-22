@@ -3,6 +3,7 @@ import {
   IDLE_BEFORE_SLEEP_MS,
   SLOW_AFTER_MS,
   apiWaking,
+  requestFailedWithoutResponse,
   requestStarted,
   resetApiWaking,
   responseArrived,
@@ -16,6 +17,14 @@ describe('apiWaking', () => {
 
   afterEach(() => {
     vi.useRealTimers()
+  })
+
+  it('never turns on for a request that failed without any response (offline, DNS)', () => {
+    requestStarted()
+    requestFailedWithoutResponse()
+
+    vi.advanceTimersByTime(SLOW_AFTER_MS * 2)
+    expect(apiWaking.value).toBe(false)
   })
 
   it('turns on when the first request of the session is slow, and off when it answers', () => {

@@ -86,10 +86,13 @@ watch(selectedFriendIds, async (ids, previousIds) => {
     newIds.map(async (id) => {
       try {
         const comparison = await friends.fetchCollectionComparison(id)
+        // Se desmarcó (o se pulsó "Solo") mientras llegaba la respuesta: ya no vale,
+        // y no debe aportar juegos ni errores.
+        if (!selectedFriendIds.value.includes(id)) return
         friendComparisons.value.set(id, comparison)
         friendErrors.value.delete(id)
       } catch {
-        friendErrors.value.add(id)
+        if (selectedFriendIds.value.includes(id)) friendErrors.value.add(id)
       }
     }),
   )
@@ -152,6 +155,8 @@ const pool = computed<PickerEntry[]>(() => {
   }
 
   for (const [friendId, comparison] of friendComparisons.value) {
+    if (!selectedFriendIds.value.includes(friendId)) continue
+
     for (const game of comparison.shared) {
       byId.get(game.id)?.friendOwnerIds.push(friendId)
     }
@@ -160,6 +165,13 @@ const pool = computed<PickerEntry[]>(() => {
       const existing = byId.get(game.id)
       if (existing) {
         existing.friendOwnerIds.push(friendId)
+        // Lo tengo solo en la lista de deseos y el amigo sí lo tiene: se puede jugar
+        // (lo trae él). Con estado 'wishlist' `playable` lo descartaba y el juego que
+        // más interesa jugar con un amigo no salía nunca.
+        if (existing.status !== 'owned') {
+          existing.status = 'owned'
+          existing.ownedByMe = false
+        }
       } else {
         byId.set(game.id, {
           id: game.id,
@@ -363,6 +375,17 @@ const availableCategories = computed(() =>
   [...new Set(playable.value.flatMap(({ game }) => game.categories))].sort((a, b) =>
     translateCategory(a, locale.value).localeCompare(translateCategory(b, locale.value)),
   ),
+)
+
+// Un género elegido que ya no existe entre los jugables (se desmarcó el amigo que lo
+// aportaba, o se pulsó "Solo") dejaba el filtro activo tras un desplegable en blanco.
+watch(
+  () => availableCategories.value,
+  (categories) => {
+    if (categoryFilter.value !== '' && !categories.includes(categoryFilter.value)) {
+      categoryFilter.value = ''
+    }
+  },
 )
 
 // v-model.number leaves the ref as an empty string (not null) when the

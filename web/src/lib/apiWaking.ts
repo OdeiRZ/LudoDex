@@ -35,6 +35,13 @@ export function responseArrived(now = Date.now()): void {
   apiWaking.value = false
 }
 
+/** Una petición que falló SIN respuesta (sin red, DNS, CORS): no es una API dormida. */
+export function requestFailedWithoutResponse(): void {
+  if (timer !== null) clearTimeout(timer)
+  timer = null
+  apiWaking.value = false
+}
+
 /** Solo para los tests. */
 export function resetApiWaking(): void {
   lastResponseAt = null

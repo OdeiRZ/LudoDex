@@ -41,6 +41,9 @@ class PlayController extends Controller
                 ),
             )
             ->orderByDesc('played_at')
+            // played_at es una fecha y hay muchas partidas por día: sin desempate, las
+            // páginas de PostgreSQL podían repetir o saltarse partidas.
+            ->orderByDesc('id')
             ->paginate(20);
 
         return PlayResource::collection($plays);

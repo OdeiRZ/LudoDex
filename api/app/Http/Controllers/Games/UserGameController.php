@@ -85,7 +85,7 @@ class UserGameController extends Controller
             // the gate.
             $gameAttributes = $request->safe()->except(['mechanics', 'categories', 'status']);
             $changedGameAttributes = collect($gameAttributes)
-                ->reject(fn ($value, $key) => $userGame->game->{$key} === $value)
+                ->reject(fn ($value, $key) => $this->sameValue($userGame->game->{$key}, $value))
                 ->all();
 
             $currentMechanics = $userGame->game->mechanics->pluck('name')->all();
@@ -142,6 +142,21 @@ class UserGameController extends Controller
         $request->user()->games()->delete();
 
         return response()->noContent();
+    }
+
+    /**
+     * Igual a efectos de "¿ha cambiado algo?": weight y rating son `float` en el modelo
+     * (3.0) y el JSON de la web manda el entero (3), y `3.0 === 3` es falso, así que un
+     * guardado sin cambios de un juego compartido se tomaba por una edición del catálogo
+     * y daba 403.
+     */
+    private function sameValue(mixed $actual, mixed $nuevo): bool
+    {
+        if (is_numeric($actual) && is_numeric($nuevo) && ! is_string($actual)) {
+            return (float) $actual === (float) $nuevo;
+        }
+
+        return $actual === $nuevo;
     }
 
     /**

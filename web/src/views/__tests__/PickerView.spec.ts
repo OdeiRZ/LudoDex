@@ -729,6 +729,49 @@ describe('PickerView', () => {
       )
     })
 
+    it('offers a game the friend owns even when it is only on my wishlist', async () => {
+      const wingspan = makeGame({ name: 'Wingspan' })
+      const wrapper = mountPicker(
+        [makeEntry({ name: 'Root' }, 'owned'), makeEntry(wingspan, 'wishlist')],
+        [friendEntry],
+      )
+      const friends = useFriendsStore()
+      vi.spyOn(friends, 'fetchCollectionComparison').mockResolvedValue({
+        friend: friendEntry.user,
+        shared: [],
+        mineOnly: [],
+        theirsOnly: [wingspan],
+      })
+
+      await friendCheckbox(wrapper, 0).setValue(true)
+      await flushPromises()
+      await wrapper.find('#players').setValue('')
+
+      expect(wrapper.text()).toContain('Wingspan')
+    })
+
+    it('ignores a friend whose response arrives after they were deselected', async () => {
+      const wrapper = mountPicker([makeEntry({ name: 'Root' }, 'owned')], [friendEntry])
+      const friends = useFriendsStore()
+      let resolveComparison!: (value: never) => void
+      vi.spyOn(friends, 'fetchCollectionComparison').mockReturnValue(
+        new Promise((resolve) => (resolveComparison = resolve)) as never,
+      )
+
+      await friendCheckbox(wrapper, 0).setValue(true)
+      await friendCheckbox(wrapper, 0).setValue(false)
+      resolveComparison({
+        friend: friendEntry.user,
+        shared: [],
+        mineOnly: [],
+        theirsOnly: [makeGame({ name: 'Wingspan' })],
+      } as never)
+      await flushPromises()
+      await wrapper.find('#players').setValue('')
+
+      expect(wrapper.text()).not.toContain('Wingspan')
+    })
+
     it("keeps a translated description in the friend's game, not just the open modal", async () => {
       const wrapper = mountPicker([makeEntry({ name: 'Root' }, 'owned')], [friendEntry])
       const friends = useFriendsStore()

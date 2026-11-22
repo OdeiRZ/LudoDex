@@ -23,6 +23,8 @@ interface FriendDetailState {
   playsCurrentPage: number
   playsLastPage: number
   playsSearch: string
+  /** Ver plays.ts (searchDirty): una búsqueda escrita con una petición en curso. */
+  playsSearchDirty: boolean
   playsStats: PlaysStats | null
 }
 
@@ -45,6 +47,7 @@ export const useFriendDetailStore = defineStore('friendDetail', {
     playsCurrentPage: 1,
     playsLastPage: 1,
     playsSearch: '',
+    playsSearchDirty: false,
     playsStats: null,
   }),
 
@@ -144,6 +147,11 @@ export const useFriendDetailStore = defineStore('friendDetail', {
       } finally {
         this.playsLoading = false
       }
+
+      if (this.playsSearchDirty) {
+        this.playsSearchDirty = false
+        await this.fetchPlays(friendId, 1)
+      }
     },
 
     async setPlaysSearch(friendId: number, term: string) {
@@ -153,6 +161,12 @@ export const useFriendDetailStore = defineStore('friendDetail', {
       // term right back out immediately after setting it.
       this.resetIfDifferentFriend(friendId)
       this.playsSearch = term
+
+      if (this.playsLoading) {
+        this.playsSearchDirty = true
+        return
+      }
+
       await this.fetchPlays(friendId, 1)
     },
 
