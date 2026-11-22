@@ -10,9 +10,7 @@ beforeEach(function () {
 function fakeRemoteGames(array $games): void
 {
     Http::fake([
-        'https://prod.example/api/games' => Http::response([
-            'data' => array_map(fn (array $game) => ['game' => $game], $games),
-        ]),
+        'https://prod.example/api/games/translations' => Http::response(['data' => $games]),
         'https://prod.example/api/games/backfill-translations' => Http::response(['updated' => 1]),
     ]);
 }

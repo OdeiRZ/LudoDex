@@ -45,9 +45,15 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
   de desarrollo (typescript-eslint, minimatch...); `npm audit` de producción
   vuelve a 0.
 
-**Pendiente de decidir (no tocado):** `translations:sync` está roto porque la
-API ya no devuelve `description_es` en `/games` (hace falta un endpoint con las
-traducciones); los emails se guardan tal cual se escriben (login y recuperación
+- **Arreglado: `translations:sync` estaba roto.** Leía `description_es` de
+  `GET /games`, que ya no lo devuelve (las descripciones se piden aparte), y
+  abortaba con "Undefined array key" en el primer juego con `bgg_id`; su test lo
+  tapaba simulando una respuesta que la API real ya no manda. Ahora usa un
+  endpoint nuevo solo para el dueño, `GET /api/games/translations`
+  (`bgg_id` + `description_es` de los juegos traducidos, 6/minuto), y el test
+  simula esa respuesta.
+
+**Pendiente de decidir (no tocado):** los emails se guardan tal cual se escriben (login y recuperación
 distinguen mayúsculas); la API de Gmail se llama de forma síncrona y sin caché
 del token; el token de sesión no se sincroniza entre pestañas; y la función de
 vista previa de Cloudflare espera 4 s a una API que puede tardar 50 s al

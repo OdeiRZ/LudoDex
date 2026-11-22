@@ -75,6 +75,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/games/{game}/translate-description', [GameDescriptionController::class, 'translate'])->middleware('throttle:20,1,translate');
     // Owner-only - see GameTranslationBackfillController docblock.
     Route::post('/games/backfill-translations', GameTranslationBackfillController::class)->middleware('throttle:2,1,backfill');
+    Route::get('/games/translations', [GameTranslationBackfillController::class, 'index'])->middleware('throttle:6,1,translations-export');
 
     Route::get('/mechanics', [MechanicController::class, 'index']);
     Route::get('/categories', [CategoryController::class, 'index']);

@@ -20,15 +20,30 @@ use Illuminate\Http\Request;
  * authenticated account (there's more than one on this deployment) could
  * otherwise overwrite other games' translations. Restricted to the one
  * account configured as the app's owner (see config('app.owner_email')).
+ *
+ * `index()` es el sentido contrario: lista las traducciones que ya hay
+ * (bgg_id + description_es) para que `translations:sync` las traiga a la base
+ * local. `GET /games` ya no lleva descripciones (las pide aparte el modal de
+ * detalle), así que el comando no podía leerlas de ahí.
  */
 class GameTranslationBackfillController extends Controller
 {
+    public function index(Request $request): JsonResponse
+    {
+        $this->authorizeOwner($request);
+
+        return response()->json(['data' => Game::query()
+            ->whereNotNull('bgg_id')
+            ->whereNotNull('description_es')
+            ->orderBy('bgg_id')
+            ->get(['bgg_id', 'description_es'])
+            ->map(fn (Game $game) => ['bgg_id' => $game->bgg_id, 'description_es' => $game->description_es])
+            ->values()]);
+    }
+
     public function __invoke(Request $request): JsonResponse
     {
-        abort_unless(
-            $request->user()->email === config('app.owner_email'),
-            403,
-        );
+        $this->authorizeOwner($request);
 
         $validated = $request->validate([
             'games' => ['required', 'array'],
@@ -45,5 +60,13 @@ class GameTranslationBackfillController extends Controller
         }
 
         return response()->json(['updated' => $updated]);
+    }
+
+    private function authorizeOwner(Request $request): void
+    {
+        abort_unless(
+            $request->user()->email === config('app.owner_email'),
+            403,
+        );
     }
 }

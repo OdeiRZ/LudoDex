@@ -68,7 +68,7 @@ class SyncTranslations extends Command
     /** @return array<int, array{bgg_id: int, description_es: string}>|null */
     private function fetchRemoteTranslatedGames(string $apiUrl, string $apiToken): ?array
     {
-        $response = Http::withToken($apiToken)->get("{$apiUrl}/games");
+        $response = Http::withToken($apiToken)->get("{$apiUrl}/games/translations");
 
         if ($response->failed()) {
             $this->error("Could not fetch production's own game list (HTTP {$response->status()}).");
@@ -77,9 +77,9 @@ class SyncTranslations extends Command
         }
 
         return collect($response->json('data'))
-            ->pluck('game')
             ->filter(fn (array $game) => $game['bgg_id'] !== null && $game['description_es'] !== null)
             ->map(fn (array $game) => ['bgg_id' => $game['bgg_id'], 'description_es' => $game['description_es']])
+            ->values()
             ->all();
     }
 
