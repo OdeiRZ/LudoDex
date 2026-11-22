@@ -541,8 +541,10 @@ it('only gives up after several consecutive transient BGG failures', function ()
 
     Http::fake(fn () => Http::response('', 500));
 
-    $this->getJson("/api/bgg-imports/{$import->id}")->assertJsonPath('data.status', 'pending');
-    $this->getJson("/api/bgg-imports/{$import->id}")->assertJsonPath('data.status', 'pending');
+    // Diez sondeos seguidos con error (unos 30 s con el sondeo de 3 s de la web).
+    for ($i = 0; $i < 9; $i++) {
+        $this->getJson("/api/bgg-imports/{$import->id}")->assertJsonPath('data.status', 'pending');
+    }
     $response = $this->getJson("/api/bgg-imports/{$import->id}");
 
     $response->assertJsonPath('data.status', 'failed')

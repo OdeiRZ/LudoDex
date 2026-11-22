@@ -193,28 +193,49 @@ class BggPlaysImportService
      * @param  list<array{bgg_play_id: int, bgg_id: int, played_at: string, quantity: int, duration_minutes: ?int}>  $plays
      * @param  array<int, string>  $gameIdsByBggId
      */
+    private const SMALLINT_MAX = 32767;
+
+    private const UPSERT_CHUNK = 1000;
+
     private function upsertPlays(array $plays, array $gameIdsByBggId, User $user): void
     {
         $now = Carbon::now();
 
-        $rows = array_map(fn (array $play) => [
-            'id' => (string) Str::ulid(),
-            'user_id' => $user->id,
-            'game_id' => $gameIdsByBggId[$play['bgg_id']],
-            'bgg_play_id' => $play['bgg_play_id'],
-            'played_at' => $play['played_at'],
-            'quantity' => $play['quantity'],
-            'duration_minutes' => $play['duration_minutes'],
-            'created_at' => $now,
-            'updated_at' => $now,
-        ], $plays);
+        // Por bgg_play_id: BGG pagina /plays por desplazamiento durante minutos y,
+        // si se registra o borra una partida entretanto, una puede salir en dos
+        // páginas. PostgreSQL rechaza un ON CONFLICT DO UPDATE que toca la misma
+        // fila dos veces (SQLite no), y se perdía toda la importación.
+        $unicas = [];
 
-        if ($rows === []) {
-            return;
+        foreach ($plays as $play) {
+            // Una fecha que no es una fecha real (vacía, 0000-00-00...) rompería el
+            // lote entero en PostgreSQL; esa partida se salta.
+            if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $play['played_at'], $m) !== 1 || ! checkdate((int) $m[2], (int) $m[3], (int) $m[1])) {
+                continue;
+            }
+
+            $unicas[$play['bgg_play_id']] = [
+                'id' => (string) Str::ulid(),
+                'user_id' => $user->id,
+                'game_id' => $gameIdsByBggId[$play['bgg_id']],
+                'bgg_play_id' => $play['bgg_play_id'],
+                'played_at' => $play['played_at'],
+                // smallint en la base: un valor absurdo de BGG no debe tumbar el lote.
+                'quantity' => min($play['quantity'], self::SMALLINT_MAX),
+                'duration_minutes' => $play['duration_minutes'] !== null && $play['duration_minutes'] <= self::SMALLINT_MAX
+                    ? $play['duration_minutes']
+                    : null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
         }
 
-        Play::upsert($rows, uniqueBy: ['user_id', 'bgg_play_id'], update: [
-            'game_id', 'played_at', 'quantity', 'duration_minutes', 'updated_at',
-        ]);
+        // En lotes: PostgreSQL admite 65.535 parámetros por sentencia y con 9 columnas
+        // por partida una cuenta de más de 7.281 partidas no cabía en una sola.
+        foreach (array_chunk(array_values($unicas), self::UPSERT_CHUNK) as $lote) {
+            Play::upsert($lote, uniqueBy: ['user_id', 'bgg_play_id'], update: [
+                'game_id', 'played_at', 'quantity', 'duration_minutes', 'updated_at',
+            ]);
+        }
     }
 }

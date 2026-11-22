@@ -133,9 +133,12 @@ async function onLookupBgg() {
     form.value.categories = game.categories
     imageBroken.value = false
   } catch (err) {
-    bggLookupError.value = isAxiosError(err)
-      ? err.response?.data.message
-      : t('gameForm.bggLookupGenericError')
+    // Sin respuesta (sin red, agotó el tiempo) o con un cuerpo que no es JSON no hay
+    // `message`: antes quedaba undefined y no se veía ningún aviso.
+    const message = isAxiosError(err)
+      ? (err.response?.data as { message?: string } | null | undefined)?.message
+      : undefined
+    bggLookupError.value = message ?? t('gameForm.bggLookupGenericError')
   } finally {
     bggLookupLoading.value = false
   }

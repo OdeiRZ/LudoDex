@@ -21,14 +21,14 @@ class UpdateUserGameRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-            'image_url' => ['sometimes', 'nullable', 'url', 'max:2048'],
+            'image_url' => ['sometimes', 'nullable', 'url', 'max:255'],
             // Same games.bgg_id unique constraint the store side has to
             // respect (see UserGameController::store's own comment) -
             // changing this game's bgg_id to one that already belongs to a
             // different row would otherwise crash with an unhandled 500
             // instead of a clean validation error.
             'bgg_id' => [
-                'sometimes', 'nullable', 'integer', 'min:1',
+                'sometimes', 'nullable', 'integer', 'min:1', 'max:2147483647',
                 function (string $attribute, mixed $value, Closure $fail) {
                     if ($value === null) {
                         return;
@@ -43,12 +43,12 @@ class UpdateUserGameRequest extends FormRequest
             ],
             'year_published' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:'.(date('Y') + 1)],
             'min_age' => ['sometimes', 'nullable', 'string', 'max:20'],
-            'bgg_rank' => ['sometimes', 'nullable', 'integer', 'min:1'],
+            'bgg_rank' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:2147483647'],
             'rating' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:10'],
             'min_players' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:99'],
-            'max_players' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:99', 'gte:min_players'],
-            'min_playtime_minutes' => ['sometimes', 'nullable', 'integer', 'min:1'],
-            'max_playtime_minutes' => ['sometimes', 'nullable', 'integer', 'min:1', 'gte:min_playtime_minutes'],
+            'max_players' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:99', Rule::when($this->filled('min_players'), 'gte:min_players')],
+            'min_playtime_minutes' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:32767'],
+            'max_playtime_minutes' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:32767', Rule::when($this->filled('min_playtime_minutes'), 'gte:min_playtime_minutes')],
             'weight' => ['sometimes', 'nullable', 'numeric', 'min:1', 'max:5'],
             'is_cooperative' => ['sometimes', 'boolean'],
             'is_competitive' => ['sometimes', 'boolean'],

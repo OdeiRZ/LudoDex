@@ -17,12 +17,19 @@ class BlockService
      * caller already knows they just clicked "block" on someone in their
      * blocked list, or a stranger - either way the end state is the same).
      */
-    public function block(User $blocker, int $targetId): UserBlock
+    public function block(User $blocker, int $targetId): ?UserBlock
     {
         if ($targetId === $blocker->id) {
             throw ValidationException::withMessages([
                 'user_id' => [__('friends.cannot_block_yourself')],
             ]);
+        }
+
+        // Un id que no existe no se puede bloquear: sin esto saltaba la clave
+        // foránea (500) mientras que uno real daba 201, y la diferencia permitía
+        // enumerar qué ids de usuario existen. Se responde igual y no se guarda nada.
+        if (! User::whereKey($targetId)->exists()) {
+            return null;
         }
 
         $block = UserBlock::firstOrCreate([

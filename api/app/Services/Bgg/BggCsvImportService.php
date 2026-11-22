@@ -270,7 +270,11 @@ class BggCsvImportService
             }
 
             if ($newGameRows !== []) {
-                Game::insert(array_values($newGameRows));
+                // En lotes: 17 columnas por juego, más de 3.855 no caben en una
+                // sentencia de PostgreSQL (65.535 parámetros).
+                foreach (array_chunk(array_values($newGameRows), 500) as $lote) {
+                    Game::insert($lote);
+                }
 
                 foreach (Game::whereIn('bgg_id', array_keys($newGameRows))->get() as $game) {
                     $gamesByBggId[$game->bgg_id] = $game;

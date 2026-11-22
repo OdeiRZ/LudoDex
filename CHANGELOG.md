@@ -7,6 +7,52 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Revisión de noviembre: PostgreSQL, importaciones de BGG y límites
+
+- **Corregido: los contadores del límite de peticiones se compartían entre
+  rutas.** Todos los `throttle:N,M` numéricos usaban un único contador por
+  usuario (por IP para las rutas sin sesión), así que el sondeo de la
+  importación (cada 3 s, ~20 al minuto) gastaba el cupo de las rutas de 6 al
+  minuto: tras ~18 s de importación, subir un CSV, importar partidas, buscar
+  amigos o cambiar la contraseña daban 429. Y seis visitas a un enlace público
+  bloqueaban el login de esa IP. Cada ruta lleva ahora su propio prefijo
+  (`throttle:6,1,login`, `bgg-poll`, `bgg-csv`...).
+- **Corregido: la importación de partidas fallaba en PostgreSQL** (en SQLite
+  de los tests, no): más de 7.281 partidas no caben en una sentencia (65.535
+  parámetros), una partida repetida entre dos páginas de BGG rompía el
+  `ON CONFLICT`, y una fecha vacía o inexistente o una duración mayor que un
+  `smallint` tumbaban el lote entero. Ahora se importa en lotes de 1.000, sin
+  repetidas, se saltan las fechas que no existen y se acotan las cantidades.
+  Lo mismo en lotes para la importación de colección (BGG y CSV).
+- **Corregido: una reimportación con un trozo de `/thing` fallido** pisaba con
+  `NULL` el peso, la valoración, el ranking, el año y la descripción de los
+  juegos de ese trozo, pasaba los cooperativos a competitivos y les quitaba las
+  mecánicas, para todos los dueños del catálogo. Ahora, de un juego sin detalle
+  solo se actualizan los datos de la colección y lo demás no se toca.
+- **La importación ya no se da por fallida en 9 segundos.** El límite de 3
+  fallos transitorios contaba sondeos "de varios minutos", pero el sondeo es
+  cada 3 s; ahora son 10 seguidos y un "sigo preparándolo" (202) reinicia la
+  cuenta. En la web, un 429 o un 502 mientras se sondea ya no borra la
+  importación pendiente (solo 403/404), y tras salir de la pantalla no se
+  vuelve a armar el temporizador.
+- **Las estadísticas de partidas ya no dan 500** con un producto
+  `quantity × duration_minutes` mayor que 32.767 (el producto de dos `smallint`
+  desborda en PostgreSQL).
+- **Validación alineada con las columnas:** `image_url` (255), `bgg_id` y
+  `bgg_rank` (`integer`), duraciones (`smallint`) devuelven 422 en vez de 500, y
+  `max_players`/`max_playtime_minutes` ya no exigen un mínimo cuando no lo hay.
+- **Bloquear un id que no existe** daba 500 (clave foránea) frente a 201 si
+  existía, lo que permitía enumerar usuarios; ahora responde igual y no guarda
+  nada.
+- **Rutas con id no numérico** (`/friends/abc/games`, `/bgg-lookup/games/abc`,
+  `/email/verify/abc/..`) dan 404 en vez de un `TypeError` (500 y aviso en
+  Sentry).
+- **Web:** un fallo de red o un 5xx al pedir `/user` ya no cierra la sesión
+  (solo un 401); cerrar sesión sin conexión redirige igualmente al login; el
+  toast de "sesión caducada" sale como error y no como éxito; el reenvío del
+  email de verificación y el autocompletado de BGG enseñan un mensaje si
+  fallan.
+
 ### Revisión de noviembre: seguridad y privacidad
 
 - **Corregido: una solicitud de amistad PENDIENTE contaba como amistad.**

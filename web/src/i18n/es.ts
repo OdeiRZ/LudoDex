@@ -44,6 +44,7 @@ export default {
       notice: 'Verifica tu email ({email}) para confirmar tu cuenta.',
       resend: 'Reenviar',
       sending: 'Enviando…',
+      resendError: 'No se ha podido reenviar el email. Inténtalo de nuevo en un rato.',
     },
     verifyEmail: {
       successTitle: 'Email verificado',

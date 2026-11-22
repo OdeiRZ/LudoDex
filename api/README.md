@@ -348,7 +348,10 @@ Portado de PequeDex; tests en `tests/Feature/Security/HardeningTest.php`.
 - **Límite general de peticiones:** `throttleApi()` (`bootstrap/app.php`) con el
   limitador `api` de `AppServiceProvider`: 300 por minuto y usuario (por IP sin
   sesión), muy por encima del uso normal; las rutas sensibles mantienen su propio
-  `throttle` más estricto. Los contadores van a un fichero
+  `throttle` más estricto, con **su propio contador por ruta** (tercer parámetro,
+  p. ej. `throttle:6,1,bgg-csv`): con la forma numérica sin prefijo todas las
+  rutas compartían un único contador por usuario y el sondeo de importación (cada
+  3 s) agotaba el cupo de las demás. Los contadores van a un fichero
   (`CACHE_LIMITER_STORE=file`, `config/cache.php`), no a la caché de base de datos:
   así ningún límite añade consultas contra Neon en cada petición. Pruebas y e2e
   usan `array`.

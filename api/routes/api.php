@@ -25,44 +25,45 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:6,1');
-Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:6,1');
-Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])->middleware('throttle:6,1');
-Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:6,1');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:6,1,login');
+Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])->middleware('throttle:6,1,forgot-password');
+Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:6,1,reset-password');
 Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
-    ->middleware('throttle:6,1')
+    ->middleware('throttle:6,1,email-verify')
+    ->whereNumber('id')
     ->name('verification.verify');
 
 // Colección pública de solo lectura, por enlace (ver PublicCollectionController). La
 // única ruta sin sesión que devuelve datos de un usuario: con límite de peticiones por IP.
-Route::get('/public/collections/{token}', [PublicCollectionController::class, 'show'])->middleware('throttle:60,1');
-Route::get('/public/collections/{token}/preview', [PublicCollectionController::class, 'preview'])->middleware('throttle:60,1');
+Route::get('/public/collections/{token}', [PublicCollectionController::class, 'show'])->middleware('throttle:60,1,public-collection');
+Route::get('/public/collections/{token}/preview', [PublicCollectionController::class, 'preview'])->middleware('throttle:60,1,public-preview');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])->middleware('throttle:6,1');
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])->middleware('throttle:6,1,verification-resend');
     Route::get('/user', fn (Request $request) => $request->user());
     // Todo lo que la app pide al abrirse, en una petición condicional (ETag).
     Route::get('/bootstrap', [BootstrapController::class, 'show']);
     Route::put('/user', [ProfileController::class, 'update']);
-    Route::put('/user/password', [ProfileController::class, 'updatePassword'])->middleware('throttle:6,1');
+    Route::put('/user/password', [ProfileController::class, 'updatePassword'])->middleware('throttle:6,1,password-change');
 
     Route::get('/friends', [FriendshipController::class, 'index']);
-    Route::get('/friends/search', [FriendshipController::class, 'search'])->middleware('throttle:6,1');
+    Route::get('/friends/search', [FriendshipController::class, 'search'])->middleware('throttle:6,1,friend-search');
     Route::get('/friends/requests', [FriendshipController::class, 'requests']);
-    Route::post('/friends/requests', [FriendshipController::class, 'store'])->middleware('throttle:6,1');
+    Route::post('/friends/requests', [FriendshipController::class, 'store'])->middleware('throttle:6,1,friend-request');
     Route::post('/friends/requests/{friendship}/accept', [FriendshipController::class, 'accept']);
     Route::delete('/friends/requests/{friendship}', [FriendshipController::class, 'destroy']);
 
     Route::get('/friends/blocks', [BlockController::class, 'index']);
-    Route::post('/friends/blocks', [BlockController::class, 'store'])->middleware('throttle:6,1');
+    Route::post('/friends/blocks', [BlockController::class, 'store'])->middleware('throttle:6,1,friend-block');
     Route::delete('/friends/blocks/{block}', [BlockController::class, 'destroy']);
 
-    Route::get('/friends/{friend}/games', [FriendCollectionController::class, 'index']);
-    Route::get('/friends/{friend}/plays', [FriendPlayController::class, 'index']);
-    Route::get('/friends/{friend}/plays/stats', [FriendPlayController::class, 'stats']);
+    Route::get('/friends/{friend}/games', [FriendCollectionController::class, 'index'])->whereNumber('friend');
+    Route::get('/friends/{friend}/plays', [FriendPlayController::class, 'index'])->whereNumber('friend');
+    Route::get('/friends/{friend}/plays/stats', [FriendPlayController::class, 'stats'])->whereNumber('friend');
 
     Route::get('/share-link', [ShareLinkController::class, 'show']);
-    Route::post('/share-link', [ShareLinkController::class, 'store'])->middleware('throttle:20,1');
+    Route::post('/share-link', [ShareLinkController::class, 'store'])->middleware('throttle:20,1,share-link');
     Route::delete('/share-link', [ShareLinkController::class, 'destroy']);
 
     Route::get('/games', [UserGameController::class, 'index']);
@@ -71,24 +72,24 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/games/{userGame}', [UserGameController::class, 'destroy']);
     Route::delete('/games', [UserGameController::class, 'clear']);
     Route::get('/games/{game}/description', [GameDescriptionController::class, 'show']);
-    Route::post('/games/{game}/translate-description', [GameDescriptionController::class, 'translate'])->middleware('throttle:20,1');
+    Route::post('/games/{game}/translate-description', [GameDescriptionController::class, 'translate'])->middleware('throttle:20,1,translate');
     // Owner-only - see GameTranslationBackfillController docblock.
-    Route::post('/games/backfill-translations', GameTranslationBackfillController::class)->middleware('throttle:2,1');
+    Route::post('/games/backfill-translations', GameTranslationBackfillController::class)->middleware('throttle:2,1,backfill');
 
     Route::get('/mechanics', [MechanicController::class, 'index']);
     Route::get('/categories', [CategoryController::class, 'index']);
 
-    Route::post('/bgg-imports', [BggImportController::class, 'store'])->middleware('throttle:6,1');
+    Route::post('/bgg-imports', [BggImportController::class, 'store'])->middleware('throttle:6,1,bgg-import');
     // 30,1 (not the same 6,1 as the routes that actually trigger a BGG
     // request) - the frontend polls this one every 3s while an import is
     // pending, i.e. ~20 legitimate requests/min on its own; a strict 6,1
     // would throttle normal usage, not just abuse.
-    Route::get('/bgg-imports/{bggImport}', [BggImportController::class, 'show'])->middleware('throttle:30,1');
-    Route::post('/bgg-imports/csv', [BggCsvImportController::class, 'store'])->middleware('throttle:6,1');
+    Route::get('/bgg-imports/{bggImport}', [BggImportController::class, 'show'])->middleware('throttle:30,1,bgg-poll');
+    Route::post('/bgg-imports/csv', [BggCsvImportController::class, 'store'])->middleware('throttle:6,1,bgg-csv');
 
-    Route::get('/bgg-lookup/games/{bggId}', [BggLookupController::class, 'show'])->middleware('throttle:12,1');
+    Route::get('/bgg-lookup/games/{bggId}', [BggLookupController::class, 'show'])->middleware('throttle:12,1,bgg-lookup')->whereNumber('bggId');
 
     Route::get('/plays', [PlayController::class, 'index']);
     Route::get('/plays/stats', [PlayController::class, 'stats']);
-    Route::post('/bgg-plays-imports', [BggPlaysImportController::class, 'store'])->middleware('throttle:6,1');
+    Route::post('/bgg-plays-imports', [BggPlaysImportController::class, 'store'])->middleware('throttle:6,1,bgg-plays');
 });

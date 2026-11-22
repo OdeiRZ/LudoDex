@@ -44,6 +44,7 @@ export default {
       notice: 'Verify your email ({email}) to confirm your account.',
       resend: 'Resend',
       sending: 'Sending…',
+      resendError: 'Could not resend the email. Please try again in a while.',
     },
     verifyEmail: {
       successTitle: 'Email verified',

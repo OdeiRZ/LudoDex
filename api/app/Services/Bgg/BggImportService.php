@@ -17,9 +17,13 @@ class BggImportService
      * shouldn't strand an import in a permanent 'failed' state that the
      * polling loop can never recover from (see attempt()'s own re-entrant
      * guard above) - only give up once several polls in a row have all hit
-     * a transient error, since each poll is itself several minutes apart.
+     * a transient error. El sondeo de la web es cada 3 s (no cada varios minutos), así
+     * que 10 seguidos son unos 30 s de problemas continuos con BGG; un 202 ("sigo
+     * preparando la exportación") cuenta como contacto bueno y reinicia la cuenta.
      */
-    private const MAX_CONSECUTIVE_FAILURES = 3;
+    private const MAX_CONSECUTIVE_FAILURES = 10;
+
+    private const UPSERT_CHUNK = 500;
 
     public function __construct(
         private readonly BggClient $client,
@@ -39,6 +43,10 @@ class BggImportService
         $collection = $this->client->fetchCollection($import->bgg_username);
 
         if ($collection['status'] === 'pending') {
+            if ($import->failed_attempts > 0) {
+                $import->update(['failed_attempts' => 0]);
+            }
+
             return;
         }
 
@@ -98,6 +106,7 @@ class BggImportService
     {
         $now = Carbon::now();
         $rows = [];
+        $rowsSinDetalle = [];
         $tagsByBggId = [];
 
         foreach ($items as $item) {
@@ -106,7 +115,7 @@ class BggImportService
             $categories = $detail['categories'] ?? [];
             $mode = Game::inferModeFromTags($mechanics, $categories);
 
-            $rows[] = [
+            $fila = [
                 'id' => (string) Str::ulid(),
                 'bgg_id' => $item['bgg_id'],
                 'name' => $item['name'],
@@ -128,14 +137,36 @@ class BggImportService
                 'updated_at' => $now,
             ];
 
+            // BGG no devolvió el detalle de este juego (un trozo de /thing falló,
+            // 429 o tiempo agotado): no hay peso, valoración, ranking ni etiquetas.
+            // Si ya existía, esos datos NO se tocan; antes se ponían a NULL y los
+            // cooperativos pasaban a competitivos, para todos los dueños.
+            if ($detail === null) {
+                $rowsSinDetalle[] = $fila;
+
+                continue;
+            }
+
+            $rows[] = $fila;
             $tagsByBggId[$item['bgg_id']] = ['mechanics' => $mechanics, 'categories' => $categories];
         }
 
-        Game::upsert($rows, uniqueBy: ['bgg_id'], update: [
-            'name', 'image_url', 'description', 'min_players', 'max_players', 'min_playtime_minutes',
-            'max_playtime_minutes', 'weight', 'year_published', 'min_age', 'bgg_rank',
-            'rating', 'is_cooperative', 'is_competitive', 'has_campaign', 'updated_at',
-        ]);
+        // En lotes: con 19 columnas por juego, más de 3.449 no caben en una sentencia
+        // de PostgreSQL (65.535 parámetros).
+        foreach (array_chunk($rows, self::UPSERT_CHUNK) as $lote) {
+            Game::upsert($lote, uniqueBy: ['bgg_id'], update: [
+                'name', 'image_url', 'description', 'min_players', 'max_players', 'min_playtime_minutes',
+                'max_playtime_minutes', 'weight', 'year_published', 'min_age', 'bgg_rank',
+                'rating', 'is_cooperative', 'is_competitive', 'has_campaign', 'updated_at',
+            ]);
+        }
+
+        foreach (array_chunk($rowsSinDetalle, self::UPSERT_CHUNK) as $lote) {
+            Game::upsert($lote, uniqueBy: ['bgg_id'], update: [
+                'name', 'image_url', 'min_players', 'max_players', 'min_playtime_minutes',
+                'max_playtime_minutes', 'updated_at',
+            ]);
+        }
 
         $gamesByBggId = Game::whereIn('bgg_id', array_column($items, 'bgg_id'))->get()->keyBy('bgg_id')->all();
 
@@ -144,6 +175,8 @@ class BggImportService
         foreach ($tagsByBggId as $bggId => $tags) {
             $tagsByGameId[$gamesByBggId[$bggId]->id] = $tags;
         }
+        // Los juegos sin detalle no entran aquí: sincronizar con listas vacías les
+        // quitaría las mecánicas y categorías que ya tenían.
 
         $this->taxonomySyncer->syncManyFromBgg($tagsByGameId);
 

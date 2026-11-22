@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { AxiosError } from 'axios'
 import { createPinia, setActivePinia } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
 import { useFriendDetailStore } from '@/stores/friendDetail'
@@ -202,11 +203,27 @@ describe('useAuthStore', () => {
       const store = useAuthStore()
       await store.login({ email: user.email, password: 'secret' })
 
-      vi.mocked(apiClient.get).mockRejectedValueOnce(new Error('401'))
+      vi.mocked(apiClient.get).mockRejectedValueOnce(
+        new AxiosError('Unauthorized', 'ERR_BAD_REQUEST', undefined, undefined, {
+          status: 401,
+        } as never),
+      )
       await store.fetchCurrentUser()
 
       expect(store.user).toBeNull()
       expect(store.token).toBeNull()
+    })
+
+    it('keeps the session when /user fails for a reason other than a rejected token', async () => {
+      vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { user, token: 'abc123' } })
+      const store = useAuthStore()
+      await store.login({ email: user.email, password: 'secret' })
+
+      vi.mocked(apiClient.get).mockRejectedValueOnce(new Error('Network Error'))
+      await store.fetchCurrentUser()
+
+      expect(store.token).toBe('abc123')
+      expect(localStorage.getItem('ludodex_token')).toBe('abc123')
     })
   })
 })

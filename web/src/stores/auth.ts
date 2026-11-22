@@ -1,3 +1,4 @@
+import { isAxiosError } from 'axios'
 import { defineStore } from 'pinia'
 import { apiClient, clearStoredToken, getStoredToken, storeToken } from '@/lib/api'
 import { resetBootstrap, takeBootstrap } from '@/lib/bootstrap'
@@ -145,8 +146,13 @@ export const useAuthStore = defineStore('auth', {
       try {
         const { data } = await apiClient.get('/user')
         this.user = data
-      } catch {
-        this.clearSession()
+      } catch (err) {
+        // Solo un 401 (token caducado o revocado) acaba con la sesión. Sin red, con
+        // un 5xx o durante un arranque en frío el token sigue siendo válido: borrarlo
+        // obligaba a volver a escribir la contraseña (imposible estando sin conexión).
+        if (isAxiosError(err) && err.response?.status === 401) {
+          this.clearSession()
+        }
       }
     },
 

@@ -337,6 +337,73 @@ describe('ImportBggView', () => {
       expect(wrapper.text()).toContain('Importación completada: 5 juegos añadidos o actualizados.')
     })
 
+    it('keeps polling after a 429 or a 5xx instead of dropping an import that may still be running', async () => {
+      const { wrapper, store } = mountImport()
+      vi.spyOn(store, 'startBggImport').mockResolvedValue({
+        id: 'import-1',
+        bgg_username: 'odei',
+        status: 'pending',
+        imported_count: null,
+        error_message: null,
+      })
+      const pollSpy = vi
+        .spyOn(store, 'pollBggImport')
+        .mockRejectedValueOnce({ isAxiosError: true, response: { status: 429, data: {} } })
+        .mockRejectedValueOnce({ isAxiosError: true, response: { status: 502, data: {} } })
+        .mockResolvedValue({
+          id: 'import-1',
+          bgg_username: 'odei',
+          status: 'pending',
+          imported_count: null,
+          error_message: null,
+        })
+
+      await submitUsername(wrapper)
+      await vi.advanceTimersByTimeAsync(3000)
+      await flushPromises()
+      await vi.advanceTimersByTimeAsync(3000)
+      await flushPromises()
+
+      expect(wrapper.find('#bgg_username').exists()).toBe(false)
+      expect(localStorage.getItem('ludodex_pending_bgg_import')).toBe('import-1')
+      expect(pollSpy).toHaveBeenCalledTimes(2)
+      // Sigue pendiente: desmontar quita su aviso de beforeunload para los demás tests.
+      wrapper.unmount()
+    })
+
+    it('does not re-arm the polling when a request that was in flight settles after unmount', async () => {
+      const { wrapper, store } = mountImport()
+      vi.spyOn(store, 'startBggImport').mockResolvedValue({
+        id: 'import-1',
+        bgg_username: 'odei',
+        status: 'pending',
+        imported_count: null,
+        error_message: null,
+      })
+      let resolvePoll!: (value: unknown) => void
+      const pollSpy = vi
+        .spyOn(store, 'pollBggImport')
+        .mockReturnValue(new Promise((resolve) => (resolvePoll = resolve)) as never)
+
+      await submitUsername(wrapper)
+      await vi.advanceTimersByTimeAsync(3000)
+      expect(pollSpy).toHaveBeenCalledTimes(1)
+
+      wrapper.unmount()
+      resolvePoll({
+        id: 'import-1',
+        bgg_username: 'odei',
+        status: 'pending',
+        imported_count: null,
+        error_message: null,
+      })
+      await flushPromises()
+      await vi.advanceTimersByTimeAsync(10000)
+
+      expect(pollSpy).toHaveBeenCalledTimes(1)
+      localStorage.removeItem('ludodex_pending_bgg_import')
+    })
+
     it('stops and clears the persisted id when the server rejects the id outright', async () => {
       const { wrapper, store } = mountImport()
       vi.spyOn(store, 'startBggImport').mockResolvedValue({

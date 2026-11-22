@@ -4,6 +4,7 @@ import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useFriendsStore } from '@/stores/friends'
 import { prefetchBootstrap } from '@/lib/bootstrap'
+import { i18n } from '@/i18n'
 import { useToastStore } from '@/stores/toast'
 import UserAvatar from '@/components/UserAvatar.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
@@ -51,7 +52,12 @@ const isFriendsRoute = computed(() => route.name === 'friends' || route.name ===
 const isDev = import.meta.env.MODE === 'development'
 
 async function onLogout() {
-  await auth.logout()
+  try {
+    await auth.logout()
+  } catch {
+    // La sesión local ya está limpia (logout() la borra en su finally); si el
+    // servidor no contestó, el token queda sin revocar allí pero aquí ya no vale.
+  }
   router.push({ name: 'login' })
 }
 
@@ -132,6 +138,9 @@ async function onResendVerification() {
   resendSubmitting.value = true
   try {
     resendMessage.value = await auth.resendVerificationEmail()
+  } catch {
+    // 429 (demasiados reenvíos), 5xx o sin red: antes no se veía nada.
+    resendMessage.value = i18n.global.t('auth.verifyEmailBanner.resendError')
   } finally {
     resendSubmitting.value = false
   }

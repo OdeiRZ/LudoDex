@@ -119,6 +119,17 @@ describe('GameForm mode radio', () => {
 })
 
 describe('GameForm BGG lookup', () => {
+  it('says something when the lookup fails without a JSON message (no network, a gateway page)', async () => {
+    const { wrapper } = mountGameForm(reactiveForm({ bgg_id: 30549 }))
+    const games = useGamesStore()
+    vi.spyOn(games, 'lookupBggGame').mockRejectedValue({ isAxiosError: true, response: undefined })
+
+    await wrapper.find('.bgg-lookup-row button').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('[role="alert"]').text()).toBe('No se ha podido consultar BoardGameGeek.')
+  })
+
   it('fills year, recommended age, rank and rating from the lookup result, alongside the existing fields', async () => {
     const { wrapper, form } = mountGameForm(reactiveForm({ bgg_id: 30549 }))
     const games = useGamesStore()

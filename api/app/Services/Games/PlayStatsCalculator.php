@@ -66,7 +66,7 @@ class PlayStatsCalculator
         $totals = $user->plays()->toBase()
             ->selectRaw('COALESCE(SUM(quantity), 0) as total_plays')
             ->selectRaw('COUNT(DISTINCT game_id) as distinct_games')
-            ->selectRaw('COALESCE(SUM(CASE WHEN duration_minutes IS NOT NULL THEN quantity * duration_minutes ELSE 0 END), 0) as total_minutes')
+            ->selectRaw('COALESCE(SUM(CASE WHEN duration_minutes IS NOT NULL THEN CAST(quantity AS BIGINT) * duration_minutes ELSE 0 END), 0) as total_minutes')
             ->selectRaw('COALESCE(SUM(CASE WHEN duration_minutes IS NOT NULL THEN quantity ELSE 0 END), 0) as duration_known_plays')
             ->first();
 

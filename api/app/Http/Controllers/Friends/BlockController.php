@@ -29,7 +29,7 @@ class BlockController extends Controller
     {
         $block = $this->blockService->block($request->user(), $request->validated('user_id'));
 
-        return response()->json(['data' => ['id' => $block->id]], 201);
+        return response()->json(['data' => ['id' => $block?->id]], 201);
     }
 
     public function destroy(Request $request, UserBlock $block): Response

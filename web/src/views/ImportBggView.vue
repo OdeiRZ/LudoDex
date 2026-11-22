@@ -47,12 +47,22 @@ function clearPendingImportId() {
   localStorage.removeItem(PENDING_IMPORT_KEY)
 }
 
+// Tras desmontar la vista no se vuelve a armar ningún temporizador: una petición
+// que seguía en vuelo al salir terminaba y reprogramaba el sondeo (y cada vuelta a
+// la página sumaba otro bucle sobre el mismo id).
+let unmounted = false
+
+function schedule(fn: () => void) {
+  if (unmounted) return
+  pollTimer = setTimeout(fn, POLL_INTERVAL_MS)
+}
+
 function handleResult(result: BggImportStatus) {
   phase.value = result.status
 
   if (result.status === 'pending') {
     savePendingImportId(result.id)
-    pollTimer = setTimeout(() => poll(result.id), POLL_INTERVAL_MS)
+    schedule(() => poll(result.id))
     return
   }
 
@@ -76,7 +86,13 @@ async function poll(id: string) {
     const result = await games.pollBggImport(id)
     handleResult(result)
   } catch (err) {
-    if (isAxiosError(err) && err.response) {
+    // Solo 403/404 son definitivos: este id no es nuestro o la fila ya no existe.
+    // Un 429 (límite de peticiones) o un 502/503/504 (la API despertando o
+    // reiniciándose) son pasajeros, y la importación puede seguir su curso en el
+    // servidor: se sigue sondeando en vez de darla por perdida.
+    const status = isAxiosError(err) ? err.response?.status : undefined
+
+    if (status === 403 || status === 404) {
       // A real response came back and it wasn't OK (e.g. this id doesn't
       // belong to us, or the row is gone) - stop chasing a stale id
       // instead of retrying it forever.
@@ -87,11 +103,10 @@ async function poll(id: string) {
       return
     }
 
-    // No response at all - a dropped connection, or the tab just resumed
-    // from being backgrounded/a free-tier cold start - transient, so keep
-    // trying rather than losing track of an import that may still be
-    // working fine on BGG's own side.
-    pollTimer = setTimeout(() => poll(id), POLL_INTERVAL_MS)
+    // Sin respuesta (conexión caída, pestaña recién reanudada, arranque en frío
+    // del plan gratuito) o con un error pasajero: se sigue intentando en vez de
+    // perder una importación que puede ir bien por el lado de BGG.
+    schedule(() => poll(id))
   }
 }
 
@@ -121,11 +136,13 @@ async function attemptStart(usernameValue: string) {
     // the import" when it may well have gone through - the backend reuses
     // a still-pending import for this username instead of starting a
     // duplicate, so retrying here is safe.
-    pollTimer = setTimeout(() => attemptStart(usernameValue), POLL_INTERVAL_MS)
+    schedule(() => attemptStart(usernameValue))
   }
 }
 
 onUnmounted(() => {
+  unmounted = true
+
   if (pollTimer) {
     clearTimeout(pollTimer)
   }

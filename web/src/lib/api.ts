@@ -69,7 +69,7 @@ apiClient.interceptors.response.use(
   (error) => {
     if (axios.isAxiosError(error) && error.response?.status === 401 && getStoredToken() !== null) {
       useAuthStore().clearSession()
-      useToastStore().show(i18n.global.t('auth.sessionExpired'))
+      useToastStore().show(i18n.global.t('auth.sessionExpired'), 'error')
       router.push({ name: 'login' })
     }
 
