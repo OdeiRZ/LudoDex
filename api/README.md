@@ -201,7 +201,10 @@ hasta pegar uno nuevo. Se ejecuta siempre desde local (producción no
 tiene forma de alcanzar tu máquina), en las dos direcciones: hacia
 producción vía el propio `POST /api/games/backfill-translations`, y
 hacia local escribiendo directamente en la base de datos (sin pasar por
-HTTP, al correr ya en el mismo proceso).
+HTTP, al correr ya en el mismo proceso). Lo que ya hay en producción lo lee
+de `GET /api/games/translations` (`bgg_id` + `description_es` de los juegos
+traducidos, solo el dueño, 6/minuto): `GET /games` dejó de llevar las
+descripciones, y de ahí las leía antes.
 
 `POST /api/games/backfill-translations` escribe en el catálogo de
 juegos compartido, no en nada propio de quien llama, así que un simple

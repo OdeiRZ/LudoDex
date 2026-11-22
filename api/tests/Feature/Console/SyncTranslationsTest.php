@@ -74,8 +74,8 @@ it('does not write anything in --dry-run, only reports what would change', funct
     Http::assertNotSent(fn ($request) => $request->url() === 'https://prod.example/api/games/backfill-translations');
 });
 
-it('fails cleanly when fetching production\'s own game list fails', function () {
-    Http::fake(['https://prod.example/api/games' => Http::response('server error', 500)]);
+it('fails cleanly when fetching production\'s own translations fails', function () {
+    Http::fake(['https://prod.example/api/games/translations' => Http::response('server error', 500)]);
 
     $this->artisan('translations:sync')->assertExitCode(1);
 });
