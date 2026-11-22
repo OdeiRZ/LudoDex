@@ -232,7 +232,7 @@ La suite usa Pest y `RefreshDatabase` (SQLite en memoria durante los tests).
 | GET    | `/api/user`     | Sí   | Devuelve el usuario autenticado |
 | GET    | `/api/bootstrap` | Sí  | Todo lo que la app pide al abrirse (usuario, colección, catálogos, amigos, solicitudes, bloqueos) en una respuesta condicional con `ETag` — ver "Arranque en una petición" más abajo |
 | GET    | `/api/games/{game}/description` | Sí | Sinopsis de BGG de un juego y su traducción (la usa el modal de detalle; las listas no la llevan) |
-| PUT    | `/api/user`     | Sí   | Actualiza nombre/email/usuario de BGG |
+| PUT    | `/api/user`     | Sí   | Actualiza nombre/email/usuario de BGG (cambiar el email exige `current_password`) |
 | PUT    | `/api/user/password` | Sí | Cambia la contraseña (exige `current_password`; limitado a 6/minuto) |
 | POST   | `/api/forgot-password` | No | Envía el email de recuperación de contraseña (limitado a 6/minuto) |
 | POST   | `/api/reset-password` | No | Cambia la contraseña dado un `token` y `email` válidos (limitado a 6/minuto) |

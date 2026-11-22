@@ -192,12 +192,17 @@ class FriendshipService
      */
     public function areFriends(User $a, User $b): bool
     {
+        // Las dos direcciones van dentro de UN solo where(): con ->accepted()
+        // y un ->orWhere() suelto, la rama inversa se evaluaba sin el filtro
+        // de estado y una solicitud PENDIENTE recibida contaba como amistad
+        // (quien la recibía veía la colección y las partidas de quien la envió).
         return Friendship::accepted()
             ->where(function ($query) use ($a, $b) {
-                $query->where('requester_id', $a->id)->where('recipient_id', $b->id);
-            })
-            ->orWhere(function ($query) use ($a, $b) {
-                $query->where('requester_id', $b->id)->where('recipient_id', $a->id);
+                $query->where(function ($query) use ($a, $b) {
+                    $query->where('requester_id', $a->id)->where('recipient_id', $b->id);
+                })->orWhere(function ($query) use ($a, $b) {
+                    $query->where('requester_id', $b->id)->where('recipient_id', $a->id);
+                });
             })
             ->exists();
     }

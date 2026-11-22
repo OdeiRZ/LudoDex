@@ -23,6 +23,14 @@ class UpdateProfileRequest extends FormRequest
                 'required', 'string', 'email', 'max:255',
                 Rule::unique('users', 'email')->ignore($this->user()->id),
             ],
+            // Cambiar el email exige la contraseña actual: con solo el token (120
+            // días) bastaba para poner el correo de otra persona y, con "olvidé
+            // mi contraseña", quedarse con la cuenta. Sin cambio de email no se pide.
+            'current_password' => [
+                Rule::requiredIf(fn () => $this->input('email') !== $this->user()->email),
+                'nullable',
+                'current_password:sanctum',
+            ],
             // Optional: when set (or changed), the controller tries to pull
             // an avatar from this BGG account - best-effort, never blocks
             // saving the rest of the profile if BGG can't be reached.

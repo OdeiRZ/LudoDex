@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia'
 import { apiClient, clearStoredToken, getStoredToken, storeToken } from '@/lib/api'
 import { resetBootstrap, takeBootstrap } from '@/lib/bootstrap'
+import { useFriendDetailStore } from './friendDetail'
 import { useFriendsStore } from './friends'
 import { useGamesStore } from './games'
 import { usePlaysStore } from './plays'
+import { useShareLinkStore } from './shareLink'
 
 export interface User {
   id: number
@@ -33,6 +35,8 @@ interface UpdateProfilePayload {
   name: string
   email: string
   bgg_username?: string | null
+  // Solo hace falta (y solo se envía) al cambiar el email.
+  current_password?: string
   discoverable: boolean
   share_activity: boolean
   interaction_feedback_enabled: boolean
@@ -173,6 +177,16 @@ export const useAuthStore = defineStore('auth', {
       useGamesStore().$reset()
       usePlaysStore().$reset()
       useFriendsStore().$reset()
+      // El enlace público y el detalle de un amigo también eran de esta cuenta:
+      // sin esto, la siguiente cuenta de la misma pestaña veía el enlace de la
+      // anterior (con botón de copiar) y sus listas de amigo.
+      useShareLinkStore().$reset()
+      useFriendDetailStore().$reset()
+      try {
+        localStorage.removeItem('ludodex_pending_bgg_import')
+      } catch {
+        // sin acceso al almacenamiento: nada que limpiar
+      }
     },
   },
 })

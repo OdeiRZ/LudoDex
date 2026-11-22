@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
+import { useFriendDetailStore } from '@/stores/friendDetail'
 import { useFriendsStore } from '@/stores/friends'
 import { useGamesStore } from '@/stores/games'
 import { usePlaysStore } from '@/stores/plays'
+import { useShareLinkStore } from '@/stores/shareLink'
 import { apiClient } from '@/lib/api'
 
 vi.mock('@/lib/api', async (importOriginal) => {
@@ -115,6 +117,27 @@ describe('useAuthStore', () => {
     expect(plays.loaded).toBe(false)
     expect(friends.incomingRequests).toEqual([])
     expect(friends.loaded).toBe(false)
+  })
+
+  it('also forgets the share link, the friend detail and a pending BGG import on logout', async () => {
+    vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { user, token: 'abc123' } })
+    const auth = useAuthStore()
+    await auth.login({ email: user.email, password: 'secret' })
+
+    const shareLink = useShareLinkStore()
+    shareLink.link = { token: 'secreto-de-A' } as never
+    shareLink.loaded = true
+    const friendDetail = useFriendDetailStore()
+    friendDetail.collectionLoaded = true
+    localStorage.setItem('ludodex_pending_bgg_import', '42')
+
+    vi.mocked(apiClient.post).mockResolvedValueOnce({})
+    await auth.logout()
+
+    expect(shareLink.link).toBeNull()
+    expect(shareLink.loaded).toBe(false)
+    expect(friendDetail.collectionLoaded).toBe(false)
+    expect(localStorage.getItem('ludodex_pending_bgg_import')).toBeNull()
   })
 
   it('updates the profile from the API response', async () => {

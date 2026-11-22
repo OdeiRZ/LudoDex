@@ -214,6 +214,18 @@ class BggCsvImportService
             $now = Carbon::now();
             $newGameRows = [];
 
+            // El catálogo de juegos es compartido: un CSV (datos que escribe el
+            // usuario, no BGG) solo puede actualizar una fila que nadie más tiene,
+            // igual que UserGamePolicy::updateGame para el formulario. Si otro
+            // usuario ya la tiene, se enlaza tal cual sin tocar nombre, peso,
+            // valoración...: eso solo cambia con una reimportación desde BGG.
+            $compartidos = $existingGames->isEmpty()
+                ? collect()
+                : UserGame::whereIn('game_id', $existingGames->pluck('id'))
+                    ->where('user_id', '!=', $user->id)
+                    ->pluck('game_id')
+                    ->flip();
+
             foreach ($plans as $bggId => $plan) {
                 $existing = $existingGames->get($bggId);
 
@@ -222,7 +234,9 @@ class BggCsvImportService
                     // already the row from the bulk fetch above. Sparse
                     // $attributes means this still only ever touches the
                     // columns this row actually had data for.
-                    $existing->update($plan['attributes']);
+                    if (! $compartidos->has($existing->id)) {
+                        $existing->update($plan['attributes']);
+                    }
                     $gamesByBggId[$bggId] = $existing;
 
                     continue;

@@ -3,6 +3,7 @@
 use App\Models\Category;
 use App\Models\Game;
 use App\Models\Mechanic;
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -77,6 +78,23 @@ it('imports an owned game, taking player counts from BGG\'s own columns and mode
         ->and($game->weight)->toBe(2.8);
 
     expect($user->games()->where('game_id', $game->id)->first()->status)->toBe('owned');
+});
+
+it('does not rewrite a catalog game that another user already has', function () {
+    $other = User::factory()->create();
+    $game = Game::factory()->create(['bgg_id' => 191189, 'name' => "Aeon's End", 'weight' => 2.8]);
+    $other->games()->create(['game_id' => $game->id, 'status' => 'owned']);
+    $user = actingAsUser();
+
+    $file = csvUpload(CSV_HEADER, [
+        ['"Nombre falso"', '191189', 'standalone', '1', '0', '""', '4.9', ...CSV_EXTRA, '9', '9'],
+    ]);
+
+    postCsv($file)->assertOk();
+
+    $game->refresh();
+    expect($game->name)->toBe("Aeon's End")->and($game->weight)->toBe(2.8);
+    expect($user->games()->where('game_id', $game->id)->exists())->toBeTrue();
 });
 
 it('imports a wishlist game as wishlist, not owned', function () {

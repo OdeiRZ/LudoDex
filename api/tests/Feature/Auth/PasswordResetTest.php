@@ -148,6 +148,17 @@ it('revokes every existing token on a successful reset', function () {
     $this->withToken($staleToken)->getJson('/api/user')->assertUnauthorized();
 });
 
+it('gives the same answer to a reset for an unknown email and for a wrong token', function () {
+    User::factory()->create(['email' => 'odei@example.com']);
+    $payload = ['token' => 'x', 'password' => 'new-password1', 'password_confirmation' => 'new-password1'];
+
+    $known = $this->postJson('/api/reset-password', ['email' => 'odei@example.com', ...$payload]);
+    $unknown = $this->postJson('/api/reset-password', ['email' => 'nadie@example.com', ...$payload]);
+
+    $known->assertUnprocessable();
+    expect($unknown->json('errors.email'))->toBe($known->json('errors.email'));
+});
+
 it('rejects an invalid reset token', function () {
     User::factory()->create(['email' => 'odei@example.com']);
 

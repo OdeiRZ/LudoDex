@@ -363,6 +363,7 @@ export default {
     genericError: 'No se han podido guardar los cambios.',
     changePassword: 'Cambiar contraseña',
     currentPassword: 'Contraseña actual',
+    currentPasswordForEmail: 'Contraseña actual (necesaria para cambiar el email)',
     newPassword: 'Nueva contraseña',
     newPasswordConfirmation: 'Repite la nueva contraseña',
     passwordSaved: 'Contraseña actualizada.',

@@ -31,10 +31,15 @@ class FriendRequestReceivedNotification extends Notification
         // points at the frontend directly, not a server-rendered route.
         $url = rtrim((string) config('app.frontend_url'), '/').'/friends';
 
+        // El nombre lo escribe quien envía la solicitud y la plantilla renderiza
+        // Markdown: sin esto, "[Confirma tu cuenta](https://...)" o una imagen
+        // llegaban a un tercero como parte de un correo del remitente real.
+        $name = trim(str_replace(['[', ']', '(', ')', '<', '>', '`'], '', (string) $this->requester->name));
+
         return (new MailMessage)
-            ->subject(__('mail.friend_request.subject', ['name' => $this->requester->name]))
+            ->subject(__('mail.friend_request.subject', ['name' => $name]))
             ->greeting(__('mail.friend_request.greeting'))
-            ->line(__('mail.friend_request.intro', ['name' => $this->requester->name]))
+            ->line(__('mail.friend_request.intro', ['name' => $name]))
             ->action(__('mail.friend_request.action'), $url)
             ->line(__('mail.friend_request.outro'))
             ->salutation(__('mail.friend_request.salutation'));

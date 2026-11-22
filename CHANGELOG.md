@@ -7,6 +7,34 @@ proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Revisión de noviembre: seguridad y privacidad
+
+- **Corregido: una solicitud de amistad PENDIENTE contaba como amistad.**
+  `FriendshipService::areFriends()` dejaba el filtro `status = accepted` solo en
+  una de las dos direcciones, así que quien recibía una solicitud podía ver la
+  colección, las partidas y las estadísticas de quien la había enviado, sin
+  aceptarla. Ahora las dos direcciones van dentro de un único `where` y una
+  solicitud pendiente da el mismo 404 que un desconocido.
+- **Cambiar el email exige la contraseña actual** (`PUT /api/user` →
+  `current_password`; el perfil enseña el campo solo si el email cambia). Con
+  solo el token (120 días) bastaba para poner el correo de otra persona y,
+  con "olvidé mi contraseña", quedarse con la cuenta.
+- **Corregido: el CSV reescribía el catálogo compartido.** Un CSV (datos que
+  escribe el usuario) actualizaba nombre, peso, valoración, jugadores... de un
+  juego que otros usuarios también tienen, saltándose la regla que ya aplica el
+  formulario (`UserGamePolicy::updateGame`). Ahora solo actualiza juegos que
+  nadie más tiene; los demás se enlazan sin tocar.
+- **`POST /api/reset-password` ya no revela si un email está registrado:** un
+  email desconocido y un token inválido dan el mismo mensaje (como ya hacía
+  `/forgot-password`).
+- **El nombre del solicitante en el email de amistad** ya no puede llevar
+  enlaces ni imágenes Markdown (se quitan `[ ] ( ) < >` y las comillas
+  invertidas).
+- **Corregido: la cuenta siguiente veía el enlace público de la anterior.**
+  Cerrar sesión no reiniciaba los stores del enlace público ni del detalle de
+  un amigo, ni la importación de BGG pendiente guardada en el navegador; ahora
+  sí.
+
 ### Lavado de cara: datos de los juegos, partidas, aviso del servidor y tipografía
 
 - **Corregido: rangos "2–2 jugadores" y "30–30 min".** Cuando coincidían los

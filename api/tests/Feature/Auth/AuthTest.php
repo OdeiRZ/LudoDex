@@ -209,6 +209,7 @@ it('updates the authenticated user\'s name and email', function () {
     $response = $this->putJson('/api/user', [
         'name' => 'Nuevo Nombre',
         'email' => 'nuevo@example.com',
+        'current_password' => 'password',
     ]);
 
     $response->assertOk()->assertJsonPath('user.email', 'nuevo@example.com');
@@ -216,6 +217,21 @@ it('updates the authenticated user\'s name and email', function () {
     expect($user->refresh())
         ->name->toBe('Nuevo Nombre')
         ->email->toBe('nuevo@example.com');
+});
+
+it('asks for the current password to change the email, but not for the rest of the profile', function () {
+    $user = actingAsUser();
+
+    $this->putJson('/api/user', ['name' => 'Otro Nombre', 'email' => 'otro@example.com'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('current_password');
+
+    $this->putJson('/api/user', ['name' => 'Otro Nombre', 'email' => 'otro@example.com', 'current_password' => 'incorrecta'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('current_password');
+    expect($user->fresh()->email)->not->toBe('otro@example.com');
+
+    $this->putJson('/api/user', ['name' => 'Otro Nombre', 'email' => $user->email])->assertOk();
 });
 
 it('rejects a profile update with an email already used by another user', function () {
@@ -251,6 +267,7 @@ it('resets email verification and sends a new verification email when the email 
     $this->putJson('/api/user', [
         'name' => $user->name,
         'email' => 'nuevo@example.com',
+        'current_password' => 'password',
     ])->assertOk();
 
     expect($user->fresh()->email_verified_at)->toBeNull();

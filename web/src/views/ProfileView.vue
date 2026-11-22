@@ -35,11 +35,14 @@ function onSelectLocale(value: Locale) {
 const profileForm = reactive({
   name: '',
   email: '',
+  current_password: '',
   bgg_username: '' as string | null,
   discoverable: false,
   share_activity: true,
   interaction_feedback_enabled: true,
 })
+// Cambiar el email pide la contraseña actual (ver UpdateProfileRequest).
+const emailChanged = computed(() => !!auth.user && profileForm.email !== auth.user.email)
 const profileErrors = ref<Record<string, string[]>>({})
 const profileSubmitting = ref(false)
 const profileSaved = ref(false)
@@ -74,7 +77,13 @@ async function onSubmitProfile() {
   profileSubmitting.value = true
 
   try {
-    await wrapProfile(auth.updateProfile(profileForm))
+    const { current_password: currentPassword, ...rest } = profileForm
+    await wrapProfile(
+      auth.updateProfile(
+        emailChanged.value ? { ...rest, current_password: currentPassword } : rest,
+      ),
+    )
+    profileForm.current_password = ''
     profileSaved.value = true
   } catch (err) {
     if (isAxiosError(err) && err.response?.status === 422) {
@@ -168,6 +177,25 @@ async function onSubmitPassword() {
           />
           <p
             v-for="message in profileErrors.email"
+            :key="message"
+            role="alert"
+            class="alert alert-error"
+          >
+            {{ message }}
+          </p>
+        </div>
+
+        <div v-if="emailChanged">
+          <label for="email_current_password">{{ $t('profile.currentPasswordForEmail') }}</label>
+          <input
+            id="email_current_password"
+            v-model="profileForm.current_password"
+            type="password"
+            required
+            autocomplete="current-password"
+          />
+          <p
+            v-for="message in profileErrors.current_password"
             :key="message"
             role="alert"
             class="alert alert-error"

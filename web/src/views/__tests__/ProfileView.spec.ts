@@ -74,6 +74,25 @@ describe('ProfileView personal data form', () => {
     expect(wrapper.find('[role="status"]').text()).toBe('Cambios guardados.')
   })
 
+  it('asks for the current password only when the email changes, and sends it with the change', async () => {
+    const { wrapper, store } = mountProfile()
+    await flushPromises()
+    vi.spyOn(store, 'updateProfile').mockResolvedValue()
+
+    expect(wrapper.find('#email_current_password').exists()).toBe(false)
+
+    await wrapper.find('#email').setValue('nuevo@example.com')
+    expect(wrapper.find('#email_current_password').exists()).toBe(true)
+
+    await wrapper.find('#email_current_password').setValue('mi-clave')
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(store.updateProfile).toHaveBeenCalledWith(
+      expect.objectContaining({ email: 'nuevo@example.com', current_password: 'mi-clave' }),
+    )
+  })
+
   it('includes the discoverable flag when the checkbox is toggled on', async () => {
     const { wrapper, store } = mountProfile()
     await flushPromises()

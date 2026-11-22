@@ -61,6 +61,15 @@ it('treats the same catalog game shared by two accounts as shared, not duplicate
     $response->assertJsonCount(1, 'data.shared');
 });
 
+it('does not treat a pending request received from someone as a friendship', function () {
+    $me = actingAsUser();
+    $sender = User::factory()->create();
+    Friendship::factory()->create(['requester_id' => $sender->id, 'recipient_id' => $me->id]);
+
+    $this->getJson("/api/friends/{$sender->id}/games")->assertNotFound();
+    $this->getJson("/api/friends/{$sender->id}/plays")->assertNotFound();
+});
+
 it('returns the friend\'s public info without leaking their email', function () {
     $me = actingAsUser();
     $friend = User::factory()->create(['name' => 'Friend One', 'email' => 'friend@example.com']);

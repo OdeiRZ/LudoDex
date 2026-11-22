@@ -50,6 +50,11 @@ class PasswordResetController extends Controller
         );
 
         if ($status !== Password::PASSWORD_RESET) {
+            // "Usuario no encontrado" y "token inválido" daban mensajes distintos
+            // y permitían saber qué emails están registrados (sendResetLink()
+            // ya evita justo eso): ambos casos dicen lo mismo.
+            $status = $status === Password::INVALID_USER ? Password::INVALID_TOKEN : $status;
+
             throw ValidationException::withMessages(['email' => [__($status)]]);
         }
 

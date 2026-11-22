@@ -364,6 +364,7 @@ export default {
     genericError: "Couldn't save the changes.",
     changePassword: 'Change password',
     currentPassword: 'Current password',
+    currentPasswordForEmail: 'Current password (needed to change the email)',
     newPassword: 'New password',
     newPasswordConfirmation: 'Confirm new password',
     passwordSaved: 'Password updated.',
